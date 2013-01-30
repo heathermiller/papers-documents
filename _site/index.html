@@ -9,8 +9,8 @@
     
     <meta name="author" content="">
 
-    <link rel="stylesheet" href="pickling-design-doc/css/styles.css">
-    <link rel="stylesheet" href="pickling-design-doc/css/pygment_trac.css">
+    <link rel="stylesheet" href="css/styles.css">
+    <link rel="stylesheet" href="css/pygment_trac.css">
 
     <meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no">
     <!--[if lt IE 9]>
@@ -31,7 +31,33 @@
       <section class="main">
         <h1>Scala Pickling <i>[Design Document]</i></h1>
 
+<p><strong>Heather Miller</strong></p>
+
 <p>There has never been a Scala-specific solution to serialization which can supports certain aspects of Scala&#8217;s type system, nor which can generate serialization-related boilerplate at compile-time. Even the fastest Java serialization frameworks must generate all pickler-related code at runtime, which in preliminary benchmarks amounts to a factor 10 slow-down over a naive but fully-static pickler combinator-based approach.</p>
+
+<pre><code>[info] Running JavaSerializationListBench 5
+JavaSerializationListBench$ 303 139 110 124 100
+Bytes: 1000297
+Avg: 155.2
+
+[info] Running KryoVectorBench 5
+KryoVectorBench$  192 139 57  49  44
+Bytes: 514098 (51% the size of Java serialized representation)
+Avg: 96.2
+
+[info] Running PicklerListBench 5
+PicklerListBench$ 43  5 6 7 9
+Bytes: 400004 (40% the size of Java serialized representation)
+Avg: 70
+
+[info] Running PicklerUnsafeListBench 5
+PicklerUnsafeListBench$ 23  14  3   3   3
+Bytes: 400004 (40% the size of Java serialized representation)
+Avg: 9.2</code></pre>
+
+<p>The goal of this project is a new framework for pickling (or serialization). The idea is to automatically generate pickler combinators.</p>
+
+<p>The main contribution would be to extend existing approaches to pickler combinators with support for OO mechanisms, such as subclassing. An ideal plan for the design is below. The hope is that we can work together on the code generation parts of this.</p>
 
 <p><strong>Guiding principles:</strong></p>
 
@@ -48,10 +74,6 @@
 <p><strong>Short-term goal:</strong> submission to OOPSLA 2013.</p>
 
 <p><strong>Medium-term goal:</strong> SIP and inclusion in Scala 2.11.</p>
-
-<h2 id='design'>Design</h2>
-
-<p>We&#8217;re building a framework for pickling (or serialization). The idea is to automatically generate picklers. The main contribution would be to extend existing approaches to pickler combinators with support for OO mechanisms, such as subclassing. An ideal plan for the design is below. The hope is that we can work together on the code generation parts of this.</p>
 
 <p>A crucial part of the entire effort is the generation of the pickling code at compile time. For example, one would expect to be able to call <code>pickle</code> on an arbitrary object, via an implicit conversion or an implicit class. For example,</p>
 

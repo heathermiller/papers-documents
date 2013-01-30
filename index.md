@@ -1,179 +1,211 @@
----
+<!-- ---
 layout: page
 title: Scala Pickling <i>[Design Document]</i>
----
+--- -->
+
+# Scala Pickling _[Design Document]_
+
+**Heather Miller**
 
 There has never been a Scala-specific solution to serialization which can
-supports certain aspects of Scala's type system, nor which can generate
+support certain aspects of Scala's type system, nor which can generate
 serialization-related boilerplate at compile-time. Even the fastest Java
 serialization frameworks must generate all pickler-related code at runtime,
 which in preliminary benchmarks amounts to a factor 10 slow-down over a naive
 but fully-static pickler combinator-based approach.
 
+    [info] Running JavaSerializationListBench 5
+    JavaSerializationListBench$ 303 139 110 124 100
+    Bytes: 1000297
+    Avg: 155.2
+
+    [info] Running KryoVectorBench 5
+    KryoVectorBench$  192 139 57  49  44
+    Bytes: 514098 (51% the size of Java serialized representation)
+    Avg: 96.2
+
+    [info] Running PicklerListBench 5
+    PicklerListBench$ 43  5 6 7 9
+    Bytes: 400004 (40% the size of Java serialized representation)
+    Avg: 14
+
+    [info] Running PicklerUnsafeListBench 5
+    PicklerUnsafeListBench$ 23  14  3   3   3
+    Bytes: 400004 (40% the size of Java serialized representation)
+    Avg: 9.2
+
+The goal of this project is a new framework for pickling (or serialization).
+The idea is to automatically generate pickler combinators at compile-time.
+
+The main contribution would be to extend existing approaches to pickler
+combinators with support for object-oriented mechanisms, such as subclassing.
+
 **Guiding principles:**
 
-- Should be more typesafe than Java serialization.
-- Should be faster than Java serialization.
-- Should be more extensible than Java serialization.
-- Should not be more complicated to think about than Java serialization.
+Scala Pickling should be:
 
-**Short-term goal:** submission to OOPSLA 2013.
+- more typesafe than Java serialization.
+- faster than Java serialization.
+- more extensible than Java serialization.
+- but should not be more complicated to think about than Java serialization.
+
+**Short-term goal:** submission to
+[OOPSLA 2013](http://splashcon.org/2013/cfp/due-march-28-2013)
+(March 28th). See the  [OOPSLA contributions sketch](oopsla-contributions.html)
+for a rough idea of the plan for the
+paper's potential contributions.
 
 **Medium-term goal:** SIP and inclusion in Scala 2.11.
 
+**Status:** Design reasonably well worked out. Early stages of prototypical implementation.
+
+## Overview
+
+The project is made up of many components, which will all be covered in more
+detail in their corresponding sections below:
+
+- the overall design and architecture
+- the intermediate representation of to-be-pickled and to-be-unpickled objects
+- precisely what transformations take place and under what conditions
+- swappable backends, for generating different pickle formats
+
+## Usage
+
+Ideally, a user would use the Scala Pickling framework as follows,
+
+    class Person(name: String, age: Int)
+
+    val p: Person = new Person("Bob", 61)
+    val bytes = p.pickle
+
+That is, the assumption is that you would be able to directly call a `pickle`
+method on an object where `pickle` might not be defined. In this case, most of
+the time, the framework should be able to generate all relevant pickler
+combinators for your arbitrary object at compile-time.
+
+Furthermore, the user should also be able to select pickle formats. By
+default, a _Scala Binary_ format would be used, but it's planned to add
+support for JSON and Protobuf as well. A user would select an alternate pickle
+format as follows:
+
+    import scala.pickling.JSONFormat
+
+    class Person(name: String, age: Int)
+
+    val p: Person = new Person("Bob", 61)
+    val bytes = p.pickle
+
+That is, alternate pickling formats would be represented as implicit values
+which simply need to be in scope. Thus, extensibility for alternate back-ends
+should be quite easy.
+
 ## Design
 
-We're building a framework for pickling (or serialization). The idea is to
-automatically generate picklers. The main contribution would be to extend
-existing approaches to pickler combinators with support for OO mechanisms,
-such as subclassing. An ideal plan for the design is below. The hope is that
-we can work together on the code generation parts of this.
+### Front-end
 
-A crucial part of the entire effort is the generation of the pickling code at
-compile time. For example, one would expect to be able to call `pickle` on an
-arbitrary object, via an implicit conversion or an implicit class. For
-example,
+The compile-time generation of picklers is provided by a simple implicit
+conversion and an implicit macro. A rough sketch is as follows:
+
+1. Implicit search triggered by a `pickle` (or, conversely, `unpickle`) call on an arbitrary object.
+2. Implicit class, or implicit conversion kicks in which provides the a dummy `pickle` method which takes an implicit `Pickler` as a parameter.
+3. `Pickler` generated by an implicit macro.
+
+To elaborate step-by-step: (as all of the expansions can get a bit confusing).
+
+If we were to use an implicit class, `PickleOps`,
 
     implicit class PickleOps[T](x: T) {
-      def pickle(implicit pickler: Pickler[T]): Pickle[T] = ...
+      def pickle(implicit pickler: Pickler[T]) = pickler.pickle(x)
     }
 
-Note that the implicit `pickler` argument should be generated automatically.
-There are some difficulties. For example, if `T` is a class `C` with private
-fields, then the `Pickler[C]` would need to have access to those fields.
+our "dummy method" pimped onto our arbitrary object would be the `pickle`
+method of `PickleOps`. The dummy method can then delegate all of its work to
+the `Pickler` parameter. Calling the above `pickle` method of class
+`PickleOps` requires an implicit argument of type `Pickler[T]`. This `Pickler`
+contains the logic for actually picking the object `x` (the constructor
+argument of `PickleOps`). The `Pickler` object can be generated at compile
+time using an implicit macro as follows.
 
-One approach would be to generate this `Pickler[C]` in `C`'s companion object.
-However, when compiling class `C` it cannot, in general, be known whether
-instances of this class are going to be pickled in other parts of the program
-(those other parts could be separately compiled). There is a case, though,
-where we have more information. For example, when class `C` is compiled in a
-compilation unit which also contains code which requires an implicit value of
-type `Pickler[C]`, then we know instances of class `C` are potentially
-pickled. In that case, we could generate the pickler in `C`'s companion
-object.
+First, we need to have the following defs in scope:
 
-If we cannot add the pickler to the companion object of a class, because we
-don't know whether instances of that class are ever pickled, we need to fall
-back to a dynamically-generated pickler. Apart from a difference in accessing
-private fields, the code for a fall-back pickler should be the same as for a
-regular pickler, except that the generation of the fall back is executed at
-runtime.
+    implicit def genPickler[T]: Pickler[T] = macro genPicklerImpl
+    def genPicklerImpl[...](...): Expr[Pickler[T]]
 
-    implicit val pickler: Pickler[C] = new Pickler[C] {
-      def pickle(o: C): Pickle[C] = {
-        // obtain types of fields
-        // obtain superclass (if any)
-        // ...
-      }
+That is, we arrange things so that this (second) round of implicit search will
+find the implicit def `genPickler` when searching for the implicit
+`Pickler[T]`.
+
+Thus, a call to `pickle` would be expanded to
+
+    PickleOps(p).pickle(genPickler)
+
+which expands to
+
+    genPickler.pickle(p)
+
+which, in turn, is expanded by the macro implementation.
+
+**Please note** that several scenarios aren't fully-supported with this
+approach so far. In particular, private fields, separate compilation  in
+particular with private fields, or constructor arguments cannot be supported
+using this initial approach alone. In a later section, Macro/Compiler-related
+Implementation requirements, an extension is outlined which would enable
+support for these cases.
+
+### Compiler Transformations
+
+Following the above chain of interactions, our macro must generate a
+`Pickler[T]` parameterized on the type for which we desire a pickler.
+`Pickler` can be thought of as simply:
+
+    trait Pickler[T] {
+      def pickle(obj: T): Pickle = ...
+      def unpickle(p: Pickle): T = ...
     }
 
-Another issue is constructor parameters. To get access to those for pickling,
-we could generate synthetic private fields inside the class, which could then
-be accessed inside the companion object.
+Where `Pickle` represents the resulting pickle format (its internal value type
+could be a `String` as in the case of JSON, or `Array[Byte]` in the case of
+the Scala Binary format, for example). This is covered in more detail in the
+corresponding section: Back-end, Selecting Different Pickle Formats.
 
-    class Person(name: String, age: Int) {
-      var grades = List[String]()
-      // synthetic:
-      private def ctorArgs: Array[Any]
-    }
+Given a small motivating example:
 
-    object Person {
-      implicit val pickler: Pickler[Person] = {
-        // look up/generate picklers for types of fields: String, Int, List, ...
-      }
-    }
+    class Person { var name: String = _ ; var age: Int = _ }
+    class Employee extends Person { var position: String = _ }
 
-One tricky bit is to be able to add members both to the class and its
-companion object. To be idealistic, let's assume we can do this for now.
+Say we want to generate a `Pickler[Employee]`. The idea is to generate its
+`pickle` and `unpickle` methods as follows:
 
-The `Pickler[T]` trait contains a method `unpickle` which takes a pickled
-representation of type `T` (could be an `Array[Byte]`) and returns a `T`. The
-unpickling code comprises:
+1. For each field declared in class `Employee`, we obtain a `Pickler` for the field's type, in this case `Pickler[String]`.
+2. For each super class, we obtain a `Pickler`, in this case `Pickler[Person]`. Note that this invokes the macro recursively.
 
-  1. code to create a new instance of type `T`
-  2. code to re-initialize `T`'s fields
+Ideally, each `Pickler` generated would be inserted into a map somewhere for
+later re-use, i.e. as an optimization. (Although exactly _where_/_how_ is a
+very good question-- to be discussed).
 
-How to generate _unpickling code_ for a `Pickler[C]` where `C` is a class with
-a superclass different from `AnyRef`? Example:
+Note, however, that if we had the following scenario, the above steps would
+not be enough:
 
-    class C extends D {
-      var x: Int = _
-    }
-    class D {
-      var s: String = _
-    }
+    def send(p: Person): Unit = sendOverWire(p.pickle) // this would result in a Pickler[Person]
 
-Idea: 1. create new instance `c` of class `C`. Re-initialize `c`'s fields
-using `reinit` methods (`fieldVals` is an `Array[Any]` with the unpickled
-field values):
+    val e = new Employee
+    send(e)
 
-    val c = new C
-    picklerC.reinit(c, fieldVals)
-
-The `reinit` method of `Pickler[C]` uses `reinit` of the looked-up
-`Pickler[D]`:
-
-    def reinit(c: C, fieldVals: Array[Any]) {
-      c.x = fieldVals.head.asInstanceOf[Int]
-      picklerD.reinit(c, fieldVals.tail)
-    }
+Because of this, we need to have an additional dispatch step.
 
 
+### Intermediate Representation
 
-## Class without constructor parameters or private fields
+### Back-end, Selecting Different Pickle Formats
 
-Q: where to put the implicit picklers in that case?
+## Macro/Compiler-related Implementation Requirements
 
+Ideally, all code that would require any sort of transformation would transformed using macros alone. However, it is not possible to
 
+## Runtime Fallback
 
+## Remaining Points/Issues
 
-
-How to support separate compilation? Let's assume class `Person` has been
-compiled. Then, we compile code which demands a `Pickler[Person]`. We somehow
-need to generate accessors for `Person`s constructor parameters retro-actively
-in class `Person`.
-
-(One approach could be to use a Java agent that rewrite the bytecode of class
-`Person` when `Person` is loaded.)
-
-
-    person.pickle(<implicit pickler>)
-
-
-Table of picklers.
-
-
-generate extra stuff for types `T` where in some part of the program we need
-an implicit of type `Pickler[T]`?
-
-
-
-
-
-class C {
-  private val privfld: String = ...
-  val pubfld: Int = ...
-}
-
-object C {
-  implicit val pickler: Pickler[C] = ...
-}
-
-
-class C extends D {
-
-}
-
-
-class C(x: Int) {
-  private val ctor_x: Int = x
-}
-
-object C {
-
-}
-
-
-o: T
-o.pickle
-
+- Recursive types: we could have a map for each invocation of the macro, to handle this case.
+- Special cases: we can special-case stuff like `Traversable`s to make them more efficient
+- Macro can issue an error message if someone tries to pickle an abstract class or a trait that does not have an `apply` method in the companion object-- i.e. if there's no way to instantiate it
