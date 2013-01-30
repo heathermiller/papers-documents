@@ -1,9 +1,9 @@
-<!-- ---
+---
 layout: page
 title: Scala Pickling <i>[Design Document]</i>
---- -->
+---
 
-# Scala Pickling _[Design Document]_
+<!-- # Scala Pickling _[Design Document]_ -->
 
 **Heather Miller**
 
@@ -191,8 +191,12 @@ not be enough:
     val e = new Employee
     send(e)
 
-Because of this, we need to have an additional dispatch step.
+Because of this, we need to have an additional dispatch step. Basically,
 
+Problem:
+
+- separate compilation
+- macro expansion using all subclasses, then a new subclass is defined
 
 ### Intermediate Representation
 
