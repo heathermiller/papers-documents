@@ -3,22 +3,12 @@ layout: page
 title: Scala Pickling <i>[Design Document]</i>
 ---
 
-{{ site.author.twitter }}
-
-<!-- Serialization, or _pickling_ in Scala has always depended Java-based
-frameworks or libraries-- most famously, the JVM's built-in runtime
-serialization. Most of these frameworks automatically take care of serialization for the
-programmer, but do so at runtime, incurring a considerable runtime performance hit.
-
-Pickler combinators have been long been thought of as the most robust approach
-to serialization in functional languages. Pickler combinators compose
-elegantly, but are considered a major source of boilerplate to manually write. -->
-
 There has never been a Scala-specific solution to serialization which can
 supports certain aspects of Scala's type system, nor which can generate
 serialization-related boilerplate at compile-time. Even the fastest Java
 serialization frameworks must generate all pickler-related code at runtime,
-which in preliminary benchmarks
+which in preliminary benchmarks amounts to a factor 10 slow-down over a naive
+but fully-static pickler combinator-based approach.
 
 **Guiding principles:**
 
