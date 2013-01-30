@@ -1,7 +1,9 @@
 ---
 layout: page
-title: Scala Pickling _[Design Document]_
+title: Scala Pickling <i>[Design Document]</i>
 ---
+
+{{ site.author.twitter }}
 
 <!-- Serialization, or _pickling_ in Scala has always depended Java-based
 frameworks or libraries-- most famously, the JVM's built-in runtime

@@ -22,14 +22,10 @@
       <header class="main">
         <hgroup>
           <h1><a href="/">{{ site.title }}</a></h1>
-          {% if site.tagline %}
-          <h2>{{ site.tagline }}</h2>
-          {% endif %}
+          <h2>Design of the Scala pickler framework</h2>
         </hgroup>
         <ul class="buttons">
-          <li><a href="http://github.com/{{ site.author.github }}/" rel="me">Code <strong>GitHub</strong></a></li>
-          <li><a href="http://www.linkedin.com/in/{{ site.author.linkedin }}/" rel="me">Connect <strong>LinkedIn</strong></a></li>
-          <li><a href="http://twitter.com/{{ site.author.twitter }}/" rel="me">Follow <strong>Twitter</strong></a></li>
+          <li><a href="http://github.com/heathermiller/pickling-design-doc" rel="me">Source <strong>GitHub</strong></a></li>
         </ul>
       </header>
       <section class="main">
@@ -40,7 +36,6 @@
           <ul>
             {% assign pages_list = site.pages %}
             {% assign group = 'navigation' %}
-            {% include JB/pages_list %}
           </ul>
         </nav>
         <ul>
@@ -55,6 +50,5 @@
     </div>
     <script src="{{ ASSET_PATH }}/js/scale.fix.js"></script>
 
-    {% include JB/analytics %}
   </body>
 </html>
