@@ -57,7 +57,8 @@ paper's potential contributions.
 
 **Medium-term goal:** SIP and inclusion in Scala 2.11.
 
-**Status:** Design reasonably well worked out. Early stages of prototypical implementation.
+**Status:** Much of the design worked out (though, still some rough edges).
+Early stages of prototypical implementation.
 
 ## Overview
 
@@ -166,7 +167,7 @@ Following the above chain of interactions, our macro must generate a
 Where `Pickle` represents the resulting pickle format (its internal value type
 could be a `String` as in the case of JSON, or `Array[Byte]` in the case of
 the Scala Binary format, for example). This is covered in more detail in the
-corresponding section: Back-end, Selecting Different Pickle Formats.
+corresponding section: _Back-end, Selecting Different Pickle Formats_.
 
 Given a small motivating example:
 
@@ -180,23 +181,43 @@ Say we want to generate a `Pickler[Employee]`. The idea is to generate its
 2. For each super class, we obtain a `Pickler`, in this case `Pickler[Person]`. Note that this invokes the macro recursively.
 
 Ideally, each `Pickler` generated would be inserted into a map somewhere for
-later re-use, i.e. as an optimization. (Although exactly _where_/_how_ is a
+later re-use, i.e. as an optimization. (Although exactly _where_ / _how_ is a
 very good question-- to be discussed).
 
-Note, however, that if we had the following scenario, the above steps would
-not be enough:
+#### Issues with this approach
 
-    def send(p: Person): Unit = sendOverWire(p.pickle) // this would result in a Pickler[Person]
+There is one major issue, however. In the following scenario, the above steps would
+not be enough to guarantee the proper type upon unpickling:
+
+    def send(p: Person): Unit = sendOverWire(p.pickle) // this would result in a Pickler[Person] being generated
 
     val e = new Employee
     send(e)
 
-Because of this, we need to have an additional dispatch step. Basically,
+The problem here, is that if we were to use the same approach to generate an
+unpickler, we'd unfortunately only have an unpickler for `Person`, and not for
+its subclass, `Employee`.
 
-Problem:
+Naively, one would hope to solve this problem by adding a third step to the
+list above: For each _subclass_, obtain a `Pickler` as well.
 
-- separate compilation
-- macro expansion using all subclasses, then a new subclass is defined
+Though, to the best of my knowledge, this is not possible to do reliably,
+especially  in the presence of separate compilation. That is, it's not
+possible to know all possible subclasses without depending on the type system
+in some capacity, _e.g._ the requirement of a marker trait for root classes
+to-be-pickled in the hierarchy. This, of course, would unravel many of our
+earlier design guidelines; we want to be less verbose, and easier to extend
+than Java serialization.
+
+One idea (not ideal though) could be to add another implicit conversion to the
+chain of expansions detailed in the earlier section, _Front-end_. The idea
+here is that we could achieve something similar to what the `CanBuildFrom`
+implicits in collections achieve-- .
+
+Small change to type macros might be able to solve this. This would work perfectly well if
+Maybe we could use structural types to solve this?
+
+**This issue is one which I have banged my head against, and for which, I can't find a satisfying solution. Any pointers here would be very welcome**
 
 ### Intermediate Representation
 
