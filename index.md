@@ -60,6 +60,7 @@ paper's potential contributions.
 **Status:** Much of the design worked out (though, still some rough edges).
 Early stages of prototypical implementation.
 
+
 ## Overview
 
 The project is made up of many components, which will all be covered in more
@@ -68,7 +69,8 @@ detail in their corresponding sections below:
 - the overall design and architecture
 - the intermediate representation of to-be-pickled and to-be-unpickled objects
 - precisely what transformations take place and under what conditions
-- swappable backends, for generating different pickle formats
+- easily swappable backends, for generating different pickle formats (_e.g._ JSON, Protobuf, binary)
+
 
 ## Usage
 
@@ -99,6 +101,7 @@ format as follows:
 That is, alternate pickling formats would be represented as implicit values
 which simply need to be in scope. Thus, extensibility for alternate back-ends
 should be quite easy.
+
 
 ## Design
 
@@ -153,6 +156,7 @@ using this initial approach alone. In a later section, Macro/Compiler-related
 Implementation requirements, an extension is outlined which would enable
 support for these cases.
 
+
 ### Compiler Transformations
 
 Following the above chain of interactions, our macro must generate a
@@ -184,6 +188,7 @@ Ideally, each `Pickler` generated would be inserted into a map somewhere for
 later re-use, i.e. as an optimization. (Although exactly _where_ / _how_ is a
 very good question-- to be discussed).
 
+
 #### Issues with this approach
 
 There is one major issue, however. In the following scenario, the above steps would
@@ -209,6 +214,7 @@ to-be-pickled in the hierarchy. This, of course, would unravel many of our
 earlier design guidelines; we want to be less verbose, and easier to extend
 than Java serialization.
 
+
 #### Possible Solution
 
 One idea (though quite involved) could be to add a dynamic dispatch step which
@@ -232,7 +238,7 @@ something that has a method for dispatching to the right pickler. So, we
 introduce a (structural) type for this, `HasPicklerDispatch` which should have
 a method `dispatchTo`:
 
-    type HasPicklerDispatch { def dispatchTo: Pickler[_] }
+    type HasPicklerDispatch = { def dispatchTo: Pickler[_] }
 
 The result type of `dispatchTo` is an existential type since `Pickler` is
 invariant in its type parameter, and different subclasses will have to return
@@ -320,38 +326,101 @@ has to take a parameter of type `Any`. Internally, the pickler can safely cast
 the object to the required type (`Employee` in the example).
 
 **This issue is one which I have banged my head against, and for which, I**
-**can't find a satisfying solution. Any pointers here would be very welcome,**
-**as this admittedly is a very complicated attempt at a solution**
+**can't find a more satisfying solution. Any pointers here would be very**
+**welcome, as this admittedly is a very complicated attempt at a solution.**
+
 
 ### Intermediate Representation
 
-Motivate the intermediate representation
-Provide what the current intermediate representation should be
-We plan to extend the intermediate representation as we develop more use-cases
+In order to be able to support complicated schemas (i.e. arbitrary nesting)
+required by alternate serialization formats,  alongside of a flattened and
+optimized _Scala Binary_ format, it's necessary to represent data to-be-
+pickled in an intermediate representation.
+
+Additionally, providing such a representation gives users a language for which
+to implement alternative back-end pickle formatters.
+
+The idea is that the pickler would build a tree-like representation
+representing the object (and its structure) that is being pickled. So as to
+ensure that the information about the object is precise and complete, it's
+useful to leverage the corresponding types in the reflection API.
+
+This intermediate representation could have types such as:
+
+- **`trait ValueIR`**, which might have several subclasses, such as `StringIR`, `IntIR`, `BooleanIR`, etc.
+- **`case class FieldIR(name: String, tpe: Type, value: ValueIR)`**, which represents a field as its name suggests.
+- **`case class ObjectIR(tpe: Type, fields: List[FieldIR]) extends ValueIR`**, which represents an object as its name suggests.
+
+For example, if we wanted to represent an instance of `Person` (which has two
+fields, `name`, and `age`) named "Bob", aged 61 years, it might look like:
+
+    ObjectIR(typeOf[Person], List(FieldIR("name", typeOf[String], StringIR("Bob")), FieldIR("age", typeOf[Int], IntIR(61))))
+
+We plan to extend the intermediate representation as we develop more use-cases.
+
 
 ### Back-end, Selecting Different Pickle Formats
 
-Localized change, change the implicit class again and add a very small thing
-a call to format.write
+Given an intermediate representation and a pickle formatter written using that
+format (_e.g._ to output JSON), we can simply use implicit parameters and the
+precedence rules for implicits to enable the selection of a specific pickling
+format in a fine-grained way.
 
-implicit parameter of type PickleFormat
+The implicit class `PickleOps` that we've seen before can be extended to allow
+for easy customization of the pickle format. The `pickle` method can simply
+take an implicit parameter of a type which represents the pickle format,
+`PickleFormat`.
 
-Scala Binary format
+    implicit class PickleOps[T <% HasPicklerDispatch](x: T) {
+      def pickle(implicit format: PickleFormat): Pickle = {
+        val ir = x.dispatchTo.pickle(x)
+        format.write(ir)
+      }
+    }
+
+Thus, a user should simply have to import a desired pickle format (or provide
+their own) in order to select a serialization format such as Protobuf, or
+JSON:
+
+    import scala.pickling.JSONFormat
+
+If no pickling format is imported, we can use a default Scala Binary format
+pickling format, which simply flattens the object to be represented into a
+byte array with the beginning of the array representing the type of the
+pickled object. (This can be done in a number of ways, the easiest and likely
+the slowest would be to simply represent the type as a `String` and to use
+runtime reflection's `typeOf` to instantiate it upon unpickling).
 
 
 ## Macro/Compiler-related Implementation Requirements
 
-Ideally, all code that would require any sort of transformation would
+Ideally, all code that would require any sort of transformation would be
 transformed using macros alone. As alluded to in the previous sections, there
-are a few extensions to different macros that could make
+are a few extensions to different macros that could make the framework
+simpler, faster, or able to support more use cases.
+
+1. **In the expansion of a type macro, both add new members as well as**
+**extending a trait**, this would be helpful in particular to avoid having to
+use a structural type for the `HasPicklerDispatch` type.
+
+2. **Triggering expansion of a type macro from a subclass**, as we need each
+subclass of a specific type to have picklers generated.
+
+3. **Adding methods to arbitrary classes from inside of a macro def**, an
+extension that seems like it can't be avoided. This is important so as to
+allow the generated picklers to access and thus pickle constructor arguments
+and private fields. (This would be only for the case that the type macro is
+not used.)
+
 
 ## Runtime Fallback
 
 Ideally, for cases where we can't generate a static pickler, or for root types
-like `AnyRef`, we would like to _fallback_ on
+like `AnyRef`, we would like to _fallback_ to runtime.
 
 The idea is to run the generation code that we're already using in the macro
 to run this at runtime by simply switching the universe.
+
 
 ## Remaining Points/Issues
 
