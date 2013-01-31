@@ -209,10 +209,71 @@ to-be-pickled in the hierarchy. This, of course, would unravel many of our
 earlier design guidelines; we want to be less verbose, and easier to extend
 than Java serialization.
 
-One idea (not ideal though) could be to add another implicit conversion to the
-chain of expansions detailed in the earlier section, _Front-end_. The idea
-here is that we could achieve something similar to what the `CanBuildFrom`
+#### Possible Solution
+
+One idea (though quite involved) could be to add a dynamic dispatch step which
+allows us to take the dynamic type of the object to be pickled into account.
+Though, the challenge here is to support this as best as we can in the face of
+separate compilation.
+
+The approach would be to support two cases:
+
+1. In the case where separate compilation is required, we would require that
+library authors extend a `Pickleable` trait (implemented as a type macro) for
+base classes of types that might be pickled by client code.
+
+2. In the case where separate compilation is not an issue, we can use an
+implicit macro to generate the dynamic dispatch code automatically.
+
+These two cases can be accommodated in the following design.
+
+This means, first that the object to be pickled must somehow be viewable as
+something that has a method for dispatching to the right pickler. So, we
+introduce a (structural) type for this, `HasPicklerDispatch` which should have
+a method `dispatchTo`:
+
+    type HasPicklerDispatch { def dispatchTo: Pickler[_] }
+
+**Note** that structural types might not be the best choice, using them can be a
+bit slow at runtime when it comes to dispatching to subtypes. A small
+extension to type macros, however, might allow us to use a regular trait
+instead.
+
+Next, we would have to change our implicit class defined in the earlier section,
+_Front-end_ so that `PickleOps`'s type parameter has the view bound
+`HasPicklerDispatch`:
+
+    implicit class PickleOps[T <% HasPicklerDispatch](x: T) {
+      def pickle: Pickle = x.dispatchTo.pickle(x)
+    }
+
+Doing this would make it possible to generate the correct pickler for an
+object we wish to pickle, `x`, even if the dynamic type of `x` is a subtype of
+`T`. Instead of basing the decision only on the static type of `x`, we first
+dynamically dispatch to the `Pickler` by calling the method `dispatchTo` on
+`x`.
+
+The cases 1 and 2 mentioned above determine how the `dispatchTo` method is
+made available. In the first case, the `Pickleable` type macro would be
+responsible for generating the `dispatchTo` method-- thus all subclasses also
+would indirectly extend the `Pickleable` trait, which should in turn generate
+the pickler for these subclasses (right now, this might require a small
+extension of type macros-- we might need a trigger to re-expand them in
+subclasses, but this is to be further explored). In the second case, we would
+use an implicit macro to convert an object to an instance of
+`HasPicklerDispatch`.
+
+Where the idea is to generate the `dispatchTo` method
+using a type macro.
+
+
+
+Calling `dispatchTo` in
+
+is that we could achieve something similar to what the dynamic dispatch step that
 implicits in collections achieve-- .
+
+To obtain the right pickler for an object we wish to pickle, `p`, instead of basing the decision only on the static type of `p`, we first dynamically dispatch to the pickler container by calling a method on `p`. This method can be
 
 Small change to type macros might be able to solve this. This would work perfectly well if
 Maybe we could use structural types to solve this?
