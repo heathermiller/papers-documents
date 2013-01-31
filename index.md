@@ -234,6 +234,10 @@ a method `dispatchTo`:
 
     type HasPicklerDispatch { def dispatchTo: Pickler[_] }
 
+The result type of `dispatchTo` is an existential type since `Pickler` is
+invariant in its type parameter, and different subclasses will have to return
+picklers of different types.
+
 **Note** that structural types might not be the best choice, using them can be a
 bit slow at runtime when it comes to dispatching to subtypes. A small
 extension to type macros, however, might allow us to use a regular trait
@@ -254,44 +258,104 @@ dynamically dispatch to the `Pickler` by calling the method `dispatchTo` on
 `x`.
 
 The cases 1 and 2 mentioned above determine how the `dispatchTo` method is
-made available. In the first case, the `Pickleable` type macro would be
-responsible for generating the `dispatchTo` method-- thus all subclasses also
-would indirectly extend the `Pickleable` trait, which should in turn generate
-the pickler for these subclasses (right now, this might require a small
-extension of type macros-- we might need a trigger to re-expand them in
-subclasses, but this is to be further explored). In the second case, we would
-use an implicit macro to convert an object to an instance of
-`HasPicklerDispatch`.
+made available.
 
-Where the idea is to generate the `dispatchTo` method
-using a type macro.
+In the first case, the `Pickleable` type macro would be responsible for
+generating the `dispatchTo` method-- since all subclasses also would
+indirectly extend the `Pickleable` trait, the pickler for these subclasses
+should in turn be generated (right now, this might require a small extension
+of type macros-- we might need a trigger to re-expand them in subclasses, but
+this is to be further explored). An example of the result of the macro
+expansion would be:
 
+Given an existing `class Person`,
 
+    class Person {
+      def dispatchTo: Pickler[_] = implicitly[Pickler[Person]]
+    }
 
-Calling `dispatchTo` in
+In the second case, we would use an implicit macro to convert an object to an
+instance of `HasPicklerDispatch`, which would in turn generate a `dispatchTo`
+method. This `dispatchTo` method would traverse all known types at that time
+in an effort to find subclasses of the static type of the object we would like
+to pickle. To provide a rough sketch:
 
-is that we could achieve something similar to what the dynamic dispatch step that
-implicits in collections achieve-- .
+    implicit def toHasPicklerDispatch[T](x: T) = macro toHasPicklerDispatchImpl
 
-To obtain the right pickler for an object we wish to pickle, `p`, instead of basing the decision only on the static type of `p`, we first dynamically dispatch to the pickler container by calling a method on `p`. This method can be
+    def toHasPicklerDispatchImpl[T: TypeTag](c: Context)(x: c.Expr[T]) = {
+      val tree = reify(new HasPicklerDispatch{
+        def dispatchTo: Pickler[_] = x.splice match {
+          case _: T =>  implicitly[Pickler[T]]
+          case _: C1 => implicitly[Pickler[C1]]
+          ...
+          case _: CN => implicitly[Pickler[CN]]
+           }
+      })
+    }
 
-Small change to type macros might be able to solve this. This would work perfectly well if
-Maybe we could use structural types to solve this?
+If we'd like to pickle an object p of type Person which has dynamic type Employee, then the following happens:
 
-**This issue is one which I have banged my head against, and for which, I can't find a satisfying solution. Any pointers here would be very welcome**
+    val p: Person = new Employee
+    p.pickle
+
+is expanded to
+
+    toHasPicklerDispatch[Person](p).dispatchTo.pickle(p)
+
+which the macro expands to
+
+    (new HasPicklerDispatch {
+      def dispatchTo: Pickler[_] = p match {
+        case _: Person => genPickler[Person]
+        case _: Employee => genPickler[Employee]
+      }
+    }).dispatchTo.pickle(p)
+
+which evaluates to
+
+    genPickler[Employee].pickle(p)
+
+Note that for this to typecheck, the `pickle` method in the `Pickler` trait
+has to take a parameter of type `Any`. Internally, the pickler can safely cast
+the object to the required type (`Employee` in the example).
+
+**This issue is one which I have banged my head against, and for which, I**
+**can't find a satisfying solution. Any pointers here would be very welcome,**
+**as this admittedly is a very complicated attempt at a solution**
 
 ### Intermediate Representation
 
+Motivate the intermediate representation
+Provide what the current intermediate representation should be
+We plan to extend the intermediate representation as we develop more use-cases
+
 ### Back-end, Selecting Different Pickle Formats
+
+Localized change, change the implicit class again and add a very small thing
+a call to format.write
+
+implicit parameter of type PickleFormat
+
+Scala Binary format
+
 
 ## Macro/Compiler-related Implementation Requirements
 
-Ideally, all code that would require any sort of transformation would transformed using macros alone. However, it is not possible to
+Ideally, all code that would require any sort of transformation would
+transformed using macros alone. As alluded to in the previous sections, there
+are a few extensions to different macros that could make
 
 ## Runtime Fallback
+
+Ideally, for cases where we can't generate a static pickler, or for root types
+like `AnyRef`, we would like to _fallback_ on
+
+The idea is to run the generation code that we're already using in the macro
+to run this at runtime by simply switching the universe.
 
 ## Remaining Points/Issues
 
 - Recursive types: we could have a map for each invocation of the macro, to handle this case.
 - Special cases: we can special-case stuff like `Traversable`s to make them more efficient
-- Macro can issue an error message if someone tries to pickle an abstract class or a trait that does not have an `apply` method in the companion object-- i.e. if there's no way to instantiate it
+- Macro can issue an error message if someone tries to pickle an abstract class or a trait that does not have an `apply` method in the companion object-- i.e. if there's no way to instantiate it.
+
