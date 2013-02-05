@@ -44,3 +44,28 @@ implicit `Pickler` of the correct field type. (This could be, for example, a
 Now, it's possible that there's no implicit found.
 If there's no implicit found, we call genPickler ourselves. We call it directly.
 We need to be able to call this genPicklerImpl method...
+
+## Status/Plan
+
+Next steps:
+
+1. Change the IR to remove the values. That is, don't store values at all.
+Keep only their types and the names of the fields. Wherever there's a value,
+remove it. IR should be at compile-time only, so no need to ever have a value
+in it.
+
+2. Expand on the code which inspects the fields (in `pickle` macro). After
+`fields` method in `package.scala`, we can create an instance of the IR by
+passing in the information we obtained from the fields. And the type of the
+object. Now we can simply create instances of ObjectIR and FieldIRs for each
+field. Each field, when we create a FieldIR, it has to create ObjectIRs for
+the fields. Make sure nesting is happening if a FieldIR has some type that
+should be an ObjectIR.
+
+3. After we built the IR, we can use it to generate the template Expr. We can
+pass the IR to the PickleFormat, and it generates an expression so that when
+we run it, it generates the Pickle.
+
+
+Flat: fast
+Nested: human-readable
