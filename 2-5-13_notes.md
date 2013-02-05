@@ -64,8 +64,48 @@ should be an ObjectIR.
 
 3. After we built the IR, we can use it to generate the template Expr. We can
 pass the IR to the PickleFormat, and it generates an expression so that when
-we run it, it generates the Pickle.
+we run the Expr at runtime, passing in the runtime values for the fields etc,
+so we fill in the values of the already-generated pickle template.
 
 
 Flat: fast
 Nested: human-readable
+
+
+    Pickle template: (this is created at compile-time using the IR by the PickleFormat)
+    {
+        "tpe": "Person",
+        "name": "___",
+        "age": "___"
+    }
+
+    Completed pickle (this is created at runtime using the pickle template and the runtime values):
+    {
+        "tpe": "Person",
+        "name": "Bob",
+        "age": "56"
+    }
+
+    Scala Binary Format:
+    [Type | Value(s)]
+
+
+    case class Profession(name: String, since: Int)
+
+    class Person {
+      val name: String
+      val age: Int
+      val prof: Profession
+    }
+
+    [Person | "Bob", 56, [Profession | "Cabinetmaker", 1999]]
+
+    {
+        "tpe": "Person",
+        "name": "Bob",
+        "age": "56",
+        "prof": {
+            "name": "Cabinetmaker",
+            "since": 1999
+        }
+    }
