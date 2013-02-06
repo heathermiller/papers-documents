@@ -1,4 +1,4 @@
-                                                             ---
+---
 layout: page
 title: Pickler Framework Design and Implementation Notes <i>[February 5th, 2013]</i>
 ---
