@@ -1,4 +1,4 @@
----
+                                                             ---
 layout: page
 title: Pickler Framework Design and Implementation Notes <i>[February 5th, 2013]</i>
 ---
@@ -109,3 +109,13 @@ Nested: human-readable
             "since": 1999
         }
     }
+
+
+## Builder Pattern for Pickler Templates
+
+Idea is that we call a method that returns a builder. We ask the pickle format
+for a builder that we can use to build this template.
+
+We pass it a macro context, and that... After done inserting, we call `result`
+on builder and we should have the finished pickler template.
+
