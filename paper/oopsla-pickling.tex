@@ -111,13 +111,12 @@ extensibility, and format extensibility.
 \begin{figure}[t]
 \begin{tabular}{|l|l|l|l|l|l|l|}
 \hline
-Framework    & Type-safety     & Object-oriented & Type extensibility
-& Format Extensibility \\
+Framework           & Type-safety  & Object-oriented  & Boilerplate-free  & Type extensibility  & Format Extensibility \\
 \hline
-Java Serialization      & Java-only & yes & no & no \\
-Kryo                         & Java-only & yes & yes & no \\
-Pickler combinators & yes           & no & yes & (yes) \\
-This paper                & yes          & yes & yes & yes \\
+Java Serialization  & Java-only    & yes              & yes          & no                  & no \\
+Kryo                & Java-only    & yes              & yes          & yes                 & no \\
+Pickler combinators & yes          & no               & no           & yes                 & (yes) \\
+Scala picklers      & yes          & yes              & yes          & yes                 & yes \\
 \hline
 \end{tabular}
 
