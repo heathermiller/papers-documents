@@ -20,7 +20,7 @@
 %-----------------------------------------------------------------------------
 
 
-\documentclass[preprint]{sigplanconf}
+\documentclass[preprint,10pt]{sigplanconf}
 
 % The following \documentclass options may be useful:
 %
@@ -32,22 +32,28 @@
 
 \begin{document}
 
-\conferenceinfo{OOPSLA '13}{October 26-31, Indianapolis, IN, USA.}
-\copyrightyear{2013}
-\copyrightdata{[to be supplied]}s
+\conferenceinfo{WXYZ '05}{date, City.}
+\copyrightyear{2005}
+\copyrightdata{[to be supplied]}
 
 \titlebanner{banner above paper title}        % These are ignored unless
 \preprintfooter{short description of paper}   % 'preprint' option specified.
 
-\title{Title Text}
+\title{Object-Oriented Pickler Combinators}
 \subtitle{Subtitle Text, if any}
 
-\authorinfo{Name1}
-           {Affiliation1}
-           {Email1}
-\authorinfo{Name2\and Name3}
-           {Affiliation2/3}
-           {Email2/3}
+\authorinfo{Heather Miller}
+           {EPFL}
+           {heather.miller@epfl.ch}
+\authorinfo{Philipp Haller}
+           {Typesafe, Switzerland}
+           {philipp.haller@typesafe.com}
+\authorinfo{Eugene Burmako}
+           {EPFL}
+           {eugene.burmako@epfl.ch}
+\authorinfo{Martin Odersky}
+           {EPFL}
+           {martin.odersky@epfl.ch}
 
 \maketitle
 
@@ -65,43 +71,186 @@ keyword1, keyword2
 
 \section{Introduction}
 
-Contributions:
-A design that has all of these properties at the same time...
-\begin{itemized}
-\item {\bf Integrates OO with pickler combinators from functional programming.} It supports subtyping and enables the construction of picklers at compile-time.
-\item {\bf Fast and more flexible than existing frameworks.}
-\item {\bf Portability.} Can use the typeclass pattern to swap out serialization formats.
-\item {\bf Extensible.} Can add pickling support to separately compiled code.
-\end{itemized}
+[Page limit: 14 pages including references.]
+Serialization or pickling, i.e., persisting runtime objects by
+converting them into a binary or text representation is ubiquitous in
+distributed programming.
 
-\section{Background: Scala Implicits, Scala Macros}
+There has never been a Scala-specific solution to serialization which
+can support certain aspects of Scala's type system, nor which can
+generate serialization-related boilerplate at compile-time. Even the
+fastest Java serialization frameworks must generate all
+pickler-related code at runtime, which in preliminary benchmarks
+amounts to a factor 10 slow-down over a naive but fully-static pickler
+combinator-based approach.
 
-\section{Design}
-\subsection{Overview}
+The goal of this project is a new framework for pickling (or
+serialization). The idea is to automatically generate pickler
+combinators at compile-time.
+
+The main contribution would be to extend existing approaches to
+pickler combinators with support for object-oriented mechanisms, such
+as subclassing.
+
+\paragraph{Guiding principles:}
+
+Scala Pickling should be:
+\begin{itemize}
+  \item more typesafe than Java serialization.
+  \item faster than Java serialization.
+  \item more extensible than Java serialization.
+  \item but should not be more complicated to think about than Java serialization.
+\end{itemize}
+
+\subsection{Related Work}
+
+Figure~\ref{fig:comparison} compares the main pickling/serialization
+frameworks with respect to type-safety, object-orientation, type
+extensibility, and format extensibility.
+
+\begin{figure}[t]
+\begin{tabular}{|l|l|l|l|l|l|l|}
+\hline
+Framework    & Type-safety     & Object-oriented & Type extensibility
+& Format Extensibility \\
+\hline
+Java Serialization      & Java-only & yes & no & no \\
+Kryo                         & Java-only & yes & yes & no \\
+Pickler combinators & yes           & no & yes & (yes) \\
+This paper                & yes          & yes & yes & yes \\
+\hline
+\end{tabular}
+
+\caption{Comparing serialization frameworks}\label{fig:comparison}
+\end{figure}
 
 
+\subsection{Contributions}
 
-% \appendix
-% \section{Appendix Title}
+\begin{itemize}
 
-% This is the text of the appendix, if you need one.
+\item A new pickling framework for object-oriented languages that (a)
+  is fast through compile-time generated picklers, (b) enables
+  retrofitting pickling support to existing types retroactively, (c)
+  supports pluggable pickling formats, and (d) does not require
+  changes to the underlying VM.
 
-% \acks
+  The framework is thus extensible in several dimensions: first,
+  pickling can be enabled for classes that have not been prepared
+  beforehand (through extending a specific interface, for
+  example). Second, new pickling formats (JSON, XML, Protobuf, etc.)
+  can be added and selected modularly.
 
-% Acknowledgments, if needed.
+\item Our approch extends pickler combinators (a well-established
+  approach in the functional programming
+  community~\cite{Kennedy,Elsman}) to support core concepts of
+  object-oriented programming, namely open class hierarchies and
+  ad-hoc polymorphism (runtime dispatch).
 
-% % We recommend abbrvnat bibliography style.
+\item To the best of our knowledge we are the first to extend pickler
+  combinators with pluggable pickling formats.
+
+\item We present a complete implementation of our approach in
+  Scala.\footnote{See
+    \texttt{http://github.com/heathermiller/scala-pickling/}} We have
+  evaluated our framework by comparing its performance with the native
+  serialization support of the Java Virtual Machine, as well as the
+  Kryo serialization framework~\cite{Kryo} for Java. In the context of
+  a suite of microbenchmarks, our framework outperforms Java
+  serialization by a factor of X, and Kryo by a factor of Y. We have
+  also integrated our pickling framework in Spark~\cite{Zaharia2010}
+  and Akka~\cite{Akka}, and found that on representative applications
+  our pickling framework improves performance by $X \%$ (Spark) and $Y
+  \%$ (Akka) on average without requiring changes in user code.
+
+\end{itemize}
+
+
+\section{Background}
+
+The design and implementation of our pickling framework leverages
+several advanced features of the Scala programming language. This
+section introduces everything that is required to understand the rest
+of the paper. Apart from this section the reader is expected to be
+familiar with a typical statically-typed, class-based object-oriented
+programming language such as Java or C\#.
+
+\subsection{Implicits}
+
+\paragraph{Importing implicit values}
+
+\subsection{Macros}
+
+\section{Overview}
+
+\subsection{Usage}
+
+Ideally, a user would use the Scala Pickling framework as follows,
+
+\begin{verbatim}
+class Person(name: String, age: Int)
+
+val p: Person = new Person("Bob", 61)
+val bytes = p.pickle
+\end{verbatim}\noindent
+
+That is, the assumption is that you would be able to directly call a
+pickle method on an object where pickle might not be defined. In this
+case, most of the time, the framework should be able to generate all
+relevant pickler combinators for your arbitrary object at
+compile-time.
+
+Furthermore, the user should also be able to select pickle formats. By
+default, a Scala Binary format would be used, but it's planned to add
+support for JSON and Protobuf as well. A user would select an
+alternate pickle format as follows:
+
+\begin{verbatim}
+import scala.pickling.JSONFormat
+
+...
+val bytes = p.pickle
+\end{verbatim}\noindent
+
+That is, alternate pickling formats would be represented as implicit
+values which simply need to be in scope. Thus, extensibility for
+alternate back-ends should be quite straightforward.
+
+
+\section{Generating Fast Picklers}
+
+\subsection{Front-end}
+
+
+\section{Pluggable Pickling Formats}
+
+\section{Implementation}
+
+\section{Experimental Evaluation}
+
+\appendix
+\section{Appendix Title}
+
+This is the text of the appendix, if you need one.
+
+\acks
+
+Acknowledgments, if needed.
+
+% We recommend abbrvnat bibliography style.
 
 \bibliographystyle{abbrvnat}
 
 % The bibliography should be embedded for final submission.
 
-\begin{thebibliography}{}
-\softraggedright
+%\begin{thebibliography}{}
+%\softraggedright
 
-\bibitem[Smith et~al.(2009)Smith, Jones]{smith02}
-P. Q. Smith, and X. Y. Jones. ...reference text...
+%\bibitem[Smith et~al.(2009)Smith, Jones]{smith02}
+%P. Q. Smith, and X. Y. Jones. ...reference text...
 
-\end{thebibliography}
+%\end{thebibliography}
+
+\bibliography{bib}
 
 \end{document}
