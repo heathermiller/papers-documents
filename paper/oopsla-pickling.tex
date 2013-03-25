@@ -95,6 +95,28 @@ keyword1, keyword2
 
 \section{Introduction}
 
+With the growing trend towards cloud computing and mobile applications,
+distributed programming has entered the mainstream. As more and more
+traditional applications migrate to the cloud, the demand for interop between
+different services is at an all-time high, and is increasing. At the center of
+it all is communication. Whether we consider a cluster of commodity machines
+churning through a massive data-parallel job, or a smartphone interacting with
+a social network, all are ``distributed'' jobs, and all share the need to
+communicate in various ways, in many formats, even within the same
+application.
+
+A central aspect to this communication that has received suprisingly little
+attention in the literature is the need to serialize, or {\em pickle} objects
+{\em i.e.,} to persist in-memory data by converting them to a binary, text, or
+some other representation. On the JVM, serialization has long been
+acknowledged as having a high overhead \cite{Welsh2000, Carpenter1999}, with
+some estimates purporting object serialization to account for 25-65\% of RMI
+microbenchmarks, and going on to observe that the cost of serialization grows
+with growing object structures up to 50\% \cite{Philippsen2000, Maassen1999}.
+
+
+======
+
 Introduction: make nod to "open programming" \cite{Rossberg2007}, motivation for strongly-typed languages to easily communicate with one another.
 
 Pickling and unpickling essential building block to achieve the above.
@@ -131,7 +153,7 @@ can support certain aspects of Scala's type system, nor which can
 generate serialization-related boilerplate at compile-time. Even the
 fastest Java serialization frameworks must generate all
 pickler-related code at runtime, which in preliminary benchmarks
-amounts to a factor 10 slow-down over a naive but fully-static pickler
+amounts to a factor 10 slow-down over a naive but fully-static handwritten pickler
 combinator-based approach.
 
 The goal of this project is a new framework for pickling (or
