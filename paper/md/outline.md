@@ -6,6 +6,7 @@
 
 - **Background**
   - Implicits
+  - TypeTags
   - Macros
 
 - **Overview**
