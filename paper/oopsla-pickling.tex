@@ -40,7 +40,7 @@
 \preprintfooter{short description of paper}   % 'preprint' option specified.
 
 \title{Object-Oriented Pickler Combinators}
-\subtitle{Subtitle Text, if any}
+\subtitle{and an Extensible Generation Framework}
 
 \authorinfo{Heather Miller}
            {EPFL}
@@ -58,7 +58,31 @@
 \maketitle
 
 \begin{abstract}
-This is the text of the abstract.
+Serialization or pickling, i.e., persisting runtime objects by converting them
+into a binary or text representation is ubiquitous in distributed programming.
+Pickler combinators are a popular approach from the realm of functional
+programming designed to alleviate some of the tedium of writing pickling code
+by hand, but they don't translate well to the realm of object-oriented
+programming due to qualities like inheritance, open sums, and mutable or
+private state. Furthermore, using pickler combinators still requires writing
+some boilerplate, which programmers familiar with object-oriented languages
+like Java can typically avoid, thanks to the slow but boilerplate-free runtime
+generation provided by Java Serialization. Finally, both pickler combinators
+and Java-based serialization frameworks tend to be tied to a specific pickle
+format, leaving programmers no choice of how their data is persisted. In this
+paper, we present object-oriented pickler combinators and a framework for
+generating them at compile-time, designed to be the default serialization
+mechanism of the Scala programming language. Our framework is extensible; (1)
+using Scala's implicit parameters, users can add their own easily-swappable
+pickle format, (2) using the type class pattern, users can provide their own
+custom picklers to override the default behavior of the Scala pickling
+framework. In addition to its extensibility and need for little to no
+boilerplate, our framework achieves an order of magnitude speedup over Java
+Serialization and up to a factor 7 speedup over popular "fast" Java
+serialization frameworks like Kryo. We go on to evaluate our framework on two
+large industrial-strength frameworks for distributed computing, Akka and
+Spark, and show improved performance and a reduction of lines of
+serialization-related code for both projects.
 \end{abstract}
 
 \category{CR-number}{subcategory}{third-level}
@@ -70,6 +94,32 @@ term1, term2
 keyword1, keyword2
 
 \section{Introduction}
+
+Introduction: make nod to "open programming" \cite{Rossberg2007}, motivation for strongly-typed languages to easily communicate with one another.
+
+Pickling and unpickling essential building block to achieve the above.
+
+Pickler combinator approach \cite{Kennedy2004} very elegant approach, but writing picklers for every type in your program still cumbersome. Not only that, but specific to FP- no notion of inheritance or ``open sums'' (open class hierarchies where subclasses can be added at any time). Furthermore, in OO world, people have come to accept boilerplate-free Java serialization as the standard.
+
+(Would be important to point out the characteristics of Java serialization, dedicated support from the underlying virtual machine. It has a fixed binary format. Can't really change it. If something isn't serializiable, can't retroactively make something serializable because you need to extend a Java interface which is impossible when you're already dealing with a compiled library.)
+
+Pickler combinators big inspiration because you can combine existing picklers using combinators to produce picklers of compound types.
+
+Reference to Scrap Your Boilerplate \cite{Lammel2004}.
+
+From the SYBP\#2 paper:
+\begin{quote}
+It is common to find that large slabs of a program consist of ``boilerplate'' code, which conceals by its bulk a smaller amount of ``interesting'' code. So-called generic programming techniques allow programmers to automate this ``boilerplate'', allowing effort to be focused on the interesting parts of the program.
+\end{quote}
+
+Our approach has several attractive properties:
+- it is an ``open-world'' approach, in which it is easy to add new customized picklers at exactly the desired places;
+- pluggable pickle formats
+-
+
+The tedium of writing pickling and unpickling functions by hand is relieved using a combinator library similar in spirit to the well-known parser combinators. Picklers for primitive
+types are combined to support tupling, alternation, recursion, and structure sharing. Code
+is presented in Haskell; an alternative implementation in ML is discussed.
 
 [Page limit: 14 pages including references.]
 Serialization or pickling, i.e., persisting runtime objects by
@@ -88,9 +138,9 @@ The goal of this project is a new framework for pickling (or
 serialization). The idea is to automatically generate pickler
 combinators at compile-time.
 
-The main contribution would be to extend existing approaches to
+The main contribution is to extend existing approaches to
 pickler combinators with support for object-oriented mechanisms, such
-as subclassing.
+as subclassing, generics,
 
 \paragraph{Guiding principles:}
 
@@ -101,6 +151,23 @@ Scala Pickling should be:
   \item more extensible than Java serialization.
   \item but should not be more complicated to think about than Java serialization.
 \end{itemize}
+
+PC of FP do not support subtyping. Even if they would, it is not clear whether local type inference as required in OO would be enough to support the same level of conciseness as in FP. People in OO languages are used to the fact that serialization code is generated. From that perspective, PCs would represent quite a bit of boilerplate.
+
+On the end of the spectrum, some OO languages and runtime environments like the JVM provide serialization for arbitrary types, provided by the underlying virtual machine. While this approach is very convenient for the programming there are also several issues:
+
+Requirements:
+
+\begin{itemize}
+  \item subtyping (OO)
+  \item extensible: after the fact, existing classes (existing 3rd party libs, for example).
+  \item pluggable pickle formats
+\end{itemize}
+
+the pickling format cannot be exchanged
+both pickling and unpickling relies on runtime reflection which hits performance
+existing classes that do not extend a special marker interface are not serializable; this often causes oversights resulting in software engineering costs.
+
 
 \subsection{Related Work}
 
@@ -122,6 +189,34 @@ Scala picklers      & yes          & yes              & yes          & yes      
 
 \caption{Comparing serialization frameworks}\label{fig:comparison}
 \end{figure}
+
+statically-generated pickler combinators (faster)
+add pickling support for existing types retroactively
+extensibility
+pluggable pickleformats (contribution!)
+roll your own custom pickler
+can handle constructors (TODO: verify that Kryo cannot)
+composition
+"we are combinators, we are more than combinators, we wed OO concepts with them"
+framework which generates picklers through composition
+pickler combinators can be executed either at compile-time or runtime
+Problem: does not work with ctors with parameters which do side effects
+is that a problem?
+we should say: we define "Pickleable Objects" for which we have perfect support including subclassing
+so, maybe we should point out clearly what we do not support
+might want to discourage certain things
+Goal:
+theory: object-oriented pickling
+impl: provide solution that works for 100% of the cases
+demonstrate that it's more convenient and faster than anything that lives in Java that depends on reflection
+Evaluation
+survey Akka and Spark apps to see which types they are pickling in real apps
+show which types are supported by our framework
+Do we really need to support private ctor vals/vars?
+One proposal:
+no support for side-effecting constructors
+no type safety for generic types (like in Java, no surprise)
+we don't add type safety (we meet state of the art, we don't exceed it)
 
 
 \subsection{Contributions}
@@ -175,10 +270,22 @@ familiar with a typical statically-typed, class-based object-oriented
 programming language such as Java or C\#.
 
 \subsection{Implicits}
+cite Adriaan's and Bruno's OOPSLA paper, this great type class in Scala paper
+Example of a type class: maybe Ordering type class of std lib?
 
 \paragraph{Importing implicit values}
+(is this subsection actually necesssary?)
+Example of a plain implicit parameter: could use implicit ExecutionContext in futures
+
+\subsection{Reflection}
+take some material from reflection guide
+start with TypeTags
 
 \subsection{Macros}
+cite Eugene's workshop paper, and any other document/guide out there appropriate to cite.
+
+\subsection{Quasiquotes}
+cite Denys's tech report
 
 \section{Overview}
 
@@ -215,17 +322,367 @@ That is, alternate pickling formats would be represented as implicit
 values which simply need to be in scope. Thus, extensibility for
 alternate back-ends should be quite straightforward.
 
+\section{Object-Oriented Picklers}
+Our approach is closely related to PCs but extends the way picklers are composed to account for inheritance and subtyping.
 
-\section{Generating Fast Picklers}
+\subsection{FP Pickler Combinators}
+Introduction and explanation of Kennedy's PCs.
 
-\subsection{Front-end}
+\subsection{OO Picklers}
+(keep this section?) similarites/differences with PCs
 
+our notion of a pickler combinator. any differences with PCs motivated (i.e. say/show how differences enable inheritance, subtyping, etc)
 
-\section{Pluggable Pickling Formats}
+builds on PCs by extending them with support for subtyping.
+
+pickler combinators are these things. they're too limited to deal with the messy world of OO programming. so we extend them in the following ways.
+
+\subsection{Definition and Usage of OO Picklers and Unpicklers}
+
+An OO pickler is an instance of Pickler[T] with a pickle method:
+
+\begin{verbatim}
+    trait Pickler[T] {
+      def pickle(obj: T): Pickle
+    }
+\end{verbatim}
+
+The parameter obj... The result type Pickle...
+"The library is type safe in the sense that a type specialized pickler can be applied only to values of the specialized type."
+
+Basic usage. Canonical usage is by using the pickle extension method. TODO summarize pickle method using PickleOps.
+
+\begin{verbatim}
+    trait Unpickler[U] {
+      def unpickle(p: Pickle): U
+    }
+\end{verbatim}
+How are Pickler[T] and Unpickler[U] related?
+
+Given:
+\begin{itemize}
+  \item pt: Pickler[T]
+  \item obj: T (object before pickling)
+  \item ut: Unpickler[U] where U >: T
+  \item obj': U (unpickled object)
+\end{itemize}
+
+then:
+
+\begin{verbatim}
+    ut.unpickle(pt.pickle(obj)) = obj'
+\end{verbatim}
+
+will succeed at runtime such that
+
+\begin{itemize}
+  \item obj': U
+  \item obj' =:= obj
+\end{itemize}
+
+Importantly, T and U are the static types of the object to-be-pickled and the unpickled object, respectively. It is possible that obj has a dynamic type T' which is a subtype of T. The structural equality obj' =:= obj guarantees that obj' is an instance of the same runtime class as obj, and for all fields fld of obj, we have fld =:= fld' where fld' is the corresponding field in obj'.
+
+Picklers are composeable. For example, creating a Pickler[List[T]] can be done by composing a Pickler[T] and a Pickler[Int]:
+
+\begin{verbatim}
+    def listPickler[T](pt: Pickler[T], pi: Pickler[Int]) = new Pickler[List[T]] {
+      def pickle(list: List[T]) = {
+        // 1. pickle size of list
+        pi.pickle(list.size)
+        // 2. pickle list elements
+        for (elem <- list)
+          pt.pickle(elem)
+      }
+    }
+\end{verbatim}
+
+The listPickler method is called a pickler combinator since it takes picklers as arguments and returns another pickler.
+
+Similarly, it's possible to define a combinator which returns a pickler for objects of a class type Person:
+
+    class Person(val name: String, val age: Int)
+
+\begin{verbatim}
+    def personPickler(ps: Pickler[String],
+                                  pi: Pickler[Int]) =
+      new Pickler[Person] {
+        def pickle(p: Person): Pickler = {
+          ps.pickle(p.name)
+          pi.pickle(p.age)
+        }
+      }
+\end{verbatim}
+
+The above personPickler combinator has a slight problem, though. According to our earlier definition, it must be possible to pickle objects of subtypes of Person using the returned Pickler[Person]. However, this is not possible as it stands:
+
+\begin{verbatim}
+    class Firefighter(val name: String,
+                               val age: Int,
+                               val salary: Int) extends Person(name, age)
+\end{verbatim}
+
+The above Pickler[Person] would not pickle the salary field, thus the corresponding unpickler would fail to instantiate a Firefighter. As a result, the above property that says that the dynamic type of the unpickled object is the same as the dynamic type of the object to-be-pickled would not hold. Therefore, the returned Pickler[Person] is not a valid OO pickler.
+
+To solve this problem, it is necessary to include a dispatch step in the pickler returned by the personPickler combinator. Basically, this means that based on the runtime type of the object to-be-pickled a suitable pickling strategy has to be selected.
+
+\begin{itemize}
+  \item explain dispatch
+  \item it's best to generate that
+  \item in which cases is it guaranteed that it can be generated?
+    \item no support for side-effecting constructors
+\end{itemize}
+
+\subsection{Unanticipated Extension}
+
+Given the fact that the type Pickler[T] as introduced has a type parameter T, it is reasonable to ask what the variance of T is. Ruling out covariance because of T's occurrence in a contravariant position as the type of a method parameter, it remains to determine whether T can be contravariant.
+
+For this, it is useful to consider the following scenario. Assume T is declared to be contravariant, as in Pickler[-T]. Furthermore, assume the existence of a public, non-final class C with a subclass D:
+
+\begin{verbatim}
+    class C
+    class D extends C
+\end{verbatim}
+
+Initially, we might define a generic pickler for C:
+
+\begin{verbatim}
+    implicit val picklerC = new Pickler[C] {
+      def pickle(obj: C): Pickle = { ... }
+    }
+\end{verbatim}
+
+Because Pickler[T] is contravariant in its type parameter, instances of D would be pickled using picklerC. There are several possible extensions that might be unanticipated initially:
+
+Because the implementation details of class D change, instances of D should be pickled using a dedicated pickler instead of picklerC.
+A subclass E of C is added which requires a dedicated pickler, since picklerC does not know how to instantiate class E (since class E did not exist when picklerC was written).
+In both cases it is necessary to add a new, dedicated pickler for either an existing subclass (D) or a new subclass (E) of C:
+
+\begin{verbatim}
+    implicit val picklerD = new Pickler[D] { ... }
+\end{verbatim}
+
+However, when pickling an instance of class D this new pickler, picklerD, would not get selected, even if the type of the object to-be-pickled is statically known to be D. The reason is that Pickler[C] <: Pickler[D] because of contravariance which means that picklerC is more specific than picklerD. As a result, according to Scala's implicit look-up rules picklerC is selected when an implicit object of type Pickler[D] is required. (Note that this is the case even if picklerD is declared in a scope that has higher precedence than the scope in which picklerC is declared.)
+
+While contravariant picklers do not support the two scenarios for unanticipated extension outlined above, invariant picklers do, in combination with type bounds. Assuming invariant picklers, we can define a generic method picklerC1 that returns picklers for all subtypes of class C (including class C itself):
+
+\begin{verbatim}
+    implicit def picklerC1[T <: C] = new Pickler[T] {
+      def pickle(obj: T): Pickle = { ... }
+    }
+\end{verbatim}
+
+With this pickler in scope, it is still possible to define a more specific Pickler[D] (or Pickler[E]) as required:
+
+\begin{verbatim}
+    implicit val picklerD1 = new Pickler[D] { ... }
+\end{verbatim}
+
+However, the crucial difference is that now picklerD1 is selected when an object of static type D is pickled, since picklerD1 is more specific than picklerC1.
+
+\subsection{Runtime Picklers}
+
+One goal of our framework is to generate as much pickling code at compile time as possible. However, due to the interplay of subclassing with both separate compilation and generics, we provide a runtime fall back capability to handle the cases that cannot be resolved at compile time.
+
+{\bf Subclassing and separate compilation}: A situation arises where it's impossible to know statically all possible subclasses. In this case there are three options: (1) provide a custom pickler, and (2) use an annotation which is described in Section ??. In the case where neither a custom pickler nor an annotation is provided, our framework can inspect the instance to-be-pickled at runtime to obtain the pickling logic. This comes with some runtime overhead, but in Section ?? we present results which suggest that this overhead is not necessary in many cases.
+
+{\bf Subclassing and generics}: The combination of subclassing and generics poses a similar problem. For example, consider a generic class C,
+
+\begin{verbatim}
+    class C[T](val fld: T) { ... }
+\end{verbatim}
+
+A Pickler[C[T]] will not be able to pickle the field fld if its static type is unknown. To support pickling instances of generic classes, our framework falls back to using runtime picklers for pickling fields of generic type. So, when we have access to the runtime type of field fld, we can either look up an already generated pickler for that runtime type, or we can generate a suitable pickler dynamically. For the generation of runtime picklers our framework supports two possible strategies:
+
+\begin{itemize}
+\item Runtime interpretation of a type-specialized pickler
+\item Runtime compilation of a type-specialized pickler
+\end{itemize}
+
+Interpreted runtime picklers. If the runtime type of an object is unknown at compile time, e.g., if its static type is Any, it is necessary to carry out the pickling based on inspecting the type of the object to-be-pickled at runtime. We call picklers operating in this mode "interpreted runtime picklers" to emphasize the fact that the pickling code is not partially evaluated in this case. An interpreted pickler is created based on the runtime class of the picklee. From that runtime class it is possible to obtain a runtime type descriptor of type ru.Type (ru is the so-called "runtime universe" of Scala's mirror-based reflection framework; compile-time reflection, aka macros, use compile-time universes). This runtime type is used
+
+\begin{itemize}
+\item to build a static intermediate representation of the type (which describes all its fields with their types, etc.)
+\item to determine in which way the picklee should be pickled (as a primitive or not).
+\end{itemize}
+
+In case the picklee is of primitive type, there are no fields to be pickled. Otherwise, the value and runtime type of each field is obtained, so that it can be written to the pickle.
+
+\subsection{Recursive Types}
+
+Recursive types are used in many common data structures like lists, trees etc. Here we show how recursive types are supported in our framework.
+
+Example (we show a non-generic class hierarchy for simplicity):
+
+\begin{verbatim}
+    abstract class IntTree
+    class Empty extends IntTree
+    class Fork(left: IntTree, elem: Int, right: IntTree)
+\end{verbatim}
+
+\subsection{Generics}
+
+Our framework uses a hybrid static/dynamic approach to pickling generic types (i.e., parameterized types), depending on the type information that's statically available.
+
+Pickling. Assume obj is an instance of a generic class C[T] with type parameter T. When pickling obj we can use TypeTags in Scala to reify the full static type of obj, including its type arguments, which are guaranteed to be concrete. However, thanks to subtyping, it's possible that obj is pickled using a static supertype of C[T], say, Base:
+
+\begin{verbatim}
+    class Base { ... }
+    class C[T](val x: T) extends Base { ... }
+    val obj: Base = new C[Int]
+    obj.pickle
+\end{verbatim}
+
+As a result, only the runtime type information of obj is available for generating its pickler.
+
+% \section{Generating Fast Picklers}
+
+% \subsection{Front-end}
+
+\section{Extensibility}
+% \section{Pluggable Pickling Formats}
+
+Our pickling framework is extensible in several dimensions:
+
+\begin{enumerate}
+\item [The following depends on implicits!] By design our framework enables defining picklers for existing classes that have not been written with pickling in mind. That way, a class hierarchy provided by a 3rd party can be equipped with a set of picklers retroactively. The following section shows how this form of extensibility is enabled by an object-oriented form of the typeclass design pattern in Scala.
+\item Custom pickling formats.
+\item Can show JSON as alternative to default binary format
+\item Custom picklers. Customize what parts of an object are pickled and how. For example, a custom pickler for a particular collection type.
+\end{enumerate}
 
 \section{Implementation}
 
+\begin{verbatim}
+implicitly[Pickler[Person]](ps: Pickler[String], pi: Pickler[Int])
+\end{verbatim}
+
+it takes a Pickler[String] and a Pickler[Int] and produces a Pickler[Person].
+
+to pickle an instance of a collection
+
+\begin{verbatim}
+obj.pickle[U]
+\end{verbatim}
+
+expands to
+
+\begin{verbatim}
+val pickler = obj.getClass match {
+   case .. => Pickler[S]
+}
+pickler.pickle(obj)
+\end{verbatim}
+
+According to Liskov substitution
+
+Are they composable? How?
+
+Other Questions:
+What do we do with the comparison between FP PCs and OO PCs?
+
+
+which can be applied to objects of type T. That would mean also all subtypes of T. Likewise, an OO unpickler
+
+
+In functional programming, pickling is supported using the well-known framework of pickler combinators. A pickler of type PU[A] (using Scala notation) can be used to pickle and unpickle values of type A.
+
+Classical FP pickler combinators can't deal with:
+
+subtyping
+
+
+Other frameworks like Kryo?
+
+[what about versioning issues?]
+
+Our framework is designed to make simple tasks easy and difficult tasks possible. For example, consider the definition of a simple Scala class Person with name and age fields:
+
+\begin{verbatim}
+    class Person(val name: String, val age: Int) { ... }
+\end{verbatim}
+
+As you can see, the name and age fields are declared in the class parameter list. Class parameters in Scala are normally just the parameters of the primary constructor; adding the modifier val turns them into public fields.
+
+To pickle an instance of this class using our framework, it is sufficient to import (the members of) our pickling package, and invoke the pickle extension method:
+
+\begin{verbatim}
+    import scala.pickling._
+    val joe = new Person("Joe", 43)
+    val pickle = joe.pickle
+\end{verbatim}
+
+Notice that the Person class does not have to carry a special annotation or extend a special interface type.\footnote{In Scala, Java-style interfaces are subsumed by traits that can be modularly extended using mix-in composition.} Instead, a suitable pickler is generated on-the-fly and is applied to instance joe to produce a pickled representation.
+
+The above example seems to suggest that our framework requires extensions to the Scala language and compiler to enable this kind of seamless pickling support. However, this is not the case; in fact, our pickling framework relies only on features available in the mainline Scala compiler (version 2.10.x or later).
+
+In the following sections we are going to answer in detail the following questions:
+
+\begin{itemize}
+\item Which types are pickleable such that the above pickle extension method can be used?
+\item How does our framework automatically generate type-specialized picklers?
+\end{itemize}
+
+Idea: generating type class pattern using macros. We're generating type class instances based on existing type class instances using macros. A (new?) pattern that we use.
+
+Section on simulating deriving type classes using macros in Scala. This requires more knowledge about deriving type classes in Haskell.
+
 \section{Experimental Evaluation}
+
+{\bf Microbenchmarks}
+
+\begin{itemize}
+\item individual types that are common
+\item evaluate on microbenchmarks
+\item look at size of pickles
+\item look at bytecode size
+\item TODO: tuples and maps
+\end{itemize}
+
+{\bf Real apps}
+\begin{itemize}
+\item TODO: find possible distributed apps using Akka or Spark
+\item Samira's list: http://actor-applications.cs.illinois.edu/akka.html (cite her ECOOP paper)
+apps should be heavy on serialization
+\item finding apps:
+(1) GeoTrellis (https://github.com/geotrellis/geotrellis)
+GeoTrellis is an open source high performance geoprocessing engine that transforms user interaction with geospatial data through speed and scale.
+Types (Java Serialization):
+final case class DoubleConstant(n: Double, cols: Int, rows: Int) extends StrictRasterData
+
+final case class IntConstant(n: Int, cols: Int, rows: Int) extends StrictRasterData
+
+final case class BitArrayRasterData(array: Array[Byte], cols: Int, rows: Int) extends MutableRasterData with IntBasedArray
+
+final case class ByteArrayRasterData(array: Array[Byte], cols: Int, rows: Int) extends MutableRasterData with IntBasedArray
+
+final case class DoubleArrayRasterData(array: Array[Double], cols: Int, rows: Int) extends MutableRasterData with DoubleBasedArray
+
+final case class FloatArrayRasterData(array: Array[Float], cols: Int, rows: Int) extends MutableRasterData with DoubleBasedArray
+
+final case class IntArrayRasterData(array: Array[Int], cols: Int, rows: Int) extends MutableRasterData with IntBasedArray
+
+final case class ShortArrayRasterData(array: Array[Short], cols: Int, rows: Int) extends MutableRasterData with IntBasedArray
+
+Comments: MutableRasterData and IntBasedArray are just traits that do not contain data.
+
+Can we get a GeoTrellis app to run?
+
+\item SignalCollect
+\item Socko (web server)
+\item BigBlueButton (Java-based?)
+\item Kevoree (framework for distribution)
+\item SCADS
+\end{itemize}
+
+{\bf Survey of apps}
+
+\begin{itemize}
+\item take 10 or so apps, look at which types are pickled. Then we say which ones we support. and then we can point to microbenchmarks to show how it performs for that type.
+\item first step: find real apps that are distributed
+\item check Samira's paper, she has pointed out which actor apps are distributed
+\item for Spark: every Spark is distributed, so we just have to find out which types are put into the RDDs. These element types are the ones we need to serialize.
+\end{itemize}
+
 
 \appendix
 \section{Appendix Title}
