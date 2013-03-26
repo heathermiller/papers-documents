@@ -439,8 +439,11 @@ familiar with a typical statically-typed, class-based object-oriented
 programming language such as Java or C\#.
 
 \subsection{Implicits}
+\label{sec:implicits}
+
 cite Adriaan's and Bruno's OOPSLA paper.
-Example of a type class: maybe Ordering type class of std lib?~\cite{Olivera2010}
+Example of a type class: maybe Ordering type class of std lib?
+%~\cite{Olivera2010}
 
 Include info on importing implicit values, and implicit resolution by scoping.
 % \paragraph{Importing implicit values}
@@ -461,30 +464,86 @@ also ships with compile-time reflection capabilities, in the form of macros
 (covered in Section \ref{sec:macros}), as well as the ability to reify Scala
 expressions into abstract syntax trees.
 
-One aspect of runtime reflection that was introduced in Scala 2.10 is the
-notion of \verb|TypeTag|s. As with other JVM languages, Scala's types are
-erased at compile time. TypeTags can be thought of as objects which carry
-along all type information available at compile time, to runtime. As we will
-see, \verb|TypeTag|s will prove to be invaluable in situations where precise
-type information is not available at compile-time. \todo ...?
+\paragraph{TypeTags.} One aspect of runtime reflection that was introduced in
+Scala 2.10 is the notion of \verb|TypeTag|s. As with other JVM languages,
+Scala's types are erased at compile time. \verb|TypeTag|s can be thought of as
+objects which carry along all type information available at compile time, to
+runtime. As we will see, \verb|TypeTag|s will prove to be invaluable in
+situations where precise type information is not available at runtime.
 
-Another important aspect of Scala's reflection library is the one-to-one
-correspondence between Scala Reflection's compile-time (\ie macros) and
-runtime APIs. Each API is parameterized on a so-called \verb|Universe|, an
-object which serves as the entry point to Scala reflection, and which provides
-all principal concepts used in reflection, such as \verb|Type|s, \verb|Tree|s,
-and \verb|Annotation|s. Depending on the task at hand, the choice between
-runtime and compile-time reflection is as easy as selecting either a compile-time
-or a runtime \verb|Universe|, and using the unified runtime/compile-time
-reflection API provided by Scala Reflection. As we will see, this enables
-maximum code reuse in that a fallback runtime pickler generation mechanism can
-be implemented by simply reusing the code for static generation, and
-parameterizing it on a runtime \verb|Universe|.
+\paragraph{Unified Runtime/Compile-time Reflection API.} Another important
+aspect of Scala's reflection library is the one-to-one correspondence between
+Scala Reflection's compile-time (\ie macros) and runtime APIs. Each API is
+parameterized on a so-called \verb|Universe|, an object which serves as the
+entry point to Scala reflection, and which provides all principal concepts
+used in reflection, such as \verb|Type|s, \verb|Tree|s, and
+\verb|Annotation|s. Depending on the task at hand, the choice between runtime
+and compile-time reflection is as easy as selecting either a compile-time or a
+runtime \verb|Universe|, and using the unified runtime/compile-time reflection
+API provided by Scala Reflection. As we will see, this enables maximum code
+reuse in that a fallback runtime pickler generation mechanism can be achieved
+by simply reusing the code for static generation, and parameterizing it on a
+runtime \verb|Universe|.
+
 
 \subsection{Macros}
 \label{sec:macros}
 
-cite Eugene's workshop paper, and any other document/guide out there appropriate to cite.
+Scala reflection enables a form of metaprogramming which makes it possible for
+programs to modify themselves at compile-time. This compile-time reflection is
+realized in the form of hygenic macros \cite{Burmako2012}, which {\em expand}
+at compile-time to manipulate abstract syntax trees. In our framework, we make
+use of two principal types of macros.
+
+\paragraph{Macro defs.} Macro defs are methods that are transparently loaded
+by the compiler and executed (or expanded) during compilation. A macro is
+defined as if it is a normal method, but it is linked using the \verb|macro|
+keyword to an additional method that operates on abstract syntax trees.
+
+\begin{lstlisting}
+def assert(x: Boolean, msg: String): Unit =
+  macro assert_impl
+def assert_impl(c: Context)(x: c.Expr[Boolean], msg: c.Expr[String]): c.Expr[Unit] = ...
+\end{lstlisting}
+
+\todo fix this lstlisting
+
+In the above, the arguments of \verb|assert_impl| of \verb|Expr| are syntax
+trees, which the body of \verb|assert_impl| will operate on, itself returning
+a syntax tree of type \verb|Expr[Unit]|. It is \verb|assert_impl| which is
+expanded and evaluated at compile-time, its result is then inlined at the
+callsite of \verb|assert| and the inlined result is typechecked by the Scala
+compiler. It is also important to note that implicit defs as described above
+in Section \ref{sec:implicits} can be implemented as macros.
+
+As we will see, these macros defs, coupled with implicits in Scala enable the
+boilerplate-free usage of the Scala pickling framework at the pickling use-
+site.
+
+\paragraph{Macro Annotations.} Unlike macro defs, macro annotations are capable
+of {\em adding members} to classes which carry their annotation.
+
+\begin{lstlisting}
+@withNewToString
+class D { ... }
+\end{lstlisting}
+
+The \verb|withNewToString| annotation is defined using a standard class
+definition by extending a special \verb|MacroAnnotation| marker trait, and by
+implementing a special \verb|transform| method as a macro:
+
+\begin{lstlisting}
+class withNewToString extends MacroAnnotation {
+  def transform = macro transform_impl
+  def transform_impl = { ... }
+}
+\end{lstlisting}
+
+The transform macro implementation is passed the AST of the annotated class
+definition (the AST of ``\verb|class D { ... }|''), and returns a possibly changed AST
+as the new class definition (which could have added members, changed
+constructor parameters etc.)
+
 
 \subsection{Quasiquotes}
 cite Denys's tech report
