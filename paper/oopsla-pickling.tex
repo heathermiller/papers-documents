@@ -30,6 +30,63 @@
 
 \usepackage{amsmath}
 
+\makeatletter
+\def \@ivtitleauthors#1#2#3#4{%
+  \if \@andp{\@emptyargp{#2}}{\@emptyargp{#3}}%
+    \noindent \@setauthor{40pc}{#1}{\@false}\par
+  \else\if \@emptyargp{#3}%
+    \noindent \@setauthor{17pc}{#1}{\@false}\hspace{3pc}%
+              \@setauthor{17pc}{#2}{\@false}\par
+  \else\if \@emptyargp{#4}%
+    \noindent \@setauthor{17pc}{#1}{\@false}\hspace{3pc}%
+              \@setauthor{17pc}{#3}{\@false}\par
+  \else
+    \noindent \@setauthor{9.3333pc}{#1}{\@false}\hspace{1.5pc}%
+              \@setauthor{9.3333pc}{#2}{\@false}\hspace{1.5pc}%
+              \@setauthor{9.3333pc}{#3}{\@false}\hspace{1.5pc}%
+              \@setauthor{9.3333pc}{#4}{\@true}\par
+    \relax
+  \fi\fi\fi
+  \vspace{20pt}}
+\def \@maketitle {%
+  \begin{center}
+  \@settitlebanner
+  \let \thanks = \titlenote
+  {\leftskip = 0pt plus 0.25\linewidth
+   \rightskip = 0pt plus 0.25 \linewidth
+   \parfillskip = 0pt
+   \spaceskip = .7em
+   \noindent \LARGE \bfseries \@titletext \par}
+  \vskip 6pt
+  \noindent \Large \@subtitletext \par
+  \vskip 12pt
+  \ifcase \@authorcount
+    \@latex@error{No authors were specified for this paper}{}\or
+    \@titleauthors{i}{}{}\or
+    \@titleauthors{i}{ii}{}\or
+    \@titleauthors{i}{ii}{iii}\or
+    \@ivtitleauthors{i}{ii}{iii}{iv}\or
+    \@titleauthors{i}{ii}{iii}\@titleauthors{iv}{v}{}\or
+    \@titleauthors{i}{ii}{iii}\@titleauthors{iv}{v}{vi}\or
+    \@titleauthors{i}{ii}{iii}\@titleauthors{iv}{v}{vi}%
+                  \@titleauthors{vii}{}{}\or
+    \@titleauthors{i}{ii}{iii}\@titleauthors{iv}{v}{vi}%
+                  \@titleauthors{vii}{viii}{}\or
+    \@titleauthors{i}{ii}{iii}\@titleauthors{iv}{v}{vi}%
+                  \@titleauthors{vii}{viii}{ix}\or
+    \@titleauthors{i}{ii}{iii}\@titleauthors{iv}{v}{vi}%
+                  \@titleauthors{vii}{viii}{ix}\@titleauthors{x}{}{}\or
+    \@titleauthors{i}{ii}{iii}\@titleauthors{iv}{v}{vi}%
+                  \@titleauthors{vii}{viii}{ix}\@titleauthors{x}{xi}{}\or
+    \@titleauthors{i}{ii}{iii}\@titleauthors{iv}{v}{vi}%
+                  \@titleauthors{vii}{viii}{ix}\@titleauthors{x}{xi}{xii}%
+  \else
+    \@latex@error{Cannot handle more than 12 authors}{}%
+  \fi
+  \vspace{1.75pc}
+  \end{center}}
+\makeatother
+
 \begin{document}
 
 \conferenceinfo{OOPSLA '13}{October 26-31, Indianapolis, IN, USA.}
@@ -51,9 +108,9 @@
 \authorinfo{Eugene Burmako}
            {EPFL, Switzerland}
            {eugene.burmako@epfl.ch}
-% \authorinfo{Martin Odersky}
-%            {EPFL, Switzerland}
-%            {martin.odersky@epfl.ch}
+\authorinfo{Martin Odersky}
+           {EPFL, Switzerland}
+           {martin.odersky@epfl.ch}
 
 \maketitle
 
