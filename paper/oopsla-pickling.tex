@@ -32,57 +32,55 @@
 
 \begin{document}
 
-\conferenceinfo{WXYZ '05}{date, City.}
-\copyrightyear{2005}
+\conferenceinfo{OOPSLA '13}{October 26-31, Indianapolis, IN, USA.}
+\copyrightyear{2013}
 \copyrightdata{[to be supplied]}
 
-\titlebanner{banner above paper title}        % These are ignored unless
-\preprintfooter{short description of paper}   % 'preprint' option specified.
+% \titlebanner{banner above paper title}        % These are ignored unless
+% \preprintfooter{short description of paper}   % 'preprint' option specified.
 
 \title{Object-Oriented Pickler Combinators}
 \subtitle{and an Extensible Generation Framework}
 
 \authorinfo{Heather Miller}
-           {EPFL}
+           {EPFL, Switzerland}
            {heather.miller@epfl.ch}
 \authorinfo{Philipp Haller}
            {Typesafe, Switzerland}
            {philipp.haller@typesafe.com}
 \authorinfo{Eugene Burmako}
-           {EPFL}
+           {EPFL, Switzerland}
            {eugene.burmako@epfl.ch}
-\authorinfo{Martin Odersky}
-           {EPFL}
-           {martin.odersky@epfl.ch}
+% \authorinfo{Martin Odersky}
+%            {EPFL, Switzerland}
+%            {martin.odersky@epfl.ch}
 
 \maketitle
 
 \begin{abstract}
+
 Serialization or pickling, i.e., persisting runtime objects by converting them
 into a binary or text representation is ubiquitous in distributed programming.
-Pickler combinators are a popular approach from the realm of functional
-programming designed to alleviate some of the tedium of writing pickling code
-by hand, but they don't translate well to the realm of object-oriented
-programming due to qualities like inheritance, open sums, and mutable or
-private state. Furthermore, using pickler combinators still requires writing
-some boilerplate, which programmers familiar with object-oriented languages
-like Java can typically avoid, thanks to the slow but boilerplate-free runtime
-generation provided by Java Serialization. Finally, both pickler combinators
-and Java-based serialization frameworks tend to be tied to a specific pickle
-format, leaving programmers no choice of how their data is persisted. In this
-paper, we present object-oriented pickler combinators and a framework for
-generating them at compile-time, designed to be the default serialization
-mechanism of the Scala programming language. Our framework is extensible; (1)
-using Scala's implicit parameters, users can add their own easily-swappable
-pickle format, (2) using the type class pattern, users can provide their own
-custom picklers to override the default behavior of the Scala pickling
-framework. In addition to its extensibility and need for little to no
-boilerplate, our framework achieves an order of magnitude speedup over Java
-Serialization and up to a factor 7 speedup over popular "fast" Java
-serialization frameworks like Kryo. We go on to evaluate our framework on two
-large industrial-strength frameworks for distributed computing, Akka and
-Spark, and show improved performance and a reduction of lines of
-serialization-related code for both projects.
+Pickler combinators are a popular approach functional programming designed to
+alleviate some of the tedium of writing pickling code by hand, but they don't
+translate well to object-oriented programming due to qualities like open class
+hierarchies and ad-hoc polymorphism. Furthermore, both functional pickler
+combinators and Java-based serialization frameworks tend to be tied to a
+specific pickle format, leaving programmers no choice of how their data is
+persisted. In this paper, we present object-oriented pickler combinators and a
+framework for generating them at compile-time, designed to be the default
+serialization mechanism of the Scala programming language. Our framework is
+extensible; (1) using Scala's implicit parameters, users can add their own
+easily-swappable pickle format, (2) using the type class pattern, users can
+provide their own custom picklers to override the default behavior of the
+Scala pickling framework. In addition to extensibility and need for little to
+no boilerplate, the static generation of our OO picklers achieves an order of
+magnitude speedup over Java Serialization and up to a factor 7 speedup over
+popular ``fast'' Java serialization frameworks like Kryo. We go on to evaluate
+our framework on two large industrial-strength frameworks for distributed
+computing, Akka and Spark, and show improved performance and a reduction of
+lines of serialization-related code for both projects.
+
 \end{abstract}
 
 \category{CR-number}{subcategory}{third-level}
@@ -164,14 +162,14 @@ such as Kryo, Google's protocol buffers or Apache's Avro serialization
 framework. However, frameworks such as the latter offer only minimal language
 integration.
 
-{\bf Extensibility}. It should be possible to add pickling support to existing
+\item {\bf Extensibility}. It should be possible to add pickling support to existing
 types retroactively. This resolves a common issue in Java-style serialization
 frameworks where classes have to be marked as serializable upfront,
 complicating unanticipated change. Furthermore, type-class-like extensibility
 enables pickling also for types provided by the underlying runtime environment
 (including built-in types), or types of 3rd party libraries.
 
-{\bf Pluggable Pickle Formats}. It should be possible to easily swap target
+\item {\bf Pluggable Pickle Formats}. It should be possible to easily swap target
 pickle formats, or for users to provide their own customized format. It is not
 uncommon for a distributed application to require multiple formats for
 exchanging data, for example an efficient binary format for exchanging system
@@ -179,7 +177,12 @@ messages, or JSON format for publishing feeds. Type-class-like extensibility
 makes it possible for users to define their own pickle format, and to easily
 {\em swap it in} at the use-site.
 
-{\bf Robust support for object-orientation}. Concepts such as subtyping and
+\item {\bf Type safety}. Picklers should be type safe through (a) type
+specialization and (b) dynamic type checks when unpickling to transition
+unpickled objects into the statically-typed ``world'' at a well-defined program
+point.
+
+\item {\bf Robust support for object-orientation}. Concepts such as subtyping and
 mix-in composition are used very commonly to define regular object types in
 object-oriented languages. Since our framework does without a separate data
 type description language ({\em e.g.,} a schema), it is important that regular
@@ -188,6 +191,52 @@ Liskov substitution principle is used as a guidance surrounding the
 substitutability of both objects to-be-pickled and first-class picklers.
 \end{itemize}
 
+
+\subsection{Related Work}
+
+Some OO languages like Java and runtime environments like the JVM or .NET
+provide serialization for arbitrary types, provided by the underlying virtual
+machine. While this approach is very convenient for the programmer there are
+also several issues: (a) the pickling format cannot be exchanged (Java), (b)
+serialization relies on runtime reflection which hits performance, and (c)
+existing classes that do not extend a special marker interface are not
+serializable, which often causes oversights resulting in software engineering
+costs. JavaScript has direct support for serialization in the form of JSON
+(unpickle = eval). In functional languages, pickler combinators can reduce the
+effort of manually writing pickling and unpickling functions to a large
+extent. However, existing approaches do not support object-oriented concepts
+such as ad-hoc polymorphism. Moreover, it is not clear whether local type
+inference as required in OO languages would yield a comparable degree of
+conciseness, acceptable to programmers used to Java-style serialization.
+Nonetheless, our approach builds on PCs because of their superior
+composability. We discuss further, less-closely related work in Section ??.
+
+\subsection{Contributions}
+
+This paper makes the following contributions:
+
+\begin{itemize}
+
+\item An extension to pickler combinators, well-known in functional
+programming,  to support the core concepts of object-oriented programming,
+namely open class hierarchies and ad-hoc polymorphism.
+
+\item A framework based on object-oriented pickler combinators which (a)
+enables retrofitting existing types with pickling support, (b) supports
+automatically generating picklers at compile time and at runtime, (c) supports
+pluggable pickle formats, and (d) does not require changes to the host
+language or the underlying virtual machine.
+
+\item A complete implementation of the presented approach in and for Scala.
+
+\item An experimental evaluation comparing the performance of our framework
+with Java serialization and Kryo. In microbenchmarks our framework outperforms
+Java serialization by a factor of X and Kryo by a factor of Y. We also
+evaluate the performance on a set of data types used in large industrial-
+strength distributed computing frameworks and applications, and show an
+integration in Spark and Akka.
+
+\end{itemize}
 
 
 ======
