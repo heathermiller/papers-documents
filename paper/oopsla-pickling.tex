@@ -30,6 +30,30 @@
 
 \usepackage{amsmath}
 \usepackage{color}
+\usepackage{listings,xspace}
+
+\lstdefinelanguage{Scala}%
+{morekeywords={abstract,case,catch,char,class,%
+    def,else,extends,final,%
+    if,import,%
+    match,module,new,null,object,override,package,private,protected,%
+    public,return,super,this,throw,trait,try,type,val,var,with,implicit,%
+  },%
+  sensitive,%
+  morecomment=[l]//,%
+  morecomment=[s]{/*}{*/},%
+  morestring=[b]",%
+  morestring=[b]',%
+  showstringspaces=false%
+}[keywords,comments,strings]%
+
+\lstset{language=Scala,%
+  mathescape=true,%
+  columns=[c]fixed,%
+  basewidth={0.5em, 0.40em},%
+  basicstyle=\tt,%
+  xleftmargin=0.0cm
+}
 
 \makeatletter
 \def \@ivtitleauthors#1#2#3#4{%
@@ -425,9 +449,53 @@ cite Eugene's workshop paper, and any other document/guide out there appropriate
 cite Denys's tech report
 
 
-
+\section{Overview and Usage}
+\label{sec:overview}
 
 \section{Object-Oriented Pickler Combinators}
+
+We introduce our precise model of object-oriented picklers by starting from
+the definition of {\em picklers as first-class objects}. The motivation behind
+this is that first-class picklers will allow us to introduce pickling
+combinators subsequently. We will see that pickler composition has deep
+implications on the basic definitions.
+
+Note that the perceived usage of composable first-class pickler objects might
+appear to differ from what was previously presented as the most basic usage in
+Section \ref{sec:overview} above. This is due to the fact that pickler
+composition typically happens internally-- the generation framework handles
+this composition, where the previously-presented `pickle` method on the to-be-
+pickled object is simply an extension method which triggers this generation by
+composition. We will show exactly how the pickle extension method translates
+to a composition and use of the first-class picklers presented here.
+\todo where?
+
+\subsection{Definition (First-Class Picklers)}
+
+A pickler is an instance of trait \verb|Pickler[T]| which has a pickle method:
+
+\begin{lstlisting}
+    trait Pickler[T] {
+      def pickle(obj: T): Pickle
+    }
+\end{lstlisting}
+
+The \verb|pickle| method takes an object to-be-pickled of static type
+\verb|T|, pickles it by turning it into some external representation like a
+byte array, and returns an instance of type \verb|Pickle| which wraps the
+external representation. Given this definition, picklers are type safe in the
+sense that ``a type-specialized pickler can be applied only to values of the
+specialized type.''~\cite{Elsman2005}.
+
+Conversely, an unpickler is an instance of trait \verb|Unpickler[U]| which has an \verb|unpickle| method:
+
+\begin{verbatim}
+    trait Unpickler[U] {
+      def unpickle(p: Pickle): U
+    }
+\end{verbatim}
+
+=======
 
 \subsection{Usage}
 
