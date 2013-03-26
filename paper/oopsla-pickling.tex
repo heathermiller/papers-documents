@@ -29,6 +29,7 @@
 % authoryear    To obtain author/year citation style instead of numeric.
 
 \usepackage{amsmath}
+\usepackage{color}
 
 \makeatletter
 \def \@ivtitleauthors#1#2#3#4{%
@@ -87,6 +88,8 @@
   \end{center}}
 \makeatother
 
+\newcommand{\todo}{{\bf \colorbox{red}{\color{white}TODO:}}}
+
 \begin{document}
 
 \conferenceinfo{OOPSLA '13}{October 26-31, Indianapolis, IN, USA.}
@@ -118,7 +121,7 @@
 
 Serialization or pickling, i.e., persisting runtime objects by converting them
 into a binary or text representation is ubiquitous in distributed programming.
-Pickler combinators are a popular approach functional programming designed to
+Pickler combinators are a popular approach from functional programming designed to
 alleviate some of the tedium of writing pickling code by hand, but they don't
 translate well to object-oriented programming due to qualities like open class
 hierarchies and ad-hoc polymorphism. Furthermore, both functional pickler
@@ -133,10 +136,12 @@ provide their own custom picklers to override the default behavior of the
 Scala pickling framework. In addition to extensibility and need for little to
 no boilerplate, the static generation of our OO picklers achieves an order of
 magnitude speedup over Java Serialization and up to a factor 7 speedup over
-popular ``fast'' Java serialization frameworks like Kryo. We go on to evaluate
-our framework on two large industrial-strength frameworks for distributed
-computing, Akka and Spark, and show improved performance and a reduction of
-lines of serialization-related code for both projects.
+popular ``fast'' Java serialization frameworks like Kryo.
+\todo mention Akka \& Spark?
+% We go on to evaluate
+% our framework on two large industrial-strength frameworks for distributed
+% computing, Akka and Spark, and show improved performance and a reduction of
+% lines of serialization-related code for both projects.
 
 \end{abstract}
 
@@ -206,7 +211,6 @@ safety guarantees provided by type-specialized picklers are ``portable'' in
 the sense that they carry over to different pickle formats.
 
 The design of our framework has been guided by the following principles:
-
 \begin{itemize}
 \item {\bf Ease of use}. The programming interface aims to require as little
 pickling boilerplate as possible. Thanks to dedicated support by the
@@ -272,6 +276,7 @@ inference as required in OO languages would yield a comparable degree of
 conciseness, acceptable to programmers used to Java-style serialization.
 Nonetheless, our approach builds on PCs because of their superior
 composability. We discuss further, less-closely related work in Section ??.
+\todo Add section. Finish up related work.
 
 \subsection{Contributions}
 
@@ -300,84 +305,31 @@ integration in Spark and Akka.
 
 \end{itemize}
 
+\subsection{Temporary TODOs}
 
-======
+For introduction, and points we don't want to lose.
 
-Introduction: make nod to "open programming" \cite{Rossberg2007}, motivation for strongly-typed languages to easily communicate with one another.
+\todo make nod to "open programming" \cite{Rossberg2007}, motivation for strongly-typed languages to easily communicate with one another?
 
-Pickling and unpickling essential building block to achieve the above.
+\todo Reference to Scrap Your Boilerplate \cite{Lammel2004}.
 
-Pickler combinator approach \cite{Kennedy2004} very elegant approach, but writing picklers for every type in your program still cumbersome. Not only that, but specific to FP- no notion of inheritance or ``open sums'' (open class hierarchies where subclasses can be added at any time). Furthermore, in OO world, people have come to accept boilerplate-free Java serialization as the standard.
-
-(Would be important to point out the characteristics of Java serialization, dedicated support from the underlying virtual machine. It has a fixed binary format. Can't really change it. If something isn't serializiable, can't retroactively make something serializable because you need to extend a Java interface which is impossible when you're already dealing with a compiled library.)
-
-Pickler combinators big inspiration because you can combine existing picklers using combinators to produce picklers of compound types.
-
-Reference to Scrap Your Boilerplate \cite{Lammel2004}.
-
-From the SYBP\#2 paper:
+From the Scrap Your Boilerplate\#2 paper:
 \begin{quote}
 It is common to find that large slabs of a program consist of ``boilerplate'' code, which conceals by its bulk a smaller amount of ``interesting'' code. So-called generic programming techniques allow programmers to automate this ``boilerplate'', allowing effort to be focused on the interesting parts of the program.
 \end{quote}
 
-Our approach has several attractive properties:
-- it is an ``open-world'' approach, in which it is easy to add new customized picklers at exactly the desired places;
-- pluggable pickle formats
--
+\todo Our approach has several attractive properties: it is an ``open-world'' approach, in which it is easy to add new customized picklers at exactly the desired places;
 
-The tedium of writing pickling and unpickling functions by hand is relieved using a combinator library similar in spirit to the well-known parser combinators. Picklers for primitive
-types are combined to support tupling, alternation, recursion, and structure sharing. Code
-is presented in Haskell; an alternative implementation in ML is discussed.
-
-[Page limit: 14 pages including references.]
-Serialization or pickling, i.e., persisting runtime objects by
-converting them into a binary or text representation is ubiquitous in
-distributed programming.
-
-There has never been a Scala-specific solution to serialization which
-can support certain aspects of Scala's type system, nor which can
-generate serialization-related boilerplate at compile-time. Even the
-fastest Java serialization frameworks must generate all
+\todo Even the fastest Java serialization frameworks must generate all
 pickler-related code at runtime, which in preliminary benchmarks
 amounts to a factor 10 slow-down over a naive but fully-static handwritten pickler
 combinator-based approach.
 
-The goal of this project is a new framework for pickling (or
+\todo The goal of this project is a new framework for pickling (or
 serialization). The idea is to automatically generate pickler
 combinators at compile-time.
 
-The main contribution is to extend existing approaches to
-pickler combinators with support for object-oriented mechanisms, such
-as subclassing, generics,
-
-\paragraph{Guiding principles:}
-
-Scala Pickling should be:
-\begin{itemize}
-  \item more typesafe than Java serialization.
-  \item faster than Java serialization.
-  \item more extensible than Java serialization.
-  \item but should not be more complicated to think about than Java serialization.
-\end{itemize}
-
-PC of FP do not support subtyping. Even if they would, it is not clear whether local type inference as required in OO would be enough to support the same level of conciseness as in FP. People in OO languages are used to the fact that serialization code is generated. From that perspective, PCs would represent quite a bit of boilerplate.
-
-On the end of the spectrum, some OO languages and runtime environments like the JVM provide serialization for arbitrary types, provided by the underlying virtual machine. While this approach is very convenient for the programming there are also several issues:
-
-Requirements:
-
-\begin{itemize}
-  \item subtyping (OO)
-  \item extensible: after the fact, existing classes (existing 3rd party libs, for example).
-  \item pluggable pickle formats
-\end{itemize}
-
-the pickling format cannot be exchanged
-both pickling and unpickling relies on runtime reflection which hits performance
-existing classes that do not extend a special marker interface are not serializable; this often causes oversights resulting in software engineering costs.
-
-
-\subsection{Related Work}
+\todo PC of FP do not support subtyping. Even if they would, it is not clear whether local type inference as required in OO would be enough to support the same level of conciseness as in FP.
 
 Figure~\ref{fig:comparison} compares the main pickling/serialization
 frameworks with respect to type-safety, object-orientation, type
@@ -398,36 +350,13 @@ Scala picklers      & yes          & yes              & yes          & yes      
 \caption{Comparing serialization frameworks}\label{fig:comparison}
 \end{figure}
 
-statically-generated pickler combinators (faster)
-add pickling support for existing types retroactively
-extensibility
-pluggable pickleformats (contribution!)
-roll your own custom pickler
-can handle constructors (TODO: verify that Kryo cannot)
-composition
-"we are combinators, we are more than combinators, we wed OO concepts with them"
-framework which generates picklers through composition
-pickler combinators can be executed either at compile-time or runtime
-Problem: does not work with ctors with parameters which do side effects
-is that a problem?
-we should say: we define "Pickleable Objects" for which we have perfect support including subclassing
-so, maybe we should point out clearly what we do not support
-might want to discourage certain things
-Goal:
-theory: object-oriented pickling
-impl: provide solution that works for 100% of the cases
-demonstrate that it's more convenient and faster than anything that lives in Java that depends on reflection
-Evaluation
-survey Akka and Spark apps to see which types they are pickling in real apps
-show which types are supported by our framework
-Do we really need to support private ctor vals/vars?
-One proposal:
-no support for side-effecting constructors
-no type safety for generic types (like in Java, no surprise)
-we don't add type safety (we meet state of the art, we don't exceed it)
+\todo can handle constructors (TODO: verify that Kryo cannot)
 
+\todo framework which generates picklers through composition
 
-\subsection{Contributions}
+\todo Problem: does not work with ctors with parameters which do side effects. in this respect, we're the same as Java
+
+\todo What do we do with this contribution section? Should be merged with the one above?
 
 \begin{itemize}
 
@@ -495,7 +424,10 @@ cite Eugene's workshop paper, and any other document/guide out there appropriate
 \subsection{Quasiquotes}
 cite Denys's tech report
 
-\section{Overview}
+
+
+
+\section{Object-Oriented Pickler Combinators}
 
 \subsection{Usage}
 
@@ -892,14 +824,14 @@ Can we get a GeoTrellis app to run?
 \end{itemize}
 
 
-\appendix
-\section{Appendix Title}
+% \appendix
+% \section{Appendix Title}
 
-This is the text of the appendix, if you need one.
+% This is the text of the appendix, if you need one.
 
-\acks
+% \acks
 
-Acknowledgments, if needed.
+% Acknowledgments, if needed.
 
 % We recommend abbrvnat bibliography style.
 
