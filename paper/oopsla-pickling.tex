@@ -441,6 +441,12 @@ programming language such as Java or C\#.
 \subsection{Implicits}
 \label{sec:implicits}
 
+In Scala it is possible to select arguments to be passed to methods
+automatically based on their type. For example, a method \verb|log| with
+multiple parameter lists may annotate their last parameter list using the
+\verb|implicit| keyword.
+
+
 cite Adriaan's and Bruno's OOPSLA paper.
 Example of a type class: maybe Ordering type class of std lib?
 %~\cite{Olivera2010}
@@ -492,7 +498,7 @@ runtime \verb|Universe|.
 Scala reflection enables a form of metaprogramming which makes it possible for
 programs to modify themselves at compile-time. This compile-time reflection is
 realized in the form of hygenic macros \cite{Burmako2012}, which {\em expand}
-at compile-time to manipulate abstract syntax trees. In our framework, we make
+at compile-time to manipulate abstract syntax trees (ASTs). In our framework, we make
 use of two principal types of macros.
 
 \paragraph{Macro defs.} Macro defs are methods that are transparently loaded
@@ -510,10 +516,10 @@ def assert_impl(c: Context)(x: c.Expr[Boolean], msg: c.Expr[String]): c.Expr[Uni
 
 In the above, the arguments of \verb|assert_impl| of \verb|Expr| are syntax
 trees, which the body of \verb|assert_impl| will operate on, itself returning
-a syntax tree of type \verb|Expr[Unit]|. It is \verb|assert_impl| which is
+an AST of type \verb|Expr[Unit]|. It is \verb|assert_impl| which is
 expanded and evaluated at compile-time, its result is then inlined at the
 callsite of \verb|assert| and the inlined result is typechecked by the Scala
-compiler. It is also important to note that implicit defs as described above
+compiler. It is also important to note that implicit defs as described earlier
 in Section \ref{sec:implicits} can be implemented as macros.
 
 As we will see, these macros defs, coupled with implicits in Scala enable the
@@ -539,15 +545,10 @@ class withNewToString extends MacroAnnotation {
 }
 \end{lstlisting}
 
-The transform macro implementation is passed the AST of the annotated class
+The \verb|transform| macro implementation is passed the AST of the annotated class
 definition (the AST of ``\verb|class D { ... }|''), and returns a possibly changed AST
 as the new class definition (which could have added members, changed
 constructor parameters etc.)
-
-
-\subsection{Quasiquotes}
-cite Denys's tech report
-
 
 \section{Overview and Usage}
 \label{sec:overview}
