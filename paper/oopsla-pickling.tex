@@ -140,13 +140,17 @@ lines of serialization-related code for both projects.
 
 \end{abstract}
 
-\category{CR-number}{subcategory}{third-level}
+\category{D.3.2}{Programming Languages}{Language Classifications --
+  multiparadigm languages, object-oriented languages, applicative
+  (functional) languages}
+\category{D.3.3}{Programming Languages}{Language Constructs and
+  Features -- input/output}
 
-\terms
-term1, term2
+% \terms
+% term1, term2
 
 \keywords
-keyword1, keyword2
+Serialization, pickling, meta-programming, distributed programming, Scala
 
 \section{Introduction}
 
@@ -172,12 +176,13 @@ serialization grows with growing object structures up to 50\%
 
 Due to the prohibitive cost of using Java Serialization in high-performance
 distributed applications, many frameworks for distributed computing, like
-Akka~\cite{Akka}, Spark~\cite{Zaharia2012}, SCADS, and others, provide support
-for higher-performance alternative frameworks such as Google's
-Protobuf~\cite{Protobuf}, Apache Avro~\cite{Avro}, or Kryo~\cite{Kryo}.
-However, the higher efficiency typically comes at the cost of weaker or no
-type safety, a fixed serialization format, more restrictions placed on the
-objects to-be-serialized, or only rudimentary language integration.
+Akka~\cite{Akka}, Spark~\cite{Zaharia2012}, SCADS \cite{Armbrust2009}, and
+others, provide support for higher-performance alternative frameworks such as
+Google's Protobuf~\cite{Protobuf}, Apache Avro~\cite{Avro}, or
+Kryo~\cite{Kryo}. However, the higher efficiency typically comes at the cost
+of weaker or no type safety, a fixed serialization format, more restrictions
+placed on the objects to-be-serialized, or only rudimentary language
+integration.
 
 This paper takes a step towards more principled open programming through a new
 foundation for pickling in object-oriented languages. We present object-oriented
