@@ -31,6 +31,7 @@
 \usepackage{amsmath}
 \usepackage{color}
 \usepackage{listings,xspace}
+\usepackage{amsthm}
 
 \lstdefinelanguage{Scala}%
 {morekeywords={abstract,case,catch,char,class,%
@@ -112,7 +113,12 @@
   \end{center}}
 \makeatother
 
+\theoremstyle{definition}
+\newtheorem{defn}{Definition} % definition numbers are dependent on theorem numbers
+
 \newcommand{\todo}{{\bf \colorbox{red}{\color{white}TODO:}}}
+\newcommand{\ie}{{\em i.e.,}}
+\newcommand{\eg}{{\em e.g.,}}
 
 \begin{document}
 
@@ -318,7 +324,8 @@ automatically generating picklers at compile time and at runtime, (c) supports
 pluggable pickle formats, and (d) does not require changes to the host
 language or the underlying virtual machine.
 
-\item A complete implementation of the presented approach in and for Scala.
+\item A complete implementation of the presented approach in and for Scala \footnote{See
+    \texttt{http://github.com/heathermiller/scala-pickling/}}.
 
 \item An experimental evaluation comparing the performance of our framework
 with Java serialization and Kryo. In microbenchmarks our framework outperforms
@@ -359,7 +366,8 @@ Figure~\ref{fig:comparison} compares the main pickling/serialization
 frameworks with respect to type-safety, object-orientation, type
 extensibility, and format extensibility.
 
-\begin{figure}[t]
+\begin{figure*}[ht!]
+\centering
 \begin{tabular}{|l|l|l|l|l|l|l|}
 \hline
 Framework           & Type-safety  & Object-oriented  & Boilerplate-free  & Type extensibility  & Format Extensibility \\
@@ -372,7 +380,7 @@ Scala picklers      & yes          & yes              & yes          & yes      
 \end{tabular}
 
 \caption{Comparing serialization frameworks}\label{fig:comparison}
-\end{figure}
+\end{figure*}
 
 \todo can handle constructors (TODO: verify that Kryo cannot)
 
@@ -431,18 +439,51 @@ familiar with a typical statically-typed, class-based object-oriented
 programming language such as Java or C\#.
 
 \subsection{Implicits}
-cite Adriaan's and Bruno's OOPSLA paper, this great type class in Scala paper
-Example of a type class: maybe Ordering type class of std lib?
+cite Adriaan's and Bruno's OOPSLA paper.
+Example of a type class: maybe Ordering type class of std lib?~\cite{Olivera2010}
 
-\paragraph{Importing implicit values}
-(is this subsection actually necesssary?)
-Example of a plain implicit parameter: could use implicit ExecutionContext in futures
+Include info on importing implicit values, and implicit resolution by scoping.
+% \paragraph{Importing implicit values}
+% (is this subsection actually necesssary?)
+% Example of a plain implicit parameter: could use implicit ExecutionContext in futures
 
 \subsection{Reflection}
-take some material from reflection guide
-start with TypeTags
+
+Reflection is the ability of a program to inspect, and possibly even modify
+itself at runtime. Before Scala 2.10, Scala did not have any reflection
+capabilities of its own. Instead, one could use Java reflection which provided
+a very limited subset of runtime reflection capabilities. In Scala 2.10, a new
+reflection library was introduced not only to address the shortcomings of
+Java's runtime reflection on Scala-specific and generic types, but to also add
+a more powerful toolbox of general reflective capabilities to Scala. Along
+with full-featured runtime reflection for Scala types and generics, Scala 2.10
+also ships with compile-time reflection capabilities, in the form of macros
+(covered in Section \ref{sec:macros}), as well as the ability to reify Scala
+expressions into abstract syntax trees.
+
+One aspect of runtime reflection that was introduced in Scala 2.10 is the
+notion of \verb|TypeTag|s. As with other JVM languages, Scala's types are
+erased at compile time. TypeTags can be thought of as objects which carry
+along all type information available at compile time, to runtime. As we will
+see, \verb|TypeTag|s will prove to be invaluable in situations where precise
+type information is not available at compile-time. \todo ...?
+
+Another important aspect of Scala's reflection library is the one-to-one
+correspondence between Scala Reflection's compile-time (\ie macros) and
+runtime APIs. Each API is parameterized on a so-called \verb|Universe|, an
+object which serves as the entry point to Scala reflection, and which provides
+all principal concepts used in reflection, such as \verb|Type|s, \verb|Tree|s,
+and \verb|Annotation|s. Depending on the task at hand, the choice between
+runtime and compile-time reflection is as easy as selecting either a compile-time
+or a runtime \verb|Universe|, and using the unified runtime/compile-time
+reflection API provided by Scala Reflection. As we will see, this enables
+maximum code reuse in that a fallback runtime pickler generation mechanism can
+be implemented by simply reusing the code for static generation, and
+parameterizing it on a runtime \verb|Universe|.
 
 \subsection{Macros}
+\label{sec:macros}
+
 cite Eugene's workshop paper, and any other document/guide out there appropriate to cite.
 
 \subsection{Quasiquotes}
@@ -464,11 +505,11 @@ Note that the perceived usage of composable first-class pickler objects might
 appear to differ from what was previously presented as the most basic usage in
 Section \ref{sec:overview} above. This is due to the fact that pickler
 composition typically happens internally-- the generation framework handles
-this composition, where the previously-presented `pickle` method on the to-be-
-pickled object is simply an extension method which triggers this generation by
-composition. We will show exactly how the pickle extension method translates
-to a composition and use of the first-class picklers presented here.
-\todo where?
+this composition, where the previously-presented \verb|pickle| method on the
+to-be-pickled object is simply an extension method which triggers this
+generation by composition. We will show exactly how the pickle extension
+method translates to a composition and use of the first-class picklers
+presented here. \todo where?
 
 \subsection{Definition (First-Class Picklers)}
 
@@ -489,11 +530,11 @@ specialized type.''~\cite{Elsman2005}.
 
 Conversely, an unpickler is an instance of trait \verb|Unpickler[U]| which has an \verb|unpickle| method:
 
-\begin{verbatim}
+\begin{lstlisting}
     trait Unpickler[U] {
       def unpickle(p: Pickle): U
     }
-\end{verbatim}
+\end{lstlisting}
 
 =======
 
