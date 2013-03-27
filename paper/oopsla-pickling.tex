@@ -32,6 +32,7 @@
 \usepackage{color}
 \usepackage{listings,xspace}
 \usepackage{amsthm}
+\usepackage{mdframed}
 
 \lstdefinelanguage{Scala}%
 {morekeywords={abstract,case,catch,char,class,%
@@ -114,11 +115,17 @@
 \makeatother
 
 \theoremstyle{definition}
-\newtheorem{defn}{Definition} % definition numbers are dependent on theorem numbers
+\newmdtheoremenv[hidealllines=true,topline=true,bottomline=true,skipabove=\baselineskip,skipbelow=\baselineskip]{defn}{Definition}[section]
+% \newtheorem{defn}{Definition}[section]
+% \newenvironment{defn}
+  % {\begin{mdframed}[style=warning]\begin{mdef}}
+  % {\end{mdef}\end{mdframed}}
 
 \newcommand{\todo}{{\bf \colorbox{red}{\color{white}TODO:}}}
-\newcommand{\ie}{{\em i.e.,}}
-\newcommand{\eg}{{\em e.g.,}}
+\newcommand{\ie}{{\em i.e.,~}}
+\newcommand{\eg}{{\em e.g.,~}}
+\newcommand{\term}[1]{\mbox{\texttt{#1}}}
+\newcommand{\itl}[1]{\mbox{\textit{#1}}}
 
 \begin{document}
 
@@ -509,10 +516,10 @@ keyword to an additional method that operates on abstract syntax trees.
 \begin{lstlisting}
 def assert(x: Boolean, msg: String): Unit =
   macro assert_impl
-def assert_impl(c: Context)(x: c.Expr[Boolean], msg: c.Expr[String]): c.Expr[Unit] = ...
+def assert_impl(c: Context)
+  (x: c.Expr[Boolean], msg: c.Expr[String]):
+                            c.Expr[Unit] = ...
 \end{lstlisting}
-
-\todo fix this lstlisting
 
 In the above, the arguments of \verb|assert_impl| of \verb|Expr| are syntax
 trees, which the body of \verb|assert_impl| will operate on, itself returning
@@ -553,48 +560,100 @@ constructor parameters etc.)
 \section{Overview and Usage}
 \label{sec:overview}
 
-\section{Object-Oriented Pickler Combinators}
+\section{Model of Object-Oriented Picklers}
 
-We introduce our precise model of object-oriented picklers by starting from
-the definition of {\em picklers as first-class objects}. The motivation behind
-this is that first-class picklers will allow us to introduce pickling
-combinators subsequently. We will see that pickler composition has deep
-implications on the basic definitions.
+In this section we provide a formal definition of object-oriented picklers. We
+introduce picklers as first-class objects, and provide their type definitions
+and contracts that valid implementations must uphold. Subsequently, we
+demonstrate that the introduced picklers enable modular, object-oriented
+pickler combinators, \ie methods for composing more complex picklers from
+simpler primitive picklers.
 
-Note that the perceived usage of composable first-class pickler objects might
-appear to differ from what was previously presented as the most basic usage in
-Section \ref{sec:overview} above. This is due to the fact that pickler
-composition typically happens internally-- the generation framework handles
-this composition, where the previously-presented \verb|pickle| method on the
-to-be-pickled object is simply an extension method which triggers this
-generation by composition. We will show exactly how the pickle extension
-method translates to a composition and use of the first-class picklers
-presented here. \todo where?
+Note that we are using a Scala-like program notation. However, the introduced
+concepts and definitions are realizable in most statically-typed OO languages
+with generics.
 
-\subsection{Definition (First-Class Picklers)}
+\begin{defn}(First-Class Picklers and Unpicklers)
 
-A pickler is an instance of trait \verb|Pickler[T]| which has a pickle method:
+A pickler for some type $T$ is an instance of one of two abstract class or
+interface types \term{DPickler}$[T]$ or \term{SPickler}$[T]$. Each have an
+abstract method \verb|pickle| with a single parameter of type $T$ and return
+type \term{Pickle}:
 
 \begin{lstlisting}
-    trait Pickler[T] {
+    trait DPickler[T] {
       def pickle(obj: T): Pickle
     }
 \end{lstlisting}
 
-The \verb|pickle| method takes an object to-be-pickled of static type
-\verb|T|, pickles it by turning it into some external representation like a
-byte array, and returns an instance of type \verb|Pickle| which wraps the
-external representation. Given this definition, picklers are type safe in the
-sense that ``a type-specialized pickler can be applied only to values of the
-specialized type.''~\cite{Elsman2005}.
+\noindent(The type definition of \term{SPickler}$[T]$ differs only in the name of the type;
+below we define the difference in their contracts.)
 
-Conversely, an unpickler is an instance of trait \verb|Unpickler[U]| which has an \verb|unpickle| method:
+Conversely, an unpickler for some type $U$ is an instance of an abstract class
+or interface type \term{Unpickler}$[U]$ that has a single abstract method
+\verb|unpickle| with a single parameter of type \term{Pickle} and return type
+\term{Unit}.
+\end{defn}
 
-\begin{lstlisting}
-    trait Unpickler[U] {
-      def unpickle(p: Pickle): U
-    }
+The pickle method takes an object to-be-pickled of static type $T$, pickles it
+by turning it into some external representation like a byte array, and returns
+an instance of type \term{Pickle} which wraps the external representation. Given this
+definition, picklers ``are type safe in the sense that a type-specialized
+pickler can be applied only to values of the specialized type.''~\cite{Elsman2005}.
+
+\paragraph{Preliminary Definitions.} To precisely specify the contracts of
+picklers and unpicklers, we require standard definitions of the dynamic type
+of an object \term{o}, written \itl{dynTypeOf(}\term{o}\itl{)}, and the erasure of a
+static type $T$, written \itl{erasure(}$T$\itl{)}.
+
+\begin{defn}(Structural Equality)
+
+\noindent Two objects \term{obj}$_1$ and \term{obj}$_2$ are structurally equal, written
+
+\begin{lstlisting}[escapechar=\%]
+obj%$_1$% %$\equiv$% obj%$_2$%
 \end{lstlisting}
+
+\noindent if and only if
+
+\begin{itemize}
+\item \itl{dynTypeOf(}\term{obj$_1$}\itl{)} \term{=:=} \itl{dynTypeOf(}\term{obj$_2$}\itl{)} \term{=:=} $C$
+      for some class type $C$, and we have that for all \term{fld} $\in$ $\textit{fields}(C)$.
+      ~\term{obj$_1$.fld} $\equiv$ \term{obj$_2$.fld}, or
+\item \itl{dynTypeOf(}\term{obj$_1$}\itl{)} \term{=:=} $T$ for some primitive type $T$, and \term{obj$_1$ == obj$_1$}.
+\end{itemize}
+\end{defn}
+
+The contracts of \term{DPickler}s, \term{SPickler}s, and \term{Unpickler}s are
+defined as follows.
+
+\begin{defn}(Object-Oriented Picklers)
+
+\noindent Given the following typed objects,
+
+\begin{lstlisting}[escapechar=\%]
+    dp: DPickler[%$T$%]
+    sp: SPickler[%$T$%]
+   obj: %$T$%
+    up: Unpickler[%$U$%] %\textrm{where}% %$T <: U$%
+  obj': %$T$%
+\end{lstlisting}
+
+\noindent where \term{obj} is the object to-be-pickled, and \term{obj'} is the unpickled
+object. Then,
+
+\begin{lstlisting}[escapechar=\%]
+up.unpickle(dp.pickle(obj)) %\textrm{evaluates to}% obj'%\vspace{0.15cm}%
+up.unpickle(sp.pickle(obj)) %\textrm{evaluates to}% obj' %\textrm{if}% dynTypeOf(obj) =:= erasure(T)
+\end{lstlisting}
+
+\noindent such that,
+
+\begin{lstlisting}[escapechar=\%]
+obj': U%\vspace{0.15cm}%
+obj' %$\equiv$% obj
+\end{lstlisting}
+\end{defn}
 
 =======
 
