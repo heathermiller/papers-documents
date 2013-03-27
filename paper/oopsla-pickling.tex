@@ -908,7 +908,7 @@ Scala, this includes mix-in composition~\cite{Odersky2005}
 
 \subsection{Runtime Picklers}
 
-\todo what to do with this? (from here to the end of the section?)
+\todo what to do with this?
 
 One goal of our framework is to generate as much pickling code at compile time as possible. However, due to the interplay of subclassing with both separate compilation and generics, we provide a runtime fall back capability to handle the cases that cannot be resolved at compile time.
 
@@ -979,7 +979,7 @@ As a result, only the runtime type information of obj is available for generatin
 Our pickling framework is extensible in several dimensions:
 
 \begin{enumerate}
-\item [The following depends on implicits!] By design our framework enables defining picklers for existing classes that have not been written with pickling in mind. That way, a class hierarchy provided by a 3rd party can be equipped with a set of picklers retroactively. The following section shows how this form of extensibility is enabled by an object-oriented form of the typeclass design pattern in Scala.
+\item {\em The following depends on implicits!} By design our framework enables defining picklers for existing classes that have not been written with pickling in mind. That way, a class hierarchy provided by a 3rd party can be equipped with a set of picklers retroactively. The following section shows how this form of extensibility is enabled by an object-oriented form of the typeclass design pattern in Scala.
 \item Custom pickling formats.
 \item Can show JSON as alternative to default binary format
 \item Custom picklers. Customize what parts of an object are pickled and how. For example, a custom pickler for a particular collection type.
