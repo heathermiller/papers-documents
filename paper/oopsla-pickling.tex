@@ -848,199 +848,12 @@ that object-oriented picklers should be invariant in their generic type
 parameter to allow for several scenarios of unanticipated evolution.
 
 
-=======
 
-\subsection{Usage}
 
-Ideally, a user would use the Scala Pickling framework as follows,
-
-\begin{verbatim}
-class Person(name: String, age: Int)
-
-val p: Person = new Person("Bob", 61)
-val bytes = p.pickle
-\end{verbatim}\noindent
-
-That is, the assumption is that you would be able to directly call a
-pickle method on an object where pickle might not be defined. In this
-case, most of the time, the framework should be able to generate all
-relevant pickler combinators for your arbitrary object at
-compile-time.
-
-Furthermore, the user should also be able to select pickle formats. By
-default, a Scala Binary format would be used, but it's planned to add
-support for JSON and Protobuf as well. A user would select an
-alternate pickle format as follows:
-
-\begin{verbatim}
-import scala.pickling.JSONFormat
-
-...
-val bytes = p.pickle
-\end{verbatim}\noindent
-
-That is, alternate pickling formats would be represented as implicit
-values which simply need to be in scope. Thus, extensibility for
-alternate back-ends should be quite straightforward.
-
-\section{Object-Oriented Picklers}
-Our approach is closely related to PCs but extends the way picklers are composed to account for inheritance and subtyping.
-
-\subsection{FP Pickler Combinators}
-Introduction and explanation of Kennedy's PCs.
-
-\subsection{OO Picklers}
-(keep this section?) similarites/differences with PCs
-
-our notion of a pickler combinator. any differences with PCs motivated (i.e. say/show how differences enable inheritance, subtyping, etc)
-
-builds on PCs by extending them with support for subtyping.
-
-pickler combinators are these things. they're too limited to deal with the messy world of OO programming. so we extend them in the following ways.
-
-\subsection{Definition and Usage of OO Picklers and Unpicklers}
-
-An OO pickler is an instance of Pickler[T] with a pickle method:
-
-\begin{verbatim}
-    trait Pickler[T] {
-      def pickle(obj: T): Pickle
-    }
-\end{verbatim}
-
-The parameter obj... The result type Pickle...
-"The library is type safe in the sense that a type specialized pickler can be applied only to values of the specialized type."
-
-Basic usage. Canonical usage is by using the pickle extension method. TODO summarize pickle method using PickleOps.
-
-\begin{verbatim}
-    trait Unpickler[U] {
-      def unpickle(p: Pickle): U
-    }
-\end{verbatim}
-How are Pickler[T] and Unpickler[U] related?
-
-Given:
-\begin{itemize}
-  \item pt: Pickler[T]
-  \item obj: T (object before pickling)
-  \item ut: Unpickler[U] where U >: T
-  \item obj': U (unpickled object)
-\end{itemize}
-
-then:
-
-\begin{verbatim}
-    ut.unpickle(pt.pickle(obj)) = obj'
-\end{verbatim}
-
-will succeed at runtime such that
-
-\begin{itemize}
-  \item obj': U
-  \item obj' =:= obj
-\end{itemize}
-
-Importantly, T and U are the static types of the object to-be-pickled and the unpickled object, respectively. It is possible that obj has a dynamic type T' which is a subtype of T. The structural equality obj' =:= obj guarantees that obj' is an instance of the same runtime class as obj, and for all fields fld of obj, we have fld =:= fld' where fld' is the corresponding field in obj'.
-
-Picklers are composeable. For example, creating a Pickler[List[T]] can be done by composing a Pickler[T] and a Pickler[Int]:
-
-\begin{verbatim}
-    def listPickler[T](pt: Pickler[T], pi: Pickler[Int]) = new Pickler[List[T]] {
-      def pickle(list: List[T]) = {
-        // 1. pickle size of list
-        pi.pickle(list.size)
-        // 2. pickle list elements
-        for (elem <- list)
-          pt.pickle(elem)
-      }
-    }
-\end{verbatim}
-
-The listPickler method is called a pickler combinator since it takes picklers as arguments and returns another pickler.
-
-Similarly, it's possible to define a combinator which returns a pickler for objects of a class type Person:
-
-    class Person(val name: String, val age: Int)
-
-\begin{verbatim}
-    def personPickler(ps: Pickler[String],
-                                  pi: Pickler[Int]) =
-      new Pickler[Person] {
-        def pickle(p: Person): Pickler = {
-          ps.pickle(p.name)
-          pi.pickle(p.age)
-        }
-      }
-\end{verbatim}
-
-The above personPickler combinator has a slight problem, though. According to our earlier definition, it must be possible to pickle objects of subtypes of Person using the returned Pickler[Person]. However, this is not possible as it stands:
-
-\begin{verbatim}
-    class Firefighter(val name: String,
-                               val age: Int,
-                               val salary: Int) extends Person(name, age)
-\end{verbatim}
-
-The above Pickler[Person] would not pickle the salary field, thus the corresponding unpickler would fail to instantiate a Firefighter. As a result, the above property that says that the dynamic type of the unpickled object is the same as the dynamic type of the object to-be-pickled would not hold. Therefore, the returned Pickler[Person] is not a valid OO pickler.
-
-To solve this problem, it is necessary to include a dispatch step in the pickler returned by the personPickler combinator. Basically, this means that based on the runtime type of the object to-be-pickled a suitable pickling strategy has to be selected.
-
-\begin{itemize}
-  \item explain dispatch
-  \item it's best to generate that
-  \item in which cases is it guaranteed that it can be generated?
-    \item no support for side-effecting constructors
-\end{itemize}
-
-\subsection{Unanticipated Extension}
-
-Given the fact that the type Pickler[T] as introduced has a type parameter T, it is reasonable to ask what the variance of T is. Ruling out covariance because of T's occurrence in a contravariant position as the type of a method parameter, it remains to determine whether T can be contravariant.
-
-For this, it is useful to consider the following scenario. Assume T is declared to be contravariant, as in Pickler[-T]. Furthermore, assume the existence of a public, non-final class C with a subclass D:
-
-\begin{verbatim}
-    class C
-    class D extends C
-\end{verbatim}
-
-Initially, we might define a generic pickler for C:
-
-\begin{verbatim}
-    implicit val picklerC = new Pickler[C] {
-      def pickle(obj: C): Pickle = { ... }
-    }
-\end{verbatim}
-
-Because Pickler[T] is contravariant in its type parameter, instances of D would be pickled using picklerC. There are several possible extensions that might be unanticipated initially:
-
-Because the implementation details of class D change, instances of D should be pickled using a dedicated pickler instead of picklerC.
-A subclass E of C is added which requires a dedicated pickler, since picklerC does not know how to instantiate class E (since class E did not exist when picklerC was written).
-In both cases it is necessary to add a new, dedicated pickler for either an existing subclass (D) or a new subclass (E) of C:
-
-\begin{verbatim}
-    implicit val picklerD = new Pickler[D] { ... }
-\end{verbatim}
-
-However, when pickling an instance of class D this new pickler, picklerD, would not get selected, even if the type of the object to-be-pickled is statically known to be D. The reason is that Pickler[C] <: Pickler[D] because of contravariance which means that picklerC is more specific than picklerD. As a result, according to Scala's implicit look-up rules picklerC is selected when an implicit object of type Pickler[D] is required. (Note that this is the case even if picklerD is declared in a scope that has higher precedence than the scope in which picklerC is declared.)
-
-While contravariant picklers do not support the two scenarios for unanticipated extension outlined above, invariant picklers do, in combination with type bounds. Assuming invariant picklers, we can define a generic method picklerC1 that returns picklers for all subtypes of class C (including class C itself):
-
-\begin{verbatim}
-    implicit def picklerC1[T <: C] = new Pickler[T] {
-      def pickle(obj: T): Pickle = { ... }
-    }
-\end{verbatim}
-
-With this pickler in scope, it is still possible to define a more specific Pickler[D] (or Pickler[E]) as required:
-
-\begin{verbatim}
-    implicit val picklerD1 = new Pickler[D] { ... }
-\end{verbatim}
-
-However, the crucial difference is that now picklerD1 is selected when an object of static type D is pickled, since picklerD1 is more specific than picklerC1.
 
 \subsection{Runtime Picklers}
+
+\todo what to do with this?
 
 One goal of our framework is to generate as much pickling code at compile time as possible. However, due to the interplay of subclassing with both separate compilation and generics, we provide a runtime fall back capability to handle the cases that cannot be resolved at compile time.
 
@@ -1070,6 +883,8 @@ In case the picklee is of primitive type, there are no fields to be pickled. Oth
 
 \subsection{Recursive Types}
 
+\todo what to do with this?
+
 Recursive types are used in many common data structures like lists, trees etc. Here we show how recursive types are supported in our framework.
 
 Example (we show a non-generic class hierarchy for simplicity):
@@ -1081,6 +896,8 @@ Example (we show a non-generic class hierarchy for simplicity):
 \end{verbatim}
 
 \subsection{Generics}
+
+\todo what to do with this?
 
 Our framework uses a hybrid static/dynamic approach to pickling generic types (i.e., parameterized types), depending on the type information that's statically available.
 
@@ -1101,6 +918,8 @@ As a result, only the runtime type information of obj is available for generatin
 
 \section{Extensibility}
 % \section{Pluggable Pickling Formats}
+
+\todo what to do with this?
 
 Our pickling framework is extensible in several dimensions:
 
