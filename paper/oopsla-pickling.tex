@@ -693,7 +693,7 @@ object. Then,
 
 \begin{lstlisting}[escapechar=\%]
 up.unpickle(dp.pickle(obj)) %\textrm{evaluates to}% obj'%\vspace{0.15cm}%
-up.unpickle(sp.pickle(obj)) %\textrm{evaluates to}% obj' %\textrm{if}% dynTypeOf(obj) =:= erasure(T)
+up.unpickle(sp.pickle(obj)) %\textrm{evaluates to}% obj' %\textrm{if}% %\textrm{\textit{dynTypeOf(}}%obj%\textrm{\textit{)}}% =:= %\textrm{\textit{erasure(}}%T%\textrm{\textit{)}}%
 \end{lstlisting}
 
 \noindent such that,
