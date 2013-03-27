@@ -714,6 +714,47 @@ are sufficient to pickle these {\em effectively final types}. Compared to
 dynamic picklers, static picklers benefit from several optimizations that we
 outline in more detail in Section~\ref{sec:optimize}.
 
+\subsection{Implementing Object-Oriented Picklers}
+
+The main challenge when implementing OO picklers comes from the fact that a
+dynamic pickler for type $T$ must be able to pickle objects of any subtype of
+$T$. Thus, the implementation of a dynamic pickler for type $T$ must, in
+general, dynamically dispatch on the runtime type of the object to-be-pickled
+to take into account all possible subtypes of $T$. Because of this dynamic
+dispatch, manually constructing dynamic picklers can be difficult. It is
+therefore important for a framework for object-oriented picklers to provide
+good support for realizing this form of dynamic dispatching.
+
+There are various ways across many different object-oriented programming
+languages to handle subtypes of the pickler's static type:
+
+\begin{itemize}
+\item Data structures with shallow class hierarchies, such as lists or trees,
+often have few final leaf classes. As a result, manual dispatch code is
+typically simple in such cases. For example, a manual pickler for Scala's
+\term{List} class does not even have to consider subclasses.
+
+\item Java-style runtime reflection can be used to provide a generic
+\term{DPickler}[$Any$] which supports pickling objects of any
+type~\cite{JavaSerialization,Philippsen2000}. Such a pickler can be used as a
+fallback to handle subtypes that are unknown to the pickling code; such
+subtypes must be handled in the presence of separate compilation. In
+Section\ref{sec:runtime-pickler} we present Scala implementations of such a
+generic pickler.
+
+\item Java-style annotation processing is commonly used to trigger the
+generation of additional methods in annotated class types. The purpose of
+generated methods for pickling would be to return a pickler or unpickler
+specialized for an annotated class type. In C#, the Roslyn
+Project~\cite{Roslyn} allows augmenting class definitions based on the
+presence of annotations.
+
+\item Static meta programming \cite{Burmako2012,Nemerle} enables generation of
+picklers at compile time. In Section~\ref{sec:generation} we present an
+approach for generating object-oriented picklers from regular (class) type
+definitions.
+\end{itemize}
+
 =======
 
 \subsection{Usage}
