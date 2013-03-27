@@ -350,6 +350,8 @@ integration in Spark and Akka.
 
 For introduction, and points we don't want to lose.
 
+\todo what about closures? We should mention somewhere what cases, exactly, we consider in this work.
+
 \todo what about the whole business of generating type classes?
 
 \todo make nod to "open programming" \cite{Rossberg2007}, motivation for strongly-typed languages to easily communicate with one another?
@@ -897,12 +899,91 @@ that object-oriented picklers should be invariant in their generic type
 parameter to allow for several scenarios of unanticipated evolution.
 
 
+\section{Generating Object-Oriented Picklers}
 
+An explicit goal of our framework is to require little to no boilerplate in
+client code, since practitioners are typically used to serialization supported
+by the underlying runtime environment like in Java or .NET. Therefore, instead
+of requiring libraries and users to supply manually-written picklers for all
+pickled types, our framework provides a component for
+{\em generating picklers} based on their static type.
 
+What's more, compile-time pickler generation enables {\em efficient picklers}
+by generating as much pickling code as possible statically (which corresponds
+to a partial evaluation of pickler combinators). Section~\ref{sec:evaluation}
+reports on the performance improvements that our framework achieves using
+compile-time pickler generation, compared to picklers based on runtime
+reflection.
+
+For example, given a user-defined \term{Position} class,
+
+\begin{lstlisting}
+class Position(val title: String, val person: Person)
+\end{lstlisting}
+
+a static pickler for \term{Position} can be automatically generated as
+follows:
+
+\begin{lstlisting}
+val pickler = implicitly[SPickler[Position]]
+\end{lstlisting}
+
+The implicitly method simply obtains and returns the implicit value of type
+\term{SPickler[Position]}, which is uniquely determined in the current scope:
+
+\todo Why are we ``starting in the middle'' here? I don't see why we don't
+give an architectural overview of the system first. At the very least, we
+should describe how one can call \term{Position.pickle} from start to finish.
+We shouldn't start in the middle!
+
+\begin{lstlisting}
+def implicitly[T](implicit value: T): T = value
+\end{lstlisting}
+
+Thus, invoking implicitly requires an implicit of the given type to be in the
+implicit scope. The absence of an implicit value causes a compile-time error.
+
+Pickler lookup and generation is thus triggered by {\em implicit search}:
+
+\begin{itemize}
+\item either there is already a pickler for the right type defined as an
+implicit \term{val} (for example, a manually-written pickler), in which case
+this pickler is simply returned, or
+\item implicit look up causes the invocation of an implicit method, called
+\term{genSPickler}, that generates a pickler for the required type on-the-fly.
+\end{itemize}
+
+The \term{genPickler} method is defined as follows:
+
+\begin{lstlisting}
+implicit def genSPickler[T](implicit format: PickleFormat): SPickler[T] =
+  macro PicklerMacros.impl[T]
+\end{lstlisting}
+
+The \term{genSPickler} method takes an implicit PickleFormat as its argument and
+returns a correctly-typed pickler (in this case, an \term{SPickler}). As indicated by
+the \term{macro} keyword, the method is implemented as a macro; this means
+that it is a method that is evaluated at compile-time, returning an AST for
+the generated pickler that is inlined at the call-site.
+
+\subsection{Generation Overview}
+
+The first step is to create a model of the pickler to be generated based on
+the required static type. This is done by building an intermediate
+representation (IR) of the static type which contains only the information
+needed for pickling/unpickling. Thus, a formal specification of how this IR is
+built already provides a lot of information on how picklers are generated. The
+model underlying the IR is deep in the sense that it needs to understand the
+principles of the inheritance model of the host language. In the case of
+Scala, this includes mix-in composition~\cite{Odersky2005}
+
+\subsection{A Formal Model of the Pickling IR}
+
+\subsection{Pickle Format}
 
 \subsection{Runtime Picklers}
 
-\todo what to do with this?
+\todo what to do with this? (from here to the end of the section?)
 
 One goal of our framework is to generate as much pickling code at compile time as possible. However, due to the interplay of subclassing with both separate compilation and generics, we provide a runtime fall back capability to handle the cases that cannot be resolved at compile time.
 
