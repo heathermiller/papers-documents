@@ -620,7 +620,7 @@ obj%$_1$% %$\equiv$% obj%$_2$%
 \item \itl{dynTypeOf(}\term{obj$_1$}\itl{)} \term{=:=} \itl{dynTypeOf(}\term{obj$_2$}\itl{)} \term{=:=} $C$
       for some class type $C$, and we have that for all \term{fld} $\in$ $\textit{fields}(C)$.
       ~\term{obj$_1$.fld} $\equiv$ \term{obj$_2$.fld}, or
-\item \itl{dynTypeOf(}\term{obj$_1$}\itl{)} \term{=:=} $T$ for some primitive type $T$, and \term{obj$_1$ == obj$_1$}.
+\item \itl{dynTypeOf(}\term{obj$_1$}\itl{)} \term{=:=} $T$ for some primitive type $T$, and \term{obj$_1$ == obj$_2$}.
 \end{itemize}
 \end{defn}
 
@@ -654,6 +654,65 @@ obj': U%\vspace{0.15cm}%
 obj' %$\equiv$% obj
 \end{lstlisting}
 \end{defn}
+
+Note that \term{SPickler}'s \term{pickle} method has a precondition which
+requires the dynamic type of the object to-be-pickled to be equal to the
+erasure of its static type $T$. This means that an \term{SPickler}$[T]$ is not
+guaranteed to pickle any object of a subtype of $T$. Because of this
+restriction we refer to instances of \term{SPickler} as {\em static picklers}.
+In contrast, a \term{DPickler}$[T]$ pickles any object of type $T$. Therefore,
+we refer to instances of \term{DPickler} as {\em dynamic picklers}.
+
+In the following section, we motivate the distinction between static and
+dynamic picklers.
+
+\subsection{Modular Pickler Combinators}
+
+Picklers as first-class objects make it possible to define pickler
+combinators, which in turn make it possible to build compound picklers from
+primitive picklers. However, only using the interface introduced above would
+not allow us to achieve this, since calling into any of the component picklers
+would produce a completed pickle; we would be left with the problem of
+composing completed pickles which is inefficient in general. Since one of our
+goals is high performance, we'll instead allow picklers to produce {\em
+partial pickles} which themselves are essentially builders \cite{Gamma1995}
+that multiple picklers can output to. The corresponding method has the
+following signature:
+
+\begin{lstlisting}
+def pickle(obj: T, builder: PickleBuilder): Unit
+\end{lstlisting}
+
+\verb|PickleBuilder| has methods to incrementally add elements of an object
+to-be-pickled to a pickle that is being constructed (see Section
+\ref{sec:picklebuilder}). When all elements have been added to a
+\verb|PickleBuilder|, calling \verb|result| returns the completed pickle.
+
+For example, consider a simple class \verb|Position| with a field of type
+String and a field of type \term{Person}, respectively:
+
+\begin{lstlisting}
+class Position(val title: String, val person: Person)
+\end{lstlisting}
+
+Modular pickler combinators would enable the composition of the desired
+pickler for type \term{Position} from picklers for types \term{String} and
+\term{Person}. However, note that the \term{person} field of a given instance
+of class \term{Position} could point to an instance of a subclass of
+\term{Person} (assuming class \term{Person} is not final). Therefore, a
+modularly re-usable pickler for type \term{Person} must be able to pickle all
+possible subtypes of \term{Person}.
+
+In this case, the contract of static picklers is too strict, it does not allow
+for subtyping. The contract of dynamic picklers on the other hand does allow
+for subtyping. As a result, {\em dynamic picklers are necessary so as to enable
+modular composition in the presence of subtyping}.
+
+Picklers for final class types like \term{String}, or for primitive types like
+\term{Int} do not require support for subtyping. Therefore, static picklers
+are sufficient to pickle these {\em effectively final types}. Compared to
+dynamic picklers, static picklers benefit from several optimizations that we
+outline in more detail in Section~\ref{sec:optimize}.
 
 =======
 
