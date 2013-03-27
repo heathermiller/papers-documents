@@ -745,7 +745,7 @@ generic pickler.
 \item Java-style annotation processing is commonly used to trigger the
 generation of additional methods in annotated class types. The purpose of
 generated methods for pickling would be to return a pickler or unpickler
-specialized for an annotated class type. In C#, the Roslyn
+specialized for an annotated class type. In C\#, the Roslyn
 Project~\cite{Roslyn} allows augmenting class definitions based on the
 presence of annotations.
 
@@ -754,6 +754,99 @@ picklers at compile time. In Section~\ref{sec:generation} we present an
 approach for generating object-oriented picklers from regular (class) type
 definitions.
 \end{itemize}
+
+\subsection{Supporting Unanticipated Evolution}
+
+Given the fact that the type \term{SPickler}[$T$], as introduced, has a type
+parameter $T$, it is reasonable to ask what the variance of $T$ is. Ruling out
+covariance because of $T$'s occurrence in a contravariant position as the type
+of a method parameter, it remains to determine whether $T$ can be
+contravariant.
+
+For this, it is useful to consider the following scenario. Assume $T$ is
+declared to be contravariant, as in \term{SPickler}[$-T$]. Furthermore, assume
+the existence of a public, non-final class \term{C} with a subclass \term{D}:
+
+\begin{lstlisting}
+    class C
+    class D extends C
+\end{lstlisting}
+
+Initially, we might define a generic pickler for \term{C}:
+
+\begin{lstlisting}
+    implicit val picklerC = new SPickler[C] {
+      def pickle(obj: C): Pickle = { ... }
+    }
+\end{lstlisting}
+
+Because \term{SPickler}[$T$] is contravariant in its type parameter, instances
+of \term{D} would be pickled using \term{picklerC}. There are several possible
+extensions that might be unanticipated initially:
+
+\begin{itemize}
+\item Because the implementation details of class \term{D} change, instances
+of \term{D} should be pickled using a dedicated pickler instead of
+\term{picklerC}.
+
+\item A subclass \term{E} of \term{C} is added which requires a dedicated
+pickler, since \term{picklerC} does not know how to instantiate class \term{E}
+(since class \term{E} did not exist when \term{picklerC} was written).
+\end{itemize}
+
+In both cases it is necessary to add a new, dedicated pickler for either an
+existing subclass (\term{D}) or a new subclass (\term{E}) of \term{C}:
+
+\begin{lstlisting}
+implicit val picklerD = new SPickler[D] { ... }
+\end{lstlisting}
+
+However, when pickling an instance of class \term{D} this new pickler,
+\term{picklerD}, would not get selected, even if the type of the object to-be-
+pickled is statically known to be \term{D}. The reason is that
+\term{SPickler}[$C$] $<:$ \term{SPickler}[$D$] because of contravariance which
+means that \term{picklerC} is more specific than \term{picklerD}. As a result,
+according to Scala's implicit look-up rules \term{picklerC} is selected when
+an implicit object of type \term{SPickler}[$D$] is required. (Note that this
+is the case even if \term{picklerD} is declared in a scope that has higher
+precedence than the scope in which \term{picklerC} is declared.)
+
+While contravariant picklers do not support the two scenarios for
+unanticipated extension outlined above, invariant picklers do, in combination
+with type bounds. Assuming invariant picklers, we can define a generic method
+\term{picklerC1} that returns picklers for all subtypes of class \term{C}
+(including class \term{C} itself):
+
+
+\begin{lstlisting}
+implicit def picklerC1[T <: C] = new SPickler[T] {
+  def pickle(obj: T): Pickle = { ... }
+}
+\end{lstlisting}
+
+With this pickler in scope, it is still possible to define a more specific
+\term{SPickler}[$D$] (or \term{SPickler}[$E$]) as required:
+
+\begin{lstlisting}
+implicit val picklerD1 = new SPickler[D] { ... }
+\end{lstlisting}
+
+However, the crucial difference is that now \term{picklerD1} is selected when
+an object of static type \term{D} is pickled, since \term{picklerD1} is more
+specific than \term{picklerC1}.
+
+\subsection{Summary}
+
+This section has introduced an object-oriented model of first-class picklers.
+Object-oriented picklers enable modular pickler combinators with support for
+subtyping, thereby extending a well-known approach in functional programming.
+The distinction between static and dynamic picklers enables optimizations for
+final class types and primitive types. Object-oriented picklers can be
+implemented using various techniques, such as manually-written picklers,
+runtime reflection, or Java-style annotation processors. Finally, we argue
+that object-oriented picklers should be invariant in their generic type
+parameter to allow for several scenarios of unanticipated evolution.
+
 
 =======
 
