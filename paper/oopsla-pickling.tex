@@ -35,6 +35,7 @@
 \usepackage{mdframed}
 \usepackage{xcolor}
 \usepackage{fontspec}
+\usepackage{pbox}
 
 \lstdefinelanguage{Scala}%
 {morekeywords={abstract,case,catch,char,class,%
@@ -374,6 +375,7 @@ Scala picklers      & yes          & yes              & yes          & yes      
 \end{figure*}
 
 \section{Background}
+\label{sec:background}
 
 The design and implementation of our pickling framework leverages
 several advanced features of the Scala programming language. This
@@ -1026,6 +1028,96 @@ Scala, this includes mix-in composition~\cite{Odersky2005}
 
 \subsection{A Formal Model of the Pickling IR}
 
+\begin{defn}{(Elements of IR)}
+
+We define the syntax for values of the IR types.
+
+\begin{align*}
+F&        ::= \overline{(f_n, T)}\\
+IR&       ::= (T, IR_{opt}, F)\\
+IR_{opt}& ::= \epsilon~|~IR
+\end{align*}
+
+$F$ represents a sequence of \textit{fields}. We write $\overline{X}$ as
+shorthand for sequences, $X_1,\dots,X_n$, and we write tuples
+$(X_1,\dots,X_n)$. $f_n$ is a string representing the name of the given field,
+and $T$ is its type.
+
+$IR$ represents the pickling information for a class or some other object
+type. That is, an $IR$ for type $T$ contains all of the information required
+to pickle instances of type $T$, including all necessary static info for
+pickling its fields provided by $F$.
+
+$IR_{opt}$ is an optional $IR$; a missing $IR$ is represented using $\epsilon$.
+\end{defn}
+\label{def:elems-ir}
+
+Using the definitions of the elements of an IR from Definition \ref{def:elems-ir},
+we go on to define a number of useful IR combinators, which form the
+basis of our model of inheritance.
+
+\begin{defn}{(IR Combinators)}
+
+We begin by defining the types of our combinators before we define the
+combinators themselves.
+
+\vspace{0.2cm}
+{\bf Type Definitions}
+{\small
+\begin{align*}
+\textit{concat}&        : (F, F) \Rightarrow F\\
+\textit{extended}&      : (IR, IR) \Rightarrow IR\\
+\textit{linearization}& : T \Rightarrow \overline{T}\\
+\textit{superIRs}&      : T \Rightarrow \overline{IR}\\
+\textit{compose}&       : IR \Rightarrow IR\\
+\textit{flatten}&       : IR \Rightarrow IR
+\end{align*}
+}%
+
+We write function types $X \Rightarrow Y$, indicating a function from type $X$
+to type $Y$.
+
+\vspace{0.2cm}
+{\bf Function Definitions}
+{\small
+\begin{align*}
+\textit{concat}(\overline{f}, \overline{g})& = \overline{f}, \overline{g}\\
+\textit{extended}(C, D)&                     = (T, C, \textit{fields}(T))\\
+                       &                       \qquad \mbox{where}~D = (T, \_, \_)~\land T <: C.1\\
+\textit{superIRs}(T)&                        = \lbrack(S, \epsilon, \textit{fields}(S))~|~S\in \textit{linearization}(T)\rbrack\\
+\textit{compose}(C)&                         = \textit{reduce}(\textit{superIRs}(C.1),\textit{extended})\\
+\textit{flatten}(C)&                         =\left\{ \begin{array}{l}
+                                                (C.1, C.2, \textit{concat}(C.3, \textit{flatten(C.2).3})),\\
+                                                \qquad\mbox{if}~C.2\neq\epsilon\\
+                                                C,~~~\mbox{otherwise}
+                                              \end{array} \right.
+\end{align*}
+}%
+The function \textit{concat} takes two arguments that are each sequences. We
+denote concatenation of sequences using a comma. We introduce the
+\textit{concat} function for clarity in the definition of \textit{flatten}
+(see below); it is simply an alias for sequence concatenation.
+
+The function \textit{extended} takes two $IR$s, $C$ and $D$, and returns a new
+$IR$ for the type of $D$ such that $C$ is registered as its super $IR$.
+Basically, \textit{extended} is used to combine a completed $IR$ $C$ with an
+incomplete $IR$ $D$ yielding a completed $IR$ for the same type as $D$. When
+combining the $IR$s of a type's supertypes, the \textit{extended} function is
+used for reducing the linearization sequence yielding a single completed $IR$.
+
+The function \textit{superIRs} takes a type $T$ and returns a sequence of the
+IRs of $T$'s supertypes in linearization order.
+
+The function \textit{compose} takes an $IR$ $C$ for a type $C.1$ and returns a
+new $IR$ for type $C.1$ which is the composition of the IRs of all supertypes
+of $C.1$. The resulting $IR$ is a chain of super IRs according to the
+linearization order of $C.1$.
+
+The function \textit{flatten}, given an $IR$ $C$ produces a new $IR$ that
+contains a concatenation of all the fields of each nested $IR$.
+
+\end{defn}
+
 \subsection{Pickle Format}
 
 \subsection{Runtime Picklers}
@@ -1243,6 +1335,8 @@ Can we get a GeoTrellis app to run?
 \end{itemize}
 
 \section{Related Work}
+
+\todo cite Haskell deriving!
 
 \section{Future Work}
 
