@@ -216,6 +216,9 @@ cost of remote method invocation, and which go on to observe that the cost of
 serialization grows with growing object structures up to 50\%
 \cite{Philippsen2000, Maassen1999}.
 
+\todo Does the above about RMI, and the below about high-performance
+distributed application imply that I think Akka et. al. use RMI? I hope not!!
+
 Due to the prohibitive cost of using Java Serialization in high-performance
 distributed applications, many frameworks for distributed computing, like
 Akka~\cite{Akka}, Spark~\cite{Zaharia2012}, SCADS \cite{Armbrust2009}, and
@@ -347,6 +350,8 @@ integration in Spark and Akka.
 
 For introduction, and points we don't want to lose.
 
+\todo what about the whole business of generating type classes?
+
 \todo make nod to "open programming" \cite{Rossberg2007}, motivation for strongly-typed languages to easily communicate with one another?
 
 \todo Reference to Scrap Your Boilerplate \cite{Lammel2004}.
@@ -448,19 +453,62 @@ programming language such as Java or C\#.
 \subsection{Implicits}
 \label{sec:implicits}
 
-In Scala it is possible to select arguments to be passed to methods
-automatically based on their type. For example, a method \verb|log| with
-multiple parameter lists may annotate their last parameter list using the
-\verb|implicit| keyword.
+\paragraph{Implicit Parameters.} In Scala, it is possible to select values
+automatically based on type. These capabilities are enabled when using the
+\term{implicit} keyword. For example, a method \term{log} with multiple
+parameter lists may annotate their last parameter list using the
+\term{implicit} keyword.
 
+\begin{lstlisting}
+def log(msg: String)(implicit o: PrintStream) =
+  o.println(msg)
+\end{lstlisting}
 
-cite Adriaan's and Bruno's OOPSLA paper.
-Example of a type class: maybe Ordering type class of std lib?
-%~\cite{Olivera2010}
+This means that in an invocation of \term{log}, the implicit argument list may
+be omitted if, for each parameter of that list, there is exactly one value of
+the right type in the {\em implicit scope}. The implicit scope is an
+adaptation of the regular variable scope; imported implicits, or implicits
+declared in an enclosing scope are contained in the implicit scope of a method
+invocation.
 
-Include info on importing implicit values, and implicit resolution by scoping.
-% \paragraph{Importing implicit values}
-% (is this subsection actually necesssary?)
+\begin{lstlisting}
+    implicit val out = System.out
+    log("Does not compute!")
+\end{lstlisting}
+
+In the above example, the implicit val \term{out} is in the implicit scope of
+the invocation of \term{log}; since it has the right type, it is automatically
+selected as an implicit argument.
+
+\todo Maybe we should change this example? It's out of Bruno's paper, and he's
+on the committee, he'll probably review our paper.
+
+\todo Talk about how we use implicit values in our framework here.
+
+\paragraph{Implicit Conversions.} Implicit conversions can be thought of as
+methods which, like implicit parameters, can be implicitly selected (\ie
+invoked) based upon their type, and whether or not they are present in
+implicit scope. As with implicit parameters, implicit conversions also carry
+the \term{implicit} keyword before their declaration.
+
+\begin{lstlisting}
+ implicit def intWrapper(x: Int): Message =
+    new Message {
+      def message: String = "secret message!"
+    }
+\end{lstlisting}
+
+In the example above, assuming there exists an abstract class \term{Message}
+with abstract method \term{message} in scope, the implicit conversion
+\term{intWrapper} will be triggered when a method called \term{message} on
+\term{Message} is called on an \term{Int}. That is, simply calling
+\term{39.message} will result in ``secret message!'' being returned.
+
+\todo Talk about how we use implicit conversions in our framework here.
+
+% cite Adriaan's and Bruno's OOPSLA paper. Where? How?
+% Example of a type class: maybe Ordering type class of std lib?
+% Include info on importing implicit values, and implicit resolution by scoping.
 % Example of a plain implicit parameter: could use implicit ExecutionContext in futures
 
 \subsection{Reflection}
@@ -559,6 +607,7 @@ constructor parameters etc.)
 
 \section{Overview and Usage}
 \label{sec:overview}
+\todo Do we keep this section?
 
 \section{Model of Object-Oriented Picklers}
 
