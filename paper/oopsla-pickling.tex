@@ -539,7 +539,88 @@ constructor parameters etc.)
 
 \section{Overview and Usage}
 \label{sec:overview}
-\todo Do we keep this section?
+
+\subsection{Basic Usage}
+
+The Scala Pickling framework was designed so as to require as little
+boilerplate from the programmer as possible. For that reason, pickling or
+unpickling an object \term{obj} of type \term{Obj} requires simply,
+
+\begin{lstlisting}
+import scala.pickling._
+val pickl = obj.pickle
+val obj2 = pickl.unpickle[Obj]
+\end{lstlisting}
+
+Here, the \term{import} statement imports the Scala Pickling framework into scope,
+the method \term{pickle} triggers static pickler generation, and the method
+\term{unpickle} triggers static unpickler generation. Optionally, a user can
+import a \term{PickleFormat} into scope; by default, our framework provides
+Scala Binary Format, an efficient representation based on arrays of bytes,
+though the framework provides other formats which can easily be imported,
+including a JSON format. Furthermore, users can easily extend the framework by
+providing their own \term{PickleFormat}s, using the \term{PickleFormat} API
+described in Appendix \ref{appendix:pickle-format-api})
+
+Typically, the framework generates the required pickler itself inline in the
+compiled code, using the \term{PickleFormat} in scope. In the case of JSON,
+for example, this amounts to the generation of string concatenation code and
+field accessors for getting runtime values, all of which is inlined, resulting
+in high performance (see Section~\ref{sec:evaluation}).
+
+In rare cases, however, it is necessary to fall back to runtime picklers which
+use runtime reflection to access the state that is being pickled and
+unpickled. For example, a runtime pickler is used when pickling instances of a
+generic subclass of the static class type to-be-pickled.
+
+Note that in the above example, the \term{unpickle} method is parameterized on
+\term{obj}'s precise type \term{Obj}. Using the Scala Pickling framework, it's
+also possible to pickle and unpickle subtypes, even if the pickle and unpickle
+methods are called using supertypes of the type of the object to-be-pickled.
+For example,
+
+\begin{lstlisting}
+class Person(val name: String)
+class Firefighter(val name: String, val since: Int)
+  extends Person(name)
+
+val ff = new Firefighter("Jim", 2005)
+val pickl = ff.pickle[Person]
+val ff2 = pickl.unpickle[Person]
+\end{lstlisting}
+
+In the above example, the runtime type of \term{ff2} will correctly be
+\term{Firefighter}.
+
+This perhaps raises an important concern-- what if the type that is passed as
+a type argument to method \term{unpickle} is incorrect? In this case, the
+framework will fail with a runtime exception at the call-site of
+\term{unpickle}. This is an improvement over other frameworks, which have less
+type information available at runtime, resulting in wrongly unpickled code
+often propagating to other areas of the program before an exception is thrown.
+
+The Scala Pickling framework is also able to unpickle values of static type
+\term{Any}. Scala's pattern-matching syntax can make unpickling on less-
+specific types quite convenient, for example:
+
+\begin{lstlisting}
+val unpickld = pickl.unpickle[Any] match {
+  case Firefighter(name, since) => ...
+  case x: Int => ...
+  ...
+}
+\end{lstlisting}
+
+Beyond dealing with subtypes, our pickling framework supports
+pickling/unpickling most Scala types, including generics, case classes, and
+singleton objects. Passing a type argument to pickle, whether inferred or
+explicit, which is an unsupported type leads to a compile-time error. This
+avoids a common problem in Java-style serialization where non-serializable
+types are only discovered at runtime, in general. Function types, however, are
+not yet supported, and are planned future work.
+
+
+
 
 \section{Model of Object-Oriented Picklers}
 
