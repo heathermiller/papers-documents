@@ -619,7 +619,45 @@ avoids a common problem in Java-style serialization where non-serializable
 types are only discovered at runtime, in general. Function types, however, are
 not yet supported, and are planned future work.
 
+\subsection{Advanced Usage}
 
+\subsection{Advanced Usage}
+
+\paragraph{$@$pickleable Annotation.} To handle subtyping correctly, the
+pickling framework generates dispatch code which delegates to a pickler
+specialized for the runtime type of the object to-be-pickled, or, if the
+runtime type is unknown, which is to be expected in the presence of separate
+compilation, to a generic, but slower, runtime pickler.
+
+For higher performance, the Scala Pickling framework additionally provides an
+annotation which at compile-time inserts a runtime type test to check whether
+the runtime class extends a certain class/trait; in which case, we call the
+method that returns the pickler specialized for that runtime class. If the
+class/trait has been annotated, the returned pickler has been generated
+statically (when the annotation, implemented using a macro, is expanded in
+each subclass, transitively).
+
+This \term{$@$pickelable} annotation enables:
+
+\begin{itemize}
+\item library authors to guarantee to their clients that separately-compiled
+subclasses get all of the speed benefits of code that is not separately
+compiled-- \ie the guarantee that all picklers for subclasses of library code
+are fully generated at compile-time.
+
+\item faster picklers in general because one need not worry about having to
+fallback on a runtime pickler.
+\end{itemize}
+
+\paragraph{Custom Picklers.} It is possible to use manually-written picklers
+in place of generated picklers. Typical motivations for doing so are (a)
+improved performance through specialization and optimization hints (discussed
+in Section~\ref{sec:optimize}), and (b) custom pre-pickling and post-
+unpickling actions; such actions may be required to re-initialize an object
+correctly after unpickling. Creating custom picklers is greatly facilitated by
+modular composition using object-oriented pickler combinators. The design of
+these first-class object-oriented picklers and pickler combinators is
+discussed in detail in the following Section~\ref{sec:oopicklers}.
 
 
 \section{Model of Object-Oriented Picklers}
