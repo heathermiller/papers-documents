@@ -325,8 +325,9 @@ such as ad-hoc polymorphism. Moreover, it is not clear whether local type
 inference as required in OO languages would yield a comparable degree of
 conciseness, acceptable to programmers used to Java-style serialization.
 Nonetheless, our approach builds on PCs because of their superior
-composability. We discuss further, less-closely related work in Section ??.
-\todo Add section. Finish up related work.
+composability. We discuss further, less-closely related work in Section
+\ref{sec:related-work}.
+\todo Finish up related work.
 
 \subsection{Contributions}
 
@@ -361,22 +362,6 @@ integration in Spark and Akka.
 Figure~\ref{fig:comparison} compares the main pickling/serialization
 frameworks with respect to type-safety, object-orientation, type
 extensibility, and format extensibility.
-
-\begin{figure*}[ht!]
-\centering
-\begin{tabular}{|l|l|l|l|l|l|l|}
-\hline
-Framework           & Type-safety  & Object-oriented  & Boilerplate-free  & Type extensibility  & Format Extensibility \\
-\hline
-Java Serialization  & Java-only    & yes              & yes          & no                  & no \\
-Kryo                & Java-only    & yes              & yes          & yes                 & no \\
-Pickler combinators & yes          & no               & no           & yes                 & (yes) \\
-Scala picklers      & yes          & yes              & yes          & yes                 & yes \\
-\hline
-\end{tabular}
-
-\caption{Comparing serialization frameworks}\label{fig:comparison}
-\end{figure*}
 
 \section{Background}
 \label{sec:background}
@@ -664,6 +649,7 @@ discussed in detail in the following Section~\ref{sec:oopicklers}.
 
 
 \section{Model of Object-Oriented Picklers}
+\label{sec:oopicklers}
 
 In this section we provide a formal definition of object-oriented picklers. We
 introduce picklers as first-class objects, and provide their type definitions
@@ -788,7 +774,7 @@ def pickle(obj: T, builder: PickleBuilder): Unit
 
 \verb|PickleBuilder| has methods to incrementally add elements of an object
 to-be-pickled to a pickle that is being constructed (see Section
-\ref{sec:picklebuilder}). When all elements have been added to a
+\ref{sec:pickleformat}). When all elements have been added to a
 \verb|PickleBuilder|, calling \verb|result| returns the completed pickle.
 
 For example, consider a simple class \verb|Position| with a field of type
@@ -952,6 +938,7 @@ parameter to allow for several scenarios of unanticipated evolution.
 
 
 \section{Generating Object-Oriented Picklers}
+\label{sec:generation}
 
 An explicit goal of our framework is to require little to no boilerplate in
 client code, since practitioners are typically used to serialization supported
@@ -994,7 +981,7 @@ representation.
 
 In our Scala-based implementation, the static type descriptor is generated
 automatically by the compiler, and passed as an implicit argument to the
-pickle extension method (see Section~\ref{sec:usage}). As a result, such an
+pickle extension method (see Section~\ref{sec:overview}). As a result, such an
 implicit \term{TypeTag}\footnote{TypeTags are part of the mainline Scala
 compiler since version 2.10. They replace the earlier concept of Manifests,
 providing a faithful representation of Scala types at runtime, see Section
@@ -1016,9 +1003,10 @@ Scala can be thought of as a more flexible form of Java-style interfaces that
 allow concrete members, and that support a form of multiple inheritance (mix-
 in composition) that is guaranteed to be safe based on a linearization order.}
 This model of inheritance is central to the generation framework, and is
-formally defined in the following Section \ref{sec:inheritance-model}
+formally defined in the following Section \ref{sec:ir}
 
 \subsection{Formal Model of Inheritance}
+\label{sec:ir}
 
 \begin{defn}{(Elements of IR)}
 
@@ -1123,6 +1111,7 @@ that for the dynamic type $S$ of the object to-be-pickled,
 generation to dynamic picklers which do not require this assumption.
 
 \subsubsection{Pickle Format}
+\label{sec:pickleformat}
 
 The pickling logic that we are going to generate contains calls to a pickle
 {\em builder} that is used to incrementally construct a pickle. Analogously,
@@ -1330,6 +1319,7 @@ quasiquoting library for Scala's macros.~\cite{Quasiquotes}.
 
 
 \subsection{Optimizations}
+\label{sec:optimize}
 
 \section{Temporary TODOs}
 
@@ -1489,6 +1479,7 @@ Idea: generating type class pattern using macros. We're generating type class in
 Section on simulating deriving type classes using macros in Scala. This requires more knowledge about deriving type classes in Haskell.
 
 \section{Experimental Evaluation}
+\label{sec:evaluation}
 
 {\bf Microbenchmarks}
 
@@ -1546,6 +1537,24 @@ Can we get a GeoTrellis app to run?
 \end{itemize}
 
 \section{Related Work}
+\label{sec:related-work}
+
+\begin{figure*}[ht!]
+\centering
+\begin{tabular}{|l|l|l|l|l|l|l|}
+\hline
+Framework           & Type-safety  & Object-oriented  & Boilerplate-free  & Type extensibility  & Format Extensibility \\
+\hline
+Java Serialization  & Java-only    & yes              & yes          & no                  & no \\
+Kryo                & Java-only    & yes              & yes          & yes                 & no \\
+Pickler combinators & yes          & no               & no           & yes                 & (yes) \\
+Scala picklers      & yes          & yes              & yes          & yes                 & yes \\
+\hline
+\end{tabular}
+
+\caption{Comparing serialization frameworks}\label{fig:comparison}
+\end{figure*}
+
 
 \todo cite Haskell deriving!
 
