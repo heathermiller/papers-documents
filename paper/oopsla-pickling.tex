@@ -226,9 +226,6 @@ cost of remote method invocation, and which go on to observe that the cost of
 serialization grows with growing object structures up to 50\%
 \cite{Philippsen2000, Maassen1999}.
 
-\todo Does the above about RMI, and the below about high-performance
-distributed application imply that I think Akka et. al. use RMI? I hope not!!
-
 Due to the prohibitive cost of using Java Serialization in high-performance
 distributed applications, many frameworks for distributed computing, like
 Akka~\cite{Akka}, Spark~\cite{Zaharia2012}, SCADS \cite{Armbrust2009}, and
@@ -311,23 +308,21 @@ substitutability of both objects to-be-pickled and first-class picklers.
 \subsection{Related Work}
 
 Some OO languages like Java and runtime environments like the JVM or .NET
-provide serialization for arbitrary types, provided by the underlying virtual
+provide serialization for arbitrary types, provided entirely by the underlying virtual
 machine. While this approach is very convenient for the programmer there are
 also several issues: (a) the pickling format cannot be exchanged (Java), (b)
 serialization relies on runtime reflection which hits performance, and (c)
 existing classes that do not extend a special marker interface are not
 serializable, which often causes oversights resulting in software engineering
-costs. JavaScript has direct support for serialization in the form of JSON
-(unpickle = eval). In functional languages, pickler combinators can reduce the
+costs. In functional languages, pickler combinators can reduce the
 effort of manually writing pickling and unpickling functions to a large
 extent. However, existing approaches do not support object-oriented concepts
 such as ad-hoc polymorphism. Moreover, it is not clear whether local type
 inference as required in OO languages would yield a comparable degree of
 conciseness, acceptable to programmers used to Java-style serialization.
-Nonetheless, our approach builds on PCs because of their superior
+Nonetheless, our approach builds on pickler combinators, capitalizing on their superior
 composability. We discuss further, less-closely related work in Section
 \ref{sec:related-work}.
-\todo Finish up related work.
 
 \subsection{Contributions}
 
@@ -356,12 +351,6 @@ strength distributed computing frameworks and applications, and show an
 integration in Spark and Akka.
 
 \end{itemize}
-
-\todo what to do with the table?
-
-Figure~\ref{fig:comparison} compares the main pickling/serialization
-frameworks with respect to type-safety, object-orientation, type
-extensibility, and format extensibility.
 
 \section{Background}
 \label{sec:background}
@@ -543,9 +532,14 @@ val pickl = obj.pickle
 val obj2 = pickl.unpickle[Obj]
 \end{lstlisting}
 
-Here, the \term{import} statement imports the Scala Pickling framework into scope,
-the method \term{pickle} triggers static pickler generation, and the method
-\term{unpickle} triggers static unpickler generation. Optionally, a user can
+Here, the \term{import} statement imports the Scala Pickling framework into
+scope, the method \term{pickle} triggers static pickler generation, and the
+method \term{unpickle} triggers static unpickler generation. Note that not
+every type has a \term{pickle} method; it is implemented as an extension
+method using implicits (Section \ref{sec:implicits}), imported into scope as a
+member of the \term{scala.pickling} package.
+
+Optionally, a user can
 import a \term{PickleFormat} into scope; by default, our framework provides
 Scala Binary Format, an efficient representation based on arrays of bytes,
 though the framework provides other formats which can easily be imported,
@@ -985,9 +979,10 @@ pickle extension method (see Section~\ref{sec:overview}). As a result, such an
 implicit \term{TypeTag}\footnote{TypeTags are part of the mainline Scala
 compiler since version 2.10. They replace the earlier concept of Manifests,
 providing a faithful representation of Scala types at runtime, see Section
-\ref{sec:background}.} does not require changing the invocation in most
-cases.
-\todo when is it impossible to generate a TypeTag?
+\ref{sec:background}.} does not require changing the invocation in most cases.
+(However, it is impossible to generate a \term{TypeTag} automatically if the
+type or one of its components is abstract; in this case, an implicit
+\term{TypeTag} must be in scope.)
 
 Based on the type descriptor, a static representation, or model, of the
 required pickler is built; we refer to this as the {\em Intermediate
@@ -1007,6 +1002,8 @@ formally defined in the following Section \ref{sec:ir}
 
 \subsection{Formal Model of Inheritance}
 \label{sec:ir}
+
+\todo Need some text describing the IR
 
 \begin{defn}{(Elements of IR)}
 
@@ -1054,10 +1051,11 @@ combinators themselves.
 \end{align*}
 }%
 
-\todo Define what linearization means in the above definition!!
-
 We write function types $X \Rightarrow Y$, indicating a function from type $X$
 to type $Y$.
+
+The \textit{linearization} function represents the host language's semantics for the
+linearized chain of supertypes.\footnotemark[0]
 
 \vspace{0.2cm}
 {\bf Function Definitions}
@@ -1131,6 +1129,13 @@ little as possible to minimize runtime overhead. For example,  the JSON
 \term{PickleFormat} included with the Scala Pickling framework simply uses an
 efficient string builder to concatenate JSON fragments (which are just
 strings) in order to assemble a pickle.
+
+% This is the footnote from the definition
+\footnotetext[0]{For example, in Scala the linearization is
+defined for classes mixing in multiple traits \cite{Odersky2005,ScalaSpec}; in
+Java, the linearization function would simply return the chain of
+superclasses, not including the implemented interfaces.}
+
 
 The interface provided by \term{PickleFormat} is simple: it basically consists
 of two methods (a) for creating an empty builder, and (b) for creating a
@@ -1539,6 +1544,12 @@ Can we get a GeoTrellis app to run?
 \section{Related Work}
 \label{sec:related-work}
 
+\todo cite Haskell deriving!
+
+Figure~\ref{fig:comparison} compares the main pickling/serialization
+frameworks with respect to type-safety, object-orientation, type
+extensibility, and format extensibility.
+
 \begin{figure*}[ht!]
 \centering
 \begin{tabular}{|l|l|l|l|l|l|l|}
@@ -1554,9 +1565,6 @@ Scala picklers      & yes          & yes              & yes          & yes      
 
 \caption{Comparing serialization frameworks}\label{fig:comparison}
 \end{figure*}
-
-
-\todo cite Haskell deriving!
 
 \section{Future Work}
 
