@@ -36,6 +36,7 @@
 \usepackage{xcolor}
 \usepackage{fontspec}
 \usepackage{graphicx}
+\usepackage{setspace}
 
 \lstdefinelanguage{Scala}%
 {morekeywords={abstract,case,catch,char,class,%
@@ -331,8 +332,8 @@ This paper makes the following contributions:
 \begin{itemize}
 
 \item An extension to pickler combinators, well-known in functional
-programming,  to support the core concepts of object-oriented programming,
-namely open class hierarchies and ad-hoc polymorphism.
+programming, to support the core concepts of object-oriented programming,
+namely ad-hoc polymorphism and open class hierarchies.
 
 \item A framework based on object-oriented pickler combinators which (a)
 enables retrofitting existing types with pickling support, (b) supports
@@ -346,8 +347,8 @@ language or the underlying virtual machine.
 \item An experimental evaluation comparing the performance of our framework
 with Java serialization and Kryo. In microbenchmarks our framework outperforms
 Java serialization by a factor of X and Kryo by a factor of Y. We also
-evaluate the performance on a set of data types used in large industrial-
-strength distributed computing frameworks and applications, and show an
+evaluate the performance on a set of data types used in large industrial-strength
+distributed computing frameworks and applications, and show an
 integration in Spark and Akka.
 
 \end{itemize}
@@ -411,9 +412,9 @@ the \term{implicit} keyword before their declaration.
 \end{lstlisting}
 
 In the example above, assuming there exists an abstract class \term{Message}
-with abstract method \term{message} in scope, the implicit conversion
-\term{intWrapper} will be triggered when a method called \term{message} on
-\term{Message} is called on an \term{Int}. That is, simply calling
+with abstract method \term{message}, the implicit conversion
+\term{intWrapper} will be triggered when a method called \term{message}
+is called on an \term{Int}. That is, simply calling
 \term{39.message} will result in ``secret message!'' being returned.
 
 \todo Talk about how we use implicit conversions in our framework here.
@@ -443,7 +444,7 @@ Scala 2.10 is the notion of \verb|TypeTag|s. As with other JVM languages,
 Scala's types are erased at compile time. \verb|TypeTag|s can be thought of as
 objects which carry along all type information available at compile time, to
 runtime. As we will see, \verb|TypeTag|s will prove to be invaluable in
-situations where precise type information is not available at runtime.
+situations where precise type information would otherwise not be available at runtime.
 
 \paragraph{Unified Runtime/Compile-time Reflection API.} Another important
 aspect of Scala's reflection library is the one-to-one correspondence between
@@ -453,8 +454,7 @@ entry point to Scala reflection, and which provides all principal concepts
 used in reflection, such as \verb|Type|s, \verb|Tree|s, and
 \verb|Annotation|s. Depending on the task at hand, the choice between runtime
 and compile-time reflection is as easy as selecting either a compile-time or a
-runtime \verb|Universe|, and using the unified runtime/compile-time reflection
-API provided by Scala Reflection. As we will see, this enables maximum code
+runtime \verb|Universe|. As we will see, this enables maximum code
 reuse in that a fallback runtime pickler generation mechanism can be achieved
 by simply reusing the code for static generation, and parameterizing it on a
 runtime \verb|Universe|.
@@ -482,12 +482,12 @@ def assert_impl(c: Context)
                             c.Expr[Unit] = ...
 \end{lstlisting}
 
-In the above, the arguments of \verb|assert_impl| of \verb|Expr| are syntax
+In the above, the parameters of \verb|assert_impl| are syntax
 trees, which the body of \verb|assert_impl| will operate on, itself returning
 an AST of type \verb|Expr[Unit]|. It is \verb|assert_impl| which is
 expanded and evaluated at compile-time, its result is then inlined at the
-callsite of \verb|assert| and the inlined result is typechecked by the Scala
-compiler. It is also important to note that implicit defs as described earlier
+callsite of \verb|assert| and the inlined result is typechecked
+It is also important to note that implicit defs as described earlier
 in Section \ref{sec:implicits} can be implemented as macros.
 
 As we will see, these macros defs, coupled with implicits in Scala enable the
@@ -533,19 +533,19 @@ val pickl = obj.pickle
 val obj2 = pickl.unpickle[Obj]
 \end{lstlisting}
 
-Here, the \term{import} statement imports the Scala Pickling framework into
-scope, the method \term{pickle} triggers static pickler generation, and the
+Here, the \term{import} statement imports the Scala Pickling framework
+the method \term{pickle} triggers static pickler generation, and the
 method \term{unpickle} triggers static unpickler generation. Note that not
 every type has a \term{pickle} method; it is implemented as an extension
 method using implicits (Section \ref{sec:implicits}), imported into scope as a
 member of the \term{scala.pickling} package.
 
 Optionally, a user can
-import a \term{PickleFormat} into scope; by default, our framework provides
+import a \term{PickleFormat}. By default, our framework provides a
 Scala Binary Format, an efficient representation based on arrays of bytes,
 though the framework provides other formats which can easily be imported,
 including a JSON format. Furthermore, users can easily extend the framework by
-providing their own \term{PickleFormat}s, using the \term{PickleFormat} API.
+providing their own \term{PickleFormat}s (See Section \ref{sec:pickleformat}).
 
 Typically, the framework generates the required pickler itself inline in the
 compiled code, using the \term{PickleFormat} in scope. In the case of JSON,
@@ -561,7 +561,7 @@ generic subclass of the static class type to-be-pickled.
 Note that in the above example, the \term{unpickle} method is parameterized on
 \term{obj}'s precise type \term{Obj}. Using the Scala Pickling framework, it's
 also possible to pickle and unpickle subtypes, even if the pickle and unpickle
-methods are called using supertypes of the type of the object to-be-pickled.
+methods are called using supertypes of the type to-be-pickled.
 For example,
 
 \begin{lstlisting}
@@ -581,12 +581,12 @@ This perhaps raises an important concern-- what if the type that is passed as
 a type argument to method \term{unpickle} is incorrect? In this case, the
 framework will fail with a runtime exception at the call-site of
 \term{unpickle}. This is an improvement over other frameworks, which have less
-type information available at runtime, resulting in wrongly unpickled code
+type information available at runtime, resulting in wrongly unpickled objects
 often propagating to other areas of the program before an exception is thrown.
 
 The Scala Pickling framework is also able to unpickle values of static type
-\term{Any}. Scala's pattern-matching syntax can make unpickling on less-
-specific types quite convenient, for example:
+\term{Any}. Scala's pattern-matching syntax can make unpickling on less-specific
+types quite convenient, for example:
 
 \begin{lstlisting}
 val unpickld = pickl.unpickle[Any] match {
@@ -624,10 +624,8 @@ each subclass, transitively).
 This \term{$@$pickelable} annotation enables:
 
 \begin{itemize}
-\item library authors to guarantee to their clients that separately-compiled
-subclasses get all of the speed benefits of code that is not separately
-compiled-- \ie the guarantee that all picklers for subclasses of library code
-are fully generated at compile-time.
+\item library authors to guarantee to their clients that picklers for separately-compiled
+subclasses are fully generated at compile-time.
 
 \item faster picklers in general because one need not worry about having to
 fallback on a runtime pickler.
@@ -649,7 +647,7 @@ discussed in detail in the following Section~\ref{sec:oopicklers}.
 
 In this section we provide a formal definition of object-oriented picklers. We
 introduce picklers as first-class objects, and provide their type definitions
-and contracts that valid implementations must uphold. Subsequently, we
+and contracts that valid implementations must guarantee. Subsequently, we
 demonstrate that the introduced picklers enable modular, object-oriented
 pickler combinators, \ie methods for composing more complex picklers from
 simpler primitive picklers.
@@ -721,7 +719,7 @@ defined as follows.
     sp: SPickler[%$T$%]
    obj: %$T$%
     up: Unpickler[%$U$%] %\textrm{where}% %$T <: U$%
-  obj': %$T$%
+  obj': %$U$%
 \end{lstlisting}
 
 \noindent where \term{obj} is the object to-be-pickled, and \term{obj'} is the unpickled
@@ -729,7 +727,7 @@ object. Then,
 
 \begin{lstlisting}[escapechar=\%]
 up.unpickle(dp.pickle(obj)) %\textrm{evaluates to}% obj'%\vspace{0.15cm}%
-up.unpickle(sp.pickle(obj)) %\textrm{evaluates to}% obj' %\textrm{if}% %\textrm{\textit{dynTypeOf(}}%obj%\textrm{\textit{)}}% =:= %\textrm{\textit{erasure(}}%T%\textrm{\textit{)}}%
+up.unpickle(sp.pickle(obj)) %\textrm{evaluates to}% obj' %\textrm{if}% %\textrm{\textit{dynTypeOf}(}%obj%\textrm{)}% =:= %\textrm{\textit{erasure}(}%T%\textrm{)}%
 \end{lstlisting}
 
 \noindent such that,
@@ -765,7 +763,7 @@ that multiple picklers can output to. The corresponding method has the
 following signature:
 
 \begin{lstlisting}
-def pickle(obj: T, builder: PickleBuilder): Unit
+   def pickle(obj: T, builder: PickleBuilder): Unit
 \end{lstlisting}
 
 \verb|PickleBuilder| has methods to incrementally add elements of an object
@@ -824,7 +822,7 @@ typically simple in such cases. For example, a manual pickler for Scala's
 type~\cite{JavaSerialization,Philippsen2000}. Such a pickler can be used as a
 fallback to handle subtypes that are unknown to the pickling code; such
 subtypes must be handled in the presence of separate compilation. In
-Section\ref{sec:runtime-pickler} we present Scala implementations of such a
+Section \ref{sec:runtime-pickler} we present Scala implementations of such a
 generic pickler.
 
 \item Java-style annotation processing is commonly used to trigger the
@@ -853,8 +851,8 @@ declared to be contravariant, as in \term{SPickler}[$-T$]. Furthermore, assume
 the existence of a public, non-final class \term{C} with a subclass \term{D}:
 
 \begin{lstlisting}
-    class C
-    class D extends C
+    class C {...}
+    class D extends C {...}
 \end{lstlisting}
 
 Initially, we might define a generic pickler for \term{C}:
@@ -867,7 +865,7 @@ Initially, we might define a generic pickler for \term{C}:
 
 Because \term{SPickler}[$T$] is contravariant in its type parameter, instances
 of \term{D} would be pickled using \term{picklerC}. There are several possible
-extensions that might be unanticipated initially:
+extensions that might be {\em unanticipated} initially:
 
 \begin{itemize}
 \item Because the implementation details of class \term{D} change, instances
@@ -887,8 +885,8 @@ implicit val picklerD = new SPickler[D] { ... }
 \end{lstlisting}
 
 However, when pickling an instance of class \term{D} this new pickler,
-\term{picklerD}, would not get selected, even if the type of the object to-be-
-pickled is statically known to be \term{D}. The reason is that
+\term{picklerD}, would not get selected, even if the type of the object to-be-pickled
+is statically known to be \term{D}. The reason is that
 \term{SPickler}[$C$] $<:$ \term{SPickler}[$D$] because of contravariance which
 means that \term{picklerC} is more specific than \term{picklerD}. As a result,
 according to Scala's implicit look-up rules \term{picklerC} is selected when
@@ -899,8 +897,7 @@ precedence than the scope in which \term{picklerC} is declared.)
 While contravariant picklers do not support the two scenarios for
 unanticipated extension outlined above, invariant picklers do, in combination
 with type bounds. Assuming invariant picklers, we can define a generic method
-\term{picklerC1} that returns picklers for all subtypes of class \term{C}
-(including class \term{C} itself):
+\term{picklerC1} that returns picklers for all subtypes of class \term{C}:
 
 
 \begin{lstlisting}
@@ -1403,11 +1400,11 @@ Recursive types are used in many common data structures like lists, trees etc. H
 
 Example (we show a non-generic class hierarchy for simplicity):
 
-\begin{verbatim}
+\begin{lstlisting}
     abstract class IntTree
     class Empty extends IntTree
     class Fork(left: IntTree, elem: Int, right: IntTree)
-\end{verbatim}
+\end{lstlisting}
 
 \section{Experimental Evaluation}
 \label{sec:evaluation}
@@ -1507,7 +1504,6 @@ Scala picklers      & yes          & yes              & yes          & yes      
 
 % We recommend abbrvnat bibliography style.
 
-\bibliographystyle{abbrvnat}
 
 % The bibliography should be embedded for final submission.
 
@@ -1519,6 +1515,9 @@ Scala picklers      & yes          & yes              & yes          & yes      
 
 %\end{thebibliography}
 
+\begin{spacing}{0.9}
+\bibliographystyle{abbrvnat}
 \bibliography{bib}
+\end{spacing}
 
 \end{document}
