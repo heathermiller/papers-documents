@@ -35,7 +35,7 @@
 \usepackage{mdframed}
 \usepackage{xcolor}
 \usepackage{fontspec}
-\usepackage{pbox}
+\usepackage{graphicx}
 
 \lstdefinelanguage{Scala}%
 {morekeywords={abstract,case,catch,char,class,%
@@ -119,6 +119,10 @@
 
 \theoremstyle{definition}
 \newmdtheoremenv[hidealllines=true,topline=true,bottomline=true,skipabove=\baselineskip,skipbelow=\baselineskip]{defn}{Definition}[section]
+
+\theoremstyle{definition}
+\newmdtheoremenv[hidealllines=true,topline=true,bottomline=true,skipabove=\baselineskip,skipbelow=\baselineskip]{prop}{Property}[section]
+
 % \newtheorem{defn}{Definition}[section]
 % \newenvironment{defn}
   % {\begin{mdframed}[style=warning]\begin{mdef}}
@@ -561,8 +565,7 @@ import a \term{PickleFormat} into scope; by default, our framework provides
 Scala Binary Format, an efficient representation based on arrays of bytes,
 though the framework provides other formats which can easily be imported,
 including a JSON format. Furthermore, users can easily extend the framework by
-providing their own \term{PickleFormat}s, using the \term{PickleFormat} API
-described in Appendix \ref{appendix:pickle-format-api})
+providing their own \term{PickleFormat}s, using the \term{PickleFormat} API.
 
 Typically, the framework generates the required pickler itself inline in the
 compiled code, using the \term{PickleFormat} in scope. In the case of JSON,
@@ -652,8 +655,8 @@ fallback on a runtime pickler.
 \paragraph{Custom Picklers.} It is possible to use manually-written picklers
 in place of generated picklers. Typical motivations for doing so are (a)
 improved performance through specialization and optimization hints (discussed
-in Section~\ref{sec:optimize}), and (b) custom pre-pickling and post-
-unpickling actions; such actions may be required to re-initialize an object
+in Section~\ref{sec:optimize}), and (b) custom pre-pickling and post-unpickling
+actions; such actions may be required to re-initialize an object
 correctly after unpickling. Creating custom picklers is greatly facilitated by
 modular composition using object-oriented pickler combinators. The design of
 these first-class object-oriented picklers and pickler combinators is
@@ -953,80 +956,69 @@ parameter to allow for several scenarios of unanticipated evolution.
 An explicit goal of our framework is to require little to no boilerplate in
 client code, since practitioners are typically used to serialization supported
 by the underlying runtime environment like in Java or .NET. Therefore, instead
-of requiring libraries and users to supply manually-written picklers for all
-pickled types, our framework provides a component for
-{\em generating picklers} based on their static type.
+of requiring libraries or applications to supply manually-written picklers for
+all pickled types, our framework provides a component for {\em generating
+picklers} based on their required static type.
 
 What's more, compile-time pickler generation enables {\em efficient picklers}
 by generating as much pickling code as possible statically (which corresponds
 to a partial evaluation of pickler combinators). Section~\ref{sec:evaluation}
 reports on the performance improvements that our framework achieves using
 compile-time pickler generation, compared to picklers based on runtime
-reflection.
+reflection, as well as manually-written picklers.
 
-For example, given a user-defined \term{Position} class,
+\begin{figure}
+ \centering
+ \includegraphics[width=\columnwidth]{generation.pdf}
+ \caption{Illustration of pickle template for a sample JSON-formatted pickle.}
+ \label{fig:generation}
+\end{figure}
 
-\begin{lstlisting}
-class Position(val title: String, val person: Person)
-\end{lstlisting}
+\subsection{Overview}
 
-a static pickler for \term{Position} can be automatically generated as
-follows:
-
-\begin{lstlisting}
-val pickler = implicitly[SPickler[Position]]
-\end{lstlisting}
-
-The implicitly method simply obtains and returns the implicit value of type
-\term{SPickler[Position]}, which is uniquely determined in the current scope:
-
-\todo Why are we ``starting in the middle'' here? I don't see why we don't
-give an architectural overview of the system first. At the very least, we
-should describe how one can call \term{Position.pickle} from start to finish.
-We shouldn't start in the middle!
-
-\begin{lstlisting}
-def implicitly[T](implicit value: T): T = value
-\end{lstlisting}
-
-Thus, invoking implicitly requires an implicit of the given type to be in the
-implicit scope. The absence of an implicit value causes a compile-time error.
-
-Pickler lookup and generation is thus triggered by {\em implicit search}:
+Our framework generates type-specialized, object-oriented picklers using
+compile-time meta programming in the form of {\em macros}. Basically, whenever
+a pickler for static type $T$ is required but cannot be found in the implicit
+scope, a macro is expanded which generates the required pickler step-by-step
+by:
 
 \begin{itemize}
-\item either there is already a pickler for the right type defined as an
-implicit \term{val} (for example, a manually-written pickler), in which case
-this pickler is simply returned, or
-\item implicit look up causes the invocation of an implicit method, called
-\term{genSPickler}, that generates a pickler for the required type on-the-fly.
+\item Obtaining a type descriptor for the static type of the object to-be-pickled,
+
+\item Building a static {\em intermediate representation} of the object-to-be-pickled,
+based on the type descriptor, and
+
+\item Applying a pickler generation algorithm, driven by the static pickler
+representation.
 \end{itemize}
 
-The \term{genPickler} method is defined as follows:
+In our Scala-based implementation, the static type descriptor is generated
+automatically by the compiler, and passed as an implicit argument to the
+pickle extension method (see Section~\ref{sec:usage}). As a result, such an
+implicit \term{TypeTag}\footnote{TypeTags are part of the mainline Scala
+compiler since version 2.10. They replace the earlier concept of Manifests,
+providing a faithful representation of Scala types at runtime, see Section
+\ref{sec:background}.} does not require changing the invocation in most
+cases.
+\todo when is it impossible to generate a TypeTag?
 
-\begin{lstlisting}
-implicit def genSPickler[T](implicit format: PickleFormat): SPickler[T] =
-  macro PicklerMacros.impl[T]
-\end{lstlisting}
+Based on the type descriptor, a static representation, or model, of the
+required pickler is built; we refer to this as the {\em Intermediate
+Representation} (IR). The IR specifies precisely the set of types for which
+our framework can generate picklers automatically. These IRs are composable.
 
-The \term{genSPickler} method takes an implicit PickleFormat as its argument and
-returns a correctly-typed pickler (in this case, an \term{SPickler}). As indicated by
-the \term{macro} keyword, the method is implemented as a macro; this means
-that it is a method that is evaluated at compile-time, returning an AST for
-the generated pickler that is inlined at the call-site.
+We additionally define a model for composing IRs, which is designed to capture
+the essence of Scala's object system as it relates to pickling. The model
+defines how the IR for a given type is composed from the IRs of the picklers
+of its supertypes. In Scala, the composition of an IR for a class type is
+defined based on the linearization of its supertraits.\footnote{Traits in
+Scala can be thought of as a more flexible form of Java-style interfaces that
+allow concrete members, and that support a form of multiple inheritance (mix-
+in composition) that is guaranteed to be safe based on a linearization order.}
+This model of inheritance is central to the generation framework, and is
+formally defined in the following Section \ref{sec:inheritance-model}
 
-\subsection{Generation Overview}
-
-The first step is to create a model of the pickler to be generated based on
-the required static type. This is done by building an intermediate
-representation (IR) of the static type which contains only the information
-needed for pickling/unpickling. Thus, a formal specification of how this IR is
-built already provides a lot of information on how picklers are generated. The
-model underlying the IR is deep in the sense that it needs to understand the
-principles of the inheritance model of the host language. In the case of
-Scala, this includes mix-in composition~\cite{Odersky2005}
-
-\subsection{A Formal Model of the Pickling IR}
+\subsection{Formal Model of Inheritance}
 
 \begin{defn}{(Elements of IR)}
 
@@ -1074,6 +1066,8 @@ combinators themselves.
 \end{align*}
 }%
 
+\todo Define what linearization means in the above definition!!
+
 We write function types $X \Rightarrow Y$, indicating a function from type $X$
 to type $Y$.
 
@@ -1093,6 +1087,7 @@ to type $Y$.
                                               \end{array} \right.
 \end{align*}
 }%
+
 The function \textit{concat} takes two arguments that are each sequences. We
 denote concatenation of sequences using a comma. We introduce the
 \textit{concat} function for clarity in the definition of \textit{flatten}
@@ -1118,7 +1113,227 @@ contains a concatenation of all the fields of each nested $IR$.
 
 \end{defn}
 
-\subsection{Pickle Format}
+\subsection{Pickler Generation Algorithm}
+
+The pickler generation is driven by the IR (see Section~\ref{sec:ir}) of a
+type to-be-pickled. We describe the generation algorithm in two steps. In the
+first step, we explain how to generate a pickler for static type $T$ assuming
+that for the dynamic type $S$ of the object to-be-pickled,
+\textit{erasure}$(T) =:= S$. In the second step, we explain how to extend the
+generation to dynamic picklers which do not require this assumption.
+
+\subsubsection{Pickle Format}
+
+The pickling logic that we are going to generate contains calls to a pickle
+{\em builder} that is used to incrementally construct a pickle. Analogously,
+the unpickling logic contains calls to a pickle {\em reader} that is used to
+incrementally read a pickle. Importantly, the pickle format that determines
+the precise persisted representation of a completed pickle is not fixed.
+Instead, the pickle format to be used is selected at compile time-- efficient
+binary formats, and JSON are just some examples. This selection is done via
+implicit parameters which allows the format to be flexibly selected while
+providing a default binary format which is used in case no other format is
+imported explicitly.
+
+The pickle format provides an interface which plays the role of a simple,
+lower-level ``backend''. Besides a pickle template that is generated inline as
+part of the pickling logic, methods provided by pickle builders aim to do as
+little as possible to minimize runtime overhead. For example,  the JSON
+\term{PickleFormat} included with the Scala Pickling framework simply uses an
+efficient string builder to concatenate JSON fragments (which are just
+strings) in order to assemble a pickle.
+
+The interface provided by \term{PickleFormat} is simple: it basically consists
+of two methods (a) for creating an empty builder, and (b) for creating a
+reader from a pickle:\footnote{In our actual implementation the
+\term{createReader} method takes an additional parameter which is a "mirror"
+used for runtime reflection; it is omitted here for simplicity.}
+
+\begin{lstlisting}
+    def createBuilder(): PBuilder
+    def createReader(pickle: PickleType): PReader
+\end{lstlisting}
+
+The \term{createReader} method takes a pickle of a specific \term{PickleType}
+(which is an abstract type member in our implementation); this makes it
+possible to ensure that, say, a pickle encapsulating a byte array is not
+erroneously attempted to be unpickled using the JSON pickle format. Moreover,
+pickle builders returned from \verb|createBuilder| are guaranteed to produce
+pickles of the right type.
+
+\begin{lstlisting}
+class PBuilder {
+  def beginEntry(obj: Any): PBuilder
+  def putField(n: String, pfun: PBuilder => Unit): PBuilder
+  def endEntry(): Unit
+  def result(): Pickle
+}
+\end{lstlisting}
+
+In the following we're going to show how the \verb|PBuilder| interface is used
+by generated picklers; the \verb|PReader| interface is used by generated
+unpicklers in an analogous way. The above example summarizes a core
+subset of the interface of \verb|PBuilder| that the presented generation
+algorithm is going to use.\footnote{It is not necessary that \texttt{PBuilder}
+is a class. In fact, in our Scala implementation it is a trait. In Java, it
+could be an interface.} The \verb|beginEntry| method is used to indicate the
+start of a pickle for the argument obj. The field values of a class instance
+are pickled using \verb|putField| which expects both a field name and a lambda
+encapsulating the pickling logic for the object that the field points to. The
+\verb|endEntry| method indicates the completion of a (partial) pickle of an
+object. Finally, invoking \verb|result| returns the completed \verb|Pickle|
+instance.
+
+\subsubsection{Tree Generation}
+
+The objective of the generation algorithm is to generate the body of
+\term{SPickler}'s \term{pickle} method:
+
+\begin{lstlisting}
+  def pickle(obj: T, builder: PBuilder): Unit = ...
+\end{lstlisting}
+
+As mentioned previously, the actual pickling logic is synthesized based on the
+IR. Importantly, the IR determines which fields are pickled and how. A lot of
+the work is already done when building the IR; therefore, the actual tree
+generation is rather simple:
+
+\begin{itemize}
+
+\item Emit \verb|builder.beginEntry(obj)|.
+
+\item For each field \term{fld} in the IR, emit \\\verb|builder.putField(${fld.name},b => pbody)|
+where \\\verb|${fld.name}| denotes the splicing of \term{fld.name}
+into the tree. \term{pbody} is the logic for pickling \term{fld}'s value into
+the builder \term{b}, which is an alias of builder. \term{pbody} is generated
+as follows:
+  \begin{enumerate}
+
+  \item Emit the field getter logic:
+  \\\verb|val v: ${fld.tpe} = obj.${fld.name}|. The
+  expression \verb|${fld.tpe}| splices the type of \term{fld} into the generated
+  tree; \verb|${fld.name}| splices the name of \term{fld} into the tree.
+
+  \item Recursively generate the pickler for \term{fld}'s type by emitting either
+  \\\verb|val fldp = implicitly[DPickler[${fld.tpe}]]| or \verb|val fldp = implicitly[SPickler[${fld.tpe}]]|,
+  depending on whether \term{fld}'s type is effectively final or not.
+
+  \item Emit the logic for pickling \term{v} into \term{b}: \verb|fldp.pickle(v, b)|
+  \end{enumerate}
+\end{itemize}
+
+A practical implementation can easily be refined to support various extensions
+of this basic model. For example, support for avoiding pickling fields marked
+as {\em transient} is easy with this model of generation-- such fields can
+simply be left out of the IR. Or, based on the static types of the picklee and
+its fields, we can emit hints to the builder to enable various optimizations.
+
+For example, a field whose type $T$ is {\em effectively final}, \ie it cannot
+be extended, can be optimized as follows:
+
+\begin{itemize}
+\item Instead of obtaining an implicit pickler of type \term{DPickler[T]}, it is
+sufficient to obtain an implicit pickler of type \term{SPickler[T]}, which is
+more efficient, since it does not require a dynamic dispatch step like
+\term{DPickler[T]}
+
+\item The field's type does not have to be pickled, since it can be reconstructed
+from its owner's type.\footnote{Our implementation makes heavy use of this
+optimization for pickling collections of primitives efficiently; see
+Section~\ref{sec:optimize}.}
+\end{itemize}
+
+Pickler generation is compositional; for example, the generated pickler for a
+class type with a string-typed field re-uses the string pickler. This is
+achieved by generating picklers for parts of an object type using invocations
+of the form \verb|implicitly[DPickler[T]]|. This means that if there is
+already an implicit value of type \term{DPickler[T]} in scope, it is used for
+pickling the corresponding value. Since the lookup and binding of these
+implicit picklers is left to a mechanism outside of pickler generation, what's
+actually generated is a {\em pickler combinator} which returns a {\em pickler}
+composed of {\em existing picklers} for parts of the object to-be-pickled.
+More precisely, pickler generation provides the following composability
+property:
+
+\begin{prop}{(Composability)}
+A generated pickler \term{p} is composed of implicit picklers of the required
+types that are in scope at the point in the program where \term{p} is
+generated.
+\end{prop}
+
+Since the picklers that are in scope at the point where a pickler is generated
+are under programmer control, it is possible to import manually-written
+picklers which are transparently picked up by the generated pickler. Our
+approach thus has the attractive property that it is an ``open-world''
+approach, in which it is easy to add new custom picklers for selected types at
+exactly the desired places while integrating cleanly with generated picklers.
+
+\subsubsection{Dispatch Generation}
+
+So far, we have explained the generation of the pickling logic of static
+picklers. Dynamic picklers require an additional dispatch step to make sure
+subtypes of the static type to-be-pickled are pickled properly. The generation
+of a \term{DPickler[T]} is triggered by invoking
+\verb|implicitly[DPickler[T]]| which tries to find an implicit of type
+\term{DPickler[T]} in the current implicit scope. Either there is already an
+implicit value of the right type in scope, or the only matching implicit is an
+implicit def provided by the pickling framework which generates a
+\term{DPickler[T]} on-the-fly. The generated dispatch logic has the following
+shape:
+
+\begin{lstlisting}
+    val clazz = if (picklee != null) picklee.getClass else null
+    val pickler = clazz match {
+      case null => implicitly[SPickler[NullTpe]]
+      case c1 if c1 == classOf[S1] => implicitly[SPickler[S1]]
+      ...
+      case cn if cn == classOf[Sn] => implicitly[SPickler[Sn]]
+      case _ => genPickler(clazz)
+    }
+\end{lstlisting}
+
+The types $S1, \dots, Sn$ are known subtypes of the picklee's type $T$. If $T$
+is a sealed class or trait with final subclasses, this set of types is always
+known at compile time. However, in the presence of separate compilation it is,
+generally, possible that a picklee has an unknown runtime type; therefore, we
+include a default case (the last case in the pattern match) which dispatches
+to a runtime pickler that inspects the picklee using (runtime) reflection.
+
+If the static type $T$ to be pickled is annotated using the
+\term{$@$pickleable} annotation, all subclasses are guaranteed to extend the
+predefined \verb|HasPickler| interface trait. Consequently, a more optimal
+dispatch can be generated in this case:
+
+\begin{lstlisting}
+    val pickler =
+      if (picklee != null) {
+        val hasp = picklee.asInstanceOf[HasPickler]
+        hasp.getPickler.asInstanceOf[SPickler[T]]
+      }
+      else implicitly[SPickler[NullTpe]]
+\end{lstlisting}
+
+\section{Implementation}
+
+The presented framework has been fully implemented in Scala.\footnote{A
+preview of the pickling framework is made available by the authors upon
+request.} The object-oriented pickler combinators presented in
+Section~\ref{sec:oopicklers}, including their implicit selection and
+composition, can be implemented using stable versions of the standard, open-
+source Scala distribution. The component that extends our basic model with
+automatic pickler generation has been implemented using the experimental
+macros feature introduced in Scala 2.10.0 (January 2013). Macros are being
+used as a more regularly structured and more stable alternative to compiler
+plugins. To simplify tree generation, our implementation leverages a
+quasiquoting library for Scala's macros.~\cite{Quasiquotes}.
+
+
+
+\subsection{Optimizations}
+
+\section{Temporary TODOs}
+
+
 
 \subsection{Runtime Picklers}
 
@@ -1198,10 +1413,6 @@ As a result, only the runtime type information of obj is available for generatin
 % \item Can show JSON as alternative to default binary format
 % \item Custom picklers. Customize what parts of an object are pickled and how. For example, a custom pickler for a particular collection type.
 % \end{enumerate}
-
-\section{Implementation}
-
-\subsection{Optimizations}
 
 \begin{verbatim}
 implicitly[Pickler[Person]](ps: Pickler[String], pi: Pickler[Int])
