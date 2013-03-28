@@ -424,6 +424,7 @@ with abstract method \term{message} in scope, the implicit conversion
 % Example of a plain implicit parameter: could use implicit ExecutionContext in futures
 
 \subsection{Reflection}
+\label{sec:reflection}
 
 Reflection is the ability of a program to inspect, and possibly even modify
 itself at runtime. Before Scala 2.10, Scala did not have any reflection
@@ -604,6 +605,7 @@ types are only discovered at runtime, in general. Function types, however, are
 not yet supported, and are planned future work.
 
 \subsection{Advanced Usage}
+\label{sec:pickleable-annotation}
 
 \paragraph{$@$pickleable Annotation.} To handle subtyping correctly, the
 pickling framework generates dispatch code which delegates to a pickler
@@ -1307,6 +1309,69 @@ dispatch can be generated in this case:
       else implicitly[SPickler[NullTpe]]
 \end{lstlisting}
 
+\subsection{Runtime Picklers}
+\label{sec:runtime-pickler}
+
+One goal of our framework is to generate as much pickling code at compile time
+as possible. However, due to the interplay of subclassing with both separate
+compilation and generics, we provide a runtime fall back capability to handle
+the cases that cannot be resolved at compile time.
+
+{\bf Subclassing and separate compilation}: A situation arises where it's
+impossible to statically know all possible subclasses. In this case there are
+three options: (1) provide a custom pickler, and (2) use an annotation which
+is described in Section \ref{sec:pickleable-annotation}. In the case where
+neither a custom pickler nor an annotation is provided, our framework can
+inspect the instance to-be-pickled at runtime to obtain the pickling logic.
+This comes with some runtime overhead, but in Section \ref{sec:evaluation} we
+present results which suggest that this overhead is not necessary in many
+cases.
+
+For the generation of runtime picklers our framework supports two possible
+strategies:
+
+\begin{itemize}
+\item Runtime interpretation of a type-specialized pickler
+\item Runtime compilation of a type-specialized pickler
+\end{itemize}
+
+\paragraph{Interpreted runtime picklers.} If the runtime type of an object is
+unknown at compile time, e.g., if its static type is \term{Any}, it is
+necessary to carry out the pickling based on inspecting the type of the object
+to-be-pickled at runtime. We call picklers operating in this mode ``interpreted
+runtime picklers'' to emphasize the fact that the pickling code is not
+partially evaluated in this case. An interpreted pickler is created based on
+the runtime class of the picklee. From that runtime class it is possible to
+obtain a runtime type descriptor.
+
+\begin{itemize}
+\item to build a static intermediate representation of the type (which describes all its fields with their types, etc.)
+\item to determine in which way the picklee should be pickled (as a primitive or not).
+\end{itemize}
+
+In case the picklee is of primitive type, there are no fields to be pickled.
+Otherwise, the value and runtime type of each field is obtained, so that it
+can be written to the pickle.
+
+\subsection{Generics}
+
+{\bf Subclassing and generics}: The combination of subclassing and generics
+poses a similar problem to that introduced above in Section \ref{sec:runtime-pickler}.
+For example, consider a generic class \term{C},
+
+\begin{lstlisting}
+    class C[T](val fld: T) { ... }
+\end{lstlisting}
+
+A \term{Pickler[C[T]]} will not be able to pickle the field \term{fld} if its
+static type is unknown. To support pickling instances of generic classes, our
+framework falls back to using runtime picklers for pickling fields of generic
+type. So, when we have access to the runtime type of field \term{fld}, we can
+either look up an already-generated pickler for that runtime type, or we can
+generate a suitable pickler dynamically.
+
+
+
 \section{Implementation}
 
 The presented framework has been fully implemented in Scala.\footnote{A
@@ -1328,38 +1393,6 @@ quasiquoting library for Scala's macros.~\cite{Quasiquotes}.
 
 \section{Temporary TODOs}
 
-
-
-\subsection{Runtime Picklers}
-
-\todo what to do with this?
-
-One goal of our framework is to generate as much pickling code at compile time as possible. However, due to the interplay of subclassing with both separate compilation and generics, we provide a runtime fall back capability to handle the cases that cannot be resolved at compile time.
-
-{\bf Subclassing and separate compilation}: A situation arises where it's impossible to know statically all possible subclasses. In this case there are three options: (1) provide a custom pickler, and (2) use an annotation which is described in Section ??. In the case where neither a custom pickler nor an annotation is provided, our framework can inspect the instance to-be-pickled at runtime to obtain the pickling logic. This comes with some runtime overhead, but in Section ?? we present results which suggest that this overhead is not necessary in many cases.
-
-{\bf Subclassing and generics}: The combination of subclassing and generics poses a similar problem. For example, consider a generic class C,
-
-\begin{verbatim}
-    class C[T](val fld: T) { ... }
-\end{verbatim}
-
-A Pickler[C[T]] will not be able to pickle the field fld if its static type is unknown. To support pickling instances of generic classes, our framework falls back to using runtime picklers for pickling fields of generic type. So, when we have access to the runtime type of field fld, we can either look up an already generated pickler for that runtime type, or we can generate a suitable pickler dynamically. For the generation of runtime picklers our framework supports two possible strategies:
-
-\begin{itemize}
-\item Runtime interpretation of a type-specialized pickler
-\item Runtime compilation of a type-specialized pickler
-\end{itemize}
-
-Interpreted runtime picklers. If the runtime type of an object is unknown at compile time, e.g., if its static type is Any, it is necessary to carry out the pickling based on inspecting the type of the object to-be-pickled at runtime. We call picklers operating in this mode "interpreted runtime picklers" to emphasize the fact that the pickling code is not partially evaluated in this case. An interpreted pickler is created based on the runtime class of the picklee. From that runtime class it is possible to obtain a runtime type descriptor of type ru.Type (ru is the so-called "runtime universe" of Scala's mirror-based reflection framework; compile-time reflection, aka macros, use compile-time universes). This runtime type is used
-
-\begin{itemize}
-\item to build a static intermediate representation of the type (which describes all its fields with their types, etc.)
-\item to determine in which way the picklee should be pickled (as a primitive or not).
-\end{itemize}
-
-In case the picklee is of primitive type, there are no fields to be pickled. Otherwise, the value and runtime type of each field is obtained, so that it can be written to the pickle.
-
 \subsection{Recursive Types}
 
 \todo what to do with this?
@@ -1373,115 +1406,6 @@ Example (we show a non-generic class hierarchy for simplicity):
     class Empty extends IntTree
     class Fork(left: IntTree, elem: Int, right: IntTree)
 \end{verbatim}
-
-\subsection{Generics}
-
-\todo what to do with this?
-
-Our framework uses a hybrid static/dynamic approach to pickling generic types (i.e., parameterized types), depending on the type information that's statically available.
-
-Pickling. Assume obj is an instance of a generic class C[T] with type parameter T. When pickling obj we can use TypeTags in Scala to reify the full static type of obj, including its type arguments, which are guaranteed to be concrete. However, thanks to subtyping, it's possible that obj is pickled using a static supertype of C[T], say, Base:
-
-\begin{verbatim}
-    class Base { ... }
-    class C[T](val x: T) extends Base { ... }
-    val obj: Base = new C[Int]
-    obj.pickle
-\end{verbatim}
-
-As a result, only the runtime type information of obj is available for generating its pickler.
-
-% \section{Generating Fast Picklers}
-
-% \subsection{Front-end}
-
-% \section{Extensibility}
-% % \section{Pluggable Pickling Formats}
-
-% \todo what to do with this?
-
-% Our pickling framework is extensible in several dimensions:
-
-% \begin{enumerate}
-% \item {\em The following depends on implicits!} By design our framework enables defining picklers for existing classes that have not been written with pickling in mind. That way, a class hierarchy provided by a 3rd party can be equipped with a set of picklers retroactively. The following section shows how this form of extensibility is enabled by an object-oriented form of the typeclass design pattern in Scala.
-% \item Custom pickling formats.
-% \item Can show JSON as alternative to default binary format
-% \item Custom picklers. Customize what parts of an object are pickled and how. For example, a custom pickler for a particular collection type.
-% \end{enumerate}
-
-\begin{verbatim}
-implicitly[Pickler[Person]](ps: Pickler[String], pi: Pickler[Int])
-\end{verbatim}
-
-it takes a Pickler[String] and a Pickler[Int] and produces a Pickler[Person].
-
-to pickle an instance of a collection
-
-\begin{verbatim}
-obj.pickle[U]
-\end{verbatim}
-
-expands to
-
-\begin{verbatim}
-val pickler = obj.getClass match {
-   case .. => Pickler[S]
-}
-pickler.pickle(obj)
-\end{verbatim}
-
-According to Liskov substitution
-
-Are they composable? How?
-
-Other Questions:
-What do we do with the comparison between FP PCs and OO PCs?
-
-
-which can be applied to objects of type T. That would mean also all subtypes of T. Likewise, an OO unpickler
-
-
-In functional programming, pickling is supported using the well-known framework of pickler combinators. A pickler of type PU[A] (using Scala notation) can be used to pickle and unpickle values of type A.
-
-Classical FP pickler combinators can't deal with:
-
-subtyping
-
-
-Other frameworks like Kryo?
-
-[what about versioning issues?]
-
-Our framework is designed to make simple tasks easy and difficult tasks possible. For example, consider the definition of a simple Scala class Person with name and age fields:
-
-\begin{verbatim}
-    class Person(val name: String, val age: Int) { ... }
-\end{verbatim}
-
-As you can see, the name and age fields are declared in the class parameter list. Class parameters in Scala are normally just the parameters of the primary constructor; adding the modifier val turns them into public fields.
-
-To pickle an instance of this class using our framework, it is sufficient to import (the members of) our pickling package, and invoke the pickle extension method:
-
-\begin{verbatim}
-    import scala.pickling._
-    val joe = new Person("Joe", 43)
-    val pickle = joe.pickle
-\end{verbatim}
-
-Notice that the Person class does not have to carry a special annotation or extend a special interface type.\footnote{In Scala, Java-style interfaces are subsumed by traits that can be modularly extended using mix-in composition.} Instead, a suitable pickler is generated on-the-fly and is applied to instance joe to produce a pickled representation.
-
-The above example seems to suggest that our framework requires extensions to the Scala language and compiler to enable this kind of seamless pickling support. However, this is not the case; in fact, our pickling framework relies only on features available in the mainline Scala compiler (version 2.10.x or later).
-
-In the following sections we are going to answer in detail the following questions:
-
-\begin{itemize}
-\item Which types are pickleable such that the above pickle extension method can be used?
-\item How does our framework automatically generate type-specialized picklers?
-\end{itemize}
-
-Idea: generating type class pattern using macros. We're generating type class instances based on existing type class instances using macros. A (new?) pattern that we use.
-
-Section on simulating deriving type classes using macros in Scala. This requires more knowledge about deriving type classes in Haskell.
 
 \section{Experimental Evaluation}
 \label{sec:evaluation}
