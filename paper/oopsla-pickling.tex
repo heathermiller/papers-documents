@@ -1436,14 +1436,16 @@ Intel Core i7 processor with 16 GB of memory running Mac OS X version
 1.6.0\_43. In all cases we used the following configuration flags:
 \texttt{-Xms1536M -Xmx4096M -Xss2M -XX:MaxPermSize=512M -XX:+UseParallelGC}.
 
-\paragraph{Microbenchmark: collections} In the first microbenchmark
-we evaluate the performance of our framework when pickling standard
-collection types. We compare against three other serialization
-frameworks: Java's native serialization, Kryo, and a combinator
-library of manually-written picklers. All benchmarks are compiled and
-run using Scala version 2.9.3, except for the present framework which
-depends on an experimental macro system, as well as a couple of minor
-bug fixes that exist only in a current development version of Scala.
+\subsection{Microbenchmark: Collections}
+
+In the first microbenchmark we evaluate the performance of our
+framework when pickling standard collection types. We compare against
+three other serialization frameworks: Java's native serialization,
+Kryo, and a combinator library of manually-written picklers. All
+benchmarks are compiled and run using Scala version 2.9.3, except for
+the present framework which depends on an experimental macro system,
+as well as a couple of minor bug fixes that exist only in a current
+development version of Scala.
 
 The benchmark logic is very simple: an immutable collection of type
 \verb|Vector[Int]| is created which is first pickled (or serialized)
@@ -1472,20 +1474,46 @@ existing buffer which results in unexpected buffer growth. Our
 framework does not do any buffering which makes its behavior very
 predictable, but does not necessarily maximize its performance.
 
-\paragraph{Data types in distributed frameworks and applications}
+\subsection{Data Types in Distributed Frameworks and Applications}
 
-Figure~\ref{fig:survey} shows a summary of the most important data
-types used in popular distributed computing frameworks like
-Spark~\cite{Spark} and Storm~\cite{Storm}. We categorize the data
+\begin{figure*}[ht!]
+ \centering
+ \includegraphics{application-table.pdf}
+ \caption{Scala types used in industrial distributed frameworks and applications.}
+ \label{fig:application-table}
+\end{figure*}
+
+% \begin{table*}
+% \centering
+% \begin{tabular}{l c c c c c c c}
+% \toprule % Top horizontal line
+% & primitives/ & value-like & collections & case & type & generics & ad-hoc \\ % Column names row
+% & primitive arrays & types &  & classes & descriptor &  & polymorphism \\ % Column names row
+% \midrule % In-table horizontal line
+% GeoTrellis (Akka) & $\CIRCLE$ & $\Circle$     & $\Circle$     & $\CIRCLE$ & $\Circle$     & $\Circle$     & $\Circle$ \\
+% Evactor (Akka)    & $\CIRCLE$ & $\LEFTcircle$ & $\LEFTcircle$ & $\CIRCLE$ & $\Circle$     & $\Circle$     & $\LEFTcircle$ \\
+% \midrule % In-table horizontal line
+% Spark             & $\CIRCLE$ & $\CIRCLE$     & $\CIRCLE$     & N/A       & $\Circle$     & $\Circle$     & N/A \\
+% Storm             & $\Circle$ & $\CIRCLE$     & $\CIRCLE$     & N/A       & $\Circle$     & $\Circle$     & $\LEFTcircle$ \\
+% Twitter Chill     & $\Circle$ & $\LEFTcircle$ & $\CIRCLE$     & N/A       & $\LEFTcircle$ & $\LEFTcircle$ & $\LEFTcircle$ \\
+% \bottomrule % Bottom horizontal line
+% \end{tabular}
+% % \caption{Table caption text} % Table caption, can be commented out if no caption is required
+% % \label{tab:template} % A label for referencing this table elsewhere, references are used in text as \ref{label}
+% \end{table*}
+
+Figure~\ref{fig:application-table} shows a summary of the most
+important data types used in popular distributed computing frameworks
+like Spark~\cite{Zaharia2012} and Storm~\cite{Storm}. We categorize the data
 types into two groups.
 
 In the first group at the top are distributed \emph{applications}
 using data types suitable for distributed event processing and message
 passing. We consider two representative open-source applications:
-GeoTrellis (http://www.azavea.com/geotrellis/) is a geographic data
+GeoTrellis~\cite{GeoTrellis} is a geographic data
 processing engine for high performance applications used by the US
 federal government among others.  Evactor is a complex event processor
-based on actors. Both applications use Akka \cite{Akka}, an
+based on actors. Both applications use Akka~\cite{Akka}, an
 event-driven middleware for distributed message passing. However, the
 properties of the exchanged messages are markedly different. Messages
 in GeoTrellis typically contain large amounts of geographic raster
@@ -1495,7 +1523,7 @@ primitive types. Both applications make use of Scala's case classes
 which are most commonly used as message types in actor-based
 applications.
 
-The second group in the bottom half of Figure~\ref{fig:survey}
+The second group in the bottom half of Figure~\ref{fig:application-table}
 consists of distributed computing {frameworks}. What this table
 suggests is that the majority of distributed computing frameworks and
 applications requires pickling collections of various
@@ -1507,7 +1535,7 @@ interest to application code whereas frameworks like Spark tend to
 prefer the use of simple collections of primitive type
 internally. What's more, the demand for pickling generics seems to be
 lower than the need to support ad-hoc polymorphism (our framework
-supports both, though). At least in one case (Twitter's Chill) a
+supports both, though). At least in one case (Twitter's Chill~\cite{TwitterChill}) a
 framework explicitly serializes Manifests, type descriptors for Scala
 types, which are superceded by TypeTags (see
 Section~\ref{sec:reflection})
@@ -1540,37 +1568,27 @@ Scala picklers      & yes          & yes              & yes          & yes      
 \caption{Comparing serialization frameworks}\label{fig:comparison}
 \end{figure*}
 
-\section{Future Work}
+% \section{Future Work}
 
-\section{Conclusion}
+\section{Conclusion and Future Work}
 
-\begin{figure*}[ht!]
- \centering
- \includegraphics{application-table.pdf}
- \caption{Applications of language features in existing commercial distributed frameworks/applications.}
- \label{fig:application-table}
-\end{figure*}
+We have introduced a model of pickler combinators which supports core
+concepts of object-oriented programming including ad-hoc polymorphism
+with open class hierarchies. Furthermore, we have shown how this model
+can be augmented by a composable mechanism for static pickler
+generation which is effective in reducing boilerplate and in ensuring
+efficient pickling. Thanks to a design akin to an object-oriented
+variation of type classes known from functional programming, the
+presented framework enables retrofitting existing types and
+third-party libraries with pickling support. Experiments suggest that
+static generation of pickler combinators can outperform
+state-of-the-art serialization frameworks and significantly reduce
+memory usage.
 
-% \begin{table*}
-% \centering
-% \begin{tabular}{l c c c c c c c}
-% \toprule % Top horizontal line
-% & primitives/ & value-like & collections & case & type & generics & ad-hoc \\ % Column names row
-% & primitive arrays & types &  & classes & descriptor &  & polymorphism \\ % Column names row
-% \midrule % In-table horizontal line
-% GeoTrellis (Akka) & $\CIRCLE$ & $\Circle$     & $\Circle$     & $\CIRCLE$ & $\Circle$     & $\Circle$     & $\Circle$ \\
-% Evactor (Akka)    & $\CIRCLE$ & $\LEFTcircle$ & $\LEFTcircle$ & $\CIRCLE$ & $\Circle$     & $\Circle$     & $\LEFTcircle$ \\
-% \midrule % In-table horizontal line
-% Spark             & $\CIRCLE$ & $\CIRCLE$     & $\CIRCLE$     & N/A       & $\Circle$     & $\Circle$     & N/A \\
-% Storm             & $\Circle$ & $\CIRCLE$     & $\CIRCLE$     & N/A       & $\Circle$     & $\Circle$     & $\LEFTcircle$ \\
-% Twitter Chill     & $\Circle$ & $\LEFTcircle$ & $\CIRCLE$     & N/A       & $\LEFTcircle$ & $\LEFTcircle$ & $\LEFTcircle$ \\
-% \bottomrule % Bottom horizontal line
-% \end{tabular}
-% % \caption{Table caption text} % Table caption, can be commented out if no caption is required
-% % \label{tab:template} % A label for referencing this table elsewhere, references are used in text as \ref{label}
-% \end{table*}
+In future work we plan to further optimize the pickler generation and
+to extend the framework with support for closures.
 
-A reference to Table \ref{tab:template}.
+% A reference to Table \ref{tab:template}.
 
 
 % \appendix
