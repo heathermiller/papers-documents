@@ -40,6 +40,7 @@
 \usepackage{booktabs}
 \usepackage{wasysym}
 \usepackage{amsthm}
+\usepackage{url}
 
 \lstdefinelanguage{Scala}%
 {morekeywords={abstract,case,catch,char,class,%
@@ -356,7 +357,7 @@ pluggable pickle formats, and (d) does not require changes to the host
 language or the underlying virtual machine.
 
 \item A complete implementation of the presented approach in and for Scala \footnote{See
-    \texttt{http://github.com/heathermiller/scala-pickling/}}.
+    \url{http://github.com/heathermiller/scala-pickling/}}.
 
 \item An experimental evaluation comparing the performance of our framework
 with Java serialization and Kryo. In microbenchmarks our framework outperforms
@@ -1457,8 +1458,8 @@ of our pickling framework. Our goals are
   performance evaluation.
 \end{enumerate}\noindent
 In the process we are going to evaluate the performance of our
-framework alongside two of the most important serialization frameworks
-for the JVM, Java's native serialization and Kryo.
+framework alongside two popular and industrially-prominent serialization frameworks
+for the JVM, Java's native serialization and Kryo.\footnote{We select Kryo and Java because, like the Scala Pickling framework, they both are ``automatic''. That is, they require no schema or extra compilation phases, as is the case for other frameworks such as Apache Avro and Google Protobuf.}
 
 \subsection{Experimental Setup}
 
@@ -1466,14 +1467,14 @@ The following benchmarks were run on a MacBook Pro with a 2.7 GHz
 Intel Core i7 processor with 16 GB of memory running Mac OS X version
 10.8.2 and Oracle's Java HotSpot(TM) 64-Bit Server VM version
 1.6.0\_43. In all cases we used the following configuration flags:
-\texttt{-Xms1536M -Xmx4096M -Xss2M -XX:MaxPermSize=512M -XX:+UseParallelGC}.
+\texttt{-Xms1536M -Xmx4096M -Xss2M -XX:MaxPermSize=512M -XX:+UseParallelGC}. Each benchmark was run on a warmed-up JVM. The result shown is the median of 9 such ``warm'' runs.
 
 \subsection{Microbenchmark: Collections}
 
 In the first microbenchmark we evaluate the performance of our
 framework when pickling standard collection types. We compare against
 three other serialization frameworks: Java's native serialization,
-Kryo, and a combinator library of manually-written picklers. All
+Kryo, and a combinator library of naive handwritten pickler combinators. All
 benchmarks are compiled and run using Scala version 2.9.3, except for
 the present framework which depends on an experimental macro system,
 as well as a couple of minor bug fixes that exist only in a current
@@ -1481,20 +1482,21 @@ development version of Scala.
 
 The benchmark logic is very simple: an immutable collection of type
 \verb|Vector[Int]| is created which is first pickled (or serialized)
-to a byte array, and then unpickled. We chose to use Vectors, because
-Scala's standard List type could not be serialized out-of-the-box
-using Kryo, because it is a recursive type in Scala. The results are
-shown in Figure~\ref{fig:results-vector} As can be seen, the
-performance of our prototype is essentually on par with Kryo; for
-smaller and medium-sized collections even slightly higher. The
-performance of manually-written pickler combinators, however, is still
-notably better. In principle, it should be possible to generate code
-that is as fast as these pickler combinators at least in the case
-where static picklers can be generated.
+to a byte array, and then unpickled. While List is the protypical collection type used in Scala, we ultimately chose Vector as
+Scala's standard List type could not be serialized out-of-the-box\footnote{We register each class with Kryo, an optional step that improves performance.}
+using Kryo, because it is a recursive type in Scala. In order to use Scala's standard List type with Kryo, one must write a custom serializer, which would sidestep the objective of this benchmark, which is to compare the speed of {\em generated} picklers.
 
-Figure~\ref{fig:memory} shows the corresponding memory usage; on the
+The results are
+shown in Figure~\ref{fig:results-vector} (a). As can be seen, Java is markedly slower than any other framework. This is likely due to the expensive runtime cost of the JVM's calculation of the runtime transitive closure of the objects to be serialied. For 1,000,000 elements, Java finishes in 491ms while Scala Pickling finishes in 86ms, or a factor 5.7 faster. As can be seen, the
+performance of our prototype is faster than Kryo for small to moderate-sized collections, and is on par with Kryo or even slightly slower for large collections. For a Vector with 100,000 elements, Kryo finishes in 36ms while Scala Pickling finishes in 10ms-- a factor of 3.6 in favor of Scala Pickling. Conversely, for a Vector of 1,000,000 elements, Kryo finishes in 82ms whereas Scala Pickling finishes in 86ms. The
+performance of manually-written pickler combinators, however, is still
+considerably better. This is likely due to the fact that pickler combinators require no runtime checks whatsoever-- picklers combinators are defined per type, and manually composed, requiring no such check. In principle, it should be possible to generate code
+that is as fast as these pickler combinators in the case
+where static picklers can be generated\footnote{As a framework intended for eventual production use, we are actively seeking to bring performance closer to that of fully-static hand-composed pickler combinators. Towards that aim, we maintain a full benchmark suite at \url{http://lampwww.epfl.ch/~hmiller/pickling}}.
+
+Figure~\ref{fig:results-vector} (b) shows the corresponding memory usage; on the
 y-axis the value of \texttt{System.freeMemory} is shown. This plot
-reveals an crucial property of Kryo, namely (a) that its memory usage
+reveals evidence of a key property of Kryo, namely (a) that its memory usage
 is quite high compared to other frameworks, and (b) that its
 serialization is stateful because of internal buffering. In fact, when
 preparing these benchmarks we had to manually adjust Kryo buffer sizes
@@ -1505,6 +1507,8 @@ newly pickled object is simply append at the current position in the
 existing buffer which results in unexpected buffer growth. Our
 framework does not do any buffering which makes its behavior very
 predictable, but does not necessarily maximize its performance.
+
+Finally, Figure~\ref{fig:results-vector} (c) shows the relative sizes of the serialized data. For a Vector of 1,000,000 elements, Java required 10,322,966 bytes. As can be seen, all other frameworks perform on par with another, requiring about 40\% of the size of Java's binary format. Or, in order of largest to smallest; Kryo v1 - 4,201,152 bytes; Kryo v2 - 4,088,570 bytes; Scala Pickling 4,000,031 bytes; and Pickler Combinators 4,000,004 bytes.
 
 \subsection{Data Types in Distributed Frameworks and Applications}
 
