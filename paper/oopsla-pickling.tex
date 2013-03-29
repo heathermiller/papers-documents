@@ -39,6 +39,7 @@
 \usepackage{setspace}
 \usepackage{booktabs}
 \usepackage{wasysym}
+\usepackage{amsthm}
 
 \lstdefinelanguage{Scala}%
 {morekeywords={abstract,case,catch,char,class,%
@@ -126,6 +127,11 @@
 \theoremstyle{definition}
 \newmdtheoremenv[hidealllines=true,topline=true,bottomline=true,skipabove=\baselineskip,skipbelow=\baselineskip]{prop}{Property}[section]
 
+% \theoremstyle{nonumberplain}
+% \theoremstyle{definition}
+% \newmdtheoremenv*[hidealllines=true,topline=true,bottomline=true,skipabove=\baselineskip,skipbelow=\baselineskip]{defnn}{Definition}[section]
+\newtheorem*{defn*}{Definition}
+
 % \newtheorem{defn}{Definition}[section]
 % \newenvironment{defn}
   % {\begin{mdframed}[style=warning]\begin{mdef}}
@@ -136,6 +142,12 @@
 \newcommand{\eg}{{\em e.g.,~}}
 \newcommand{\term}[1]{\mbox{\texttt{#1}}}
 \newcommand{\itl}[1]{\mbox{\textit{#1}}}
+
+\newcommand{\sectionline}{%
+  \nointerlineskip \vspace{\baselineskip}%
+  \hspace{\fill}\rule{0.5\linewidth}{.7pt}\hspace{\fill}%
+  \par\nointerlineskip \vspace{\baselineskip}
+}
 
 \begin{document}
 
@@ -184,10 +196,10 @@ extensible; (1) using Scala's implicit parameters, users can add their own
 easily-swappable pickle format, (2) using the type class pattern, users can
 provide their own custom picklers to override the default behavior of the
 Scala pickling framework. In addition to extensibility and need for little to
-no boilerplate, the static generation of our OO picklers achieves an order of
-magnitude speedup over Java Serialization and up to a factor 7 speedup over
-popular ``fast'' Java serialization frameworks like Kryo.
-\todo mention Akka \& Spark?
+no boilerplate, the static generation of our OO picklers achieves a factor 6
+speedup over Java Serialization, and performs on par or up to 3 times faster
+than popular ``fast'' Java serialization frameworks like Kryo.
+% \todo mention Akka \& Spark?
 % We go on to evaluate
 % our framework on two large industrial-strength frameworks for distributed
 % computing, Akka and Spark, and show improved performance and a reduction of
@@ -977,10 +989,7 @@ representation.
 In our Scala-based implementation, the static type descriptor is generated
 automatically by the compiler, and passed as an implicit argument to the
 pickle extension method (see Section~\ref{sec:overview}). As a result, such an
-implicit \term{TypeTag}\footnote{TypeTags are part of the mainline Scala
-compiler since version 2.10. They replace the earlier concept of Manifests,
-providing a faithful representation of Scala types at runtime, see Section
-\ref{sec:background}.} does not require changing the invocation in most cases.
+implicit \term{TypeTag}\footnotemark[2] does not require changing the invocation in most cases.
 (However, it is impossible to generate a \term{TypeTag} automatically if the
 type or one of its components is abstract; in this case, an implicit
 \term{TypeTag} must be in scope.)
@@ -988,23 +997,22 @@ type or one of its components is abstract; in this case, an implicit
 Based on the type descriptor, a static representation, or model, of the
 required pickler is built; we refer to this as the {\em Intermediate
 Representation} (IR). The IR specifies precisely the set of types for which
-our framework can generate picklers automatically. These IRs are composable.
+our framework can generate picklers automatically. Furthermore, these IRs are composable.
 
 We additionally define a model for composing IRs, which is designed to capture
 the essence of Scala's object system as it relates to pickling. The model
 defines how the IR for a given type is composed from the IRs of the picklers
 of its supertypes. In Scala, the composition of an IR for a class type is
-defined based on the linearization of its supertraits.\footnote{Traits in
-Scala can be thought of as a more flexible form of Java-style interfaces that
-allow concrete members, and that support a form of multiple inheritance (mix-
-in composition) that is guaranteed to be safe based on a linearization order.}
+defined based on the linearization of its supertraits. \footnotemark[3]
 This model of inheritance is central to the generation framework, and is
 formally defined in the following Section \ref{sec:ir}
 
 \subsection{Formal Model of Inheritance}
 \label{sec:ir}
 
-\todo Need some text describing the IR
+
+
+% \todo Need some text describing the IR
 
 \begin{defn}{(Elements of IR)}
 
@@ -1033,6 +1041,15 @@ $IR_{opt}$ is an optional $IR$; a missing $IR$ is represented using $\epsilon$.
 Using the definitions of the elements of an IR from Definition \ref{def:elems-ir},
 we go on to define a number of useful IR combinators, which form the
 basis of our model of inheritance.
+
+\footnotetext{TypeTags are part of the mainline Scala
+compiler since version 2.10. They replace the earlier concept of Manifests,
+providing a faithful representation of Scala types at runtime, see Section
+\ref{sec:background}.}
+\footnotetext{Traits in
+Scala can be thought of as a more flexible form of Java-style interfaces that
+allow concrete members, and that support a form of multiple inheritance (mix-
+in composition) that is guaranteed to be safe based on a linearization order.}
 
 \begin{defn}{(IR Combinators)}
 
@@ -1087,6 +1104,13 @@ incomplete $IR$ $D$ yielding a completed $IR$ for the same type as $D$. When
 combining the $IR$s of a type's supertypes, the \textit{extended} function is
 used for reducing the linearization sequence yielding a single completed $IR$.
 
+\textit{Continued on next page...}
+\end{defn}
+
+\rule{0.9\columnwidth}{0.7pt}
+
+\begin{defn*}{(IR Combinators) -- Continued}
+
 The function \textit{superIRs} takes a type $T$ and returns a sequence of the
 IRs of $T$'s supertypes in linearization order.
 
@@ -1097,8 +1121,8 @@ linearization order of $C.1$.
 
 The function \textit{flatten}, given an $IR$ $C$ produces a new $IR$ that
 contains a concatenation of all the fields of each nested $IR$.
-
-\end{defn}
+\end{defn*}
+\rule{0.9\columnwidth}{0.7pt}
 
 \subsection{Pickler Generation Algorithm}
 
@@ -1353,6 +1377,14 @@ Otherwise, the value and runtime type of each field is obtained, so that it
 can be written to the pickle.
 
 \todo We mention in the bulleted list above runtime compilation but don't explain it
+
+
+\begin{figure*}[ht!]
+ \centering
+ \includegraphics[width=\textwidth]{vector.pdf}
+ \caption{Scala types used in industrial distributed frameworks and applications.}
+ \label{fig:application-table}
+\end{figure*}
 
 \subsection{Generics}
 
