@@ -326,8 +326,25 @@ concepts such as subtyping polymorphism. Moreover, it is not clear
 whether local type inference as required in OO languages would yield a
 comparable degree of conciseness, acceptable to programmers used to
 Java-style serialization.  Nonetheless, our approach builds on pickler
-combinators, capitalizing on their superior composability. We discuss
-further, less-closely related work in Section \ref{sec:related-work}.
+combinators, capitalizing on their powerful composability.
+
+Our approach of retrofitting existing types with pickling support
+builds on implicits in Scala~\cite{Oliveira2010} and is reminiscent of
+other type-class-like mechanisms, such as JavaGI~\cite{WehrT11} or C++
+Concepts~\cite{ReisS06}.
+
+What's more, in an effort to further reduce the boilerplate required
+to define or compose picklers using existing picklers, we present a
+framework for automatically generating picklers for compound types
+based on picklers for their component types. Given the close
+relationship of our implicit picklers to type classes, this generation
+mechanism is related to Haskell's {\em deriving}
+mechanism~\cite{MagalhaesDJL10}. One of the main differences is that
+our mechanism is faithful to subtyping. So far, our mechanism is
+specialized for pickling; an extension to a generic mechanism for
+composing type class instances is left for future work.
+
+We discuss other related work in Section \ref{sec:related-work}.
 
 \subsection{Contributions}
 
@@ -1560,18 +1577,10 @@ pickling, or serialization, in wide-spread OO languages is that our
 approach does not require special support by the underlying
 runtime. In fact, the core concepts of object-oriented picklers as
 presented in this paper can be realized in most OO languages with
-generics. Extensions that are orthogonal to the main notions of
-picklers and pickler combinators include (a) support for retrofitting
-existing types with pickling support, and (b) a composable model for
-static pickler generation. Extension (a) can be achieved by a
-type-class-like mechanism such as JavaGI~\cite{WehrT11}, C++
-Concepts~\cite{ReisS06}, or, in our case, objects and implicits in
-Scala~\cite{Oliveira2010}.
+generics. 
 
 python pickle (good SO article). AliceML generic pickling and
 minimization. rossberg's thesis.
-
-\todo cite Haskell deriving!
 
 Figure~\ref{fig:comparison} compares the main pickling/serialization
 frameworks with respect to type-safety, object-orientation, type
