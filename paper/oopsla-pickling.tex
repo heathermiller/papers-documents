@@ -174,7 +174,7 @@ into a binary or text representation is ubiquitous in distributed programming.
 Pickler combinators are a popular approach from functional programming designed to
 alleviate some of the tedium of writing pickling code by hand, but they don't
 translate well to object-oriented programming due to qualities like open class
-hierarchies and ad-hoc polymorphism. Furthermore, both functional pickler
+hierarchies and subtyping polymorphism. Furthermore, both functional pickler
 combinators and Java-based serialization frameworks tend to be tied to a
 specific pickle format, leaving programmers no choice of how their data is
 persisted. In this paper, we present object-oriented pickler combinators and a
@@ -322,7 +322,7 @@ functional languages, pickler
 combinators~\cite{Kennedy2004,Elsman2005} can reduce the effort of
 manually writing pickling and unpickling functions to a large
 extent. However, existing approaches do not support object-oriented
-concepts such as ad-hoc polymorphism. Moreover, it is not clear
+concepts such as subtyping polymorphism. Moreover, it is not clear
 whether local type inference as required in OO languages would yield a
 comparable degree of conciseness, acceptable to programmers used to
 Java-style serialization.  Nonetheless, our approach builds on pickler
@@ -337,7 +337,7 @@ This paper makes the following contributions:
 
 \item An extension to pickler combinators, well-known in functional
 programming, to support the core concepts of object-oriented programming,
-namely ad-hoc polymorphism and open class hierarchies.
+namely subtyping polymorphism and open class hierarchies.
 
 \item A framework based on object-oriented pickler combinators which (a)
 enables retrofitting existing types with pickling support, (b) supports
@@ -1536,7 +1536,7 @@ table it is also clear that case classes tend to be primarily of
 interest to application code whereas frameworks like Spark tend to
 prefer the use of simple collections of primitive type
 internally. What's more, the demand for pickling generics seems to be
-lower than the need to support ad-hoc polymorphism (our framework
+lower than the need to support subtyping polymorphism (our framework
 supports both, though). At least in one case (Twitter's Chill~\cite{TwitterChill}) a
 framework explicitly serializes Manifests, type descriptors for Scala
 types, which are superceded by TypeTags (see
@@ -1598,7 +1598,7 @@ Scala picklers      & yes          & yes              & yes          & yes      
 \section{Conclusion and Future Work}
 
 We have introduced a model of pickler combinators which supports core
-concepts of object-oriented programming including ad-hoc polymorphism
+concepts of object-oriented programming including subtyping polymorphism
 with open class hierarchies. Furthermore, we have shown how this model
 can be augmented by a composable mechanism for static pickler
 generation which is effective in reducing boilerplate and in ensuring
