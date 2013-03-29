@@ -1433,9 +1433,8 @@ for the JVM, Java's native serialization and Kryo.
 The following benchmarks were run on a MacBook Pro with a 2.7 GHz
 Intel Core i7 processor with 16 GB of memory running Mac OS X version
 10.8.2 and Oracle's Java HotSpot(TM) 64-Bit Server VM version
-1.6.0_43. In all cases we used the following configuration flags:
-\texttt{-Xms1536M -Xmx4096M -Xss2M -XX:MaxPermSize=512M
-  -XX:+UseParallelGC}.
+1.6.0\_43. In all cases we used the following configuration flags:
+\texttt{-Xms1536M -Xmx4096M -Xss2M -XX:MaxPermSize=512M -XX:+UseParallelGC}.
 
 \paragraph{Microbenchmark: collections.} In the first microbenchmark
 we evaluate the performance of our framework when pickling standard
@@ -1497,13 +1496,6 @@ final case class ShortArrayRasterData(array: Array[Short], cols: Int, rows: Int)
 Comments: MutableRasterData and IntBasedArray are just traits that do not contain data.
 
 Can we get a GeoTrellis app to run?
-
-\item SignalCollect
-\item Socko (web server)
-\item BigBlueButton (Java-based?)
-\item Kevoree (framework for distribution)
-\item SCADS
-\end{itemize}
 
 {\bf Survey of apps}
 
