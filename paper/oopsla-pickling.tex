@@ -37,6 +37,8 @@
 \usepackage{fontspec}
 \usepackage{graphicx}
 \usepackage{setspace}
+\usepackage{booktabs}
+\usepackage{wasysym}
 
 \lstdefinelanguage{Scala}%
 {morekeywords={abstract,case,catch,char,class,%
@@ -1492,6 +1494,35 @@ Scala picklers      & yes          & yes              & yes          & yes      
 \section{Future Work}
 
 \section{Conclusion}
+
+\begin{figure*}[ht!]
+ \centering
+ \includegraphics{application-table.pdf}
+ \caption{Applications of language features in existing commercial distributed frameworks/applications.}
+ \label{fig:application-table}
+\end{figure*}
+
+% \begin{table*}
+% \centering
+% \begin{tabular}{l c c c c c c c}
+% \toprule % Top horizontal line
+% & primitives/ & value-like & collections & case & type & generics & ad-hoc \\ % Column names row
+% & primitive arrays & types &  & classes & descriptor &  & polymorphism \\ % Column names row
+% \midrule % In-table horizontal line
+% GeoTrellis (Akka) & $\CIRCLE$ & $\Circle$     & $\Circle$     & $\CIRCLE$ & $\Circle$     & $\Circle$     & $\Circle$ \\
+% Evactor (Akka)    & $\CIRCLE$ & $\LEFTcircle$ & $\LEFTcircle$ & $\CIRCLE$ & $\Circle$     & $\Circle$     & $\LEFTcircle$ \\
+% \midrule % In-table horizontal line
+% Spark             & $\CIRCLE$ & $\CIRCLE$     & $\CIRCLE$     & N/A       & $\Circle$     & $\Circle$     & N/A \\
+% Storm             & $\Circle$ & $\CIRCLE$     & $\CIRCLE$     & N/A       & $\Circle$     & $\Circle$     & $\LEFTcircle$ \\
+% Twitter Chill     & $\Circle$ & $\LEFTcircle$ & $\CIRCLE$     & N/A       & $\LEFTcircle$ & $\LEFTcircle$ & $\LEFTcircle$ \\
+% \bottomrule % Bottom horizontal line
+% \end{tabular}
+% % \caption{Table caption text} % Table caption, can be commented out if no caption is required
+% % \label{tab:template} % A label for referencing this table elsewhere, references are used in text as \ref{label}
+% \end{table*}
+
+A reference to Table \ref{tab:template}.
+
 
 % \appendix
 % \section{Appendix Title}
