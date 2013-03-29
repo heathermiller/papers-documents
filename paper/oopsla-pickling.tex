@@ -404,7 +404,7 @@ programming language such as Java or C\#.
 automatically based on type. These capabilities are enabled when using the
 \term{implicit} keyword. For example, a method \term{log} with multiple
 parameter lists may annotate their last parameter list using the
-\term{implicit} keyword.
+\term{implicit} keyword.\footnote{Example taken from~\cite{Oliveira2010}.}
 
 \begin{lstlisting}
 def log(msg: String)(implicit o: PrintStream) =
@@ -427,10 +427,10 @@ In the above example, the implicit val \term{out} is in the implicit scope of
 the invocation of \term{log}; since it has the right type, it is automatically
 selected as an implicit argument.
 
-\todo Maybe we should change this example? It's out of Bruno's paper, and he's
-on the committee, he'll probably review our paper.
+%\todo Maybe we should change this example? It's out of Bruno's paper, and he's
+%on the committee, he'll probably review our paper.
 
-\todo Talk about how we use implicit values in our framework here.
+%\todo Talk about how we use implicit values in our framework here.
 
 \paragraph{Implicit Conversions.} Implicit conversions can be thought of as
 methods which, like implicit parameters, can be implicitly selected (\ie
@@ -449,9 +449,13 @@ In the example above, assuming there exists an abstract class \term{Message}
 with abstract method \term{message}, the implicit conversion
 \term{intWrapper} will be triggered when a method called \term{message}
 is called on an \term{Int}. That is, simply calling
-\term{39.message} will result in ``secret message!'' being returned.
+\term{39.message} will result in ``secret message!'' being
+returned. Since the implicit conversion has the effect of adding a
+``new'' method to type \term{Int}, \term{message} is typically called an
+{\em extension method}.
 
-\todo Talk about how we use implicit conversions in our framework here.
+%In our framework we use implicit conversions,
+%for example, for adding a \term{pickle} method to arbitrary objects.
 
 % cite Adriaan's and Bruno's OOPSLA paper. Where? How?
 % Example of a type class: maybe Ordering type class of std lib?
@@ -464,7 +468,7 @@ is called on an \term{Int}. That is, simply calling
 Reflection is the ability of a program to inspect, and possibly even modify
 itself at runtime. Before Scala 2.10, Scala did not have any reflection
 capabilities of its own. Instead, one could use Java reflection which provided
-a very limited subset of runtime reflection capabilities. In Scala 2.10, a new
+basic but limited runtime reflection capabilities. In Scala 2.10, a new
 reflection library was introduced not only to address the shortcomings of
 Java's runtime reflection on Scala-specific and generic types, but to also add
 a more powerful toolbox of general reflective capabilities to Scala. Along
@@ -1519,7 +1523,7 @@ Scala's standard List type could not be serialized out-of-the-box\footnote{We re
 using Kryo, because it is a recursive type in Scala. In order to use Scala's standard List type with Kryo, one must write a custom serializer, which would sidestep the objective of this benchmark, which is to compare the speed of {\em generated} picklers.
 
 The results are
-shown in Figure~\ref{fig:results-vector} (a). As can be seen, Java is markedly slower than any other framework. This is likely due to the expensive runtime cost of the JVM's calculation of the runtime transitive closure of the objects to be serialied. For 1,000,000 elements, Java finishes in 491ms while Scala Pickling finishes in 86ms, or a factor 5.7 faster. As can be seen, the
+shown in Figure~\ref{fig:results-vector} (a). As can be seen, Java is markedly slower than any other framework. This is likely due to the expensive runtime cost of the JVM's calculation of the runtime transitive closure of the objects to be serialized. For 1,000,000 elements, Java finishes in 491ms while Scala Pickling finishes in 86ms, or a factor 5.7 faster. As can be seen, the
 performance of our prototype is faster than Kryo for small to moderate-sized collections, and is on par with Kryo or even slightly slower for large collections. For a Vector with 100,000 elements, Kryo finishes in 36ms while Scala Pickling finishes in 10ms-- a factor of 3.6 in favor of Scala Pickling. Conversely, for a Vector of 1,000,000 elements, Kryo finishes in 82ms whereas Scala Pickling finishes in 86ms. The
 performance of manually-written pickler combinators, however, is still
 considerably better. This is likely due to the fact that pickler combinators require no runtime checks whatsoever-- picklers combinators are defined per type, and manually composed, requiring no such check. In principle, it should be possible to generate code
