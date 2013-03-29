@@ -1063,14 +1063,16 @@ Using the definitions of the elements of an IR from Definition \ref{def:elems-ir
 we go on to define a number of useful IR combinators, which form the
 basis of our model of inheritance.
 
-\footnotetext{TypeTags are part of the mainline Scala
+\footnotetext[2]{TypeTags are part of the mainline Scala
 compiler since version 2.10. They replace the earlier concept of Manifests,
 providing a faithful representation of Scala types at runtime, see Section
 \ref{sec:background}.}
-\footnotetext{Traits in
+\footnotetext[3]{Traits in
 Scala can be thought of as a more flexible form of Java-style interfaces that
 allow concrete members, and that support a form of multiple inheritance (mix-
 in composition) that is guaranteed to be safe based on a linearization order.}
+
+\vspace{0.3cm}
 
 \begin{defn}{(IR Combinators)}
 
@@ -1096,7 +1098,20 @@ to type $Y$.
 The \textit{linearization} function represents the host language's semantics for the
 linearized chain of supertypes.\footnotemark[0]
 
-\vspace{0.2cm}
+\vspace{0.4cm}
+
+\textit{Continued on next page...}
+
+\vspace{0.4cm}
+
+\end{defn}
+
+\rule{0.9\columnwidth}{0.7pt}
+
+\begin{defn*}{(IR Combinators) -- Continued}
+
+\vspace{0.3cm}
+
 {\bf Function Definitions}
 {\small
 \begin{align*}
@@ -1125,13 +1140,6 @@ incomplete $IR$ $D$ yielding a completed $IR$ for the same type as $D$. When
 combining the $IR$s of a type's supertypes, the \textit{extended} function is
 used for reducing the linearization sequence yielding a single completed $IR$.
 
-\textit{Continued on next page...}
-\end{defn}
-
-\rule{0.9\columnwidth}{0.7pt}
-
-\begin{defn*}{(IR Combinators) -- Continued}
-
 The function \textit{superIRs} takes a type $T$ and returns a sequence of the
 IRs of $T$'s supertypes in linearization order.
 
@@ -1145,6 +1153,7 @@ contains a concatenation of all the fields of each nested $IR$. Given
 these combinators, the $IR$ of a type $T$ to-be-pickled is obtained
 using $IR = flatten(compose((T, \epsilon, \lbrack \rbrack))$.
 \end{defn*}
+
 \rule{0.9\columnwidth}{0.7pt}
 
 \subsection{Pickler Generation Algorithm}
@@ -1616,7 +1625,7 @@ pickling, or serialization, in wide-spread OO languages is that our
 approach does not require special support by the underlying
 runtime. In fact, the core concepts of object-oriented picklers as
 presented in this paper can be realized in most OO languages with
-generics. 
+generics.
 
 Pickling has been used not only for distribution and persistence of
 ground values, but also of code to implement module
