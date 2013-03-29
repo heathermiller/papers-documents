@@ -1243,7 +1243,7 @@ generation is rather simple:
 \item For each field \term{fld} in the IR, emit \\\verb|builder.putField(${fld.name},b => pbody)|
 where \\\verb|${fld.name}| denotes the splicing of \term{fld.name}
 into the tree. \term{pbody} is the logic for pickling \term{fld}'s value into
-the builder \term{b}, which is an alias of builder. \term{pbody} is generated
+the builder \term{b}, which is an alias of \term{builder}. \term{pbody} is generated
 as follows:
   \begin{enumerate}
 
@@ -1440,24 +1440,24 @@ quasiquoting library for Scala's macros.~\cite{Quasiquotes}.
 
 
 
-\subsection{Optimizations}
-\label{sec:optimize}
+%\subsection{Optimizations}
+%\label{sec:optimize}
 
-\section{Temporary TODOs}
+%\section{Temporary TODOs}
 
-\subsection{Recursive Types}
+%\subsection{Recursive Types}
 
-\todo what to do with this?
+%\todo what to do with this?
 
-Recursive types are used in many common data structures like lists, trees etc. Here we show how recursive types are supported in our framework.
+%Recursive types are used in many common data structures like lists, trees etc. Here we show how recursive types are supported in our framework.
 
-Example (we show a non-generic class hierarchy for simplicity):
+%Example (we show a non-generic class hierarchy for simplicity):
 
-\begin{lstlisting}
-    abstract class IntTree
-    class Empty extends IntTree
-    class Fork(left: IntTree, elem: Int, right: IntTree)
-\end{lstlisting}
+%\begin{lstlisting}
+%    abstract class IntTree
+%    class Empty extends IntTree
+%    class Fork(left: IntTree, elem: Int, right: IntTree)
+%\end{lstlisting}
 
 \section{Experimental Evaluation}
 \label{sec:evaluation}
