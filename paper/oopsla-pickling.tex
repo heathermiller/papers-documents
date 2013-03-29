@@ -565,7 +565,7 @@ val pickl = obj.pickle
 val obj2 = pickl.unpickle[Obj]
 \end{lstlisting}
 
-Here, the \term{import} statement imports the Scala Pickling framework
+Here, the \term{import} statement imports the Scala Pickling framework,
 the method \term{pickle} triggers static pickler generation, and the
 method \term{unpickle} triggers static unpickler generation. Note that not
 every type has a \term{pickle} method; it is implemented as an extension
@@ -577,7 +577,7 @@ import a \term{PickleFormat}. By default, our framework provides a
 Scala Binary Format, an efficient representation based on arrays of bytes,
 though the framework provides other formats which can easily be imported,
 including a JSON format. Furthermore, users can easily extend the framework by
-providing their own \term{PickleFormat}s (See Section \ref{sec:pickleformat}).
+providing their own \term{PickleFormat}s (see Section \ref{sec:pickleformat}).
 
 Typically, the framework generates the required pickler itself inline in the
 compiled code, using the \term{PickleFormat} in scope. In the case of JSON,
@@ -1059,6 +1059,13 @@ Using the definitions of the elements of an IR from Definition \ref{def:elems-ir
 we go on to define a number of useful IR combinators, which form the
 basis of our model of inheritance.
 
+% This is the footnote from the definition
+\footnotetext[1]{For example, in Scala the linearization is
+defined for classes mixing in multiple traits \cite{Odersky2005,ScalaSpec}; in
+Java, the linearization function would simply return the chain of
+superclasses, not including the implemented interfaces.}
+
+
 \footnotetext[2]{TypeTags are part of the mainline Scala
 compiler since version 2.10. They replace the earlier concept of Manifests,
 providing a faithful representation of Scala types at runtime, see Section
@@ -1092,19 +1099,7 @@ We write function types $X \Rightarrow Y$, indicating a function from type $X$
 to type $Y$.
 
 The \textit{linearization} function represents the host language's semantics for the
-linearized chain of supertypes.\footnotemark[0]
-
-\vspace{0.4cm}
-
-\textit{Continued on next page...}
-
-\vspace{0.4cm}
-
-\end{defn}
-
-\rule{0.9\columnwidth}{0.7pt}
-
-\begin{defn*}{(IR Combinators) -- Continued}
+linearized chain of supertypes.\footnotemark[1]
 
 \vspace{0.3cm}
 
@@ -1124,10 +1119,23 @@ linearized chain of supertypes.\footnotemark[0]
 \end{align*}
 }%
 
+
 The function \textit{concat} takes two arguments that are each sequences. We
 denote concatenation of sequences using a comma. We introduce the
 \textit{concat} function for clarity in the definition of \textit{flatten}
 (see below); it is simply an alias for sequence concatenation.
+
+\vspace{0.4cm}
+
+\textit{Continued on next page...}
+
+\vspace{0.6cm}
+
+\end{defn}
+
+% \rule{0.9\columnwidth}{0.7pt}
+
+\begin{defn*}{(IR Combinators) -- Continued}
 
 The function \textit{extended} takes two $IR$s, $C$ and $D$, and returns a new
 $IR$ for the type of $D$ such that $C$ is registered as its super $IR$.
@@ -1182,13 +1190,6 @@ little as possible to minimize runtime overhead. For example,  the JSON
 \term{PickleFormat} included with the Scala Pickling framework simply uses an
 efficient string builder to concatenate JSON fragments (which are just
 strings) in order to assemble a pickle.
-
-% This is the footnote from the definition
-\footnotetext[0]{For example, in Scala the linearization is
-defined for classes mixing in multiple traits \cite{Odersky2005,ScalaSpec}; in
-Java, the linearization function would simply return the chain of
-superclasses, not including the implemented interfaces.}
-
 
 The interface provided by \term{PickleFormat} is simple: it basically consists
 of two methods (a) for creating an empty builder, and (b) for creating a
@@ -1285,9 +1286,10 @@ more efficient, since it does not require a dynamic dispatch step like
 \term{DPickler[T]}
 
 \item The field's type does not have to be pickled, since it can be reconstructed
-from its owner's type.\footnote{Our implementation makes heavy use of this
-optimization for pickling collections of primitives efficiently; see
-Section~\ref{sec:optimize}.}
+from its owner's type.
+% \footnote{Our implementation makes heavy use of this
+% optimization for pickling collections of primitives efficiently; see
+% Section~\ref{sec:optimize}.}
 \end{itemize}
 
 Pickler generation is compositional; for example, the generated pickler for a
@@ -1481,9 +1483,6 @@ of our pickling framework. Our goals are
 \item to provide a survey of the properties of data types that are
   commonly used in distributed computing frameworks and applications,
   and
-\item to evaluate the potential impact of our framework on code
-  maintenance in comparison with the same frameworks used for
-  performance evaluation.
 \end{enumerate}\noindent
 In the process we are going to evaluate the performance of our
 framework alongside two popular and industrially-prominent serialization frameworks
@@ -1602,7 +1601,7 @@ lower than the need to support subtyping polymorphism (our framework
 supports both, though). At least in one case (Twitter's Chill~\cite{TwitterChill}) a
 framework explicitly serializes Manifests, type descriptors for Scala
 types, which are superceded by TypeTags (see
-Section~\ref{sec:reflection})
+Section~\ref{sec:reflection}) The shaded area (which is "heavily-used") shows that collections are often used in distributed code, in particular with primitive element types. This motivates the choice of our collections micro benchmark.
 
 
 
