@@ -1412,15 +1412,15 @@ Example (we show a non-generic class hierarchy for simplicity):
 \label{sec:evaluation}
 
 In this section we present first results of an experimental evaluation
-of our pickling framework. We have the following goals:
+of our pickling framework. Our goals are
 \begin{enumerate}
-\item evaluate the performance of automatically-generated picklers
+\item to evaluate the performance of automatically-generated picklers
   compared to manually-written picklers, analyzing the memory usage
   compared to other serialization frameworks,
-\item provide a survey of the properties of data types that are
+\item to provide a survey of the properties of data types that are
   commonly used in distributed computing frameworks and applications,
   and
-\item evaluate the potential impact of our framework on code
+\item to evaluate the potential impact of our framework on code
   maintenance in comparison with the same frameworks used for
   performance evaluation.
 \end{enumerate}\noindent
@@ -1461,16 +1461,16 @@ where static picklers can be generated.
 Figure~\ref{fig:memory} shows the corresponding memory usage; on the
 y-axis the value of \texttt{System.freeMemory} is shown. This plot
 reveals an crucial property of Kryo, namely (a) that its memory usage
-is quite high compared to other frameworks, and (b) that it
+is quite high compared to other frameworks, and (b) that its
 serialization is stateful because of internal buffering. In fact, when
 preparing these benchmarks we had to manually adjust Kryo buffer sizes
-to avoid buffer overflows. It turns out the main reason for this is
-that Kryo reuses buffers whenever possible when serializing one object
-after the other. In many (most?) cases the newly pickled object is
-simply append at the current position in the existing buffer which
-results in unexpected buffer growth. Our framework does not do any
-buffering which makes its behavior very predictable, but does not
-necessarily maximize its performance.
+several times to avoid buffer overflows. It turns out the main reason
+for this is that Kryo reuses buffers whenever possible when
+serializing one object after the other. In many cases the
+newly pickled object is simply append at the current position in the
+existing buffer which results in unexpected buffer growth. Our
+framework does not do any buffering which makes its behavior very
+predictable, but does not necessarily maximize its performance.
 
 \paragraph{Data types in distributed frameworks and applications}
 
@@ -1508,43 +1508,12 @@ prefer the use of simple collections of primitive type
 internally. What's more, the demand for pickling generics seems to be
 lower than the need to support ad-hoc polymorphism (our framework
 supports both, though). At least in one case (Twitter's Chill) a
-framework explicitly serializes Manifests, type descriptor for Scala
+framework explicitly serializes Manifests, type descriptors for Scala
 types, which are superceded by TypeTags (see
 Section~\ref{sec:reflection})
 
 
 
-(1) GeoTrellis (https://github.com/geotrellis/geotrellis)
-GeoTrellis is an open source high performance geoprocessing engine that transforms user interaction with geospatial data through speed and scale.
-Types (Java Serialization):
-final case class DoubleConstant(n: Double, cols: Int, rows: Int) extends StrictRasterData
-
-final case class IntConstant(n: Int, cols: Int, rows: Int) extends StrictRasterData
-
-final case class BitArrayRasterData(array: Array[Byte], cols: Int, rows: Int) extends MutableRasterData with IntBasedArray
-
-final case class ByteArrayRasterData(array: Array[Byte], cols: Int, rows: Int) extends MutableRasterData with IntBasedArray
-
-final case class DoubleArrayRasterData(array: Array[Double], cols: Int, rows: Int) extends MutableRasterData with DoubleBasedArray
-
-final case class FloatArrayRasterData(array: Array[Float], cols: Int, rows: Int) extends MutableRasterData with DoubleBasedArray
-
-final case class IntArrayRasterData(array: Array[Int], cols: Int, rows: Int) extends MutableRasterData with IntBasedArray
-
-final case class ShortArrayRasterData(array: Array[Short], cols: Int, rows: Int) extends MutableRasterData with IntBasedArray
-
-Comments: MutableRasterData and IntBasedArray are just traits that do not contain data.
-
-Can we get a GeoTrellis app to run?
-
-{\bf Survey of apps}
-
-\begin{itemize}
-\item take 10 or so apps, look at which types are pickled. Then we say which ones we support. and then we can point to microbenchmarks to show how it performs for that type.
-\item first step: find real apps that are distributed
-\item check Samira's paper, she has pointed out which actor apps are distributed
-\item for Spark: every Spark is distributed, so we just have to find out which types are put into the RDDs. These element types are the ones we need to serialize.
-\end{itemize}
 
 \section{Related Work}
 \label{sec:related-work}
