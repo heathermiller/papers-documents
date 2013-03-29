@@ -1611,8 +1611,14 @@ runtime. In fact, the core concepts of object-oriented picklers as
 presented in this paper can be realized in most OO languages with
 generics. 
 
-python pickle (good SO article). AliceML generic pickling and
-minimization. rossberg's thesis.
+Pickling has been used not only for distribution and persistence of
+ground values, but also of code to implement module
+systems~\cite{Roy99,Rossberg2007}. There is a body of work on
+maximizing sharing of runtime data
+structures~\cite{appel93hashconsing,Elsman2005,TackKS06} which we
+believe could be applied to the pickler combinators presented in
+Section~\ref{sec:oopicklers}; however, a complete solution is beyond
+the scope of the present paper.
 
 Figure~\ref{fig:comparison} compares the main pickling/serialization
 frameworks with respect to type-safety, object-orientation, type
