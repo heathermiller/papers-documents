@@ -667,8 +667,7 @@ fallback on a runtime pickler.
 
 \paragraph{Custom Picklers.} It is possible to use manually-written picklers
 in place of generated picklers. Typical motivations for doing so are (a)
-improved performance through specialization and optimization hints (discussed
-in Section~\ref{sec:optimize}), and (b) custom pre-pickling and post-unpickling
+improved performance through specialization and optimization hints, and (b) custom pre-pickling and post-unpickling
 actions; such actions may be required to re-initialize an object
 correctly after unpickling. Creating custom picklers is greatly facilitated by
 modular composition using object-oriented pickler combinators. The design of
@@ -828,8 +827,7 @@ modular composition in the presence of subtyping}.
 Picklers for final class types like \term{String}, or for primitive types like
 \term{Int} do not require support for subtyping. Therefore, static picklers
 are sufficient to pickle these {\em effectively final types}. Compared to
-dynamic picklers, static picklers benefit from several optimizations that we
-outline in more detail in Section~\ref{sec:optimize}.
+dynamic picklers, static picklers benefit from several optimizations.
 
 \subsection{Implementing Object-Oriented Picklers}
 
