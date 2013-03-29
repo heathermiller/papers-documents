@@ -310,22 +310,24 @@ substitutability of both objects to-be-pickled and first-class picklers.
 
 \subsection{Related Work}
 
-Some OO languages like Java and runtime environments like the JVM or .NET
-provide serialization for arbitrary types, provided entirely by the underlying virtual
-machine. While this approach is very convenient for the programmer there are
-also several issues: (a) the pickling format cannot be exchanged (Java), (b)
-serialization relies on runtime reflection which hits performance, and (c)
-existing classes that do not extend a special marker interface are not
-serializable, which often causes oversights resulting in software engineering
-costs. In functional languages, pickler combinators can reduce the
-effort of manually writing pickling and unpickling functions to a large
-extent. However, existing approaches do not support object-oriented concepts
-such as ad-hoc polymorphism. Moreover, it is not clear whether local type
-inference as required in OO languages would yield a comparable degree of
-conciseness, acceptable to programmers used to Java-style serialization.
-Nonetheless, our approach builds on pickler combinators, capitalizing on their superior
-composability. We discuss further, less-closely related work in Section
-\ref{sec:related-work}.
+Some OO languages like Java and runtime environments like the JVM or
+.NET provide serialization for arbitrary types, provided entirely by
+the underlying virtual machine. While this approach is very convenient
+for the programmer there are also several issues: (a) the pickling
+format cannot be exchanged (Java), (b) serialization relies on runtime
+reflection which hits performance, and (c) existing classes that do
+not extend a special marker interface are not serializable, which
+often causes oversights resulting in software engineering costs. In
+functional languages, pickler
+combinators~\cite{Kennedy2004,Elsman2005} can reduce the effort of
+manually writing pickling and unpickling functions to a large
+extent. However, existing approaches do not support object-oriented
+concepts such as ad-hoc polymorphism. Moreover, it is not clear
+whether local type inference as required in OO languages would yield a
+comparable degree of conciseness, acceptable to programmers used to
+Java-style serialization.  Nonetheless, our approach builds on pickler
+combinators, capitalizing on their superior composability. We discuss
+further, less-closely related work in Section \ref{sec:related-work}.
 
 \subsection{Contributions}
 
