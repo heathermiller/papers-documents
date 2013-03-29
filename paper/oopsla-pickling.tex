@@ -1411,22 +1411,70 @@ Example (we show a non-generic class hierarchy for simplicity):
 \section{Experimental Evaluation}
 \label{sec:evaluation}
 
-{\bf Microbenchmarks}
+In this section we present first results of an experimental evaluation
+of our pickling framework. We have the following goals:
+\begin{enumerate}
+\item evaluate the performance of automatically-generated picklers
+  compared to manually-written picklers, analyzing the memory usage
+  compared to other serialization frameworks,
+\item provide a survey of the properties of data types that are
+  commonly used in distributed computing frameworks and applications,
+  and
+\item evaluate the potential impact of our framework on code
+  maintenance in comparison with the same frameworks used for
+  performance evaluation.
+\end{enumerate}\noindent
+In the process we are going to evaluate the performance of our
+framework alongside two of the most important serialization frameworks
+for the JVM, Java's native serialization and Kryo.
 
-\begin{itemize}
-\item individual types that are common
-\item evaluate on microbenchmarks
-\item look at size of pickles
-\item look at bytecode size
-\item TODO: tuples and maps
-\end{itemize}
+\subsection{Experimental Setup}
 
-{\bf Real apps}
-\begin{itemize}
-\item TODO: find possible distributed apps using Akka or Spark
-\item Samira's list: http://actor-applications.cs.illinois.edu/akka.html (cite her ECOOP paper)
-apps should be heavy on serialization
-\item finding apps:
+The following benchmarks were run on a MacBook Pro with a 2.7 GHz
+Intel Core i7 processor with 16 GB of memory running Mac OS X version
+10.8.2 and Oracle's Java HotSpot(TM) 64-Bit Server VM version
+1.6.0_43. In all cases we used the following configuration flags:
+\texttt{-Xms1536M -Xmx4096M -Xss2M -XX:MaxPermSize=512M
+  -XX:+UseParallelGC}.
+
+\paragraph{Microbenchmark: collections.} In the first microbenchmark
+we evaluate the performance of our framework when pickling standard
+collection types. We compare against three other serialization
+frameworks: Java's native serialization, Kryo, and a combinator
+library of manually-written picklers. All benchmarks are compiled and
+run using Scala version 2.9.3, except for the present framework which
+depends on an experimental macro system, as well as a couple of minor
+bug fixes that exist only in a current development version of Scala.
+
+The benchmark logic is very simple: an immutable collection of type
+\verb|Vector[Int]| is created which is first pickled (or serialized)
+to a byte array, and then unpickled. We chose to use Vectors, because
+Scala's standard List type could not be serialized out-of-the-box
+using Kryo, because it is a recursive type in Scala. The results are
+shown in Figure~\ref{fig:results-vector} As can be seen, the
+performance of our prototype is essentually on par with Kryo; for
+smaller and medium-sized collections even slightly higher. The
+performance of manually-written pickler combinators, however, is still
+notably better. In principle, it should be possible to generate code
+that is as fast as these pickler combinators at least in the case
+where static picklers can be generated.
+
+Figure~\ref{fig:memory} shows the corresponding memory usage; on the
+y-axis the value of \texttt{System.freeMemory} is shown. This plot
+reveals an crucial property of Kryo, namely (a) that its memory usage
+is quite high compared to other frameworks, and (b) that it
+serialization is stateful because of internal buffering. In fact, when
+preparing these benchmarks we had to manually adjust Kryo buffer sizes
+to avoid buffer overflows. It turns out the main reason for this is
+that Kryo reuses buffers whenever possible when serializing one object
+after the other. In many (most?) cases the newly pickled object is
+simply append at the current position in the existing buffer which
+results in unexpected buffer growth. Our framework does not do any
+buffering which makes its behavior very predictable, but does not
+necessarily maximize its performance.
+
+
+
 (1) GeoTrellis (https://github.com/geotrellis/geotrellis)
 GeoTrellis is an open source high performance geoprocessing engine that transforms user interaction with geospatial data through speed and scale.
 Types (Java Serialization):
