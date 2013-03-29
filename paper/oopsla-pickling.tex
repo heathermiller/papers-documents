@@ -1029,13 +1029,15 @@ formally defined in the following Section \ref{sec:ir}
 \subsection{Formal Model of Inheritance}
 \label{sec:ir}
 
-
-
-% \todo Need some text describing the IR
+The goal of this section is to formally define the representation, or
+$IR$, of a static type $T$ as it is used to generate a pickler for
+type $T$. We start by defining the syntax of the elements of the IR
+(see Def.~\ref{def:elems-ir}).
 
 \begin{defn}{(Elements of IR)}
+\label{def:elems-ir}
 
-We define the syntax for values of the IR types.
+We define the syntax of values of the IR types.
 
 \begin{align*}
 F&        ::= \overline{(f_n, T)}\\
@@ -1055,7 +1057,6 @@ pickling its fields provided by $F$.
 
 $IR_{opt}$ is an optional $IR$; a missing $IR$ is represented using $\epsilon$.
 \end{defn}
-\label{def:elems-ir}
 
 Using the definitions of the elements of an IR from Definition \ref{def:elems-ir},
 we go on to define a number of useful IR combinators, which form the
@@ -1139,7 +1140,9 @@ of $C.1$. The resulting $IR$ is a chain of super IRs according to the
 linearization order of $C.1$.
 
 The function \textit{flatten}, given an $IR$ $C$ produces a new $IR$ that
-contains a concatenation of all the fields of each nested $IR$.
+contains a concatenation of all the fields of each nested $IR$. Given
+these combinators, the $IR$ of a type $T$ to-be-pickled is obtained
+using $IR = flatten(compose((T, \epsilon, \lbrack \rbrack))$.
 \end{defn*}
 \rule{0.9\columnwidth}{0.7pt}
 
