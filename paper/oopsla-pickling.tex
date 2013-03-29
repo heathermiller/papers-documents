@@ -187,7 +187,7 @@ into a binary or text representation is ubiquitous in distributed programming.
 Pickler combinators are a popular approach from functional programming designed to
 alleviate some of the tedium of writing pickling code by hand, but they don't
 translate well to object-oriented programming due to qualities like open class
-hierarchies and ad-hoc polymorphism. Furthermore, both functional pickler
+hierarchies and subtyping polymorphism. Furthermore, both functional pickler
 combinators and Java-based serialization frameworks tend to be tied to a
 specific pickle format, leaving programmers no choice of how their data is
 persisted. In this paper, we present object-oriented pickler combinators and a
@@ -323,22 +323,41 @@ substitutability of both objects to-be-pickled and first-class picklers.
 
 \subsection{Related Work}
 
-Some OO languages like Java and runtime environments like the JVM or .NET
-provide serialization for arbitrary types, provided entirely by the underlying virtual
-machine. While this approach is very convenient for the programmer there are
-also several issues: (a) the pickling format cannot be exchanged (Java), (b)
-serialization relies on runtime reflection which hits performance, and (c)
-existing classes that do not extend a special marker interface are not
-serializable, which often causes oversights resulting in software engineering
-costs. In functional languages, pickler combinators can reduce the
-effort of manually writing pickling and unpickling functions to a large
-extent. However, existing approaches do not support object-oriented concepts
-such as ad-hoc polymorphism. Moreover, it is not clear whether local type
-inference as required in OO languages would yield a comparable degree of
-conciseness, acceptable to programmers used to Java-style serialization.
-Nonetheless, our approach builds on pickler combinators, capitalizing on their superior
-composability. We discuss further, less-closely related work in Section
-\ref{sec:related-work}.
+Some OO languages like Java and runtime environments like the JVM or
+.NET provide serialization for arbitrary types, provided entirely by
+the underlying virtual machine. While this approach is very convenient
+for the programmer there are also several issues: (a) the pickling
+format cannot be exchanged (Java), (b) serialization relies on runtime
+reflection which hits performance, and (c) existing classes that do
+not extend a special marker interface are not serializable, which
+often causes oversights resulting in software engineering costs. In
+functional languages, pickler
+combinators~\cite{Kennedy2004,Elsman2005} can reduce the effort of
+manually writing pickling and unpickling functions to a large
+extent. However, existing approaches do not support object-oriented
+concepts such as subtyping polymorphism. Moreover, it is not clear
+whether local type inference as required in OO languages would yield a
+comparable degree of conciseness, acceptable to programmers used to
+Java-style serialization.  Nonetheless, our approach builds on pickler
+combinators, capitalizing on their powerful composability.
+
+Our approach of retrofitting existing types with pickling support
+builds on implicits in Scala~\cite{Oliveira2010} and is reminiscent of
+other type-class-like mechanisms, such as JavaGI~\cite{WehrT11} or C++
+Concepts~\cite{ReisS06}.
+
+What's more, in an effort to further reduce the boilerplate required
+to define or compose picklers using existing picklers, we present a
+framework for automatically generating picklers for compound types
+based on picklers for their component types. Given the close
+relationship of our implicit picklers to type classes, this generation
+mechanism is related to Haskell's {\em deriving}
+mechanism~\cite{MagalhaesDJL10}. One of the main differences is that
+our mechanism is faithful to subtyping. So far, our mechanism is
+specialized for pickling; an extension to a generic mechanism for
+composing type class instances is left for future work.
+
+We discuss other related work in Section \ref{sec:related-work}.
 
 \subsection{Contributions}
 
@@ -348,7 +367,7 @@ This paper makes the following contributions:
 
 \item An extension to pickler combinators, well-known in functional
 programming, to support the core concepts of object-oriented programming,
-namely ad-hoc polymorphism and open class hierarchies.
+namely subtyping polymorphism and open class hierarchies.
 
 \item A framework based on object-oriented pickler combinators which (a)
 enables retrofitting existing types with pickling support, (b) supports
@@ -1011,13 +1030,15 @@ formally defined in the following Section \ref{sec:ir}
 \subsection{Formal Model of Inheritance}
 \label{sec:ir}
 
-
-
-% \todo Need some text describing the IR
+The goal of this section is to formally define the representation, or
+$IR$, of a static type $T$ as it is used to generate a pickler for
+type $T$. We start by defining the syntax of the elements of the IR
+(see Def.~\ref{def:elems-ir}).
 
 \begin{defn}{(Elements of IR)}
+\label{def:elems-ir}
 
-We define the syntax for values of the IR types.
+We define the syntax of values of the IR types.
 
 \begin{align*}
 F&        ::= \overline{(f_n, T)}\\
@@ -1037,7 +1058,6 @@ pickling its fields provided by $F$.
 
 $IR_{opt}$ is an optional $IR$; a missing $IR$ is represented using $\epsilon$.
 \end{defn}
-\label{def:elems-ir}
 
 Using the definitions of the elements of an IR from Definition \ref{def:elems-ir},
 we go on to define a number of useful IR combinators, which form the
@@ -1121,7 +1141,9 @@ of $C.1$. The resulting $IR$ is a chain of super IRs according to the
 linearization order of $C.1$.
 
 The function \textit{flatten}, given an $IR$ $C$ produces a new $IR$ that
-contains a concatenation of all the fields of each nested $IR$.
+contains a concatenation of all the fields of each nested $IR$. Given
+these combinators, the $IR$ of a type $T$ to-be-pickled is obtained
+using $IR = flatten(compose((T, \epsilon, \lbrack \rbrack))$.
 \end{defn*}
 \rule{0.9\columnwidth}{0.7pt}
 
@@ -1225,7 +1247,7 @@ generation is rather simple:
 \item For each field \term{fld} in the IR, emit \\\verb|builder.putField(${fld.name},b => pbody)|
 where \\\verb|${fld.name}| denotes the splicing of \term{fld.name}
 into the tree. \term{pbody} is the logic for pickling \term{fld}'s value into
-the builder \term{b}, which is an alias of builder. \term{pbody} is generated
+the builder \term{b}, which is an alias of \term{builder}. \term{pbody} is generated
 as follows:
   \begin{enumerate}
 
@@ -1422,24 +1444,24 @@ quasiquoting library for Scala's macros.~\cite{Quasiquotes}.
 
 
 
-\subsection{Optimizations}
-\label{sec:optimize}
+%\subsection{Optimizations}
+%\label{sec:optimize}
 
-\section{Temporary TODOs}
+%\section{Temporary TODOs}
 
-\subsection{Recursive Types}
+%\subsection{Recursive Types}
 
-\todo what to do with this?
+%\todo what to do with this?
 
-Recursive types are used in many common data structures like lists, trees etc. Here we show how recursive types are supported in our framework.
+%Recursive types are used in many common data structures like lists, trees etc. Here we show how recursive types are supported in our framework.
 
-Example (we show a non-generic class hierarchy for simplicity):
+%Example (we show a non-generic class hierarchy for simplicity):
 
-\begin{lstlisting}
-    abstract class IntTree
-    class Empty extends IntTree
-    class Fork(left: IntTree, elem: Int, right: IntTree)
-\end{lstlisting}
+%\begin{lstlisting}
+%    abstract class IntTree
+%    class Empty extends IntTree
+%    class Fork(left: IntTree, elem: Int, right: IntTree)
+%\end{lstlisting}
 
 \section{Experimental Evaluation}
 \label{sec:evaluation}
@@ -1570,7 +1592,7 @@ table it is also clear that case classes tend to be primarily of
 interest to application code whereas frameworks like Spark tend to
 prefer the use of simple collections of primitive type
 internally. What's more, the demand for pickling generics seems to be
-lower than the need to support ad-hoc polymorphism (our framework
+lower than the need to support subtyping polymorphism (our framework
 supports both, though). At least in one case (Twitter's Chill~\cite{TwitterChill}) a
 framework explicitly serializes Manifests, type descriptors for Scala
 types, which are superceded by TypeTags (see
@@ -1594,45 +1616,24 @@ pickling, or serialization, in wide-spread OO languages is that our
 approach does not require special support by the underlying
 runtime. In fact, the core concepts of object-oriented picklers as
 presented in this paper can be realized in most OO languages with
-generics. Extensions that are orthogonal to the main notions of
-picklers and pickler combinators include (a) support for retrofitting
-existing types with pickling support, and (b) a composable model for
-static pickler generation. Extension (a) can be achieved by a
-type-class-like mechanism such as JavaGI~\cite{WehrT11}, C++
-Concepts~\cite{ReisS06}, or, in our case, objects and implicits in
-Scala~\cite{Oliveira2010}.
+generics. 
 
-python pickle (good SO article). AliceML generic pickling and
-minimization. rossberg's thesis.
+Pickling has been used not only for distribution and persistence of
+ground values, but also of code to implement module
+systems~\cite{Roy99,Rossberg2007}. There is a body of work on
+maximizing sharing of runtime data
+structures~\cite{appel93hashconsing,Elsman2005,TackKS06} which we
+believe could be applied to the pickler combinators presented in
+Section~\ref{sec:oopicklers}; however, a complete solution is beyond
+the scope of the present paper.
 
-\todo cite Haskell deriving!
-
-Figure~\ref{fig:comparison} compares the main pickling/serialization
-frameworks with respect to type-safety, object-orientation, type
-extensibility, and format extensibility.
-
-\begin{figure*}[ht!]
-\centering
-\begin{tabular}{|l|l|l|l|l|l|l|}
-\hline
-Framework           & Type-safety  & Object-oriented  & Boilerplate-free  & Type extensibility  & Format Extensibility \\
-\hline
-Java Serialization  & Java-only    & yes              & yes          & no                  & no \\
-Kryo                & Java-only    & yes              & yes          & yes                 & no \\
-Pickler combinators & yes          & no               & no           & yes                 & (yes) \\
-Scala picklers      & yes          & yes              & yes          & yes                 & yes \\
-\hline
-\end{tabular}
-
-\caption{Comparing serialization frameworks}\label{fig:comparison}
-\end{figure*}
 
 % \section{Future Work}
 
 \section{Conclusion and Future Work}
 
 We have introduced a model of pickler combinators which supports core
-concepts of object-oriented programming including ad-hoc polymorphism
+concepts of object-oriented programming including subtyping polymorphism
 with open class hierarchies. Furthermore, we have shown how this model
 can be augmented by a composable mechanism for static pickler
 generation which is effective in reducing boilerplate and in ensuring
