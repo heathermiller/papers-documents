@@ -42,6 +42,13 @@
 \usepackage{amsthm}
 \usepackage{url}
 
+\usepackage{caption}
+\usepackage{subcaption}
+
+\usepackage{bcprules}
+\usepackage{prooftree}
+\usepackage{multicol}
+
 \lstdefinelanguage{Scala}%
 {morekeywords={abstract,case,catch,char,class,%
     def,else,extends,final,%
@@ -149,6 +156,17 @@
   \hspace{\fill}\rule{0.5\linewidth}{.7pt}\hspace{\fill}%
   \par\nointerlineskip \vspace{\baselineskip}
 }
+
+% figures
+\newcommand{\figurebox}[1]
+        {\fbox{\begin{minipage}{\textwidth} #1 \medskip\end{minipage}}}
+\newcommand{\twofig}[3]
+        {\begin{figure*}[t]#3\ \hrulefill\ 
+        \caption{\label{#1}#2}\end{figure*}}
+\newcommand{\boxfig}[3]
+        {\begin{figure*}\figurebox{#3\caption{\label{#1}#2}}\end{figure*}}
+\newcommand{\figref}[1]
+        {Figure~\ref{#1}}
 
 \begin{document}
 
@@ -679,6 +697,38 @@ discussed in detail in the following Section~\ref{sec:oopicklers}.
 
 \section{Model of Object-Oriented Picklers}
 \label{sec:oopicklers}
+
+\begin{figure*}[t!]
+  \centering
+
+  \begin{subfigure}{0.3\textwidth}
+    \centering
+
+    \infrule[\textsc{T-Let}]
+    { precond1 \\
+      precond2 \\
+      precond3 \\
+      precond4
+    }
+    { reduce }
+
+  \end{subfigure}%
+  ~ %add desired spacing between images, e. g. ~, \quad, \qquad etc.
+    %(or a blank line to force the subfigure onto a new line)
+  \begin{subfigure}{0.3\textwidth}
+    \centering
+
+    \infrule[\textsc{T-Sub}]
+    { precond1 \\
+      precond2 \\
+      precond3
+    }
+    { reduce }
+
+  \end{subfigure}
+  \caption{Reduction rules for \texttt{pickle} and \texttt{unpickle} expressions.}
+  \label{fig:opsem-rules}
+\end{figure*}
 
 In this section we provide a formal definition of object-oriented picklers. We
 introduce picklers as first-class objects, and provide their type definitions
