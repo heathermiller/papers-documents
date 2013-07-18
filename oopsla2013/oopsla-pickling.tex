@@ -168,6 +168,15 @@
 \newcommand{\figref}[1]
         {Figure~\ref{#1}}
 
+% arrays
+\newcommand{\ba}{\begin{array}}
+\newcommand{\ea}{\end{array}}
+\newcommand{\bda}{\[\ba}
+\newcommand{\eda}{\ea\]}
+\newcommand{\ei}{\end{array}}
+\newcommand{\bcases}{\left\{\begin{array}{ll}}
+\newcommand{\ecases}{\end{array}\right.}
+
 \begin{document}
 
 \setmainfont[Mapping=tex-text]{Times New Roman}
@@ -694,9 +703,32 @@ modular composition using object-oriented pickler combinators. The design of
 these first-class object-oriented picklers and pickler combinators is
 discussed in detail in the following Section~\ref{sec:oopicklers}.
 
+% \begin{figure*}[t]
+% $\ba[t]{ll@{\hspace{2mm}}l@{\hspace{2mm}}l@{\hspace{2mm}}l}
+% F ::= & [] ~|~ F[x \mapsto r]    & \mbox{envir.}~(x \notin dom(F))
+%       & r \in RefLocs            & \mbox{reference location} \\
+% H ::= & [] ~|~ H[r \mapsto o]    & \mbox{heap}
+%       & o ::= (T, F)             & \mbox{object}
+% \ea$
+% \caption{Environments, objects, and heaps.}
+% \label{fig:objects-heaps}
+% \end{figure*}
 
 \section{Model of Object-Oriented Picklers}
 \label{sec:oopicklers}
+
+
+\begin{figure}
+$\ba[t]{ll@{\hspace{2mm}}l}
+F ::= & [] ~|~ F[x \mapsto r]    & \mbox{environment}        \\
+H ::= & [] ~|~ H[r \mapsto o]    & \mbox{heap}               \\
+r \in & RefLocs                  & \mbox{reference location} \\
+o ::= & (T, F)                   & \mbox{object}
+\ea$
+\caption{Environments, heaps, and objects.}
+\label{fig:heaps-objects}
+\end{figure}
+
 
 \begin{figure*}[t!]
   \centering
