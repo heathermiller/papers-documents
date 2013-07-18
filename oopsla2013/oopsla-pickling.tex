@@ -763,11 +763,39 @@ o ::= & (T, F)                   & \mbox{object}
 \end{figure*}
 
 In this section we provide a formal definition of object-oriented picklers. We
-introduce picklers as first-class objects, and provide their type definitions
-and contracts that valid implementations must guarantee. Subsequently, we
+introduce picklers as first-class objects, and provide their contracts that
+valid implementations must guarantee. Subsequently, we
 demonstrate that the introduced picklers enable modular, object-oriented
 pickler combinators, \ie methods for composing more complex picklers from
 simpler primitive picklers.
+
+To define picklers formally we use a standard approach based on an operational
+semantics for a core object-oriented language. Expressions of the core
+language are standard except for the addition of two special \texttt{pickle}
+and \texttt{unpickle} expressions. Importantly, our goal is not a full
+formalization of a core language; instead, we aim to provide a more precise
+definition of object-oriented picklers. Thus, we omit reduction rules for
+standard expression forms, and we show only reduction rules for the
+\texttt{pickle} and \texttt{unpickle} expressions.
+
+The operational semantics uses the definitions shown in
+Figure~\ref{fig:heaps-objects}. A configuration is composed of a heap $H$ and an
+expression $e$. The dynamic representation of an object is a tuple $(T, F)$
+containing a type tag $T$ for its dynamic type and an environment $F$ for the
+values of its fields. A heap $H$ maps reference locations (abstract heap addresses)
+to objects.
+
+\begin{defn}(First-Class Picklers)
+
+A {\em pickler} for some type $T$ is a tuple $((p, u), m, T)$ where $T$ is a
+type tag, $m$ is the pickler's kind, and $(p, u)$ is a pair of two functions.
+A pickler's kind can be either $s$ (static) or $d$ (dynamic).
+
+\end{defn}
+
+\newpage
+
+
 
 Note that we are using a Scala-like program notation. However, the introduced
 concepts and definitions are realizable in most statically-typed OO languages
