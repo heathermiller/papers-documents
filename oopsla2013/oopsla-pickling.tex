@@ -837,8 +837,8 @@ TBD.
     \centering
 
     \infrule[\textsc{Pickle-S}]
-    { \rho = ((p, u), s, T) \\
-      o = (T, F)            \\
+    { \rho = ((p, u), s, C) \\
+      o = (C, F)            \\
       r_p \notin H \quad H' = H[r_p \mapsto p(o)]
     }
     { \reduction H {\texttt{pickle}(\rho, o)} {H'} {r_p} }
@@ -850,8 +850,8 @@ TBD.
     \centering
 
     \infrule[\textsc{Pickle-D}]
-    { \rho = ((p, u), d, T) \\
-      o = (T', F)        \quad T' \sub T \\
+    { \rho = ((p, u), d, C) \\
+      o = (D, F)         \quad D \sub C \\
       r_p \notin H       \quad H' = H[r_p \mapsto p(o)]
     }
     { \reduction H {\texttt{pickle}(\rho, o)} {H'} {r_p} }
@@ -863,8 +863,8 @@ TBD.
     \centering
 
     \infrule[\textsc{Unpickle}]
-    { \rho = ((p, u), m, T) \\
-      o = (P, F)            \\
+    { \rho = ((p, u), m, C)     \\
+      o = (\texttt{Pickle}, F)  \\
       r \notin H \quad H' = H[r \mapsto u(o)]
     }
     { \reduction H {\texttt{unpickle}(\rho, o)} {H'} r }
@@ -973,7 +973,7 @@ dom(u) \supseteq ran(p)
 \end{equation}
 
 \begin{equation}\label{eq:round-trip}
-(u \circ p)(o) = o' \Rightarrow o \equiv o'
+(u \circ p)(o) =_{H} o' \Rightarrow o \equiv_{H} o'
 \end{equation}
 
 \end{defn}
@@ -1001,13 +1001,27 @@ expresses the familiar property "pickling followed by unpickling generates a
 value structurally equal to the original value". The definition of structural
 equality is straight-forward:
 
-
-
 \begin{defn}
 
-Two picklers are structurally-equal, written $\rho \equiv \rho'$ {\em iff}
+Two picklers $\rho, \rho'$ are structurally equal, written $\rho \equiv \rho'$
+{\em iff}
 
-$\rho = ((p, u), m, C) \land \rho' = ((p', u'), m', C') \land m = m' \land C = C'$
+\begin{equation}
+\begin{split}
+\rho = ((p, u), m, C) \land \rho' = ((p', u'), m', C') \Rightarrow \\
+m = m' \land C <: C' \land C' <: C
+\end{split}
+\end{equation}
+
+Two objects are structurally equal in heap $H$, written $o \equiv_{H} o'$ {\em iff}
+
+\begin{equation}
+\begin{split}
+o = (C, F) \land o' = (C', F') \Rightarrow \\
+C <: C' \land C' <: C \land dom(F) = dom(F') \land \\
+\forall f \mapsto r \in F.~\exists f \mapsto r' \in F'.~H(r) \equiv_{H} H(r')
+\end{split}
+\end{equation}
 
 \end{defn}
 
