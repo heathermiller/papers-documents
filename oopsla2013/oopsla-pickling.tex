@@ -183,7 +183,7 @@
 \newcommand{\figurebox}[1]
         {\fbox{\begin{minipage}{\textwidth} #1 \medskip\end{minipage}}}
 \newcommand{\twofig}[3]
-        {\begin{figure*}[t]#3\ \hrulefill\ 
+        {\begin{figure*}[t]#3\ \hrulefill\
         \caption{\label{#1}#2}\end{figure*}}
 \newcommand{\boxfig}[3]
         {\begin{figure*}\figurebox{#3\caption{\label{#1}#2}}\end{figure*}}
@@ -204,7 +204,7 @@
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 %% Relations
-% Subtype 
+% Subtype
 \newcommand{\sub}{<:}
 % Type assignment
 \newcommand{\typ}{:}
@@ -322,16 +322,17 @@ hierarchies and subtyping polymorphism. Furthermore, both functional pickler
 combinators and Java-based serialization frameworks tend to be tied to a
 specific pickle format, leaving programmers no choice of how their data is
 persisted. In this paper, we present object-oriented pickler combinators and a
-framework for generating them at compile-time. While specifically
+framework\footnote{\url{http://github.com/scala/pickling/}} for
+generating them at compile-time. While specifically
 designed for the Scala programming language, many aspects of our
 approach are applicable in other statically-typed object-oriented
 languages. Our framework is
 extensible; (1) using Scala's implicit parameters, users can add their own
-easily-swappable pickle format, (2) using the type class pattern, users can
+easily interchangeable pickle format, (2) using the type class pattern, users can
 provide their own custom picklers to override the default behavior of
 the pickling framework. In addition to extensibility and need for little to
 no boilerplate, the static generation of our OO picklers enables
-significant performance improvements. In microbenchmarks our framework
+significant performance improvements. In microbenchmarks, our framework
 achieves a factor 6 speedup over Java Serialization, and performs on
 par or up to 3 times faster than popular fast Java serialization frameworks like Kryo.
 
@@ -359,7 +360,7 @@ Serialization, pickling, meta-programming, distributed programming, Scala
 
 With the growing trend towards cloud computing and mobile applications,
 distributed programming has entered the mainstream. As more and more
-traditional applications migrate to the cloud, the demand for interop between
+traditional applications migrate to the cloud, the demand for interopability between
 different services is at an all-time high, and is increasing. At the center of
 it all is communication. Whether we consider a cluster of commodity machines
 churning through a massive data-parallel job, or a smartphone interacting with
@@ -393,13 +394,14 @@ picklers and a framework for generation either at runtime or at
 compile time. The introduced notion of object-oriented pickler combinators
 extends pickler combinators known from functional
 programming~\cite{Kennedy2004} with support for object-oriented concepts such
-as subtyping and mix-in composition. In contrast to pure functional-style
+as subtyping, mix-in composition,  and object identity in the face of cyclic
+object graphs. In contrast to pure functional-style
 pickler combinators, we employ static, type-based meta programming to compose
 picklers at compile time. The resulting picklers are efficient, since the
 pickling code is generated statically as much as possible, avoiding the
 overhead of runtime reflection~\cite{Gil2008,Dubochet2011}.
 
-What's more, the presented pickling framework is extensible in several
+Furthermore, the presented pickling framework is extensible in several
 important ways. First, building on an object-oriented type-class-like
 mechanism~\cite{Oliveira2010}, our approach enables retroactively adding
 pickling support to existing, unmodified types. Second, our framework provides
@@ -446,13 +448,15 @@ specialization and (b) dynamic type checks when unpickling to transition
 unpickled objects into the statically-typed ``world'' at a well-defined program
 point.
 
-\item {\bf Robust support for object-orientation}. Concepts such as subtyping and
-mix-in composition are used very commonly to define regular object types in
-object-oriented languages. Since our framework does without a separate data
-type description language ({\em e.g.,} a schema), it is important that regular
-type definitions are sufficient to describe the types to-be-pickled. The
-Liskov substitution principle is used as a guidance surrounding the
-substitutability of both objects to-be-pickled and first-class picklers.
+\item {\bf Robust support for object-orientation}. Concepts such as subtyping
+and mix-in composition are used very commonly to define
+regular object types in object-oriented languages. Our approach is also general,
+supporting object graphs with cycles. Since our framework does
+without a separate data type description language ({\em e.g.,} a schema), it
+is important that regular type definitions are sufficient to describe tahe
+types to-be-pickled. The Liskov substitution principle is used as a guidance
+surrounding the substitutability of both objects to-be-pickled and first-class
+picklers.
 \end{itemize}
 
 
@@ -481,7 +485,7 @@ builds on implicits in Scala~\cite{Oliveira2010} and is reminiscent of
 other type-class-like mechanisms, such as JavaGI~\cite{WehrT11} or C++
 Concepts~\cite{ReisS06}.
 
-What's more, in an effort to further reduce the boilerplate required
+Additionally, in an effort to further reduce the boilerplate required
 to define or compose picklers using existing picklers, we present a
 framework for automatically generating picklers for compound types
 based on picklers for their component types. Given the close
@@ -502,7 +506,7 @@ This paper makes the following contributions:
 
 \item An extension to pickler combinators, well-known in functional
 programming, to support the core concepts of object-oriented programming,
-namely subtyping polymorphism and open class hierarchies.
+namely subtyping polymorphism, open class hierarchies, and object identity.
 
 \item A framework based on object-oriented pickler combinators which (a)
 enables retrofitting existing types with pickling support, (b) supports
@@ -510,8 +514,8 @@ automatically generating picklers at compile time and at runtime, (c) supports
 pluggable pickle formats, and (d) does not require changes to the host
 language or the underlying virtual machine.
 
-\item A complete implementation of the presented approach in and for Scala \footnote{See
-    \url{http://github.com/heathermiller/scala-pickling/}}.
+\item A complete implementation of the presented approach in and for Scala
+\footnote{See \url{http://github.com/scala/pickling/}}.
 
 \item An experimental evaluation comparing the performance of our framework
 with Java serialization and Kryo.
@@ -797,6 +801,19 @@ subclasses are fully generated at compile-time.
 \item faster picklers in general because one need not worry about having to
 fallback on a runtime pickler.
 \end{itemize}
+
+For example, a client subclass \verb|Firefighter| of a class \verb|Person|
+defined in separately compiled code might look like:
+
+\begin{lstlisting}
+// Library code
+@pickleable class Person(val name: String)
+// Client code
+case class Firefighter(override val name: String, salary: Int)
+  extends Person(name)
+\end{lstlisting}
+
+Here, the annotation triggers pickler generation both in \verb|Person| as well as in \verb|Firefighter|.
 
 \paragraph{Custom Picklers.} It is possible to use manually-written picklers
 in place of generated picklers. Typical motivations for doing so are (a)
@@ -1515,13 +1532,13 @@ parameter to allow for several scenarios of unanticipated evolution.
 \label{sec:generation}
 
 An explicit goal of our framework is to require little to no boilerplate in
-client code, since practitioners are typically used to serialization supported
+client code, since practitioners are typically accustomed to serialization supported
 by the underlying runtime environment like in Java or .NET. Therefore, instead
 of requiring libraries or applications to supply manually-written picklers for
-all pickled types, our framework provides a component for {\em generating
-picklers} based on their required static type.
+all pickled types, our framework provides a component for {\em generating picklers}
+based on their required static type.
 
-What's more, compile-time pickler generation enables {\em efficient picklers}
+Importantly, compile-time pickler generation enables {\em efficient picklers}
 by generating as much pickling code as possible statically (which corresponds
 to a partial evaluation of pickler combinators). Section~\ref{sec:evaluation}
 reports on the performance improvements that our framework achieves using
@@ -1985,6 +2002,109 @@ type. So, when we have access to the runtime type of field \term{fld}, we can
 either look up an already-generated pickler for that runtime type, or we can
 generate a suitable pickler dynamically.
 
+\subsection{Object Identity and Sharing}
+\label{sec:object-identity}
+
+Object identity enables the existence of complex object graphs, which
+themselves are a cornerstone of object-oriented programming. While in
+Section~\ref{sec:data-types-in-distributed-applications} we show that pickling
+\textit{flat} object graphs is most common in big data applications, a general
+pickling framework for use with an object-oriented language must not only
+support flat object graphs, it must also support cyclic object graphs.
+
+Supporting such cyclic object graphs in most object-oriented languages,
+however, typically requires sophisticated runtime support, which is known to
+incur a significant performance hit. This is due to the fact that pickling
+graphs with cycles requires tracking object identities at runtime, so that
+pickling terminates and unpickling can faithfully reconstruct the graph
+structure.
+
+To avoid the overhead of tracking object identities unanimously for all
+objects, ``runtime-based'' serialization frameworks like Java or Kryo have to
+employ reflective/introspective checks to detect whether identities are
+relevant.\footnote{With Kryo some of this overhead can be avoided when using custom, hand-written serializers.}
+
+Scala/pickling, on the other hand, employs a hybrid compile-time/runtime
+approach. This makes it possible to avoid the overhead of object identity
+tracking in cases where it is statically known to be safe, which we show in
+Section~\ref{sec:data-types-in-distributed-applications} is typically
+important in big data applications.
+
+The following Section~\ref{sec:object-tracking} outlines how object identity
+is tracked in scala/pickling. It also explains how the management of object
+identities enables a {\em sharing} optimization. This sharing optimization is
+especially important for persistent data structures, which are commonly used
+in Scala. Section~\ref{sec:object-graph-analysis} explains how compile-time
+analysis is used to reduce the amount of runtime checking in cases where
+object graphs are statically known to be acyclic.
+
+\subsubsection{Object Tracking}
+\label{sec:object-tracking}
+
+During pickling, a pickler keeps track of all objects that are part of the
+(top-level) object to-be-pickled in a table. Whenever an object that's part of
+the object graph is pickled, a hash code based on the identity of the object
+is computed. The pickler then looks up whether that object has already been
+pickled, in which case the table contains a unique integer ID as the entry's
+value. If the table does not contain an entry for the object, a unique ID is
+generated and inserted, and the object is pickled as usual. Otherwise, instead
+of pickling the object again, a special \verb|Ref| object containing the integer ID
+is written to the pickle.\footnote{Several strategies exist to avoid preventing pickled objects from being garbage collected. Currently, for each top-level object to-be-pickled, a new hash table is created.}
+During unpickling, the above process is reversed by maintaining a
+mapping\footnote{This can be made very efficient by using a map implementation which is more efficient for integer-valued keys, such as a resizable array.}
+from integer IDs to unpickled heap objects.
+
+This approach to dealing with object identities also enables sharing, an
+optimization which in some big data applications can improve system throughput
+by reducing pickle size. Scala's immutable collections hierarchy is one
+example of a set of data structures which are persistent, which means they
+make use of sharing. That is, object subgraphs which occur in multiple
+instances of a data structure can be shared which is more efficient than
+maintaining multiple copies of those subgraphs
+
+Scala/pickling's management of object identities benefits instances of such
+data structures as follows. First, it reduces the size of the computed pickle,
+since instead of pickling the same object instance many times, compact
+references (\verb|Ref| objects) are pickled. Second, pickling time also has
+the potential to be reduced, since shared objects have to be pickled only
+once.
+
+\subsubsection{Static Object Graph Analysis}
+\label{sec:object-graph-analysis}
+
+When generating a pickler for a given type \verb|T|, the IR is analyzed to
+determine whether the graph of objects of type \verb|T| may contain cycles.
+Both \verb|T| and the types of \verb|T|'s fields are examined using a breadth-
+first traversal. Certain types are immediately excluded from the traversal,
+since they cannot be part of a cycle. Examples are primitive types, like
+\verb|Double|, as well as certain immutable reference types that are final,
+like \verb|String|. However, the static inspection of the IR additionally
+allows Scala-pickling to traverse sealed class hierarchies.
+
+For example, consider this small class hierarchy:
+
+\begin{lstlisting}
+final class Position(p: Person, title: String)
+sealed class Person(name: String, age: Int)
+final class Firefighter(name: String, age: Int, salary: Int)
+  extends Person(name, age)
+final class Teacher(name: String, age: Int, subject: String)
+  extends Person(name, age)
+\end{lstlisting}
+
+In this case, upon generating the pickler for class \verb|Position|, it is
+detected that no cycles are possible in the object graphs of instances of type
+\verb|Position|. While \verb|Position|'s \verb|p| field has a reference type,
+it cannot induce cycles, since \verb|Person| is a sealed class that has only
+final subclasses; furthermore, \verb|Person| and its subclasses have only
+fields of primitive type.
+
+In addition to this analysis, our framework allows users to disable all
+identity tracking programmatically, in case it is known that the graphs of
+(all) pickled objects are acyclic. While this switch can boost performance, it
+also disables opportunities for sharing (see above), and may thus lead to
+larger ``pickles''.
+
 
 
 \section{Implementation}
@@ -2089,6 +2209,7 @@ predictable, but does not necessarily maximize its performance.
 Finally, Figure~\ref{fig:results-vector} (c) shows the relative sizes of the serialized data. For a Vector of 1,000,000 elements, Java required 10,322,966 bytes. As can be seen, all other frameworks perform on par with another, requiring about 40\% of the size of Java's binary format. Or, in order of largest to smallest; Kryo v1 - 4,201,152 bytes; Kryo v2 - 4,088,570 bytes; Scala Pickling 4,000,031 bytes; and Pickler Combinators 4,000,004 bytes.
 
 \subsection{Data Types in Distributed Frameworks and Applications}
+\label{sec:data-types-in-distributed-applications}
 
 \begin{figure*}[ht!]
  \centering
