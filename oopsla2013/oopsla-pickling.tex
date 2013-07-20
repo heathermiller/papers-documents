@@ -268,7 +268,7 @@
 
 \newcommand{\sreduce}[6]{#1, #2, #3 \;\longrightarrow\; #4, #5, #6}
 \newcommand{\sreducebreak}[6]{#1, #2, #3 \\ \;\longrightarrow\; #4, #5, #6}
-\newcommand{\sreducestar}[8]{#1, #2, #3, #4 \;\longrightarrow^{\ast}\; #5, #6, #7, #8}
+\newcommand{\sreducestar}[6]{#1, #2, #3 \;\longrightarrow^{\ast}\; #4, #5, #6}
 
 % misc identifiers
 \newcommand{\dom}{\mbox{\sl dom}}
@@ -1201,8 +1201,14 @@ $C$ of the pickler must not be exactly equal to the dynamic type of the object
 to-be-pickled (the object at location $r$); it is only necessary that $D \sub
 C$.
 
+\paragraph{Properties} The pickling and unpickling methods of a pickler must
+satisfy the property that ``pickling followed by unpickling generates an
+object that is structurally equal to the original object''. Formally, a reduction
 
-
+\begin{equation}
+\sreducestar H V {\texttt{let}~x' = x.u(x.p(y))~\texttt{in}~t}
+  H
+\end{equation}
 
 
 
@@ -1566,7 +1572,7 @@ linearized chain of supertypes.\footnotemark[1]
 }%
 
 
-The function \textit{concat} takes two arguments that are each sequences. We
+The function \textit{concat} takes two sequences as arguments. We
 denote concatenation of sequences using a comma. We introduce the
 \textit{concat} function for clarity in the definition of \textit{flatten}
 (see below); it is simply an alias for sequence concatenation.
