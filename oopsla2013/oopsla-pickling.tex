@@ -831,29 +831,146 @@ formalization of object-oriented picklers based on an operational semantics.
 
 \subsection{Picklers in Scala}\label{sub:picklers-scala}
 
-TODO
+In scala/pickling, a {\em static pickler} for some type \verb|T| is an
+instance of trait \verb|SPickler[T]| which has a single abstract method
+\verb|pickle|:
+
+\begin{lstlisting}
+    trait SPickler[T] {
+      def pickle(obj: T, builder: PBuilder): Unit
+    }
+\end{lstlisting}
+\noindent
+For a concrete type, say, class \verb|Person| (see Section~\ref{sec:basic-
+usage}), the \verb|pickle| method of an \verb|SPickler[Person]| converts
+\verb|Person| instances to a pickled format, using a {\em pickle builder} (the
+\verb|builder| parameter). Given this definition, picklers ``are type safe in
+the sense that a type-specialized pickler can be applied only to values of the
+specialized type.''~\cite{Elsman2005}. The pickled result is not returned
+directly; instead, it can be requested from the \verb|builder| using its
+\verb|result()| method. Example:
+
+\begin{lstlisting}
+    val p = new Person("Jack")
+    ...
+    val personPickler   = implicitly[SPickler[Person]]
+    val builder         = pickleFormat.createBuilder()
+    personPickler.pickle(p, builder)
+    val pickled: Pickle = builder.result()
+\end{lstlisting}
+\noindent
+In the above example, we obtain an instance of \verb|SPickler[Person]| by
+means of implicits. The \verb|implicitly| method, part of Scala's standard
+library, is defined as follows:
+
+\begin{lstlisting}
+def implicitly[T](implicit e: T) = e
+\end{lstlisting}
+\noindent
+Using an implicit parameter (see Section~\ref{sec:background}),
+\verb|implicitly[T]| returns the uniquely-defined implicit value of type
+\verb|T| which is in scope at the invocation site.
+
+In the above example, invoking \verb|implicitly[SPickler[Person]]| either
+returns a regular implicit value of type \verb|SPickler[Person]| that is in
+scope, or, if it doesn't exist, triggers the (compile-time) generation of a
+type-specialized pickler (see Section~\ref{sec:generation}). To use the
+pickler it is also necessary to obtain a pickle builder. Since pickle formats
+in scala/pickling are exchangable (see Section~\ref{sec:pickleformat}), pickle
+builders depend on specific pickle formats, which provide builder factory
+methods.
+
+The \verb|pickled| result has type \verb|Pickle| which wraps a concrete
+representation, such as a byte array (\eg for binary formats) or a string (\eg
+for JSON). The abstract \verb|Pickle| trait is defined as follows:
+
+\begin{lstlisting}
+trait Pickle {
+  type ValueType
+  type PickleFormatType <: PickleFormat
+  val value: ValueType
+  ...
+}
+\end{lstlisting}
+\noindent
+The type members \verb|ValueType| and \verb|PickleFormatType| abstract from
+the concrete representation type and the pickle format type, respectively.
+Scala/pickling defines a \verb|Pickle| subclass for its default binary format
+as follows:
+
+\begin{lstlisting}
+case class BinaryPickle(value: Array[Byte]) extends Pickle {
+  type ValueType = Array[Byte]
+  type PickleFormatType = BinaryPickleFormat
+  override def toString =
+    s"""BinaryPickle(${value.mkString("[", ",", "]")})"""
+}
+\end{lstlisting}
+\noindent
+
+Analogous to a pickler, an unpickler for some type \verb|U| is an instance of
+trait \verb|Unpickler[U]| that has a single abstract method \verb|unpickle|;
+its (simplified) definition is as follows:
+
+\begin{lstlisting}
+trait Unpickler[T] {
+  val format: PickleFormat
+  def unpickle(tag: TypeTag[_], reader: PReader): T
+}
+\end{lstlisting}
+\noindent
+
+Picklers usually also mix in the \verb|Unpickler| trait to provide both
+pickling and unpickling functionality.
+
+TODO: DPicklers
+
+
+
+% abstract class or interface types . Each have an abstract method \verb|pickle| with a single
+% parameter of type $T$ and return type \term{Pickle}:
+
+% \begin{lstlisting}
+%     trait DPickler[T] {
+%       def pickle(obj: T): Pickle
+%     }
+% \end{lstlisting}
+
+% \noindent(The type definition of \term{SPickler}$[T]$ differs only in the name of the type;
+% below we define the difference in their contracts.)
+
+% Conversely, an unpickler for some type $U$ is an instance of an abstract class
+% or interface type \term{Unpickler}$[U]$ that has a single abstract method
+% \verb|unpickle| with a single parameter of type \term{Pickle} and return type
+% \term{Unit}.
+% \end{defn}
+
+% The pickle method takes an object to-be-pickled of static type $T$, pickles it
+% by turning it into some external representation like a byte array, and returns
+% an instance of type \term{Pickle} which wraps the external representation. 
 
 \subsubsection{Modular Pickler Combinators}
 
-Picklers as first-class objects make it possible to define pickler
-combinators, which in turn make it possible to build compound picklers from
-primitive picklers. However, only using the interface introduced above would
-not allow us to achieve this, since calling into any of the component picklers
-would produce a completed pickle; we would be left with the problem of
-composing completed pickles which is inefficient in general. Since one of our
-goals is high performance, we'll instead allow picklers to produce {\em
-partial pickles} which themselves are essentially builders \cite{Gamma1995}
-that multiple picklers can output to. The corresponding method has the
-following signature:
+% Picklers as first-class objects make it possible to define pickler
+% combinators, which in turn make it possible to build compound picklers from
+% primitive picklers. However, only using the interface introduced above would
+% not allow us to achieve this, since calling into any of the component picklers
+% would produce a completed pickle; we would be left with the problem of
+% composing completed pickles which is inefficient in general. Since one of our
+% goals is high performance, we'll instead allow picklers to produce {\em
+% partial pickles} which themselves are essentially builders \cite{Gamma1995}
+% that multiple picklers can output to. The corresponding method has the
+% following signature:
 
-\begin{lstlisting}
-   def pickle(obj: T, builder: PickleBuilder): Unit
-\end{lstlisting}
+% \begin{lstlisting}
+%    def pickle(obj: T, builder: PickleBuilder): Unit
+% \end{lstlisting}
 
-\verb|PickleBuilder| has methods to incrementally add elements of an object
-to-be-pickled to a pickle that is being constructed (see Section
-\ref{sec:pickleformat}). When all elements have been added to a
-\verb|PickleBuilder|, calling \verb|result| returns the completed pickle.
+% \verb|PickleBuilder| has methods to incrementally add elements of an object
+% to-be-pickled to a pickle that is being constructed (see Section
+% \ref{sec:pickleformat}). When all elements have been added to a
+% \verb|PickleBuilder|, calling \verb|result| returns the completed pickle.
+
 
 For example, consider a simple class \verb|Position| with a field of type
 String and a field of type \term{Person}, respectively:
@@ -1308,31 +1425,7 @@ with generics.
 
 \begin{defn}(First-Class Picklers and Unpicklers)
 
-A pickler for some type $T$ is an instance of one of two abstract class or
-interface types \term{DPickler}$[T]$ or \term{SPickler}$[T]$. Each have an
-abstract method \verb|pickle| with a single parameter of type $T$ and return
-type \term{Pickle}:
 
-\begin{lstlisting}
-    trait DPickler[T] {
-      def pickle(obj: T): Pickle
-    }
-\end{lstlisting}
-
-\noindent(The type definition of \term{SPickler}$[T]$ differs only in the name of the type;
-below we define the difference in their contracts.)
-
-Conversely, an unpickler for some type $U$ is an instance of an abstract class
-or interface type \term{Unpickler}$[U]$ that has a single abstract method
-\verb|unpickle| with a single parameter of type \term{Pickle} and return type
-\term{Unit}.
-\end{defn}
-
-The pickle method takes an object to-be-pickled of static type $T$, pickles it
-by turning it into some external representation like a byte array, and returns
-an instance of type \term{Pickle} which wraps the external representation. Given this
-definition, picklers ``are type safe in the sense that a type-specialized
-pickler can be applied only to values of the specialized type.''~\cite{Elsman2005}.
 
 }
 
