@@ -919,8 +919,7 @@ as follows:
 case class BinaryPickle(value: Array[Byte]) extends Pickle {
   type ValueType = Array[Byte]
   type PickleFormatType = BinaryPickleFormat
-  override def toString =
-    s"""BinaryPickle(${value.mkString("[", ",", "]")})"""
+  override def toString = ...
 }
 \end{lstlisting}
 \noindent
