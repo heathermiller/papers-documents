@@ -1002,6 +1002,12 @@ However, the crucial difference is that now \term{picklerD1} is selected when
 an object of static type \term{D} is pickled, since \term{picklerD1} is more
 specific than \term{picklerC1}.
 
+In summary, the combination of invariant picklers and generics (with upper
+type bounds) is flexible enough to support some important scenarios of
+unanticipated evolution. This is not possible with picklers that are
+contravariant. Consequently, in scala/pickling the \term{SPickler} trait is
+invariant in its type parameter.
+
 
 \newpage
 
@@ -1207,10 +1213,10 @@ C$.
 satisfy the property that ``pickling followed by unpickling generates an
 object that is structurally equal to the original object''. Formally, a reduction
 
-\begin{equation}
-\sreducestar H V {\texttt{let}~x' = x.u(x.p(y))~\texttt{in}~t}
-  H
-\end{equation}
+% \begin{equation}
+% \sreducestar H V {\texttt{let}~x' = x.u(x.p(y))~\texttt{in}~t}
+%   H
+% \end{equation}
 
 
 
