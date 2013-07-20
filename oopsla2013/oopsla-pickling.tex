@@ -963,7 +963,7 @@ TODO: DPicklers
 
 % The pickle method takes an object to-be-pickled of static type $T$, pickles it
 % by turning it into some external representation like a byte array, and returns
-% an instance of type \term{Pickle} which wraps the external representation. 
+% an instance of type \term{Pickle} which wraps the external representation.
 
 \subsubsection{Modular Pickler Combinators}
 
@@ -2118,7 +2118,7 @@ automatic pickler generation has been implemented using the experimental
 macros feature introduced in Scala 2.10.0 (January 2013). Macros are being
 used as a more regularly structured and more stable alternative to compiler
 plugins. To simplify tree generation, our implementation leverages a
-quasiquoting library for Scala's macros.~\cite{Quasiquotes}.
+quasiquoting library for Scala's macros~\cite{Quasiquotes}.
 
 
 
@@ -2212,7 +2212,8 @@ Finally, Figure~\ref{fig:results-vector} (c) shows the relative sizes of the ser
 
 \begin{figure*}[ht!]
  \centering
- \includegraphics{application-table.pdf}
+ \includegraphics[width=\textwidth]{application-table.pdf}
+ \vspace{-2em}
  \caption{Scala types used in industrial distributed frameworks and applications.}
  \label{fig:application-table}
 \end{figure*}
@@ -2221,25 +2222,32 @@ Finally, Figure~\ref{fig:results-vector} (c) shows the relative sizes of the ser
 % \centering
 % \begin{tabular}{l c c c c c c c}
 % \toprule % Top horizontal line
-% & primitives/ & value-like & collections & case & type & generics & ad-hoc \\ % Column names row
+% & primitives/ & value-like & collections & case & type & generics & subtyping \\ % Column names row
 % & primitive arrays & types &  & classes & descriptor &  & polymorphism \\ % Column names row
 % \midrule % In-table horizontal line
 % GeoTrellis (Akka) & $\CIRCLE$ & $\Circle$     & $\Circle$     & $\CIRCLE$ & $\Circle$     & $\Circle$     & $\Circle$ \\
 % Evactor (Akka)    & $\CIRCLE$ & $\LEFTcircle$ & $\LEFTcircle$ & $\CIRCLE$ & $\Circle$     & $\Circle$     & $\LEFTcircle$ \\
 % \midrule % In-table horizontal line
-% Spark             & $\CIRCLE$ & $\CIRCLE$     & $\CIRCLE$     & N/A       & $\Circle$     & $\Circle$     & N/A \\
+% Spark             & $\CIRCLE$ & $\CIRCLE$     & $\CIRCLE$     & $\LEFTcircle$ & $\Circle$     & $\Circle$     & $\Circle$ \\
 % Storm             & $\Circle$ & $\CIRCLE$     & $\CIRCLE$     & N/A       & $\Circle$     & $\Circle$     & $\LEFTcircle$ \\
-% Twitter Chill     & $\Circle$ & $\LEFTcircle$ & $\CIRCLE$     & N/A       & $\LEFTcircle$ & $\LEFTcircle$ & $\LEFTcircle$ \\
+% Twitter Chill     & $\Circle$ & $\LEFTcircle$ & $\CIRCLE$     & $\LEFTcircle$ & $\LEFTcircle$ & $\LEFTcircle$ & $\LEFTcircle$ \\
 % \bottomrule % Bottom horizontal line
-% \end{tabular}
+% \end{tabular}\vspace{0.5em}
+% \mbox{\centering{\bf Legend:}~~~~$\CIRCLE$: Heavy Use~~~~$\LEFTcircle$: Light Use~~~~$\Circle$: No Use}
 % % \caption{Table caption text} % Table caption, can be commented out if no caption is required
 % % \label{tab:template} % A label for referencing this table elsewhere, references are used in text as \ref{label}
 % \end{table*}
 
 Figure~\ref{fig:application-table} shows a summary of the most
 important data types used in popular distributed computing frameworks
-like Spark~\cite{Zaharia2012} and Storm~\cite{Storm}. We categorize the data
-types into two groups.
+like Spark~\cite{Zaharia2012} and Storm~\cite{Storm}.
+The fully shaded circles in the table representing ``heavy use'' means either
+(a) a feature is used frequently in application-level data types or
+(b) a feature is used frequently in data types that the framework registers
+(with its underlying serialization system.
+Half-shaded circles in the table representing ``light use'' mean a feature is used
+only infrequently in the data types used in applications or registered by
+frameworks. We categorize the data types shown in this table into two groups.
 
 In the first group at the top are distributed \emph{applications}
 using data types suitable for distributed event processing and message
