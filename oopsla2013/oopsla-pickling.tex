@@ -447,13 +447,14 @@ specialization and (b) dynamic type checks when unpickling to transition
 unpickled objects into the statically-typed ``world'' at a well-defined program
 point.
 
-\item {\bf Robust support for object-orientation}. Concepts such as subtyping and
-mix-in composition are used very commonly to define regular object types in
-object-oriented languages. Since our framework does without a separate data
-type description language ({\em e.g.,} a schema), it is important that regular
-type definitions are sufficient to describe the types to-be-pickled. The
-Liskov substitution principle is used as a guidance surrounding the
-substitutability of both objects to-be-pickled and first-class picklers.
+\item {\bf Robust support for object-orientation}. Concepts such as object
+identity, subtyping and mix-in composition are used very commonly to define
+regular object types in object-oriented languages. Since our framework does
+without a separate data type description language ({\em e.g.,} a schema), it
+is important that regular type definitions are sufficient to describe the
+types to-be-pickled. The Liskov substitution principle is used as a guidance
+surrounding the substitutability of both objects to-be-pickled and first-class
+picklers.
 \end{itemize}
 
 
@@ -503,7 +504,7 @@ This paper makes the following contributions:
 
 \item An extension to pickler combinators, well-known in functional
 programming, to support the core concepts of object-oriented programming,
-namely subtyping polymorphism and open class hierarchies.
+namely subtyping polymorphism, open class hierarchies, and object identity.
 
 \item A framework based on object-oriented pickler combinators which (a)
 enables retrofitting existing types with pickling support, (b) supports
