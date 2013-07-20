@@ -360,7 +360,7 @@ Serialization, pickling, meta-programming, distributed programming, Scala
 
 With the growing trend towards cloud computing and mobile applications,
 distributed programming has entered the mainstream. As more and more
-traditional applications migrate to the cloud, the demand for interop between
+traditional applications migrate to the cloud, the demand for interopability between
 different services is at an all-time high, and is increasing. At the center of
 it all is communication. Whether we consider a cluster of commodity machines
 churning through a massive data-parallel job, or a smartphone interacting with
@@ -401,7 +401,7 @@ picklers at compile time. The resulting picklers are efficient, since the
 pickling code is generated statically as much as possible, avoiding the
 overhead of runtime reflection~\cite{Gil2008,Dubochet2011}.
 
-What's more, the presented pickling framework is extensible in several
+Furthermore, the presented pickling framework is extensible in several
 important ways. First, building on an object-oriented type-class-like
 mechanism~\cite{Oliveira2010}, our approach enables retroactively adding
 pickling support to existing, unmodified types. Second, our framework provides
@@ -485,7 +485,7 @@ builds on implicits in Scala~\cite{Oliveira2010} and is reminiscent of
 other type-class-like mechanisms, such as JavaGI~\cite{WehrT11} or C++
 Concepts~\cite{ReisS06}.
 
-What's more, in an effort to further reduce the boilerplate required
+Additionally, in an effort to further reduce the boilerplate required
 to define or compose picklers using existing picklers, we present a
 framework for automatically generating picklers for compound types
 based on picklers for their component types. Given the close
@@ -1426,13 +1426,13 @@ parameter to allow for several scenarios of unanticipated evolution.
 \label{sec:generation}
 
 An explicit goal of our framework is to require little to no boilerplate in
-client code, since practitioners are typically used to serialization supported
+client code, since practitioners are typically accustomed to serialization supported
 by the underlying runtime environment like in Java or .NET. Therefore, instead
 of requiring libraries or applications to supply manually-written picklers for
-all pickled types, our framework provides a component for {\em generating
-picklers} based on their required static type.
+all pickled types, our framework provides a component for {\em generating picklers}
+based on their required static type.
 
-What's more, compile-time pickler generation enables {\em efficient picklers}
+Importantly, compile-time pickler generation enables {\em efficient picklers}
 by generating as much pickling code as possible statically (which corresponds
 to a partial evaluation of pickler combinators). Section~\ref{sec:evaluation}
 reports on the performance improvements that our framework achieves using
