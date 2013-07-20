@@ -145,6 +145,12 @@
   % {\begin{mdframed}[style=warning]\begin{mdef}}
   % {\end{mdef}\end{mdframed}}
 
+% comments and notes
+\newcommand{\comment}[1]{}
+\newcommand{\note}[1]{{\bf $\clubsuit$ #1 $\spadesuit$}}
+\newcommand{\ifreport}[1]{#1}
+%\newcommand{\ifreport}[1]{}
+
 \newcommand{\todo}{{\bf \colorbox{red}{\color{white}TODO:}}}
 \newcommand{\ie}{{\em i.e.,~}}
 \newcommand{\eg}{{\em e.g.,~}}
@@ -260,8 +266,8 @@
 \newcommand{\reduce}[4]{#1, #2 \;\longrightarrow\; #3, #4}
 \newcommand{\reducebreak}[4]{#1, #2 \\ \;\longrightarrow\; #3, #4}
 
-\newcommand{\sreduce}[8]{#1, #2, #3, #4 \;\longrightarrow\; #5, #6, #7, #8}
-\newcommand{\sreducebreak}[8]{#1, #2, #3, #4 \\ \;\longrightarrow\; #5, #6, #7, #8}
+\newcommand{\sreduce}[6]{#1, #2, #3 \;\longrightarrow\; #4, #5, #6}
+\newcommand{\sreducebreak}[6]{#1, #2, #3 \\ \;\longrightarrow\; #4, #5, #6}
 \newcommand{\sreducestar}[8]{#1, #2, #3, #4 \;\longrightarrow^{\ast}\; #5, #6, #7, #8}
 
 % misc identifiers
@@ -814,320 +820,20 @@ discussed in detail in the following Section~\ref{sec:oopicklers}.
 
 \section{Object-Oriented Picklers}\label{sec:oopicklers}
 
-In this section we introduce picklers as first-class objects, and, using
-examples, motivate the contracts that valid implementations must guarantee.
-Subsequently, we provide a formal model of object-oriented picklers based on
-an operational semantics. Finally, we demonstrate that the introduced picklers
-enable modular, object-oriented pickler combinators, \ie methods for composing
-more complex picklers from simpler primitive picklers.
+In the first part of this section (\ref{sub:picklers-scala}) we introduce
+picklers as first-class objects, and, using examples, motivate the contracts
+that valid implementations must guarantee. We demonstrate that the introduced
+picklers enable modular, object-oriented pickler combinators, \ie methods for
+composing more complex picklers from simpler primitive picklers.
 
-\subsection{Examples}
+In the second part of this section (\ref{sub:picklers-formal}) we present a
+formalization of object-oriented picklers based on an operational semantics.
 
-TBD.
+\subsection{Picklers in Scala}\label{sub:picklers-scala}
 
-\subsection{Formal Model}
+TODO
 
-
-
-
-\begin{figure*}
-  \centering
-
-  \begin{subfigure}{0.3\textwidth}
-    \centering
-
-    \infrule[\textsc{Pickle-S}]
-    { \rho = ((p, u), s, C) \\
-      o = (C, F)            \\
-      r_p \notin H \quad H' = H[r_p \mapsto p(o)]
-    }
-    { \reduction H {\texttt{pickle}(\rho, o)} {H'} {r_p} }
-
-  \end{subfigure}%
-  ~ %add desired spacing between images, e. g. ~, \quad, \qquad etc.
-    %(or a blank line to force the subfigure onto a new line)
-  \begin{subfigure}{0.3\textwidth}
-    \centering
-
-    \infrule[\textsc{Pickle-D}]
-    { \rho = ((p, u), d, C) \\
-      o = (D, F)         \quad D \sub C \\
-      r_p \notin H       \quad H' = H[r_p \mapsto p(o)]
-    }
-    { \reduction H {\texttt{pickle}(\rho, o)} {H'} {r_p} }
-
-  \end{subfigure}
-  ~ %add desired spacing between images, e. g. ~, \quad, \qquad etc.
-    %(or a blank line to force the subfigure onto a new line)
-  \begin{subfigure}{0.3\textwidth}
-    \centering
-
-    \infrule[\textsc{Unpickle}]
-    { \rho = ((p, u), m, C)     \\
-      o = (\texttt{Pickle}, F)  \\
-      r \notin H \quad H' = H[r \mapsto u(o)]
-    }
-    { \reduction H {\texttt{unpickle}(\rho, o)} {H'} r }
-
-  \end{subfigure}
-  \caption{Reduction rules for \texttt{pickle} and \texttt{unpickle} expressions.}
-  \label{fig:opsem-rules}
-\end{figure*}
-
-
-To define picklers formally we use an approach based on a standard operational
-semantics for a core object-oriented language. Importantly, our goal is not a
-full formalization of a core language; instead, we (only) aim to provide a
-precise definition of {\em object-oriented picklers}. Thus, our core language
-simplifies our actual implementation language in several ways. Since our basic
-definitions are orthogonal to the type system of the host language, we limit
-types to non-generic classes with at most one superclass. Moreover, the core
-language does not have first-class functions, or features like pattern
-matching.
-
-
-\begin{figure}
-  \centering
-$\ba[t]{l@{\hspace{2mm}}l}
-P    ::=  \seq{cdef}~t                           & \mbox{program}             \\
-cdef ::=  \texttt{class}~C~\texttt{extends}~D~\{\seq{fld}~\seq{meth}\} & \mbox{class} \\
-fld  ::=  \texttt{var}~f: C                      & \mbox{field}               \\
-meth ::=  \texttt{def}~m(\seq{x: C}): D = t      & \mbox{method}              \\
-t    ::=  \texttt{let}~x = p~\texttt{in}~t       & \mbox{let binding}         \\
-\gap ~|~ x.f := y                                & \mbox{assignment}          \\
-\gap ~|~ x                                       & \mbox{variable}            \\
-p    ::=  \texttt{new}~C(\seq{x})                & \mbox{instance creation}   \\
-\gap ~|~ x.f                                     & \mbox{selection}           \\
-\gap ~|~ x.m(\seq{y})                            & \mbox{invocation}          \\
-\gap ~|~ \texttt{pickle}(x, y)                   & \mbox{pickle}              \\
-\gap ~|~ \texttt{unpickle}(x, y)                 & \mbox{unpickle}            \\
-\gap ~|~ t                                       & \mbox{term}                \\
-\ea$
-  \caption{Core language syntax. $C,D$ are class names, $f,m$ are ﬁeld and
-    method names, and $x,y$ are names of variables and parameters, respectively.}
-  \label{fig:lang-syntax}
-\end{figure}
-
-
-Figure~\ref{fig:lang-syntax} shows the core language syntax. A program is a
-sequence of class definitions followed by a (main) term. Without loss of
-generality, we use a form where all intermediate terms are named (A-normal
-form~\cite{Flanagan93}). Terms $t$ are standard except for the addition of two
-special \texttt{pickle} and \texttt{unpickle} term forms. The language does
-not support arbitrary mutable variables ({\em cf.}~\cite{TAPL}, Chapter~13);
-instead, only fields of objects can be (re-)assigned.
-
-We assume the existence of two pre-defined class types, \verb|AnyRef| and
-\verb|Pickle|. All class hierarchies have \verb|AnyRef| as their root. For the
-purpose of our core language, \verb|AnyRef| is simply a member-less class
-without a superclass. \verb|Pickle| is the class type of objects that are the
-result of pickling a regular object.
-
-
-\subsubsection{Operational Semantics}
-
-\begin{figure}
-$\ba[t]{ll@{\hspace{2mm}}l}
-F ::= & [] ~|~ F[f \mapsto r]    & \mbox{environment}        \\
-H ::= & [] ~|~ H[r \mapsto v]    & \mbox{heap}               \\
-r \in & RefLocs                  & \mbox{reference location} \\
-v ::= & o ~|~ \rho               & \mbox{value}              \\
-o ::= & (C, F)                   & \mbox{object}             \\
-\rho ::= & ((p, u), m, C)        & \mbox{pickler}
-\ea$
-\caption{Environments, heaps, objects, and picklers.}
-\label{fig:heaps-objects}
-\end{figure}
-
-The operational semantics uses the definitions shown in
-Figure~\ref{fig:heaps-objects}. An environment $F$ maps field names to reference
-locations. A heap
-$H$ maps reference locations to values. In our core language, values can be
-either objects or picklers. For reasons discussed below, a pickler is not a
-regular object. The dynamic representation of an object is a pair $(C, F)$
-containing a class type tag $C$ for its dynamic type and an environment $F$
-for its fields. In contrast, a pickler is a tuple as defined in
-Definition~\ref{def:pickler} below.
-
-\begin{defn}(First-Class Picklers)\label{def:pickler}
-
-A {\em pickler} for some type $C$ is a tuple $((p, u), m, C)$ where $C$ is a
-type tag, $m \in \{s, d\}$ is a mode ({\em static} or {\em dynamic}), and
-$(p, u)$ is a pair of functions where
-
-\begin{equation}\label{eq:domp}
-dom(p) = ran(u) = \left\{
-  \ba{ll}
-  \{ o ~|~ o = (C, F) \}                    & \text{if}~m=s \\
-  \{ o ~|~ o = (D, F) \land D \sub C \}     & \text{if}~m=d
-  \ea
-  \right.
-\end{equation}
-
-\begin{equation}\label{eq:ranp}
-ran(p) \subset \{ o_p ~|~ o_p = (\texttt{Pickle}, F) \}
-\end{equation}
-
-\begin{equation}\label{eq:domu}
-dom(u) \supseteq ran(p)
-\end{equation}
-
-\begin{equation}\label{eq:round-trip}
-(u \circ p)(o) =_{H} o' \Rightarrow o \equiv_{H} o'
-\end{equation}
-
-\end{defn}
-
-As defined above, picklers are first-class, since they are values just like
-objects. However, while picklers are regular objects in our practical
-implementation, picklers are different from objects in the present formal
-model. The reason is that a pickler has to contain a type tag indicating the
-types of objects that it can pickle (this is apparent in the rules of the
-operational semantics below); however, the alternative of adding parameterized
-types (as in, \eg, FGJ~\cite{Igarashi2001}) is beyond the scope of the paper.
-
-The mode $m$ of a pickler determines its applicability in the presence of
-subtyping. A {\em static pickler} is a pickler $((p, u), m, C)$ where $m = s$.
-In this case the pickling function $p$ can only be applied to objects with
-dynamic type $C$ (but not a subtype of $C$). A {\em dynamic pickler} is a
-pickler $((p, u), m, C)$ where $m = d$. In this case the pickling function $p$
-can be applied to objects with dynamic type $C$ or a subtype of $C$. These
-properties are captured by equation (\ref{eq:domp}). Equation (\ref{eq:ranp})
-indicates that the result of applying function $p$ is always an object of
-class type \verb|Pickle|. Equation (\ref{eq:domu}) expresses the fact that a
-pickler's unpickling function $u$ is always applicable to the result of
-applying its pickling function $p$. Finally, equation (\ref{eq:round-trip})
-expresses the familiar property "pickling followed by unpickling generates a
-value structurally equal to the original value". The definition of structural
-equality is straight-forward:
-
-\begin{defn}
-
-Two picklers $\rho, \rho'$ are structurally equal, written $\rho \equiv \rho'$
-{\em iff}
-
-\begin{equation}
-\begin{split}
-\rho = ((p, u), m, C) \land \rho' = ((p', u'), m', C') \Rightarrow \\
-m = m' \land C <: C' \land C' <: C
-\end{split}
-\end{equation}
-
-Two objects are structurally equal in heap $H$, written $o \equiv_{H} o'$ {\em iff}
-
-\begin{equation}
-\begin{split}
-o = (C, F) \land o' = (C', F') \Rightarrow \\
-C <: C' \land C' <: C \land dom(F) = dom(F') \land \\
-\forall f \mapsto r \in F.~\exists f \mapsto r' \in F'.~H(r) \equiv_{H} H(r')
-\end{split}
-\end{equation}
-
-\end{defn}
-
-
-\newpage
-
-
-
-Note that we are using a Scala-like program notation. However, the introduced
-concepts and definitions are realizable in most statically-typed OO languages
-with generics.
-
-\begin{defn}(First-Class Picklers and Unpicklers)
-
-A pickler for some type $T$ is an instance of one of two abstract class or
-interface types \term{DPickler}$[T]$ or \term{SPickler}$[T]$. Each have an
-abstract method \verb|pickle| with a single parameter of type $T$ and return
-type \term{Pickle}:
-
-\begin{lstlisting}
-    trait DPickler[T] {
-      def pickle(obj: T): Pickle
-    }
-\end{lstlisting}
-
-\noindent(The type definition of \term{SPickler}$[T]$ differs only in the name of the type;
-below we define the difference in their contracts.)
-
-Conversely, an unpickler for some type $U$ is an instance of an abstract class
-or interface type \term{Unpickler}$[U]$ that has a single abstract method
-\verb|unpickle| with a single parameter of type \term{Pickle} and return type
-\term{Unit}.
-\end{defn}
-
-The pickle method takes an object to-be-pickled of static type $T$, pickles it
-by turning it into some external representation like a byte array, and returns
-an instance of type \term{Pickle} which wraps the external representation. Given this
-definition, picklers ``are type safe in the sense that a type-specialized
-pickler can be applied only to values of the specialized type.''~\cite{Elsman2005}.
-
-\paragraph{Preliminary Definitions.} To precisely specify the contracts of
-picklers and unpicklers, we require standard definitions of the dynamic type
-of an object \term{o}, written \itl{dynTypeOf(}\term{o}\itl{)}, and the erasure of a
-static type $T$, written \itl{erasure(}$T$\itl{)}.
-
-\begin{defn}(Structural Equality)
-
-\noindent Two objects \term{obj}$_1$ and \term{obj}$_2$ are structurally equal, written
-
-\begin{lstlisting}[escapechar=\%]
-obj%$_1$% %$\equiv$% obj%$_2$%
-\end{lstlisting}
-
-\noindent if and only if
-
-\begin{itemize}
-\item \itl{dynTypeOf(}\term{obj$_1$}\itl{)} \term{=:=} \itl{dynTypeOf(}\term{obj$_2$}\itl{)} \term{=:=} $C$
-      for some class type $C$, and we have that for all \term{fld} $\in$ $\textit{fields}(C)$.
-      ~\term{obj$_1$.fld} $\equiv$ \term{obj$_2$.fld}, or
-\item \itl{dynTypeOf(}\term{obj$_1$}\itl{)} \term{=:=} $T$ for some primitive type $T$, and \term{obj$_1$ == obj$_2$}.
-\end{itemize}
-\end{defn}
-
-The contracts of \term{DPickler}s, \term{SPickler}s, and \term{Unpickler}s are
-defined as follows.
-
-\begin{defn}(Object-Oriented Picklers)
-
-\noindent Given the following typed objects,
-
-\begin{lstlisting}[escapechar=\%]
-    dp: DPickler[%$T$%]
-    sp: SPickler[%$T$%]
-   obj: %$T$%
-    up: Unpickler[%$U$%] %\textrm{where}% %$T <: U$%
-  obj': %$U$%
-\end{lstlisting}
-
-\noindent where \term{obj} is the object to-be-pickled, and \term{obj'} is the unpickled
-object. Then,
-
-\begin{lstlisting}[escapechar=\%]
-up.unpickle(dp.pickle(obj)) %\textrm{evaluates to}% obj'%\vspace{0.15cm}%
-up.unpickle(sp.pickle(obj)) %\textrm{evaluates to}% obj' %\textrm{if}% %\textrm{\textit{dynTypeOf}(}%obj%\textrm{)}% =:= %\textrm{\textit{erasure}(}%T%\textrm{)}%
-\end{lstlisting}
-
-\noindent such that,
-
-\begin{lstlisting}[escapechar=\%]
-obj': U%\vspace{0.15cm}%
-obj' %$\equiv$% obj
-\end{lstlisting}
-\end{defn}
-
-Note that \term{SPickler}'s \term{pickle} method has a precondition which
-requires the dynamic type of the object to-be-pickled to be equal to the
-erasure of its static type $T$. This means that an \term{SPickler}$[T]$ is not
-guaranteed to pickle any object of a subtype of $T$. Because of this
-restriction we refer to instances of \term{SPickler} as {\em static picklers}.
-In contrast, a \term{DPickler}$[T]$ pickles any object of type $T$. Therefore,
-we refer to instances of \term{DPickler} as {\em dynamic picklers}.
-
-In the following section, we motivate the distinction between static and
-dynamic picklers.
-
-\subsection{Modular Pickler Combinators}
+\subsubsection{Modular Pickler Combinators}
 
 Picklers as first-class objects make it possible to define pickler
 combinators, which in turn make it possible to build compound picklers from
@@ -1174,7 +880,7 @@ Picklers for final class types like \term{String}, or for primitive types like
 are sufficient to pickle these {\em effectively final types}. Compared to
 dynamic picklers, static picklers benefit from several optimizations.
 
-\subsection{Implementing Object-Oriented Picklers}
+\subsubsection{Implementing Object-Oriented Picklers}
 
 The main challenge when implementing OO picklers comes from the fact that a
 dynamic pickler for type $T$ must be able to pickle objects of any subtype of
@@ -1215,7 +921,7 @@ approach for generating object-oriented picklers from regular (class) type
 definitions.
 \end{itemize}
 
-\subsection{Supporting Unanticipated Evolution}
+\subsubsection{Supporting Unanticipated Evolution}
 
 Given the fact that the type \term{SPickler}[$T$], as introduced, has a type
 parameter $T$, it is reasonable to ask what the variance of $T$ is. Ruling out
@@ -1294,6 +1000,398 @@ However, the crucial difference is that now \term{picklerD1} is selected when
 an object of static type \term{D} is pickled, since \term{picklerD1} is more
 specific than \term{picklerC1}.
 
+
+\newpage
+
+\subsection{Formalization}\label{sub:picklers-formal}
+
+To define picklers formally we use a standard approach based on an operational
+semantics for a core object-oriented language. Importantly, our goal is not a
+full formalization of a core language; instead, we (only) aim to provide a
+precise definition of {\em object-oriented picklers}. Thus, our core language
+simplifies our actual implementation language in several ways. Since our basic
+definitions are orthogonal to the type system of the host language, we limit
+types to non-generic classes with at most one superclass. Moreover, the core
+language does not have first-class functions, or features like pattern
+matching. The core language without picklers is a simplified version of a core
+language used in the formal development of a uniqueness type system for
+Scala~\cite{HallerO10}.
+
+
+\begin{figure}
+  \centering
+$\ba[t]{l@{\hspace{2mm}}l}
+P    ::=  \seq{cdef}~t                           & \mbox{program}             \\
+cdef ::=  \texttt{class}~C~\texttt{extends}~D~\{\seq{fld}~\seq{meth}\} & \mbox{class} \\
+fld  ::=  \texttt{var}~f: C                      & \mbox{field}               \\
+meth ::=  \texttt{def}~m(\seq{x: C}): D = e      & \mbox{method}              \\
+t    ::=  \texttt{let}~x = e~\texttt{in}~t       & \mbox{let binding}         \\
+\gap ~|~ x.f := y                                & \mbox{assignment}          \\
+\gap ~|~ x                                       & \mbox{variable}            \\
+e    ::=  \texttt{new}~C(\seq{x})                & \mbox{instance creation}   \\
+\gap ~|~ x.f                                     & \mbox{selection}           \\
+\gap ~|~ x.m(\seq{y})                            & \mbox{invocation}          \\
+\gap ~|~ t                                       & \mbox{term}                \\
+\ea$
+  \caption{Core language syntax. $C,D$ are class names, $f,m$ are ﬁeld and
+    method names, and $x,y$ are names of variables and parameters, respectively.}
+  \label{fig:lang-syntax}
+\end{figure}
+
+
+Figure~\ref{fig:lang-syntax} shows the core language syntax. A program is a
+sequence of class definitions followed by a (main) term. (We use the common
+over-bar notation~\cite{Igarashi2001} for sequences.) Without loss of
+generality, we use a form where all intermediate terms are named (A-normal
+form~\cite{Flanagan93}). The language does not support arbitrary mutable
+variables ({\em cf.}~\cite{TAPL}, Chapter~13); instead, only fields of objects
+can be (re-)assigned.
+
+We assume the existence of two pre-defined class types, \verb|AnyRef| and
+\verb|Pickle|. All class hierarchies have \verb|AnyRef| as their root. For the
+purpose of our core language, \verb|AnyRef| is simply a member-less class
+without a superclass. \verb|Pickle| is the class type of objects that are the
+result of pickling a regular object.
+
+We define the standard auxiliary functions $mtype$ and $mbody$ as follows.
+Let $\texttt{def}~m(\seq{x \typ C}) \typ D = e$ be a method defined in the
+most direct superclass of $C$ that defines $m$. Then
+$mbody(m, C) = (\seq{x}, e)$ and $mtype(m, C) = \seq{C} \rightarrow D$.
+
+\subsubsection{Dynamic semantics}
+
+\begin{figure}
+
+$\ba[t]{ll@{\hspace{2mm}}l}
+H    ::= & \emptyset ~|~ (H, r \mapsto v)              & \mbox{heap} \\
+V    ::= & \emptyset ~|~ (V, y \mapsto r)              & \mbox{environment}~(y \notin dom(V)) \\
+v    ::= & o ~|~ \rho                                  & \mbox{value} \\
+o    ::= & C(\seq{r})                                  & \mbox{object} \\
+\rho ::= & (C_p, m, C)                                 & \mbox{pickler} \\
+r \in    & RefLocs                                     & \mbox{reference location}
+\ea$
+
+\caption{Heaps, environments, objects, and picklers.}\label{fig:heaps-stacks}
+\end{figure}
+
+
+% \begin{figure}
+% $\ba[t]{ll@{\hspace{2mm}}l}
+% F ::= & [] ~|~ F[f \mapsto r]    & \mbox{environment}        \\
+% H ::= & [] ~|~ H[r \mapsto v]    & \mbox{heap}               \\
+% r \in & RefLocs                  & \mbox{reference location} \\
+% v ::= & o ~|~ \rho               & \mbox{value}              \\
+% o ::= & (C, F)                   & \mbox{object}             \\
+% \rho ::= & ((p, u), m, C)        & \mbox{pickler}
+% \ea$
+% \caption{Environments, heaps, objects, and picklers.}
+% \label{fig:heaps-stacks}
+% \end{figure}
+
+We use a small-step operational semantics to formalize the dynamic semantics
+of our core language. Reduction rules are written in the form
+$\sreduce H V t {H'} {V'} {t'}$. That is, terms $t$ are reduced in the context of
+a heap $H$ and a variable environment $V$.
+Figure~\ref{fig:heaps-stacks} shows their syntax. A
+heap maps reference locations to values. In our core language, values can be
+either objects or picklers. An object
+$C(\seq{r})$ stores location $r_i$ in its i-th field. An environment maps
+variables to reference locations $r$. Note that
+we do not model explicit stack frames. Instead, method invocations are
+``flattened'' by renaming the method parameters before binding them to
+their argument values in the environment (as in LJ~\cite{StrnisaSP07}).
+
+A pickler is a tuple $(C_p, m, C)$ where $C_p$ is a class that defines two
+methods $p$ and $u$ for pickling and unpickling an object of type $C$,
+respectively, where $mtype(p, C_p) = C \rightarrow \texttt{Pickle}$ and
+$mtype(u, C_p) = \texttt{Pickle} \rightarrow C$.
+The second component $m \in \{s, d\}$ is the pickler's {\em
+mode}; the operational semantics below explains how the mode affects the
+applicability of a pickler in the presence of subtyping.
+
+As defined, picklers are first-class, since they are values just like objects.
+However, while picklers are regular objects in our practical implementation,
+picklers are different from objects in the present formal model. The reason is
+that a pickler has to contain a type tag indicating the types of objects that
+it can pickle (this is apparent in the rules of the operational semantics
+below); however, the alternative of adding parameterized types (as in, \eg,
+FGJ~\cite{Igarashi2001}) is beyond the scope of the present paper.
+
+According to the grammar in Figure~\ref{fig:lang-syntax}, expressions are
+always reduced in the context of a let-binding, except for ﬁeld assignments.
+Each operand of an expression is a variable $y$ that the environment maps to a
+reference location $r$. Since the environment is a ﬂat list of variable
+bindings, let-bound variables must be alpha-renamable:
+$\texttt{let}~x = e~\texttt{in}~t \equiv \texttt{let}~x' =
+e~\texttt{in}~[x'/x]t~\text{where}~x' \notin FV(t)$. (We omit the
+definition of the $FV$ function to obtain the free variables of a
+term, since it is completely standard~\cite{TAPL}.)
+
+In the following we explain the subset of the reduction rules suitable to
+formalize the properties of picklers. We start with the reduction rule for
+method invocations, since the reduction rules pertinent to picklers are
+variants of that rule.
+
+\infrule[\textsc{R-Invoke}]
+{  V(x) = r  \andalso  H(r) = C(\_)  \\
+   V(\seq{y}) = r_1 \ldots r_n       \\
+  mbody(m, C) = (\seq{x}, e)
+}
+{ \sreducebreak H V
+    {\texttt{let}~x' = x.m(\seq{y})~\texttt{in}~t}
+    H {(V, \seq{x \mapsto r})}
+    {\texttt{let}~x' = e~\texttt{in}~t}
+}
+
+
+\begin{figure*}
+  \centering
+
+  \begin{subfigure}{0.5\textwidth}
+    \centering
+
+\infrule[\textsc{R-Pickle-S}]
+{  V(x) = r_p  \andalso  H(r_p) = (C_p, s, C)  \\
+   V(y) = r    \andalso  H(r)   = C(\_)         \\
+   mbody(p, C_p) = (z, e)
+}
+{ \sreducebreak H V
+    {\texttt{let}~x' = x.p(y)~\texttt{in}~t}
+    H {(V, z \mapsto r)}
+    {\texttt{let}~x' = e~\texttt{in}~t}
+}
+
+  \end{subfigure}%
+  ~ %add desired spacing between images, e. g. ~, \quad, \qquad etc.
+    %(or a blank line to force the subfigure onto a new line)
+  \begin{subfigure}{0.5\textwidth}
+    \centering
+
+\infrule[\textsc{R-Pickle-D}]
+{  V(x) = r_p  \andalso  H(r_p) = (C_p, d, C)                    \\
+   V(y) = r    \andalso  H(r)   = D(\_)        \andalso D \sub C \\
+   mbody(p, C_p) = (z, e)
+}
+{ \sreducebreak H V
+    {\texttt{let}~x' = x.p(y)~\texttt{in}~t}
+    H {(V, z \mapsto r)}
+    {\texttt{let}~x' = e~\texttt{in}~t}
+}
+
+  \end{subfigure}
+  \caption{Reduction rules for pickling.}
+  \label{fig:opsem-rules}
+\end{figure*}
+
+
+Figure~\ref{fig:opsem-rules} shows the reduction rules for pickling and
+unpickling an object.
+
+Rule \textsc{(R-Pickle-S)} is a refinement of the rule for method invocations.
+When using a pickler $x$ to pickle an object $y$ such that the pickler's mode
+is $s$ (static), the type tag $C$ of the pickler indicating the type of
+objects that it can pickle must be equal to the dynamic class type of the
+object to-be-pickled (the object at location $r$). This expresses the fact
+that a static pickler can only be applied to objects of a precise statically-
+known type $C$, but not a subtype thereof.
+
+In contrast, rule \textsc{(R-Pickle-D)} shows the invocation of the pickling
+method $p$ for a pickler with mode $d$ (dynamic). In this case, the type tag
+$C$ of the pickler must not be exactly equal to the dynamic type of the object
+to-be-pickled (the object at location $r$); it is only necessary that $D \sub
+C$.
+
+
+
+
+
+
+
+
+
+% \begin{defn}(First-Class Picklers)\label{def:pickler}
+
+% A {\em pickler} for some type $C$ is a tuple $((p, u), m, C)$ where $C$ is a
+% type tag, $m \in \{s, d\}$ is a mode ({\em static} or {\em dynamic}), and
+% $(p, u)$ is a pair of functions where
+
+% \begin{equation}\label{eq:domp}
+% dom(p) = ran(u) = \left\{
+%   \ba{ll}
+%   \{ o ~|~ o = (C, F) \}                    & \text{if}~m=s \\
+%   \{ o ~|~ o = (D, F) \land D \sub C \}     & \text{if}~m=d
+%   \ea
+%   \right.
+% \end{equation}
+
+% \begin{equation}\label{eq:ranp}
+% ran(p) \subset \{ o_p ~|~ o_p = (\texttt{Pickle}, F) \}
+% \end{equation}
+
+% \begin{equation}\label{eq:domu}
+% dom(u) \supseteq ran(p)
+% \end{equation}
+
+% \begin{equation}\label{eq:round-trip}
+% (u \circ p)(o) =_{H} o' \Rightarrow o \equiv_{H} o'
+% \end{equation}
+
+% \end{defn}
+
+% The mode $m$ of a pickler determines its applicability in the presence of
+% subtyping. A {\em static pickler} is a pickler $((p, u), m, C)$ where $m = s$.
+% In this case the pickling function $p$ can only be applied to objects with
+% dynamic type $C$ (but not a subtype of $C$). A {\em dynamic pickler} is a
+% pickler $((p, u), m, C)$ where $m = d$. In this case the pickling function $p$
+% can be applied to objects with dynamic type $C$ or a subtype of $C$. These
+% properties are captured by equation (\ref{eq:domp}). Equation (\ref{eq:ranp})
+% indicates that the result of applying function $p$ is always an object of
+% class type \verb|Pickle|. Equation (\ref{eq:domu}) expresses the fact that a
+% pickler's unpickling function $u$ is always applicable to the result of
+% applying its pickling function $p$. Finally, equation (\ref{eq:round-trip})
+% expresses the familiar property "pickling followed by unpickling generates a
+% value structurally equal to the original value". The definition of structural
+% equality is straight-forward:
+
+
+
+
+
+
+
+
+
+% \begin{defn}
+
+% Two picklers $\rho, \rho'$ are structurally equal, written $\rho \equiv \rho'$
+% {\em iff}
+
+% \begin{equation}
+% \begin{split}
+% \rho = ((p, u), m, C) \land \rho' = ((p', u'), m', C') \Rightarrow \\
+% m = m' \land C <: C' \land C' <: C
+% \end{split}
+% \end{equation}
+
+% Two objects are structurally equal in heap $H$, written $o \equiv_{H} o'$ {\em iff}
+
+% \begin{equation}
+% \begin{split}
+% o = (C, F) \land o' = (C', F') \Rightarrow \\
+% C <: C' \land C' <: C \land dom(F) = dom(F') \land \\
+% \forall f \mapsto r \in F.~\exists f \mapsto r' \in F'.~H(r) \equiv_{H} H(r')
+% \end{split}
+% \end{equation}
+
+% \end{defn}
+
+
+\newpage
+
+
+\comment{
+Note that we are using a Scala-like program notation. However, the introduced
+concepts and definitions are realizable in most statically-typed OO languages
+with generics.
+
+\begin{defn}(First-Class Picklers and Unpicklers)
+
+A pickler for some type $T$ is an instance of one of two abstract class or
+interface types \term{DPickler}$[T]$ or \term{SPickler}$[T]$. Each have an
+abstract method \verb|pickle| with a single parameter of type $T$ and return
+type \term{Pickle}:
+
+\begin{lstlisting}
+    trait DPickler[T] {
+      def pickle(obj: T): Pickle
+    }
+\end{lstlisting}
+
+\noindent(The type definition of \term{SPickler}$[T]$ differs only in the name of the type;
+below we define the difference in their contracts.)
+
+Conversely, an unpickler for some type $U$ is an instance of an abstract class
+or interface type \term{Unpickler}$[U]$ that has a single abstract method
+\verb|unpickle| with a single parameter of type \term{Pickle} and return type
+\term{Unit}.
+\end{defn}
+
+The pickle method takes an object to-be-pickled of static type $T$, pickles it
+by turning it into some external representation like a byte array, and returns
+an instance of type \term{Pickle} which wraps the external representation. Given this
+definition, picklers ``are type safe in the sense that a type-specialized
+pickler can be applied only to values of the specialized type.''~\cite{Elsman2005}.
+
+}
+
+\comment{
+\paragraph{Preliminary Definitions.} To precisely specify the contracts of
+picklers and unpicklers, we require standard definitions of the dynamic type
+of an object \term{o}, written \itl{dynTypeOf(}\term{o}\itl{)}, and the erasure of a
+static type $T$, written \itl{erasure(}$T$\itl{)}.
+
+\begin{defn}(Structural Equality)
+
+\noindent Two objects \term{obj}$_1$ and \term{obj}$_2$ are structurally equal, written
+
+\begin{lstlisting}[escapechar=\%]
+obj%$_1$% %$\equiv$% obj%$_2$%
+\end{lstlisting}
+
+\noindent if and only if
+
+\begin{itemize}
+\item \itl{dynTypeOf(}\term{obj$_1$}\itl{)} \term{=:=} \itl{dynTypeOf(}\term{obj$_2$}\itl{)} \term{=:=} $C$
+      for some class type $C$, and we have that for all \term{fld} $\in$ $\textit{fields}(C)$.
+      ~\term{obj$_1$.fld} $\equiv$ \term{obj$_2$.fld}, or
+\item \itl{dynTypeOf(}\term{obj$_1$}\itl{)} \term{=:=} $T$ for some primitive type $T$, and \term{obj$_1$ == obj$_2$}.
+\end{itemize}
+\end{defn}
+
+The contracts of \term{DPickler}s, \term{SPickler}s, and \term{Unpickler}s are
+defined as follows.
+
+\begin{defn}(Object-Oriented Picklers)
+
+\noindent Given the following typed objects,
+
+\begin{lstlisting}[escapechar=\%]
+    dp: DPickler[%$T$%]
+    sp: SPickler[%$T$%]
+   obj: %$T$%
+    up: Unpickler[%$U$%] %\textrm{where}% %$T <: U$%
+  obj': %$U$%
+\end{lstlisting}
+
+\noindent where \term{obj} is the object to-be-pickled, and \term{obj'} is the unpickled
+object. Then,
+
+\begin{lstlisting}[escapechar=\%]
+up.unpickle(dp.pickle(obj)) %\textrm{evaluates to}% obj'%\vspace{0.15cm}%
+up.unpickle(sp.pickle(obj)) %\textrm{evaluates to}% obj' %\textrm{if}% %\textrm{\textit{dynTypeOf}(}%obj%\textrm{)}% =:= %\textrm{\textit{erasure}(}%T%\textrm{)}%
+\end{lstlisting}
+
+\noindent such that,
+
+\begin{lstlisting}[escapechar=\%]
+obj': U%\vspace{0.15cm}%
+obj' %$\equiv$% obj
+\end{lstlisting}
+\end{defn}
+
+Note that \term{SPickler}'s \term{pickle} method has a precondition which
+requires the dynamic type of the object to-be-pickled to be equal to the
+erasure of its static type $T$. This means that an \term{SPickler}$[T]$ is not
+guaranteed to pickle any object of a subtype of $T$. Because of this
+restriction we refer to instances of \term{SPickler} as {\em static picklers}.
+In contrast, a \term{DPickler}$[T]$ pickles any object of type $T$. Therefore,
+we refer to instances of \term{DPickler} as {\em dynamic picklers}.
+
+In the following section, we motivate the distinction between static and
+dynamic picklers.
+
+}
+
 \subsection{Summary}
 
 This section has introduced an object-oriented model of first-class picklers.
@@ -1305,6 +1403,7 @@ implemented using various techniques, such as manually-written picklers,
 runtime reflection, or Java-style annotation processors. Finally, we argue
 that object-oriented picklers should be invariant in their generic type
 parameter to allow for several scenarios of unanticipated evolution.
+
 
 
 \section{Generating Object-Oriented Picklers}
