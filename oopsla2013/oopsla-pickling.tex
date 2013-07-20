@@ -394,7 +394,8 @@ picklers and a framework for generation either at runtime or at
 compile time. The introduced notion of object-oriented pickler combinators
 extends pickler combinators known from functional
 programming~\cite{Kennedy2004} with support for object-oriented concepts such
-as subtyping and mix-in composition. In contrast to pure functional-style
+as subtyping, mix-in composition,  and object identity in the face of cyclic
+object graphs. In contrast to pure functional-style
 pickler combinators, we employ static, type-based meta programming to compose
 picklers at compile time. The resulting picklers are efficient, since the
 pickling code is generated statically as much as possible, avoiding the
@@ -447,11 +448,12 @@ specialization and (b) dynamic type checks when unpickling to transition
 unpickled objects into the statically-typed ``world'' at a well-defined program
 point.
 
-\item {\bf Robust support for object-orientation}. Concepts such as object
-identity, subtyping and mix-in composition are used very commonly to define
-regular object types in object-oriented languages. Since our framework does
+\item {\bf Robust support for object-orientation}. Concepts such as subtyping
+and mix-in composition are used very commonly to define
+regular object types in object-oriented languages. Our approach is also general,
+supporting object graphs with cycles. Since our framework does
 without a separate data type description language ({\em e.g.,} a schema), it
-is important that regular type definitions are sufficient to describe the
+is important that regular type definitions are sufficient to describe tahe
 types to-be-pickled. The Liskov substitution principle is used as a guidance
 surrounding the substitutability of both objects to-be-pickled and first-class
 picklers.
