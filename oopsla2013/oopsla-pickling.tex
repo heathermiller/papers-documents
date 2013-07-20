@@ -183,7 +183,7 @@
 \newcommand{\figurebox}[1]
         {\fbox{\begin{minipage}{\textwidth} #1 \medskip\end{minipage}}}
 \newcommand{\twofig}[3]
-        {\begin{figure*}[t]#3\ \hrulefill\ 
+        {\begin{figure*}[t]#3\ \hrulefill\
         \caption{\label{#1}#2}\end{figure*}}
 \newcommand{\boxfig}[3]
         {\begin{figure*}\figurebox{#3\caption{\label{#1}#2}}\end{figure*}}
@@ -204,7 +204,7 @@
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 %% Relations
-% Subtype 
+% Subtype
 \newcommand{\sub}{<:}
 % Type assignment
 \newcommand{\typ}{:}
@@ -327,11 +327,11 @@ designed for the Scala programming language, many aspects of our
 approach are applicable in other statically-typed object-oriented
 languages. Our framework is
 extensible; (1) using Scala's implicit parameters, users can add their own
-easily-swappable pickle format, (2) using the type class pattern, users can
+easily interchangeable pickle format, (2) using the type class pattern, users can
 provide their own custom picklers to override the default behavior of
 the pickling framework. In addition to extensibility and need for little to
 no boilerplate, the static generation of our OO picklers enables
-significant performance improvements. In microbenchmarks our framework
+significant performance improvements. In microbenchmarks, our framework
 achieves a factor 6 speedup over Java Serialization, and performs on
 par or up to 3 times faster than popular fast Java serialization frameworks like Kryo.
 
@@ -510,8 +510,9 @@ automatically generating picklers at compile time and at runtime, (c) supports
 pluggable pickle formats, and (d) does not require changes to the host
 language or the underlying virtual machine.
 
-\item A complete implementation of the presented approach in and for Scala \footnote{See
-    \url{http://github.com/heathermiller/scala-pickling/}}.
+\item A complete implementation of the presented approach in and for Scala, in
+the official Scala github repository
+\footnote{See \url{http://github.com/scala/pickling/}}.
 
 \item An experimental evaluation comparing the performance of our framework
 with Java serialization and Kryo.
@@ -1886,6 +1887,109 @@ type. So, when we have access to the runtime type of field \term{fld}, we can
 either look up an already-generated pickler for that runtime type, or we can
 generate a suitable pickler dynamically.
 
+\subsection{Object Identity and Sharing}
+\label{sec:object-identity}
+
+Object identity enables the existence of complex object graphs, which
+themselves are a cornerstone of object-oriented programming. While in
+Section~\ref{sec:data-types-in-distributed-applications} we show that pickling
+\textit{flat} object graphs is most common in big data applications, a general
+pickling framework for use with an object-oriented language must not only
+support flat object graphs, it must also support cyclic object graphs.
+
+Supporting such cyclic object graphs in most object-oriented languages,
+however, typically requires sophisticated runtime support, which is known to
+incur a significant performance hit. This is due to the fact that pickling
+graphs with cycles requires tracking object identities at runtime, so that
+pickling terminates and unpickling can faithfully reconstruct the graph
+structure.
+
+To avoid the overhead of tracking object identities unanimously for all
+objects, ``runtime-based'' serialization frameworks like Java or Kryo have to
+employ reflective/introspective checks to detect whether identities are
+relevant.\footnote{With Kryo some of this overhead can be avoided when using custom, hand-written serializers.}
+
+Scala/pickling, on the other hand, employs a hybrid compile-time/runtime
+approach. This makes it possible to avoid the overhead of object identity
+tracking in cases where it is statically known to be safe, which we show in
+Section~\ref{sec:data-types-in-distributed-applications} is typically
+important in big data applications.
+
+The following Section~\ref{sec:object-tracking} outlines how object identity
+is tracked in scala/pickling. It also explains how the management of object
+identities enables a {\em sharing} optimization. This sharing optimization is
+especially important for persistent data structures, which are commonly used
+in Scala. Section~\ref{sec:object-graph-analysis} explains how compile-time
+analysis is used to reduce the amount of runtime checking in cases where
+object graphs are statically known to be acyclic.
+
+\subsubsection{Object Tracking}
+\label{sec:object-tracking}
+
+During pickling, a pickler keeps track of all objects that are part of the
+(top-level) object to-be-pickled in a table. Whenever an object that's part of
+the object graph is pickled, a hash code based on the identity of the object
+is computed. The pickler then looks up whether that object has already been
+pickled, in which case the table contains a unique integer ID as the entry's
+value. If the table does not contain an entry for the object, a unique ID is
+generated and inserted, and the object is pickled as usual. Otherwise, instead
+of pickling the object again, a special \verb|Ref| object containing the integer ID
+is written to the pickle.\footnote{Several strategies exist to avoid preventing pickled objects from being garbage collected. Currently, for each top-level object to-be-pickled, a new hash table is created.}
+During unpickling, the above process is reversed by maintaining a
+mapping\footnote{This can be made very efficient by using a map implementation which is more efficient for integer-valued keys, such as a resizable array.}
+from integer IDs to unpickled heap objects.
+
+This approach to dealing with object identities also enables sharing, an
+optimization which in some big data applications can improve system throughput
+by reducing pickle size. Scala's immutable collections hierarchy is one
+example of a set of data structures which are persistent, which means they
+make use of sharing. That is, object subgraphs which occur in multiple
+instances of a data structure can be shared which is more efficient than
+maintaining multiple copies of those subgraphs
+
+Scala/pickling's management of object identities benefits instances of such
+data structures as follows. First, it reduces the size of the computed pickle,
+since instead of pickling the same object instance many times, compact
+references (\verb|Ref| objects) are pickled. Second, pickling time also has
+the potential to be reduced, since shared objects have to be pickled only
+once.
+
+\subsubsection{Static Object Graph Analysis}
+\label{sec:object-graph-analysis}
+
+When generating a pickler for a given type \verb|T|, the IR is analyzed to
+determine whether the graph of objects of type \verb|T| may contain cycles.
+Both \verb|T| and the types of \verb|T|'s fields are examined using a breadth-
+first traversal. Certain types are immediately excluded from the traversal,
+since they cannot be part of a cycle. Examples are primitive types, like
+\verb|Double|, as well as certain immutable reference types that are final,
+like \verb|String|. However, the static inspection of the IR additionally
+allows Scala-pickling to traverse sealed class hierarchies.
+
+For example, consider this small class hierarchy:
+
+\begin{lstlisting}
+final class Position(p: Person, title: String)
+sealed class Person(name: String, age: Int)
+final class Firefighter(name: String, age: Int, salary: Int)
+  extends Person(name, age)
+final class Teacher(name: String, age: Int, subject: String)
+  extends Person(name, age)
+\end{lstlisting}
+
+In this case, upon generating the pickler for class \verb|Position|, it is
+detected that no cycles are possible in the object graphs of instances of type
+\verb|Position|. While \verb|Position|'s \verb|p| field has a reference type,
+it cannot induce cycles, since \verb|Person| is a sealed class that has only
+final subclasses; furthermore, \verb|Person| and its subclasses have only
+fields of primitive type.
+
+In addition to this analysis, our framework allows users to disable all
+identity tracking programmatically, in case it is known that the graphs of
+(all) pickled objects are acyclic. While this switch can boost performance, it
+also disables opportunities for sharing (see above), and may thus lead to
+larger ``pickles''.
+
 
 
 \section{Implementation}
@@ -1990,6 +2094,7 @@ predictable, but does not necessarily maximize its performance.
 Finally, Figure~\ref{fig:results-vector} (c) shows the relative sizes of the serialized data. For a Vector of 1,000,000 elements, Java required 10,322,966 bytes. As can be seen, all other frameworks perform on par with another, requiring about 40\% of the size of Java's binary format. Or, in order of largest to smallest; Kryo v1 - 4,201,152 bytes; Kryo v2 - 4,088,570 bytes; Scala Pickling 4,000,031 bytes; and Pickler Combinators 4,000,004 bytes.
 
 \subsection{Data Types in Distributed Frameworks and Applications}
+\label{sec:data-types-in-distributed-applications}
 
 \begin{figure*}[ht!]
  \centering
