@@ -525,11 +525,10 @@ with Java serialization and Kryo.
 \section{Background}
 \label{sec:background}
 
-The design and implementation of our pickling framework leverages
-several advanced features of the Scala programming language. This
-section introduces everything that is required to understand the rest
-of the paper. Apart from this section the reader is expected to be
-familiar with a typical statically-typed, class-based object-oriented
+The design and implementation of our pickling framework leverages several
+advanced features of the Scala programming language. We provide an overview
+here of these key features. Apart from this section, the reader is expected to
+be familiar with a typical statically-typed, class-based object-oriented
 programming language such as Java or C\#.
 
 \subsection{Implicits}
@@ -608,7 +607,7 @@ a more powerful toolbox of general reflective capabilities to Scala. Along
 with full-featured runtime reflection for Scala types and generics, Scala 2.10
 also ships with compile-time reflection capabilities, in the form of macros
 (covered in Section \ref{sec:macros}), as well as the ability to reify Scala
-expressions into abstract syntax trees.
+expressions into abstract syntax trees (ASTs).
 
 \paragraph{TypeTags.} One aspect of runtime reflection that was introduced in
 Scala 2.10 is the notion of \verb|TypeTag|s. As with other JVM languages,
@@ -637,7 +636,7 @@ runtime \verb|Universe|.
 Scala reflection enables a form of metaprogramming which makes it possible for
 programs to modify themselves at compile-time. This compile-time reflection is
 realized in the form of hygenic macros \cite{Burmako2012}, which {\em expand}
-at compile-time to manipulate abstract syntax trees (ASTs). In our framework, we make
+at compile-time to manipulate abstract syntax trees. In our framework, we make
 use of two principal types of macros.
 
 \paragraph{Macro defs.} Macro defs are methods that are transparently loaded
@@ -655,15 +654,14 @@ def assert_impl(c: Context)
 
 In the above, the parameters of \verb|assert_impl| are syntax
 trees, which the body of \verb|assert_impl| will operate on, itself returning
-an AST of type \verb|Expr[Unit]|. It is \verb|assert_impl| which is
-expanded and evaluated at compile-time, its result is then inlined at the
+an AST of type \verb|Expr[Unit]|. It is \verb|assert_impl| that is
+expanded and evaluated at compile-time. Its result is then inlined at the
 callsite of \verb|assert| and the inlined result is typechecked
 It is also important to note that implicit defs as described earlier
 in Section \ref{sec:implicits} can be implemented as macros.
 
 As we will see, these macros defs, coupled with implicits in Scala enable the
-boilerplate-free usage of the Scala pickling framework at the pickling use-
-site.
+boilerplate-free usage of the Scala pickling framework at the pickling use-site.
 
 \paragraph{Macro Annotations.} Unlike macro defs, macro annotations are capable
 of {\em adding members} to classes which carry their annotation.
@@ -706,7 +704,7 @@ val obj2 = pickl.unpickle[Obj]
 
 Here, the \term{import} statement imports the Scala Pickling framework,
 the method \term{pickle} triggers static pickler generation, and the
-method \term{unpickle} triggers static unpickler generation.
+method \term{unpickle} triggers static unpickler generation, where
 \verb|unpickle| is parameterized on \verb|obj|'s precise type
 \verb|Obj|. Note that not
 every type has a \term{pickle} method; it is implemented as an extension
@@ -816,7 +814,7 @@ case class Firefighter(override val name: String, salary: Int)
 
 Here, the annotation triggers pickler generation both in \verb|Person| as well as in \verb|Firefighter|.
 
-\paragraph{Custom Picklers.} It is possible to use manually-written picklers
+\paragraph{Custom Picklers.} It is possible to use manually written picklers
 in place of generated picklers. Typical motivations for doing so are (a)
 improved performance through specialization and optimization hints, and (b) custom pre-pickling and post-unpickling
 actions; such actions may be required to re-initialize an object
@@ -1555,7 +1553,7 @@ reflection, as well as manually-written picklers.
 \subsection{Overview}
 
 Our framework generates type-specialized, object-oriented picklers using
-compile-time meta programming in the form of {\em macros}. Basically, whenever
+compile-time meta programming in the form of {\em macros}. Whenever
 a pickler for static type $T$ is required but cannot be found in the implicit
 scope, a macro is expanded which generates the required pickler step-by-step
 by:
