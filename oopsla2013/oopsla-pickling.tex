@@ -802,6 +802,19 @@ subclasses are fully generated at compile-time.
 fallback on a runtime pickler.
 \end{itemize}
 
+For example, a client subclass \verb|Firefighter| of a class \verb|Person|
+defined in separately compiled code might look like:
+
+\begin{lstlisting}
+// Library code
+@pickleable class Person(val name: String)
+// Client code
+case class Firefighter(override val name: String, salary: Int)
+  extends Person(name)
+\end{lstlisting}
+
+Here, the annotation triggers pickler generation both in \verb|Person| as well as in \verb|Firefighter|.
+
 \paragraph{Custom Picklers.} It is possible to use manually-written picklers
 in place of generated picklers. Typical motivations for doing so are (a)
 improved performance through specialization and optimization hints, and (b) custom pre-pickling and post-unpickling
