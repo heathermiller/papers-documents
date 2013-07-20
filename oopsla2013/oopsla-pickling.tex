@@ -706,7 +706,9 @@ val obj2 = pickl.unpickle[Obj]
 
 Here, the \term{import} statement imports the Scala Pickling framework,
 the method \term{pickle} triggers static pickler generation, and the
-method \term{unpickle} triggers static unpickler generation. Note that not
+method \term{unpickle} triggers static unpickler generation.
+\verb|unpickle| is parameterized on \verb|obj|'s precise type
+\verb|Obj|. Note that not
 every type has a \term{pickle} method; it is implemented as an extension
 method using implicits (Section \ref{sec:implicits}), imported into scope as a
 member of the \term{scala.pickling} package.
@@ -729,8 +731,7 @@ use runtime reflection to access the state that is being pickled and
 unpickled. For example, a runtime pickler is used when pickling instances of a
 generic subclass of the static class type to-be-pickled.
 
-Note that in the above example, the \term{unpickle} method is parameterized on
-\term{obj}'s precise type \term{Obj}. Using the Scala Pickling framework, it's
+Using the Scala Pickling framework, it's
 also possible to pickle and unpickle subtypes, even if the pickle and unpickle
 methods are called using supertypes of the type to-be-pickled.
 For example,
@@ -2280,7 +2281,11 @@ lower than the need to support subtyping polymorphism (our framework
 supports both, though). At least in one case (Twitter's Chill~\cite{TwitterChill}) a
 framework explicitly serializes Manifests, type descriptors for Scala
 types, which are superceded by TypeTags (see
-Section~\ref{sec:reflection}) The shaded area (which is "heavily-used") shows that collections are often used in distributed code, in particular with primitive element types. This motivates the choice of our collections micro benchmark.
+Section~\ref{sec:reflection})
+The shaded area (which groups ``heavily-used'' features across
+applications/frameworks) shows that collections are often used in distributed
+code, in particular with primitive element types. This motivates the choice of
+our collections micro benchmark.
 
 
 
