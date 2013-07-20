@@ -894,7 +894,7 @@ cdef ::=  \texttt{class}~C~\texttt{extends}~D~\{\seq{fld}~\seq{meth}\} & \mbox{c
 fld  ::=  \texttt{var}~f: C                      & \mbox{field}               \\
 meth ::=  \texttt{def}~m(\seq{x: C}): D = t      & \mbox{method}              \\
 t    ::=  \texttt{let}~x = p~\texttt{in}~t       & \mbox{let binding}         \\
-\gap ~|~ x.l := y                                & \mbox{assignment}          \\
+\gap ~|~ x.f := y                                & \mbox{assignment}          \\
 \gap ~|~ x                                       & \mbox{variable}            \\
 p    ::=  \texttt{new}~C(\seq{x})                & \mbox{instance creation}   \\
 \gap ~|~ x.f                                     & \mbox{selection}           \\
