@@ -1303,24 +1303,12 @@ bindings, let-bound variables must be alpha-renamable:
 $\texttt{let}~x = e~\texttt{in}~t \equiv \texttt{let}~x' =
 e~\texttt{in}~[x'/x]t~\text{where}~x' \notin FV(t)$. (We omit the
 definition of the $FV$ function to obtain the free variables of a
-term, since it is completely standard~\cite{TAPL}.)
+term, as it is standard~\cite{TAPL}.)
 
 In the following we explain the subset of the reduction rules suitable to
 formalize the properties of picklers. We start with the reduction rule for
 method invocations, since the reduction rules pertinent to picklers are
 variants of that rule.
-
-\infrule[\textsc{R-Invoke}]
-{  V(x) = r  \andalso  H(r) = C(\_)  \\
-   V(\seq{y}) = r_1 \ldots r_n       \\
-  mbody(m, C) = (\seq{x}, e)
-}
-{ \sreducebreak H V
-    {\texttt{let}~x' = x.m(\seq{y})~\texttt{in}~t}
-    H {(V, \seq{x \mapsto r})}
-    {\texttt{let}~x' = e~\texttt{in}~t}
-}
-
 
 \begin{figure*}
   \centering
@@ -1357,6 +1345,21 @@ variants of that rule.
 }
 
   \end{subfigure}
+  \begin{subfigure}{0.5\textwidth}
+    \centering
+    \vspace{0.8em}
+\infrule[\textsc{R-Invoke}]
+{  V(x) = r  \andalso  H(r) = C(\_)  \\
+   V(\seq{y}) = r_1 \ldots r_n       \\
+  mbody(m, C) = (\seq{x}, e)
+}
+{ \sreducebreak H V
+    {\texttt{let}~x' = x.m(\seq{y})~\texttt{in}~t}
+    H {(V, \seq{x \mapsto r})}
+    {\texttt{let}~x' = e~\texttt{in}~t}
+}
+  \end{subfigure}
+  \vspace{0.6em}
   \caption{Reduction rules for pickling.}
   \label{fig:opsem-rules}
 \end{figure*}
