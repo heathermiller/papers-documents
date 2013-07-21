@@ -564,8 +564,8 @@ unpickling an object \term{obj} of type \term{Obj} requires simply,
 
 \begin{lstlisting}
 import scala.pickling._
-val pickl = obj.pickle
-val obj2 = pickl.unpickle[Obj]
+val pickle = obj.pickle
+val obj2 = pickle.unpickle[Obj]
 \end{lstlisting}
 
 Here, the \term{import} statement imports scala/pickling, the method
@@ -598,8 +598,8 @@ on \verb|obj|. The above example can be written in a form where all
 invocations of implicit methods are explicit, as follows:
 
 \begin{lstlisting}
-val pickl = PickleOps[Obj](obj).pickle
-val obj2 = pickl.unpickle[Obj]
+val pickle = PickleOps[Obj](obj).pickle
+val obj2 = pickle.unpickle[Obj]
 \end{lstlisting}
 
 
@@ -632,8 +632,8 @@ class Firefighter(override val name: String, val since: Int)
   extends Person(name)
 
 val ff = new Firefighter("Jim", 2005)
-val pickl = ff.pickle[Person]
-val ff2 = pickl.unpickle[Person]
+val pickle = ff.pickle[Person]
+val ff2 = pickle.unpickle[Person]
 \end{lstlisting}
 
 In the above example, the runtime type of \term{ff2} will correctly be
@@ -651,7 +651,7 @@ Scala/pickling is also able to unpickle values of static type
 types quite convenient, for example:
 
 \begin{lstlisting}
-val unpickld = pickl.unpickle[Any] match {
+val unpickled = pickle.unpickle[Any] match {
   case Firefighter(name, since) => ...
   case x: Int => ...
   ...
