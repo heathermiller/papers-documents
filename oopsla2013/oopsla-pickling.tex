@@ -327,7 +327,7 @@ generating them at compile-time. While specifically
 designed for the Scala programming language, many aspects of our
 approach are applicable in other statically-typed object-oriented
 languages. Our framework is
-extensible; (1) using Scala's implicit parameters, users can add their own
+extensible: (1) using Scala's implicit parameters, users can add their own
 easily interchangeable pickle format, (2) using the type class pattern, users can
 provide their own custom picklers to override the default behavior of
 the pickling framework. In addition to extensibility and need for little to
@@ -2017,7 +2017,7 @@ structure.
 To avoid the overhead of tracking object identities unanimously for all
 objects, ``runtime-based'' serialization frameworks like Java or Kryo have to
 employ reflective/introspective checks to detect whether identities are
-relevant.\footnote{With Kryo some of this overhead can be avoided when using custom, handwritten serializers.}
+relevant.\footnote{With Kryo, some of this overhead can be avoided when using custom, handwritten serializers.}
 
 Scala/pickling, on the other hand, employs a hybrid compile-time/runtime
 approach. This makes it possible to avoid the overhead of object identity
@@ -2208,8 +2208,8 @@ Finally, Figure~\ref{fig:results-vector} (c) shows the relative sizes of the ser
 
 \begin{figure*}[ht!]
  \centering
- \includegraphics[width=\textwidth]{application-table.pdf}
- \vspace{-2em}
+ \includegraphics[width=0.9\textwidth]{application-table.pdf}
+ \vspace{-1em}
  \caption{Scala types used in industrial distributed frameworks and applications.}
  \label{fig:application-table}
 \end{figure*}
@@ -2296,20 +2296,21 @@ Serialization Specification~\cite{JavaSerialization}), in .NET, and in
 Python~\cite{Rossum07}; second, work on pickler combinators in
 functional languages which we have already discussed in the
 introduction. The main difference of our framework compared to
-pickling, or serialization, in wide-spread OO languages is that our
+pickling, or serialization, in widespread OO languages is that our
 approach does not require special support by the underlying
 runtime. In fact, the core concepts of object-oriented picklers as
 presented in this paper can be realized in most OO languages with
 generics.
 
-Pickling has been used not only for distribution and persistence of
-ground values, but also of code to implement module
-systems~\cite{Roy99,Rossberg2007}. There is a body of work on
-maximizing sharing of runtime data
-structures~\cite{appel93hashconsing,Elsman2005,TackKS06} which we
-believe could be applied to the pickler combinators presented in
-Section~\ref{sec:oopicklers}; however, a complete solution is beyond
-the scope of the present paper.
+While work on pickling is typically focused on finding optimally compact
+representations for data \cite{EveryBitCounts}, not all work has focused only
+on distribution and persistence of ground values. Pickling has also been
+used to distribute and persist code to implement module systems~\cite{Roy99,Rossberg2007}.
+There is a body of work on maximizing sharing of runtime data
+structures~\cite{appel93hashconsing,Elsman2005,TackKS06} which we believe
+could be applied to the pickler combinators presented in
+Section~\ref{sec:oopicklers}; however, a complete solution is beyond the scope
+of the present paper.
 
 
 % \section{Future Work}
