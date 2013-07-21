@@ -702,14 +702,40 @@ val pickl = obj.pickle
 val obj2 = pickl.unpickle[Obj]
 \end{lstlisting}
 
-Here, the \term{import} statement imports scala/pickling,
-the method \term{pickle} triggers static pickler generation, and the
-method \term{unpickle} triggers static unpickler generation, where
-\verb|unpickle| is parameterized on \verb|obj|'s precise type
-\verb|Obj|. Note that not
-every type has a \term{pickle} method; it is implemented as an extension
-method using implicits (Section \ref{sec:implicits}), imported into scope as a
-member of the \term{scala.pickling} package.
+Here, the \term{import} statement imports scala/pickling, the method
+\term{pickle} triggers static pickler generation, and the method
+\term{unpickle} triggers static unpickler generation, where \verb|unpickle| is
+parameterized on \verb|obj|'s precise type \verb|Obj|. Note that not every
+type has a \term{pickle} method; it is implemented as an extension method
+using an {\em implicit conversion}. This implicit conversion is imported into
+scope as a member of the \term{scala.pickling} package.
+
+\paragraph{Implicit conversions.} Implicit conversions can be thought of as
+methods which can be implicitly invoked based upon their type, and whether or
+not they are present in implicit scope. Implicit conversions carry the
+\term{implicit} keyword before their declaration. The \verb|pickle| method is
+provided using the following implicit conversion (slightly simplified):
+
+\begin{lstlisting}
+implicit def PickleOps[T](picklee: T) =
+  new PickleOps[T](picklee)
+
+class PickleOps[T](picklee: T) {
+  def pickle: Pickle = ...
+  ...
+}
+\end{lstlisting}
+
+In a nutshell, the above implicit conversion is implicitly invoked, passing
+object \verb|obj| as an argument, whenever the \verb|pickle| method is invoked
+on \verb|obj|. The above example can be written in a form where all
+invocations of implicit methods are explicit, as follows:
+
+\begin{lstlisting}
+val pickl = PickleOps[Obj](obj).pickle
+val obj2 = pickl.unpickle[Obj]
+\end{lstlisting}
+
 
 Optionally, a user can
 import a \term{PickleFormat}. By default, our framework provides a
