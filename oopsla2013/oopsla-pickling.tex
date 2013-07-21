@@ -1689,8 +1689,7 @@ superclasses, not including the implemented interfaces.}
 
 \footnotetext[2]{TypeTags are part of the mainline Scala
 compiler since version 2.10. They replace the earlier concept of Manifests,
-providing a faithful representation of Scala types at runtime, see Section
-\ref{sec:background}.}
+providing a faithful representation of Scala types at runtime.}
 \footnotetext[3]{Traits in
 Scala can be thought of as a more flexible form of Java-style interfaces that
 allow concrete members, and that support a form of multiple inheritance (mix-
@@ -2353,6 +2352,22 @@ benchmark of Figure~\ref{fig:wikigraph}, the gap between Java and scala/pickling
 only'' case: Java takes between 15ms and 18ms, whereas scala/pickling takes
 between 25ms and 28ms.
 
+\subsection{Microbenchmark: Evactor}
+
+The Evactor benchmark evaluates the performance of pickling a large number of
+small objects (in this case, events exchanged by actors). The benchmark
+creates a large number of events using the datatypes of the Evactor complex
+event processor  (see Section 6.4); all created events are inserted into a
+collection and then pickled, and finally unpickled. As the results in
+Figure~\ref{fig:evactor} show, Java serialization struggles with extreme memory
+consumption and crashes with an out-of-memory error when a collection with
+more than 10000 events is pickled. Both Kryo and scala/pickling handle this
+very high number of events without issue. To compare Kryo and scala/pickling
+more closely we did another experiment with an even higher number of events,
+this time leaving out Java. The results are shown on the right-hand side of
+Figure~\ref{fig:evactor}. At 40000 events, Kryo finishes after about 180ms, whereas
+scala/pickling finishes after about 144ms- a performance gain of about 25\%.
+
 \subsection{Data Types in Distributed Frameworks and Applications}
 \label{sec:data-types-in-distributed-applications}
 
@@ -2425,8 +2440,7 @@ internally. What's more, the demand for pickling generics seems to be
 lower than the need to support subtyping polymorphism (our framework
 supports both, though). At least in one case (Twitter's Chill~\cite{TwitterChill}) a
 framework explicitly serializes Manifests, type descriptors for Scala
-types, which are superceded by TypeTags (see
-Section~\ref{sec:reflection})
+types, which are superceded by TypeTags.
 The shaded area (which groups ``heavily-used'' features across
 applications/frameworks) shows that collections are often used in distributed
 code, in particular with primitive element types. This motivates the choice of
