@@ -865,8 +865,8 @@ instance of trait \verb|SPickler[T]| which has a single abstract method
     }
 \end{lstlisting}
 \noindent
-For a concrete type, say, class \verb|Person| (see Section~\ref{sec:basic-
-usage}), the \verb|pickle| method of an \verb|SPickler[Person]| converts
+For a concrete type, say, class \verb|Person| from Section~\ref{sec:overview},
+the \verb|pickle| method of an \verb|SPickler[Person]| converts
 \verb|Person| instances to a pickled format, using a {\em pickle builder} (the
 \verb|builder| parameter). Given this definition, picklers ``are type safe in
 the sense that a type-specialized pickler can be applied only to values of the
@@ -919,22 +919,65 @@ case class BinaryPickle(value: Array[Byte]) extends Pickle {
 \end{lstlisting}
 \noindent
 
-Analogous to a pickler, an unpickler for some type \verb|U| is an instance of
-trait \verb|Unpickler[U]| that has a single abstract method \verb|unpickle|;
+
+Analogous to a pickler, an unpickler for some type \verb|T| is an instance of
+trait \verb|Unpickler[T]| that has a single abstract method \verb|unpickle|;
 its (simplified) definition is as follows:
 
 \begin{lstlisting}
 trait Unpickler[T] {
-  val format: PickleFormat
-  def unpickle(tag: TypeTag[_], reader: PReader): T
+  def unpickle(reader: PReader): T
 }
 \end{lstlisting}
 \noindent
 
-Picklers usually also mix in the \verb|Unpickler| trait to provide both
-pickling and unpickling functionality.
+Similar to a pickler, an unpickler does not access pickled objects directly,
+but through the \verb|PReader| interface, which is analogous to the
+\verb|PBuilder| interface. A \verb|PReader| is set up to read from a pickled
+object as follows. First, we need to obtain an instance of the pickle format
+that was used to produce the pickled object; this format is either known
+beforehand, or it can be selected using the \verb|PickleFormatType| member of
+\verb|Pickle|. The pickle format, in turn, has factory methods for creating
+concrete \verb|PReader| instances:
 
-TODO: DPicklers
+\begin{lstlisting}
+val reader = pickleFormat.createReader(pickled, currentMirror)
+\end{lstlisting}
+
+The obtained reader can then be passed to the \verb|unpickle| method of a
+suitable \verb|Unpickler[T]|. Alternatively, a macro def on trait
+\verb|Pickle| can be invoked directly for unpickling:
+
+\begin{lstlisting}
+trait Pickle {
+  ...
+  def unpickle[T] = macro ...
+}
+\end{lstlisting}
+\noindent
+It is very common for an instance of \verb|SPickler[T]| to also mix in
+\verb|Unpickler[T]|, thereby providing both pickling and unpickling
+capabilities.
+
+
+\subsubsection{Pickling and Subtyping}
+
+So far, we have introduced the trait \verb|SPickler[T]| to represent picklers
+that can pickle objects of type \verb|T|. However, in the presence of
+subtyping and open class hierarchies providing correct implementations of
+\verb|SPickler[T]| is quite challenging. For example, how can an
+\verb|SPickler[Person]| know how to pickle an arbitrary, unknown subclass of
+\verb|Person|? Regardless of implementation challenges, picklers that handle
+arbitrary subclasses are likely less efficient than more specialized picklers.
+
+To provide flexibility while enabling optimization opportunities,
+scala/pickling introduces two different traits for picklers: the introduced
+trait \verb|SPickler[T]| is called a static pickler; it does not have to
+support pickling of subclasses of \verb|T|. In addition, the trait
+\verb|DPickler[T]| is called a dynamic pickler; its contract requires that it
+is applicable also to subtypes of \verb|T|. The following section motivates
+the need for dynamic picklers, and shows how the introduced concepts enable a
+flexible, object-oriented form of pickler combinators.
 
 
 
@@ -982,21 +1025,22 @@ TODO: DPicklers
 % \ref{sec:pickleformat}). When all elements have been added to a
 % \verb|PickleBuilder|, calling \verb|result| returns the completed pickle.
 
-
-For example, consider a simple class \verb|Position| with a field of type
-String and a field of type \term{Person}, respectively:
+This section explores the composition of the pickler abstractions introduced
+in the previous section by means of an example. Consider a simple class
+\verb|Position| with a field of type String and a field of type \term{Person},
+respectively:
 
 \begin{lstlisting}
 class Position(val title: String, val person: Person)
 \end{lstlisting}
 
-Modular pickler combinators would enable the composition of the desired
-pickler for type \term{Position} from picklers for types \term{String} and
-\term{Person}. However, note that the \term{person} field of a given instance
-of class \term{Position} could point to an instance of a subclass of
-\term{Person} (assuming class \term{Person} is not final). Therefore, a
-modularly re-usable pickler for type \term{Person} must be able to pickle all
-possible subtypes of \term{Person}.
+To obtain a pickler for objects of type \verb|Position|, ideally, existing
+picklers for type \verb|String| and for type \verb|Person| could be combined
+in some way. However, note that the \verb|person| field of a given instance of
+class \verb|Position| could point to an instance of a subclass of
+\verb|Person| (assuming class \verb|Person| is not final). Therefore, a
+modularly re-usable pickler for type \verb|Person| must be able to pickle all
+possible subtypes of \verb|Person|.
 
 In this case, the contract of static picklers is too strict, it does not allow
 for subtyping. The contract of dynamic picklers on the other hand does allow
@@ -1007,6 +1051,7 @@ Picklers for final class types like \term{String}, or for primitive types like
 \term{Int} do not require support for subtyping. Therefore, static picklers
 are sufficient to pickle these {\em effectively final types}. Compared to
 dynamic picklers, static picklers benefit from several optimizations.
+
 
 \subsubsection{Implementing Object-Oriented Picklers}
 
@@ -1048,6 +1093,7 @@ picklers at compile time. In Section~\ref{sec:generation} we present an
 approach for generating object-oriented picklers from regular (class) type
 definitions.
 \end{itemize}
+
 
 \subsubsection{Supporting Unanticipated Evolution}\label{sec:unanticipated}
 
@@ -1133,6 +1179,7 @@ type bounds) is flexible enough to support some important scenarios of
 unanticipated evolution. This is not possible with picklers that are
 contravariant. Consequently, in scala/pickling the \term{SPickler} trait is
 invariant in its type parameter.
+
 
 \subsection{Formalization}\label{sub:picklers-formal}
 
