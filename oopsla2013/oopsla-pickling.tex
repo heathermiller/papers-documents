@@ -314,7 +314,7 @@
 \begin{abstract}
 
 Serialization or pickling, i.e., persisting runtime objects by converting them
-into a binary or text representation is ubiquitous in distributed programming.
+into a binary or text representation, is ubiquitous in distributed programming.
 Pickler combinators are a popular approach from functional programming designed to
 alleviate some of the tedium of writing pickling code by hand, but they don't
 translate well to object-oriented programming due to qualities like open class
@@ -460,7 +460,7 @@ picklers.
 \end{itemize}
 
 
-\subsection{Related Work}
+\subsection{Selected Related Work}
 
 Some OO languages like Java and runtime environments like the JVM or
 .NET provide serialization for arbitrary types, provided entirely by
@@ -2104,15 +2104,14 @@ larger ``pickles''.
 
 \section{Implementation}
 
-The presented framework has been fully implemented in Scala.\footnote{A
-preview of the pickling framework is made available by the authors upon
-request.} The object-oriented pickler combinators presented in
+The presented framework has been fully implemented in Scala.
+The object-oriented pickler combinators presented in
 Section~\ref{sec:oopicklers}, including their implicit selection and
-composition, can be implemented using stable versions of the standard, open-
-source Scala distribution. The component that extends our basic model with
+composition, can be implemented using stable versions of the standard, open-source
+Scala distribution. The extension of our basic model with
 automatic pickler generation has been implemented using the experimental
-macros feature introduced in Scala 2.10.0 (January 2013). Macros are being
-used as a more regularly structured and more stable alternative to compiler
+macros feature introduced in Scala 2.10.0. Macros can be thought of as a
+more regularly strucutred, localized, and more stable alternative to compiler
 plugins. To simplify tree generation, our implementation leverages a
 quasiquoting library for Scala's macros~\cite{Quasiquotes}.
 
@@ -2147,8 +2146,7 @@ of our pickling framework. Our goals are
   compared to manually written picklers, analyzing the memory usage
   compared to other serialization frameworks,
 \item to provide a survey of the properties of data types that are
-  commonly used in distributed computing frameworks and applications,
-  and
+  commonly used in distributed computing frameworks and applications.
 \end{enumerate}\noindent
 In the process we are going to evaluate the performance of our
 framework alongside two popular and industrially-prominent serialization frameworks
@@ -2175,8 +2173,8 @@ development version of Scala.
 
 The benchmark logic is very simple: an immutable collection of type
 \verb|Vector[Int]| is created which is first pickled (or serialized)
-to a byte array, and then unpickled. While List is the protypical collection type used in Scala, we ultimately chose Vector as
-Scala's standard List type could not be serialized out-of-the-box\footnote{We register each class with Kryo, an optional step that improves performance.}
+to a byte array, and then unpickled. While \verb|List| is the protypical collection type used in Scala, we ultimately chose \verb|Vector| as
+Scala's standard \verb|List| type could not be serialized out-of-the-box\footnote{We register each class with Kryo, an optional step that improves performance.}
 using Kryo, because it is a recursive type in Scala. In order to use Scala's standard List type with Kryo, one must write a custom serializer, which would sidestep the objective of this benchmark, which is to compare the speed of {\em generated} picklers.
 
 The results are
