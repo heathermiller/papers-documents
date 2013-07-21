@@ -2388,8 +2388,8 @@ of more typical lists and vectors from Scala's standard library,
 because that's the data structure of choice for Spark
 to internally partition and represent its data.
 
-The results are shown in Figure~\ref{fig:results-spark}, with Java and Kryo
-running in comparable time and scala/pickling consistently outperforming both of them. For example, for a dataset of 40000 points, it takes Java 68ms and Kryo 86ms to perform a pickling/unpickling roundtrip, whereas scala/pickling completes in 28ms–– a performance gain of about 58\%.
+The results are shown in Figure~\ref{fig:spark}, with Java and Kryo
+running in comparable time and scala/pickling consistently outperforming both of them. For example, for a dataset of 40000 points, it takes Java 68ms and Kryo 86ms to perform a pickling/unpickling roundtrip, whereas scala/pickling completes in 28ms, a speedup of about 2.4x compared to Java and about 3.0x compared to Kryo.
 
 \subsection{Microbenchmark: GeoTrellis}
 
