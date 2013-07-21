@@ -522,170 +522,36 @@ with Java serialization and Kryo.
 
 \end{itemize}
 
-\section{Background}
-\label{sec:background}
 
-The design and implementation of our pickling framework leverages several
-advanced features of the Scala programming language. We provide an overview
-here of these key features. Apart from this section, the reader is expected to
-be familiar with a typical statically-typed, class-based object-oriented
-programming language such as Java or C\#.
-
-\subsection{Implicits}
-\label{sec:implicits}
-
-\paragraph{Implicit Parameters.} In Scala, it is possible to select values
-automatically based on type. These capabilities are enabled when using the
-\term{implicit} keyword. For example, a method \term{log} with multiple
-parameter lists may annotate their last parameter list using the
-\term{implicit} keyword.\footnote{Example taken from~\cite{Oliveira2010}.}
-
-\begin{lstlisting}
-def log(msg: String)(implicit o: PrintStream) =
-  o.println(msg)
-\end{lstlisting}
-
-This means that in an invocation of \term{log}, the implicit argument list may
-be omitted if, for each parameter of that list, there is exactly one value of
-the right type in the {\em implicit scope}. The implicit scope is an
-adaptation of the regular variable scope; imported implicits, or implicits
-declared in an enclosing scope are contained in the implicit scope of a method
-invocation.
-
-\begin{lstlisting}
-    implicit val out = System.out
-    log("Does not compute!")
-\end{lstlisting}
-
-In the above example, the implicit val \term{out} is in the implicit scope of
-the invocation of \term{log}; since it has the right type, it is automatically
-selected as an implicit argument.
-
-%\todo Maybe we should change this example? It's out of Bruno's paper, and he's
-%on the committee, he'll probably review our paper.
-
-%\todo Talk about how we use implicit values in our framework here.
-
-\paragraph{Implicit Conversions.} Implicit conversions can be thought of as
-methods which, like implicit parameters, can be implicitly selected (\ie
-invoked) based upon their type, and whether or not they are present in
-implicit scope. As with implicit parameters, implicit conversions also carry
-the \term{implicit} keyword before their declaration.
-
-\begin{lstlisting}
- implicit def intWrapper(x: Int): Message =
-    new Message {
-      def message: String = "secret message!"
-    }
-\end{lstlisting}
-
-In the example above, assuming there exists an abstract class \term{Message}
-with abstract method \term{message}, the implicit conversion
-\term{intWrapper} will be triggered when a method called \term{message}
-is called on an \term{Int}. That is, simply calling
-\term{39.message} will result in ``secret message!'' being
-returned. Since the implicit conversion has the effect of adding a
-``new'' method to type \term{Int}, \term{message} is typically called an
-{\em extension method}. In our framework we use implicit conversions,
-for example, for adding a \term{pickle} method to arbitrary objects.
-
-% cite Adriaan's and Bruno's OOPSLA paper. Where? How?
-% Example of a type class: maybe Ordering type class of std lib?
-% Include info on importing implicit values, and implicit resolution by scoping.
-% Example of a plain implicit parameter: could use implicit ExecutionContext in futures
-
-\subsection{Reflection}
-\label{sec:reflection}
-
-Reflection is the ability of a program to inspect, and possibly even modify
-itself at runtime. Before Scala 2.10, Scala did not have any reflection
-capabilities of its own. Instead, one could use Java reflection which provided
-basic but limited runtime reflection capabilities. In Scala 2.10, a new
-reflection library was introduced not only to address the shortcomings of
-Java's runtime reflection on Scala-specific and generic types, but to also add
-a more powerful toolbox of general reflective capabilities to Scala. Along
-with full-featured runtime reflection for Scala types and generics, Scala 2.10
-also ships with compile-time reflection capabilities, in the form of macros
-(covered in Section \ref{sec:macros}), as well as the ability to reify Scala
-expressions into abstract syntax trees (ASTs).
-
-\paragraph{TypeTags.} One aspect of runtime reflection that was introduced in
-Scala 2.10 is the notion of \verb|TypeTag|s. As with other JVM languages,
-Scala's types are erased at compile time. \verb|TypeTag|s can be thought of as
-objects which carry along all type information available at compile time, to
-runtime. As we will see, \verb|TypeTag|s will prove to be invaluable in
-situations where precise type information would otherwise not be available at runtime.
-
-\paragraph{Unified Runtime/Compile-time Reflection API.} Another important
-aspect of Scala's reflection library is the one-to-one correspondence between
-Scala Reflection's compile-time (\ie macros) and runtime APIs. Each API is
-parameterized on a so-called \verb|Universe|, an object which serves as the
-entry point to Scala reflection, and which provides all principal concepts
-used in reflection, such as \verb|Type|s, \verb|Tree|s, and
-\verb|Annotation|s. Depending on the task at hand, the choice between runtime
-and compile-time reflection is as easy as selecting either a compile-time or a
-runtime \verb|Universe|. As we will see, this enables maximum code
-reuse in that a fallback runtime pickler generation mechanism can be achieved
-by simply reusing the code for static generation, and parameterizing it on a
-runtime \verb|Universe|.
+% \subsection{Reflection}
+% \label{sec:reflection}
 
 
-\subsection{Macros}
-\label{sec:macros}
 
-Scala reflection enables a form of metaprogramming which makes it possible for
-programs to modify themselves at compile-time. This compile-time reflection is
-realized in the form of hygenic macros \cite{Burmako2012}, which {\em expand}
-at compile-time to manipulate abstract syntax trees. In our framework, we make
-use of two principal types of macros.
 
-\paragraph{Macro defs.} Macro defs are methods that are transparently loaded
-by the compiler and executed (or expanded) during compilation. A macro is
-defined as if it is a normal method, but it is linked using the \verb|macro|
-keyword to an additional method that operates on abstract syntax trees.
+% \paragraph{Macro Annotations.} Unlike macro defs, macro annotations are capable
+% of {\em adding members} to classes which carry their annotation.
 
-\begin{lstlisting}
-def assert(x: Boolean, msg: String): Unit =
-  macro assert_impl
-def assert_impl(c: Context)
-  (x: c.Expr[Boolean], msg: c.Expr[String]):
-                            c.Expr[Unit] = ...
-\end{lstlisting}
+% \begin{lstlisting}
+% @withNewToString
+% class D { ... }
+% \end{lstlisting}
 
-In the above, the parameters of \verb|assert_impl| are syntax
-trees, which the body of \verb|assert_impl| will operate on, itself returning
-an AST of type \verb|Expr[Unit]|. It is \verb|assert_impl| that is
-expanded and evaluated at compile-time. Its result is then inlined at the
-callsite of \verb|assert| and the inlined result is typechecked
-It is also important to note that implicit defs as described earlier
-in Section \ref{sec:implicits} can be implemented as macros.
+% The \verb|withNewToString| annotation is defined using a standard class
+% definition by extending a special \verb|MacroAnnotation| marker trait, and by
+% implementing a special \verb|transform| method as a macro:
 
-As we will see, these macros defs, coupled with implicits in Scala enable the
-boilerplate-free usage of the Scala pickling framework at the pickling use-site.
+% \begin{lstlisting}
+% class withNewToString extends MacroAnnotation {
+%   def transform = macro transform_impl
+%   def transform_impl = { ... }
+% }
+% \end{lstlisting}
 
-\paragraph{Macro Annotations.} Unlike macro defs, macro annotations are capable
-of {\em adding members} to classes which carry their annotation.
-
-\begin{lstlisting}
-@withNewToString
-class D { ... }
-\end{lstlisting}
-
-The \verb|withNewToString| annotation is defined using a standard class
-definition by extending a special \verb|MacroAnnotation| marker trait, and by
-implementing a special \verb|transform| method as a macro:
-
-\begin{lstlisting}
-class withNewToString extends MacroAnnotation {
-  def transform = macro transform_impl
-  def transform_impl = { ... }
-}
-\end{lstlisting}
-
-The \verb|transform| macro implementation is passed the AST of the annotated class
-definition (the AST of ``\verb|class D { ... }|''), and returns a possibly changed AST
-as the new class definition (which could have added members, changed
-constructor parameters etc.)
+% The \verb|transform| macro implementation is passed the AST of the annotated class
+% definition (the AST of ``\verb|class D { ... }|''), and returns a possibly changed AST
+% as the new class definition (which could have added members, changed
+% constructor parameters etc.)
 
 \section{Overview and Usage}
 \label{sec:overview}
@@ -702,14 +568,40 @@ val pickl = obj.pickle
 val obj2 = pickl.unpickle[Obj]
 \end{lstlisting}
 
-Here, the \term{import} statement imports scala/pickling,
-the method \term{pickle} triggers static pickler generation, and the
-method \term{unpickle} triggers static unpickler generation, where
-\verb|unpickle| is parameterized on \verb|obj|'s precise type
-\verb|Obj|. Note that not
-every type has a \term{pickle} method; it is implemented as an extension
-method using implicits (Section \ref{sec:implicits}), imported into scope as a
-member of the \term{scala.pickling} package.
+Here, the \term{import} statement imports scala/pickling, the method
+\term{pickle} triggers static pickler generation, and the method
+\term{unpickle} triggers static unpickler generation, where \verb|unpickle| is
+parameterized on \verb|obj|'s precise type \verb|Obj|. Note that not every
+type has a \term{pickle} method; it is implemented as an extension method
+using an {\em implicit conversion}. This implicit conversion is imported into
+scope as a member of the \term{scala.pickling} package.
+
+\paragraph{Implicit conversions.} Implicit conversions can be thought of as
+methods which can be implicitly invoked based upon their type, and whether or
+not they are present in implicit scope. Implicit conversions carry the
+\term{implicit} keyword before their declaration. The \verb|pickle| method is
+provided using the following implicit conversion (slightly simplified):
+
+\begin{lstlisting}
+implicit def PickleOps[T](picklee: T) =
+  new PickleOps[T](picklee)
+
+class PickleOps[T](picklee: T) {
+  def pickle: Pickle = ...
+  ...
+}
+\end{lstlisting}
+
+In a nutshell, the above implicit conversion is implicitly invoked, passing
+object \verb|obj| as an argument, whenever the \verb|pickle| method is invoked
+on \verb|obj|. The above example can be written in a form where all
+invocations of implicit methods are explicit, as follows:
+
+\begin{lstlisting}
+val pickl = PickleOps[Obj](obj).pickle
+val obj2 = pickl.unpickle[Obj]
+\end{lstlisting}
+
 
 Optionally, a user can
 import a \term{PickleFormat}. By default, our framework provides a
@@ -736,7 +628,7 @@ For example,
 
 \begin{lstlisting}
 class Person(val name: String)
-class Firefighter(val name: String, val since: Int)
+class Firefighter(override val name: String, val since: Int)
   extends Person(name)
 
 val ff = new Firefighter("Jim", 2005)
@@ -791,28 +683,107 @@ class/trait has been annotated, the returned pickler has been generated
 statically (when the annotation, implemented using a macro, is expanded in
 each subclass, transitively).
 
-This \term{$@$pickelable} annotation enables:
+This \verb|@pickleable| annotation enables:
 
 \begin{itemize}
 \item library authors to guarantee to their clients that picklers for separately-compiled
-subclasses are fully generated at compile-time.
+subclasses are fully generated at compile-time;
 
 \item faster picklers in general because one need not worry about having to
 fallback on a runtime pickler.
 \end{itemize}
 
-For example, a client subclass \verb|Firefighter| of a class \verb|Person|
-defined in separately compiled code might look like:
+For example, assume the following class \verb|Person| and its subclass
+\verb|Firefighter| are defined in separately-compiled code.
 
 \begin{lstlisting}
 // Library code
 @pickleable class Person(val name: String)
+
 // Client code
-case class Firefighter(override val name: String, salary: Int)
+class Firefighter(override val name: String, salary: Int)
   extends Person(name)
 \end{lstlisting}
 
-Here, the annotation triggers pickler generation both in \verb|Person| as well as in \verb|Firefighter|.
+Note that class \verb|Person| is annotated with the \verb|@pickleable|
+annotation. \verb|@pickleable| is a {\em macro annotation} which generates
+additional methods for obtaining type-specialized picklers (and unpicklers).
+With the \verb|@pickleable| annotation expanded, the code for class
+\verb|Person| looks roughly as follows:
+
+\begin{lstlisting}
+class Person(val name: String)
+    extends PickleableBase {
+  def pickler: SPickler[_] =
+    implicitly[SPickler[Person]]
+  ...
+}
+\end{lstlisting}
+
+First, note that the supertypes of \verb|Person| now additionally include the
+trait \verb|PickleableBase|; it declares the abstract methods that the
+expansion of the macro annotation ``fills in'' with concrete methods. In this
+case a \verb|pickler| method is generated which returns an
+\verb|SPickler[_]|.\footnote{The notation \texttt{SPickler[\_]} is short for
+the existential type \texttt{SPickler[t] forSome \{ type t \}}. It is necessary
+here, because picklers must be invariant in their type parameter, see
+Section~\ref{sec:unanticipated}.} Note that the \verb|@pickleable| annotation
+is defined in a way where pickler generation is triggered in both
+\verb|Person| and its subclasses.
+
+Here, we obtain an instance of \verb|SPickler[Person]| by means of implicits.
+The \verb|implicitly| method, part of Scala's standard library, is defined as
+follows:
+
+\begin{lstlisting}
+def implicitly[T](implicit e: T) = e
+\end{lstlisting}
+\noindent
+Annotating the parameter (actually, the parameter list) using the
+\verb|implicit| keyword means that in an invocation of \verb|implicitly|, the
+implicit argument list may be omitted if, for each parameter of that list,
+there is exactly one value of the right type in the {\em implicit scope}. The
+implicit scope is an adaptation of the regular variable scope; imported
+implicits, or implicits declared in an enclosing scope are contained in the
+implicit scope of a method invocation.
+
+As a result, \verb|implicitly[T]| returns the uniquely-defined implicit value
+of type \verb|T| which is in scope at the invocation site. In the context of
+picklers, there might not be an implicit value of type \verb|SPickler[Person]|
+in scope (in fact, this is typically only the case with custom picklers). In
+that case, a suitable pickler instance is generated using a macro def.
+
+\paragraph{Macro defs.} Macro defs are methods that are transparently loaded
+by the compiler and executed (or expanded) during compilation. A macro is
+defined as if it is a normal method, but it is linked using the \verb|macro|
+keyword to an additional method that operates on abstract syntax trees.
+
+\begin{lstlisting}
+def assert(x: Boolean, msg: String): Unit =
+  macro assert_impl
+def assert_impl(c: Context)
+  (x: c.Expr[Boolean], msg: c.Expr[String]):
+                            c.Expr[Unit] = ...
+\end{lstlisting}
+
+In the above example, the parameters of \verb|assert_impl| are syntax trees,
+which the body of \verb|assert_impl| will operate on, itself returning an AST
+of type \verb|Expr[Unit]|. It is \verb|assert_impl| that is expanded and
+evaluated at compile-time. Its result is then inlined at the callsite of
+\verb|assert| and the inlined result is typechecked It is also important to
+note that implicit defs as described above can be implemented as macros.
+
+Scala/pickling provides an implicit macro def returning picklers for arbitrary
+types. Slightly simplified, it is declared as follows:
+
+\begin{lstlisting}
+implicit def genPickler[T]: SPickler[T]
+\end{lstlisting}
+
+This macro def is expanded when invoking \newline
+\verb|implicitly[SPickler[T]]| if
+there is no implicit value of type \verb|SPickler[T]| in scope.
+
 
 \paragraph{Custom Picklers.} It is possible to use manually written picklers
 in place of generated picklers. Typical motivations for doing so are (a)
@@ -822,6 +793,43 @@ correctly after unpickling. Creating custom picklers is greatly facilitated by
 modular composition using object-oriented pickler combinators. The design of
 these first-class object-oriented picklers and pickler combinators is
 discussed in detail in the following Section~\ref{sec:oopicklers}.
+
+
+% \section{Background: Reflection in Scala}
+% \label{sec:reflection}
+
+% Reflection is the ability of a program to inspect, and possibly even modify
+% itself at runtime. Before Scala 2.10, Scala did not have any reflection
+% capabilities of its own. Instead, one could use Java reflection which provided
+% basic but limited runtime reflection capabilities. In Scala 2.10, a new
+% reflection library was introduced not only to address the shortcomings of
+% Java's runtime reflection on Scala-specific and generic types, but to also add
+% a more powerful toolbox of general reflective capabilities to Scala. Along
+% with full-featured runtime reflection for Scala types and generics, Scala 2.10
+% also ships with compile-time reflection capabilities, in the form of macros
+% (covered in Section \ref{sec:macros}), as well as the ability to reify Scala
+% expressions into abstract syntax trees (ASTs).
+
+% \paragraph{TypeTags.} One aspect of runtime reflection that was introduced in
+% Scala 2.10 is the notion of \verb|TypeTag|s. As with other JVM languages,
+% Scala's types are erased at compile time. \verb|TypeTag|s can be thought of as
+% objects which carry along all type information available at compile time, to
+% runtime. As we will see, \verb|TypeTag|s will prove to be invaluable in
+% situations where precise type information would otherwise not be available at runtime.
+
+% \paragraph{Unified Runtime/Compile-time Reflection API.} Another important
+% aspect of Scala's reflection library is the one-to-one correspondence between
+% Scala Reflection's compile-time (\ie macros) and runtime APIs. Each API is
+% parameterized on a so-called \verb|Universe|, an object which serves as the
+% entry point to Scala reflection, and which provides all principal concepts
+% used in reflection, such as \verb|Type|s, \verb|Tree|s, and
+% \verb|Annotation|s. Depending on the task at hand, the choice between runtime
+% and compile-time reflection is as easy as selecting either a compile-time or a
+% runtime \verb|Universe|. As we will see, this enables maximum code
+% reuse in that a fallback runtime pickler generation mechanism can be achieved
+% by simply reusing the code for static generation, and parameterizing it on a
+% runtime \verb|Universe|.
+
 
 % \begin{figure*}[t]
 % $\ba[t]{ll@{\hspace{2mm}}l@{\hspace{2mm}}l@{\hspace{2mm}}l}
@@ -875,18 +883,6 @@ directly; instead, it can be requested from the \verb|builder| using its
     val pickled: Pickle = builder.result()
 \end{lstlisting}
 \noindent
-In the above example, we obtain an instance of \verb|SPickler[Person]| by
-means of implicits. The \verb|implicitly| method, part of Scala's standard
-library, is defined as follows:
-
-\begin{lstlisting}
-def implicitly[T](implicit e: T) = e
-\end{lstlisting}
-\noindent
-Using an implicit parameter (see Section~\ref{sec:background}),
-\verb|implicitly[T]| returns the uniquely-defined implicit value of type
-\verb|T| which is in scope at the invocation site.
-
 In the above example, invoking \verb|implicitly[SPickler[Person]]| either
 returns a regular implicit value of type \verb|SPickler[Person]| that is in
 scope, or, if it doesn't exist, triggers the (compile-time) generation of a
@@ -1053,7 +1049,7 @@ approach for generating object-oriented picklers from regular (class) type
 definitions.
 \end{itemize}
 
-\subsubsection{Supporting Unanticipated Evolution}
+\subsubsection{Supporting Unanticipated Evolution}\label{sec:unanticipated}
 
 Given the fact that the type \term{SPickler}[$T$], as introduced, has a type
 parameter $T$, it is reasonable to ask what the variance of $T$ is. Ruling out
@@ -1618,6 +1614,17 @@ pickling its fields provided by $F$.
 $IR_{opt}$ is an optional $IR$; a missing $IR$ is represented using $\epsilon$.
 \end{defn}
 
+In our implementation the IR types are represented using case classes. For
+example, the following case class represents $IR$s:
+
+\begin{lstlisting}
+case class ClassIR(
+  tpe: Type,
+  parent: ClassIR,
+  fields: List[FieldIR]
+) extends PickleIR
+\end{lstlisting}
+
 Using the definitions of the elements of an IR from Definition \ref{def:elems-ir},
 we go on to define a number of useful IR combinators, which form the
 basis of our model of inheritance.
@@ -1723,6 +1730,22 @@ using $IR = flatten(compose((T, \epsilon, \lbrack \rbrack))$.
 
 \rule{0.9\columnwidth}{0.7pt}
 
+The above IR combinators have direct Scala implementations in scala/pickling.
+For example, function $superIRs$ is implemented as follows:
+
+\begin{lstlisting}
+private val f3 = (c: C) =>
+  c.tpe.baseClasses
+       .map(superSym => c.tpe.baseType(superSym))
+       .map(tp => ClassIR(tp, null, fields(tp)))
+\end{lstlisting}
+\noindent
+Here, method \verb|baseClasses| returns the collection of superclass symbols
+of type \verb|c.tpe| in linearization order. Method \verb|baseType| converts
+each symbol to a type which is, in turn, used to create a \verb|ClassIR|
+instance. The semantics of the \verb|fields| method is analogous to the above
+$fields$ function.
+
 \subsection{Pickler Generation Algorithm}
 
 The pickler generation is driven by the IR (see Section~\ref{sec:ir}) of a
@@ -1757,7 +1780,7 @@ strings) in order to assemble a pickle.
 The interface provided by \term{PickleFormat} is simple: it basically consists
 of two methods (a) for creating an empty builder, and (b) for creating a
 reader from a pickle:\footnote{In our actual implementation the
-\term{createReader} method takes an additional parameter which is a "mirror"
+\term{createReader} method takes an additional parameter which is a ``mirror''
 used for runtime reflection; it is omitted here for simplicity.}
 
 \begin{lstlisting}
@@ -1980,9 +2003,9 @@ can be written to the pickle.
  \label{fig:results-vector}
 \end{figure*}
 
-\subsection{Generics}
+\subsection{Generics and Arrays}
 
-{\bf Subclassing and generics}: The combination of subclassing and generics
+\paragraph{Subclassing and generics.} The combination of subclassing and generics
 poses a similar problem to that introduced above in Section \ref{sec:runtime-pickler}.
 For example, consider a generic class \term{C},
 
@@ -1996,6 +2019,21 @@ framework falls back to using runtime picklers for pickling fields of generic
 type. So, when we have access to the runtime type of field \term{fld}, we can
 either look up an already-generated pickler for that runtime type, or we can
 generate a suitable pickler dynamically.
+
+\paragraph{Arrays.} Scala arrays are mapped to Java arrays;  the two have the
+same runtime representation. However, there is one important difference: Java
+arrays are covariant whereas Scala arrays are invariant. In particular, it is
+possible to pass arrays from Java code to Scala code. Thus, a class \verb|C|
+with a field \verb|f| of type \verb|Array[T]| may have an instance at runtime
+that stores an \verb|Array[S]| in field \verb|f| where \verb|S| is a subtype
+of \verb|T|. Pickling followed by unpickling must instantiate an
+\verb|Array[S]|. Just like with other fields of non-final reference type, this
+situation requires writing the dynamic (array) type name to the pickle. This
+is possible, since array types are not erased on the JVM (unlike generic
+types). This allows instantiating an array with the expected dynamic type upon
+unpickling. At the time of writing only support for primitive arrays has been
+implemented in scala/pickling.
+
 
 \subsection{Object Identity and Sharing}
 \label{sec:object-identity}
