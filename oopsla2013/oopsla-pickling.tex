@@ -1120,6 +1120,28 @@ Initially, we might define a generic pickler for \term{C}:
     }
 \end{lstlisting}
 
+\begin{figure}
+  \centering
+$\ba[t]{l@{\hspace{2mm}}l}
+P    ::=  \seq{cdef}~t                           & \mbox{program}             \\
+cdef ::=  \texttt{class}~C~\texttt{extends}~D~\{\seq{fld}~\seq{meth}\} & \mbox{class} \\
+fld  ::=  \texttt{var}~f: C                      & \mbox{field}               \\
+meth ::=  \texttt{def}~m(\seq{x: C}): D = e      & \mbox{method}              \\
+t    ::=  \texttt{let}~x = e~\texttt{in}~t       & \mbox{let binding}         \\
+\gap ~|~ x.f := y                                & \mbox{assignment}          \\
+\gap ~|~ x                                       & \mbox{variable}            \\
+e    ::=  \texttt{new}~C(\seq{x})                & \mbox{instance creation}   \\
+\gap ~|~ x.f                                     & \mbox{selection}           \\
+\gap ~|~ x.m(\seq{y})                            & \mbox{invocation}          \\
+\gap ~|~ t                                       & \mbox{term}                \\
+\ea$
+  \caption{Core language syntax. $C,D$ are class names, $f,m$ are ﬁeld and
+    method names, and $x,y$ are names of variables and parameters, respectively.}
+  \label{fig:lang-syntax}
+\end{figure}
+
+
+
 Because \term{SPickler}[$T$] is contravariant in its type parameter, instances
 of \term{D} would be pickled using \term{picklerC}. There are several possible
 extensions that might be {\em unanticipated} initially:
@@ -1170,6 +1192,20 @@ With this pickler in scope, it is still possible to define a more specific
 implicit val picklerD1 = new SPickler[D] { ... }
 \end{lstlisting}
 
+\begin{figure}[ht!]
+
+$\ba[t]{ll@{\hspace{2mm}}l}
+H    ::= & \emptyset ~|~ (H, r \mapsto v)              & \mbox{heap} \\
+V    ::= & \emptyset ~|~ (V, y \mapsto r)              & \mbox{environment}~(y \notin dom(V)) \\
+v    ::= & o ~|~ \rho                                  & \mbox{value} \\
+o    ::= & C(\seq{r})                                  & \mbox{object} \\
+\rho ::= & (C_p, m, C)                                 & \mbox{pickler} \\
+r \in    & RefLocs                                     & \mbox{reference location}
+\ea$
+
+\caption{Heaps, environments, objects, and picklers.}\label{fig:heaps-stacks}
+\end{figure}
+
 However, the crucial difference is that now \term{picklerD1} is selected when
 an object of static type \term{D} is pickled, since \term{picklerD1} is more
 specific than \term{picklerC1}.
@@ -1196,27 +1232,6 @@ language used in the formal development of a uniqueness type system for
 Scala~\cite{HallerO10}.
 
 
-\begin{figure}
-  \centering
-$\ba[t]{l@{\hspace{2mm}}l}
-P    ::=  \seq{cdef}~t                           & \mbox{program}             \\
-cdef ::=  \texttt{class}~C~\texttt{extends}~D~\{\seq{fld}~\seq{meth}\} & \mbox{class} \\
-fld  ::=  \texttt{var}~f: C                      & \mbox{field}               \\
-meth ::=  \texttt{def}~m(\seq{x: C}): D = e      & \mbox{method}              \\
-t    ::=  \texttt{let}~x = e~\texttt{in}~t       & \mbox{let binding}         \\
-\gap ~|~ x.f := y                                & \mbox{assignment}          \\
-\gap ~|~ x                                       & \mbox{variable}            \\
-e    ::=  \texttt{new}~C(\seq{x})                & \mbox{instance creation}   \\
-\gap ~|~ x.f                                     & \mbox{selection}           \\
-\gap ~|~ x.m(\seq{y})                            & \mbox{invocation}          \\
-\gap ~|~ t                                       & \mbox{term}                \\
-\ea$
-  \caption{Core language syntax. $C,D$ are class names, $f,m$ are ﬁeld and
-    method names, and $x,y$ are names of variables and parameters, respectively.}
-  \label{fig:lang-syntax}
-\end{figure}
-
-
 Figure~\ref{fig:lang-syntax} shows the core language syntax. A program is a
 sequence of class definitions followed by a (main) term. (We use the common
 over-bar notation~\cite{Igarashi2001} for sequences.) Without loss of
@@ -1235,20 +1250,6 @@ We define the standard auxiliary functions $mtype$ and $mbody$ as follows.
 Let $\texttt{def}~m(\seq{x \typ C}) \typ D = e$ be a method defined in the
 most direct superclass of $C$ that defines $m$. Then
 $mbody(m, C) = (\seq{x}, e)$ and $mtype(m, C) = \seq{C} \rightarrow D$.
-
-\begin{figure}[ht!]
-
-$\ba[t]{ll@{\hspace{2mm}}l}
-H    ::= & \emptyset ~|~ (H, r \mapsto v)              & \mbox{heap} \\
-V    ::= & \emptyset ~|~ (V, y \mapsto r)              & \mbox{environment}~(y \notin dom(V)) \\
-v    ::= & o ~|~ \rho                                  & \mbox{value} \\
-o    ::= & C(\seq{r})                                  & \mbox{object} \\
-\rho ::= & (C_p, m, C)                                 & \mbox{pickler} \\
-r \in    & RefLocs                                     & \mbox{reference location}
-\ea$
-
-\caption{Heaps, environments, objects, and picklers.}\label{fig:heaps-stacks}
-\end{figure}
 
 \vspace{0em}
 \subsubsection{Dynamic semantics}
@@ -1310,7 +1311,7 @@ formalize the properties of picklers. We start with the reduction rule for
 method invocations, since the reduction rules pertinent to picklers are
 variants of that rule.
 
-\begin{figure*}
+\begin{figure*}[ht!]
   \centering
 
   \begin{subfigure}{0.5\textwidth}
