@@ -1980,9 +1980,9 @@ can be written to the pickle.
  \label{fig:results-vector}
 \end{figure*}
 
-\subsection{Generics}
+\subsection{Generics and Arrays}
 
-{\bf Subclassing and generics}: The combination of subclassing and generics
+\paragraph{Subclassing and generics.} The combination of subclassing and generics
 poses a similar problem to that introduced above in Section \ref{sec:runtime-pickler}.
 For example, consider a generic class \term{C},
 
@@ -1996,6 +1996,21 @@ framework falls back to using runtime picklers for pickling fields of generic
 type. So, when we have access to the runtime type of field \term{fld}, we can
 either look up an already-generated pickler for that runtime type, or we can
 generate a suitable pickler dynamically.
+
+\paragraph{Arrays.} Scala arrays are mapped to Java arrays;  the two have the
+same runtime representation. However, there is one important difference: Java
+arrays are covariant whereas Scala arrays are invariant. In particular, it is
+possible to pass arrays from Java code to Scala code. Thus, a class \verb|C|
+with a field \verb|f| of type \verb|Array[T]| may have an instance at runtime
+that stores an \verb|Array[S]| in field \verb|f| where \verb|S| is a subtype
+of \verb|T|. Pickling followed by unpickling must instantiate an
+\verb|Array[S]|. Just like with other fields of non-final reference type, this
+situation requires writing the dynamic (array) type name to the pickle. This
+is possible, since array types are not erased on the JVM (unlike generic
+types). This allows instantiating an array with the expected dynamic type upon
+unpickling. At the time of writing only support for primitive arrays has been
+implemented in scala/pickling.
+
 
 \subsection{Object Identity and Sharing}
 \label{sec:object-identity}
