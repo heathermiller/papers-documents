@@ -2260,7 +2260,7 @@ The following benchmarks were run on a MacBook Pro with a 2.6 GHz
 Intel Core i7 processor with 16 GB of memory running Mac OS X version
 10.8.4 and Oracle's Java HotSpot(TM) 64-Bit Server VM version
 1.6.0\_51. In all cases we used the following configuration flags:
-\texttt{-XX:MaxPermSize=512m -Xms512m -Xmx2g -XX:ReservedCodeCacheSize=192m -XX:+CMSClassUnloadingEnabled -XX:+UseConcMarkSweepGC}. Each benchmark was run on a warmed-up JVM. The result shown is the median of 10 such ``warm'' runs.
+\texttt{-XX:MaxPermSize=512m -Xms512m -Xmx2g -XX:ReservedCodeCacheSize=192m -XX:+CMSClassUnloadingEnabled -XX:+UseConcMarkSweepGC}. Each benchmark was run on a warmed-up JVM. The result shown is the median of 9 such ``warm'' runs.
 
 \begin{figure}[ht!]
  \centering
@@ -2315,6 +2315,23 @@ predictable, but does not necessarily maximize its performance.
 
 Finally, Figure~\ref{fig:results-vector} (c) shows the relative sizes of the serialized data. For a Vector of 1,000,000 elements, Java required 10,322,966 bytes. As can be seen, all other frameworks perform on par with another, requiring about 40\% of the size of Java's binary format. Or, in order of largest to smallest; Kryo v1 - 4,201,152 bytes; Kryo v2 - 4,088,570 bytes; scala/pickling 4,000,031 bytes; and Pickler Combinators 4,000,004 bytes.
 
+\subsection{Microbenchmark: Spark}
+
+The Spark benchmark compares performance of our framework, Java's native
+serialization and Kryo when pickling data types from the Spark's linear
+regression example.
+
+Over the course of the benchmark, frameworks pickle and unpickle an
+\verb|ArrayBuffer| of data points that each consist of a double
+and an accompanying \verb|spark.util.Vector|, which
+is a specialized wrapper over an array of doubles. Here we use a
+mutable buffer as a container for data elements instead
+of more typical lists and vectors from Scala's standard library,
+because that's the data structure of choice for Spark
+to internally partition and represent its data.
+
+The results are shown in Figure~\ref{fig:results-spark}.
+
 \subsection{Wikipedia: Cyclic Object Graphs}
 
 In the second benchmark we evaluate the performance of our framework when
@@ -2333,6 +2350,22 @@ worse, with a time between 22ms and 24ms. In the ``pickle and unpickle''
 benchmark of Figure~\ref{fig:wikigraph}, the gap between Java and scala/pickling is similar to the ``pickle
 only'' case: Java takes between 15ms and 18ms, whereas scala/pickling takes
 between 25ms and 28ms.
+
+\subsection{Microbenchmark: Evactor}
+
+The Evactor benchmark evaluates the performance of pickling a large number of
+small objects (in this case, events exchanged by actors). The benchmark
+creates a large number of events using the datatypes of the Evactor complex
+event processor  (see Section 6.4); all created events are inserted into a
+collection and then pickled, and finally unpickled. As the results in
+Figure~\ref{fig:evactor} show, Java serialization struggles with extreme memory
+consumption and crashes with an out-of-memory error when a collection with
+more than 10000 events is pickled. Both Kryo and scala/pickling handle this
+very high number of events without issue. To compare Kryo and scala/pickling
+more closely we did another experiment with an even higher number of events,
+this time leaving out Java. The results are shown on the right-hand side of
+Figure~\ref{fig:evactor}. At 40000 events, Kryo finishes after about 180ms, whereas
+scala/pickling finishes after about 144ms- a performance gain of about 25\%.
 
 \subsection{Data Types in Distributed Frameworks and Applications}
 \label{sec:data-types-in-distributed-applications}
