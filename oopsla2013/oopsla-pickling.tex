@@ -2325,13 +2325,14 @@ regression example.
 Over the course of the benchmark, frameworks pickle and unpickle an
 \verb|ArrayBuffer| of data points that each consist of a double
 and an accompanying \verb|spark.util.Vector|, which
-is a specialized wrapper over an array of doubles. Here we use a
+is a specialized wrapper over an array of 10 doubles. Here we use a
 mutable buffer as a container for data elements instead
 of more typical lists and vectors from Scala's standard library,
 because that's the data structure of choice for Spark
 to internally partition and represent its data.
 
-The results are shown in Figure~\ref{fig:results-spark}.
+The results are shown in Figure~\ref{fig:results-spark}, with Java and Kryo
+running in comparable time and scala/pickling consistently outperforming both of them. For example, for a dataset of 40000 points, it takes Java 70ms and Kryo 87ms to perform a pickling/unpickling roundtrip, whereas scala/pickling completes in 29ms.
 
 \subsection{Wikipedia: Cyclic Object Graphs}
 
