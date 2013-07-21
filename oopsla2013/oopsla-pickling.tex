@@ -2237,12 +2237,12 @@ of our pickling framework. Our goals are
 \item to evaluate the performance of automatically-generated picklers
   compared to manually written picklers, analyzing the memory usage
   compared to other serialization frameworks,
-\item to provide a survey of the properties of data types that are
+\item and to provide a survey of the properties of data types that are
   commonly used in distributed computing frameworks and applications.
 \end{enumerate}\noindent
-In the process we are going to evaluate the performance of our
+In the process, we are going to evaluate the performance of our
 framework alongside two popular and industrially-prominent serialization frameworks
-for the JVM, Java's native serialization and Kryo.\footnote{We select Kryo and Java because, like scala/pickling, they both are ``automatic''. That is, they require no schema or extra compilation phases, as is the case for other frameworks such as Apache Avro and Google Protobuf.}
+for the JVM, Java's native serialization, and Kryo.\footnote{We select Kryo and Java because, like scala/pickling, they both are ``automatic''. That is, they require no schema or extra compilation phases, as is the case for other frameworks such as Apache Avro and Google Protobuf.}
 
 \subsection{Experimental Setup}
 
@@ -2266,7 +2266,7 @@ Each benchmark was run on a warmed-up JVM. The result shown is the median of 9 s
 
 \subsection{Microbenchmark: Collections}
 
-In the first microbenchmark we evaluate the performance of our
+In the first microbenchmark, we evaluate the performance of our
 framework when pickling standard collection types. We compare against
 three other serialization frameworks: Java's native serialization,
 Kryo, and a combinator library of naive handwritten pickler combinators. All
@@ -2328,8 +2328,8 @@ serialization is stateful because of internal buffering. In fact, when
 preparing these benchmarks we had to manually adjust Kryo buffer sizes
 several times to avoid buffer overflows. It turns out the main reason
 for this is that Kryo reuses buffers whenever possible when
-serializing one object after the other. In many cases the
-newly pickled object is simply append at the current position in the
+serializing one object after the other. In many cases, the
+newly pickled object is simply appended at the current position in the
 existing buffer which results in unexpected buffer growth. Our
 framework does not do any buffering which makes its behavior very
 predictable, but does not necessarily maximize its performance.
@@ -2338,7 +2338,7 @@ Finally, Figure~\ref{fig:results-vector} (c) shows the relative sizes of the ser
 
 \subsection{Wikipedia: Cyclic Object Graphs}
 
-In the second benchmark we evaluate the performance of our framework when
+In the second benchmark, we evaluate the performance of our framework when
 pickling object graphs with cycles. Using real data from the Wikipedia
 project, the benchmark builds a graph where nodes are Wikipedia articles and
 edges are references between articles. In this benchmark we compare against
