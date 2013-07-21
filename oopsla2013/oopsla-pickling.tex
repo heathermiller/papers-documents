@@ -1633,11 +1633,11 @@ defined based on the linearization of its supertraits. \footnotemark[3]
 This model of inheritance is central to the generation framework, and is
 formally defined in the following Section \ref{sec:ir}
 
-\subsection{Formal Model of Inheritance}
+\subsection{Model of Inheritance}
 \label{sec:ir}
 
-The goal of this section is to formally define the representation, or
-$IR$, of a static type $T$ as it is used to generate a pickler for
+The goal of this section is to formally define the intermediate representation (IR), which we'll denote
+$\Upsilon$, of a static type $T$ as it is used to generate a pickler for
 type $T$. We start by defining the syntax of the elements of the IR
 (see Def.~\ref{def:elems-ir}).
 
@@ -1648,8 +1648,8 @@ We define the syntax of values of the IR types.
 
 \begin{align*}
 F&        ::= \overline{(f_n, T)}\\
-IR&       ::= (T, IR_{opt}, F)\\
-IR_{opt}& ::= \epsilon~|~IR
+\Upsilon&       ::= (T, \Upsilon_{opt}, F)\\
+\Upsilon_{opt}& ::= \epsilon~|~\Upsilon
 \end{align*}
 
 $F$ represents a sequence of \textit{fields}. We write $\overline{X}$ as
@@ -1657,16 +1657,16 @@ shorthand for sequences, $X_1,\dots,X_n$, and we write tuples
 $(X_1,\dots,X_n)$. $f_n$ is a string representing the name of the given field,
 and $T$ is its type.
 
-$IR$ represents the pickling information for a class or some other object
-type. That is, an $IR$ for type $T$ contains all of the information required
+$\Upsilon$ represents the pickling information for a class or some other object
+type. That is, an $\Upsilon$ for type $T$ contains all of the information required
 to pickle instances of type $T$, including all necessary static info for
 pickling its fields provided by $F$.
 
-$IR_{opt}$ is an optional $IR$; a missing $IR$ is represented using $\epsilon$.
+$\Upsilon_{opt}$ is an optional $\Upsilon$; a missing $\Upsilon$ is represented using $\epsilon$.
 \end{defn}
 
 In our implementation the IR types are represented using case classes. For
-example, the following case class represents $IR$s:
+example, the following case class represents $\Upsilon$s:
 
 \begin{lstlisting}
 case class ClassIR(
@@ -1708,11 +1708,11 @@ combinators themselves.
 {\small
 \begin{align*}
 \textit{concat}&        : (F, F) \Rightarrow F\\
-\textit{extended}&      : (IR, IR) \Rightarrow IR\\
+\textit{extended}&      : (\Upsilon, \Upsilon) \Rightarrow \Upsilon\\
 \textit{linearization}& : T \Rightarrow \overline{T}\\
-\textit{superIRs}&      : T \Rightarrow \overline{IR}\\
-\textit{compose}&       : IR \Rightarrow IR\\
-\textit{flatten}&       : IR \Rightarrow IR
+\textit{superIRs}&      : T \Rightarrow \overline{\Upsilon}\\
+\textit{compose}&       : \Upsilon \Rightarrow \Upsilon\\
+\textit{flatten}&       : \Upsilon \Rightarrow \Upsilon
 \end{align*}
 }%
 
@@ -1758,25 +1758,25 @@ denote concatenation of sequences using a comma. We introduce the
 
 \begin{defn*}{(IR Combinators) -- Continued}
 
-The function \textit{extended} takes two $IR$s, $C$ and $D$, and returns a new
-$IR$ for the type of $D$ such that $C$ is registered as its super $IR$.
-Basically, \textit{extended} is used to combine a completed $IR$ $C$ with an
-incomplete $IR$ $D$ yielding a completed $IR$ for the same type as $D$. When
-combining the $IR$s of a type's supertypes, the \textit{extended} function is
-used for reducing the linearization sequence yielding a single completed $IR$.
+The function \textit{extended} takes two $\Upsilon$s, $C$ and $D$, and returns a new
+$\Upsilon$ for the type of $D$ such that $C$ is registered as its super $\Upsilon$.
+Basically, \textit{extended} is used to combine a completed $\Upsilon$ $C$ with an
+incomplete $\Upsilon$ $D$ yielding a completed $\Upsilon$ for the same type as $D$. When
+combining the $\Upsilon$s of a type's supertypes, the \textit{extended} function is
+used for reducing the linearization sequence yielding a single completed $\Upsilon$.
 
 The function \textit{superIRs} takes a type $T$ and returns a sequence of the
 IRs of $T$'s supertypes in linearization order.
 
-The function \textit{compose} takes an $IR$ $C$ for a type $C.1$ and returns a
-new $IR$ for type $C.1$ which is the composition of the IRs of all supertypes
-of $C.1$. The resulting $IR$ is a chain of super IRs according to the
+The function \textit{compose} takes an $\Upsilon$ $C$ for a type $C.1$ and returns a
+new $\Upsilon$ for type $C.1$ which is the composition of the IRs of all supertypes
+of $C.1$. The resulting $\Upsilon$ is a chain of super IRs according to the
 linearization order of $C.1$.
 
-The function \textit{flatten}, given an $IR$ $C$ produces a new $IR$ that
-contains a concatenation of all the fields of each nested $IR$. Given
-these combinators, the $IR$ of a type $T$ to-be-pickled is obtained
-using $IR = flatten(compose((T, \epsilon, \lbrack \rbrack))$.
+The function \textit{flatten}, given an $\Upsilon$ $C$ produces a new $\Upsilon$ that
+contains a concatenation of all the fields of each nested $\Upsilon$. Given
+these combinators, the $\Upsilon$ of a type $T$ to-be-pickled is obtained
+using $\Upsilon = flatten(compose((T, \epsilon, \lbrack \rbrack))$.
 \end{defn*}
 
 \rule{0.9\columnwidth}{0.7pt}
