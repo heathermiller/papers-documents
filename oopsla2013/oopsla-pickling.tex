@@ -269,7 +269,6 @@
 \newcommand{\sreduce}[6]{#1, #2, #3 \;\longrightarrow\; #4, #5, #6}
 \newcommand{\sreducebreak}[6]{#1, #2, #3 \\ \;\longrightarrow\; #4, #5, #6}
 \newcommand{\sreducestar}[6]{#1, #2, #3 \;\longrightarrow^{\ast}\; #4, #5, #6}
-\newcommand{\sreducestarbreak}[6]{#1, #2, #3 \\ \;\longrightarrow^{\ast}\; #4, #5, #6}
 
 % misc identifiers
 \newcommand{\dom}{\mbox{\sl dom}}
@@ -1384,91 +1383,9 @@ $C$ of the pickler must not be exactly equal to the dynamic type of the object
 to-be-pickled (the object at location $r$); it is only necessary that $D \sub
 C$.
 
-\paragraph{Property} The pickling and unpickling methods of a pickler must
+\paragraph{Properties} The pickling and unpickling methods of a pickler must
 satisfy the property that ``pickling followed by unpickling generates an
-object that is structurally equal to the original object''. The following
-definition captures this formally:
-
-\begin{defn}
-
-Given variables $x,x',y,y'$, heaps $H,H'$, variable environments $V,V'$, and a
-term $t$ such that
-
-$\ba[t]{ll@{\hspace{2mm}}}
-V(y) = r     &  H(r)   = C(\seq{r})  \\
-V(x) = r_p   &  H(r_p) = (C_p, m, D) \\
-\left\{
-  \ba{ll}
-  D = C     & \text{if}~m=s \\
-  D \sub C  & \text{if}~m=d
-  \ea
-  \right.   &               \\
-V'(y') = r'  &               \\
-\ea$
-
-and
-
-%\begin{equation}
-$
-\sreducestarbreak H V {\texttt{let}~x' = x.u(x.p(y))~\texttt{in}~t}
-  {H'} {V'} {\texttt{let}~x' = y'~\texttt{in}~t}
-$
-%\end{equation}
-
-Then $r$ and $r'$ must be structurally equivalent in heap $H'$, written $r
-\equiv_{H'} r'$.
-
-\end{defn}
-
-Note that in the above definition we assume that references in heap $H$ are
-not garbage collected in heap $H'$. The definition of structural equivalence
-is straight-forward.
-
-
-\begin{defn}(Structural Equivalence)
-
-Two picklers $r_p,r_p'$ are structurally equal in heap $H$, written $r_p \equiv_{H} r_p'$
-{\em iff}
-
-\begin{equation}
-\begin{split}
-H(r_p) = (C_p, m, C) \land H(r_p') = (C_p', m', C') \Rightarrow \\
-m = m' \land C <: C' \land C' <: C
-\end{split}
-\end{equation}
-
-Two reference locations $r,r'$ are structurally equal in heap $H$, written $r \equiv_{H} r'$ {\em iff}
-
-\begin{equation}
-\begin{split}
-H(r) = C(\seq{r}) \land H(r') = C'(\seq{p}) \Rightarrow \\
-C <: C' \land C' <: C \land \forall r_i \in \seq{r}, p_i \in \seq{p}.~r_i \equiv_{H} p_i
-\end{split}
-\end{equation}
-
-\end{defn}
-
-Note that the above definition considers two picklers to be structurally equal
-even if their implementation classes $C_p$ and $C_p'$ are different. In some
-sense, this is consistent with our practical implementation in the common case
-where picklers are only resolved using implicits: Scala's implicit resolution
-enforces that an implicit pickler of a given type is uniquely determined.
-
-
-
-
-% $
-% V(y) = r    \andalso  H(r) = C(\seq{r})                        \\
-% V(x) = r_p  \andalso  H(r_p) = (C_p, d, D)  \andalso  D \sub C \\
-% \sreducestar H V {\texttt{let}~x' = x.u(x.p(y))~\texttt{in}~t}
-%   {H'} {V'} {\texttt{let}~x' = y'~\texttt{in}~t}
-% $
-
-
-%we include the reduction rule for method invocations since rules pertinent are variations
-
-%\begin{equation}
-%\end{equation}
+object that is structurally equal to the original object''. Formally, a reduction
 
 % \begin{equation}
 % \sreducestar H V {\texttt{let}~x' = x.u(x.p(y))~\texttt{in}~t}
@@ -1532,7 +1449,29 @@ enforces that an implicit pickler of a given type is uniquely determined.
 
 
 
+% \begin{defn}
 
+% Two picklers $\rho, \rho'$ are structurally equal, written $\rho \equiv \rho'$
+% {\em iff}
+
+% \begin{equation}
+% \begin{split}
+% \rho = ((p, u), m, C) \land \rho' = ((p', u'), m', C') \Rightarrow \\
+% m = m' \land C <: C' \land C' <: C
+% \end{split}
+% \end{equation}
+
+% Two objects are structurally equal in heap $H$, written $o \equiv_{H} o'$ {\em iff}
+
+% \begin{equation}
+% \begin{split}
+% o = (C, F) \land o' = (C', F') \Rightarrow \\
+% C <: C' \land C' <: C \land dom(F) = dom(F') \land \\
+% \forall f \mapsto r \in F.~\exists f \mapsto r' \in F'.~H(r) \equiv_{H} H(r')
+% \end{split}
+% \end{equation}
+
+% \end{defn}
 
 
 % \newpage
@@ -1625,10 +1564,9 @@ subtyping, thereby extending a well-known approach in functional programming.
 The distinction between static and dynamic picklers enables optimizations for
 final class types and primitive types. Object-oriented picklers can be
 implemented using various techniques, such as manually written picklers,
-runtime reflection, or Java-style annotation processors. We argue that object-
-oriented picklers should be invariant in their generic type parameter to allow
-for several scenarios of unanticipated evolution. Finally, we provide a
-formalization of a simple form of OO picklers.
+runtime reflection, or Java-style annotation processors. Finally, we argue
+that object-oriented picklers should be invariant in their generic type
+parameter to allow for several scenarios of unanticipated evolution.
 
 
 
@@ -1698,7 +1636,7 @@ formally defined in the following Section \ref{sec:ir}
 \subsection{Model of Inheritance}
 \label{sec:ir}
 
-The goal of this section is to formally define the intermediate representation (IR), which we'll denote
+The goal of this section is to formally define the IR, which we'll denote
 $\Upsilon$, of a static type $T$ as it is used to generate a pickler for
 type $T$. We start by defining the syntax of the elements of the IR
 (see Def.~\ref{def:elems-ir}).
