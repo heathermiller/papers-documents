@@ -2265,16 +2265,14 @@ Intel Core i7 processor with 16 GB of memory running Mac OS X version
 \begin{figure}[ht!]
  \centering
  \includegraphics[width=\columnwidth]{sparklr.pdf}
- \caption{Results for pickling and unpickling an immutable
-   \texttt{Vector[Int]} using different frameworks.}
+ \caption{Results for pickling/unpickling data points from an implementation of linear regression using Spark.}
  \label{fig:spark}
 \end{figure}
 
 \begin{figure}[ht!]
  \centering
  \includegraphics[width=\columnwidth]{geotrellis.pdf}
- \caption{Results for pickling and unpickling an immutable
-   \texttt{Vector[Int]} using different frameworks.}
+ \caption{Results for pickling/unpickling data points from an implementation of linear regression.}
  \label{fig:geotrellis}
 \end{figure}
 
@@ -2352,9 +2350,8 @@ scala/pickling finishes after about 144ms--a performance gain of about 25\%.
 
 \subsection{Microbenchmark: Spark}
 
-The Spark benchmark compares performance of our framework, Java's native
-serialization and Kryo when pickling data types from the Spark's linear
-regression example.
+Spark is a popular distributed in-memory collections abstraction for interactively manipulating big data.
+The Spark benchmark compares performance of scala/pickling, Java, and Kryo when pickling data types from the Spark's implementation of linear regression.
 
 Over the course of the benchmark, frameworks pickle and unpickle an
 \verb|ArrayBuffer| of data points that each consist of a double
@@ -2366,7 +2363,7 @@ because that's the data structure of choice for Spark
 to internally partition and represent its data.
 
 The results are shown in Figure~\ref{fig:results-spark}, with Java and Kryo
-running in comparable time and scala/pickling consistently outperforming both of them. For example, for a dataset of 40000 points, it takes Java 68ms and Kryo 86ms to perform a pickling/unpickling roundtrip, whereas scala/pickling completes in 28ms.
+running in comparable time and scala/pickling consistently outperforming both of them. For example, for a dataset of 40000 points, it takes Java 68ms and Kryo 86ms to perform a pickling/unpickling roundtrip, whereas scala/pickling completes in 28ms–– a performance gain of about ???\%.
 
 \subsection{Microbenchmark: GeoTrellis}
 
