@@ -2227,14 +2227,14 @@ quasiquoting library for Scala's macros~\cite{Quasiquotes}.
 \begin{figure*}[ht!]
  \centering
  \includegraphics[width=0.95\textwidth]{wikigraph.pdf}
- \caption{}
+ \caption{Results for pickling/unpickling a partition of Wikipedia, represented as a graph with many cycles. Figure~\ref{fig:evactor}(a) shows a ``pickling'' benchmark across scala/pickling, Kryo, and Java. In Figure~\ref{fig:evactor}(b), results for a roundtrip pickling/unpickling is shown. Here, Kryo is removed because it crashes during unpickling.}
  \label{fig:wikigraph}
 \end{figure*}
 
 \begin{figure*}[ht!]
  \centering
  \includegraphics[width=0.95\textwidth]{evactor.pdf}
- \caption{Results for pickling/unpickling evactor datatypes, numerous tiny messages represented as case classes containing primitive fields.}
+ \caption{Results for pickling/unpickling evactor datatypes (numerous tiny messages represented as case classes containing primitive fields.) Figure~\ref{fig:evactor}(a) shows a benchmark which pickles/unpickles up to 10,000 evactor messages. Java runs out of memory at this point. Figure~\ref{fig:evactor}(b) removes Java and scales up the benchmark to more evactor events.}
  \label{fig:evactor}
 \end{figure*}
 
@@ -2295,7 +2295,9 @@ performance of our prototype is faster than Kryo for small to moderate-sized col
 performance of manually written pickler combinators, however, is still
 considerably better. This is likely due to the fact that pickler combinators require no runtime checks whatsoever-- picklers combinators are defined per type, and manually composed, requiring no such check. In principle, it should be possible to generate code
 that is as fast as these pickler combinators in the case
-where static picklers can be generated\footnote{As a framework intended for eventual production use, we are actively seeking to bring performance closer to that of fully-static hand-composed pickler combinators. Towards that aim, we maintain a full benchmark suite at \url{http://lampwww.epfl.ch/~hmiller/pickling}}.
+where static picklers can be generated
+
+% \footnote{As a framework intended for eventual production use, we are actively seeking to bring performance closer to that of fully-static hand-composed pickler combinators. Towards that aim, we maintain a full benchmark suite at \url{http://lampwww.epfl.ch/~hmiller/pickling}}.
 
 Figure~\ref{fig:results-vector} (b) shows the corresponding memory usage; on the
 y-axis the value of \texttt{System.freeMemory} is shown. This plot
