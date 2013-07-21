@@ -2285,20 +2285,16 @@ In the first microbenchmark we evaluate the performance of our
 framework when pickling standard collection types. We compare against
 three other serialization frameworks: Java's native serialization,
 Kryo, and a combinator library of naive handwritten pickler combinators. All
-benchmarks are compiled and run using Scala version 2.9.3, except for
-the present framework which depends on an experimental macro system,
-as well as a couple of minor bug fixes that exist only in a current
-development version of Scala.
+benchmarks are compiled and run using a current milestone of Scala version 2.10.3.
 
 The benchmark logic is very simple: an immutable collection of type
 \verb|Vector[Int]| is created which is first pickled (or serialized)
-to a byte array, and then unpickled. While \verb|List| is the protypical collection type used in Scala, we ultimately chose \verb|Vector| as
-Scala's standard \verb|List| type could not be serialized out-of-the-box\footnote{We register each class with Kryo, an optional step that improves performance.}
-using Kryo, because it is a recursive type in Scala. In order to use Scala's standard List type with Kryo, one must write a custom serializer, which would sidestep the objective of this benchmark, which is to compare the speed of {\em generated} picklers.
+to a byte array, and then unpickled. While \verb|List| is the prototypical collection type used in Scala, we ultimately chose \verb|Vector| as
+Scala's standard \verb|List| type could not be serialized out-of-the-box using Kryo,\footnote{We register each class with Kryo, an optional step that improves performance.} because it is a recursive type in Scala. In order to use Scala's standard \verb|List| type with Kryo, one must write a custom serializer, which would sidestep the objective of this benchmark, which is to compare the speed of {\em generated} picklers.
 
 The results are
-shown in Figure~\ref{fig:results-vector} (a). As can be seen, Java is markedly slower than any other framework. This is likely due to the expensive runtime cost of the JVM's calculation of the runtime transitive closure of the objects to be serialized. For 1,000,000 elements, Java finishes in 491ms while scala/pickling finishes in 86ms, or a factor 5.7 faster. As can be seen, the
-performance of our prototype is faster than Kryo for small to moderate-sized collections, and is on par with Kryo or even slightly slower for large collections. For a Vector with 100,000 elements, Kryo finishes in 36ms while scala/pickling finishes in 10ms-- a factor of 3.6 in favor of scala/pickling. Conversely, for a Vector of 1,000,000 elements, Kryo finishes in 82ms whereas scala/pickling finishes in 86ms. The
+shown in Figure~\ref{fig:results-vector} (a). As can be seen, Java is markedly slower than any other framework. This is likely due to the expensive runtime cost of the JVM's calculation of the runtime transitive closure of the objects to be serialized. For 1,000,000 elements, Java finishes in 495ms while scala/pickling finishes in 74ms, or a factor 6.6 faster. As can be seen, the
+performance of our prototype is faster than Kryo for small to moderate-sized collections, and is on par with Kryo or even slightly slower for large collections. For a Vector with 100,000 elements, Kryo v2 finishes in 36ms while scala/pickling finishes in 10ms-- a factor of 3.6 in favor of scala/pickling. Conversely, for a Vector of 1,000,000 elements, Kryo finishes in 84ms whereas scala/pickling finishes in 74ms. The
 performance of manually written pickler combinators, however, is still
 considerably better. This is likely due to the fact that pickler combinators require no runtime checks whatsoever-- picklers combinators are defined per type, and manually composed, requiring no such check. In principle, it should be possible to generate code
 that is as fast as these pickler combinators in the case
