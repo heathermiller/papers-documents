@@ -2366,7 +2366,15 @@ because that's the data structure of choice for Spark
 to internally partition and represent its data.
 
 The results are shown in Figure~\ref{fig:results-spark}, with Java and Kryo
-running in comparable time and scala/pickling consistently outperforming both of them. For example, for a dataset of 40000 points, it takes Java 70ms and Kryo 87ms to perform a pickling/unpickling roundtrip, whereas scala/pickling completes in 29ms.
+running in comparable time and scala/pickling consistently outperforming both of them. For example, for a dataset of 40000 points, it takes Java 68ms and Kryo 86ms to perform a pickling/unpickling roundtrip, whereas scala/pickling completes in 28ms.
+
+\subsection{Microbenchmark: GeoTrellis}
+
+GeoTrellis~\cite{GeoTrellis} is a geographic data processing engine for high performance applications used by the US federal government among others.
+
+In this benchmark one of the main message classes used in GeoTrellis is pickled. The class is a simple case class containing a primitive array of integers (expected to be large). Figure~\ref{fig:results-geotrellis} shows the time it takes to pickle and unpickle an instance of this case class varying the size of the contained array.
+
+The plot shows that Java serialization performs, compared to Kryo, surprisingly well in this benchmark, e.g. a roundtrip for 50000000 elements takes Java 406ms, whereas Kryo is more than two times slower at 836ms. It is likely that modern JVMs support arrays of primitive types well, which is the dominating factor in this case. Scala/pickling is still significantly faster with 124ms, since the static type of the array is final, so that efficient array-pickling code can be generated at compile time.
 
 \subsection{Data Types in Distributed Frameworks and Applications}
 \label{sec:data-types-in-distributed-applications}
@@ -2412,11 +2420,8 @@ frameworks. We categorize the data types shown in this table into two groups.
 
 In the first group at the top are distributed \emph{applications}
 using data types suitable for distributed event processing and message
-passing. We consider two representative open-source applications:
-GeoTrellis~\cite{GeoTrellis} is a geographic data
-processing engine for high performance applications used by the US
-federal government among others.  Evactor is a complex event processor
-based on actors. Both applications use Akka~\cite{Akka}, an
+passing. We consider two representative open-source applications: GeoTrellis
+and Evactor. Both applications use Akka~\cite{Akka}, an
 event-driven middleware for distributed message passing. However, the
 properties of the exchanged messages are markedly different. Messages
 in GeoTrellis typically contain large amounts of geographic raster
