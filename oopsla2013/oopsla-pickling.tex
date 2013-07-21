@@ -2236,7 +2236,7 @@ quasiquoting library for Scala's macros~\cite{Quasiquotes}.
  \centering
  \includegraphics[width=0.95\textwidth]{evactor.pdf}
  \caption{}
- \label{fig:wikigraph}
+ \label{fig:evactor}
 \end{figure*}
 
 \section{Experimental Evaluation}
@@ -2328,7 +2328,7 @@ consistently crashed in the unpickling phase despite several work-around
 attempts. Thus, we include the results of two experiments: (1) ``pickle
 only'', and (2) ``pickle and unpickle''. The results show that Java's native
 serialization performs particularly well in this benchmark. In the ``pickle
-only'' benchmark of Figure~\ref{fig:wikigraph} between 8000 and 9000 nodes, Java takes only between 7ms and
+only'' benchmark of Figure~\ref{fig:wikigraph} between 12000 and 14000 nodes, Java takes only between 7ms and
 10ms, whereas scala/pickling takes around 15ms. Kryo performs significantly
 worse, with a time between 22ms and 24ms. In the ``pickle and unpickle''
 benchmark of Figure~\ref{fig:wikigraph}, the gap between Java and scala/pickling is similar to the ``pickle
