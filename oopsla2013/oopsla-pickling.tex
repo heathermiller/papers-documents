@@ -1618,6 +1618,17 @@ pickling its fields provided by $F$.
 $IR_{opt}$ is an optional $IR$; a missing $IR$ is represented using $\epsilon$.
 \end{defn}
 
+In our implementation the IR types are represented using case classes. For
+example, the following case class represents $IR$s:
+
+\begin{lstlisting}
+case class ClassIR(
+  tpe: Type,
+  parent: ClassIR,
+  fields: List[FieldIR]
+) extends PickleIR
+\end{lstlisting}
+
 Using the definitions of the elements of an IR from Definition \ref{def:elems-ir},
 we go on to define a number of useful IR combinators, which form the
 basis of our model of inheritance.
@@ -1723,6 +1734,22 @@ using $IR = flatten(compose((T, \epsilon, \lbrack \rbrack))$.
 
 \rule{0.9\columnwidth}{0.7pt}
 
+The above IR combinators have direct Scala implementations in scala/pickling.
+For example, function $superIRs$ is implemented as follows:
+
+\begin{lstlisting}
+private val f3 = (c: C) =>
+  c.tpe.baseClasses
+       .map(superSym => c.tpe.baseType(superSym))
+       .map(tp => ClassIR(tp, null, fields(tp)))
+\end{lstlisting}
+\noindent
+Here, method \verb|baseClasses| returns the collection of superclass symbols
+of type \verb|c.tpe| in linearization order. Method \verb|baseType| converts
+each symbol to a type which is, in turn, used to create a \verb|ClassIR|
+instance. The semantics of the \verb|fields| method is analogous to the above
+$fields$ function.
+
 \subsection{Pickler Generation Algorithm}
 
 The pickler generation is driven by the IR (see Section~\ref{sec:ir}) of a
@@ -1757,7 +1784,7 @@ strings) in order to assemble a pickle.
 The interface provided by \term{PickleFormat} is simple: it basically consists
 of two methods (a) for creating an empty builder, and (b) for creating a
 reader from a pickle:\footnote{In our actual implementation the
-\term{createReader} method takes an additional parameter which is a "mirror"
+\term{createReader} method takes an additional parameter which is a ``mirror''
 used for runtime reflection; it is omitted here for simplicity.}
 
 \begin{lstlisting}
