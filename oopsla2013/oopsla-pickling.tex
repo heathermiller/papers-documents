@@ -1689,8 +1689,7 @@ superclasses, not including the implemented interfaces.}
 
 \footnotetext[2]{TypeTags are part of the mainline Scala
 compiler since version 2.10. They replace the earlier concept of Manifests,
-providing a faithful representation of Scala types at runtime, see Section
-\ref{sec:background}.}
+providing a faithful representation of Scala types at runtime.}
 \footnotetext[3]{Traits in
 Scala can be thought of as a more flexible form of Java-style interfaces that
 allow concrete members, and that support a form of multiple inheritance (mix-
@@ -2407,8 +2406,7 @@ internally. What's more, the demand for pickling generics seems to be
 lower than the need to support subtyping polymorphism (our framework
 supports both, though). At least in one case (Twitter's Chill~\cite{TwitterChill}) a
 framework explicitly serializes Manifests, type descriptors for Scala
-types, which are superceded by TypeTags (see
-Section~\ref{sec:reflection})
+types, which are superceded by TypeTags.
 The shaded area (which groups ``heavily-used'' features across
 applications/frameworks) shows that collections are often used in distributed
 code, in particular with primitive element types. This motivates the choice of
