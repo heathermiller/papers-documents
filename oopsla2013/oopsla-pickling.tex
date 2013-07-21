@@ -332,9 +332,10 @@ easily interchangeable pickle format, (2) using the type class pattern, users ca
 provide their own custom picklers to override the default behavior of
 the pickling framework. In addition to extensibility and need for little to
 no boilerplate, the static generation of our OO picklers enables
-significant performance improvements. In microbenchmarks, our framework
-achieves a factor 6 speedup over Java Serialization, and performs on
-par or up to 3 times faster than popular fast Java serialization frameworks like Kryo.
+significant performance improvements.
+% In microbenchmarks, our framework
+% achieves a factor 6 speedup over Java Serialization, and performs on
+% par or up to 3 times faster than popular fast Java serialization frameworks like Kryo.
 
 % \todo mention Akka \& Spark?
 % We go on to evaluate
@@ -1364,7 +1365,7 @@ variants of that rule.
   \caption{Reduction rules for pickling.}
   \label{fig:opsem-rules}
 \end{figure*}
-\vspace{-4em}
+% \vspace{-4em}
 
 Figure~\ref{fig:opsem-rules} shows the reduction rules for pickling and
 unpickling an object.
@@ -1637,7 +1638,7 @@ defined based on the linearization of its supertraits\footnotemark[2].
 This model of inheritance is central to the generation framework, and is
 formally defined in the following Section \ref{sec:ir}
 
-\vspace{-1em}
+% \vspace{-1em}
 \subsection{Model of Inheritance}
 \label{sec:ir}
 
@@ -1650,7 +1651,7 @@ type $T$. We start by defining the syntax of the elements of the IR
 \label{def:elems-ir}
 
 We define the syntax of values of the IR types.
-\vspace{-0.4em}
+
 \begin{align*}
 F&        ::= \overline{(f_n, T)}\\
 \Upsilon&       ::= (T, \Upsilon_{opt}, F)\\
@@ -1673,6 +1674,8 @@ $\Upsilon_{opt}$ is an optional $\Upsilon$; a missing $\Upsilon$ is represented 
 In our implementation the IR types are represented using case classes. For
 example, the following case class represents $\Upsilon$s:
 
+\vspace{4em}
+
 \begin{lstlisting}
 case class ClassIR(
   tpe: Type,
@@ -1681,8 +1684,7 @@ case class ClassIR(
 ) extends PickleIR
 \end{lstlisting}
 
-Using the definitions of the elements of an IR from Definition \ref{def:elems-ir},
-we go on to define a number of useful IR combinators, which form the
+We go on to define a number of useful IR combinators, which form the
 basis of our model of inheritance.
 
 % This is the footnote from the definition
@@ -1722,6 +1724,7 @@ to type $Y$.
 The \textit{linearization} function represents the host language's semantics for the
 linearized chain of supertypes.\footnotemark[3]
 
+\vspace{2em}
 \textit{Continued on next page...}
 \vspace{2em}
 
@@ -2292,7 +2295,7 @@ to a byte array, and then unpickled. While \verb|List| is the prototypical colle
 Scala's standard \verb|List| type could not be serialized out-of-the-box using Kryo,\footnote{We register each class with Kryo, an optional step that improves performance.} because it is a recursive type in Scala. In order to use Scala's standard \verb|List| type with Kryo, one must write a custom serializer, which would sidestep the objective of this benchmark, which is to compare the speed of {\em generated} picklers.
 
 The results are
-shown in Figure~\ref{fig:results-vector} (a). As can be seen, Java is markedly slower than any other framework. This is likely due to the expensive runtime cost of the JVM's calculation of the runtime transitive closure of the objects to be serialized. For 1,000,000 elements, Java finishes in 495ms while scala/pickling finishes in 74ms, or a factor 6.6 faster. As can be seen, the
+shown in Figure~\ref{fig:results-vector} (a). As can be seen, Java is slower than the other frameworks. This is likely due to the expensive runtime cost of the JVM's calculation of the runtime transitive closure of the objects to be serialized. For 1,000,000 elements, Java finishes in 495ms while scala/pickling finishes in 74ms, or a factor 6.6 faster. As can be seen, the
 performance of our prototype is faster than Kryo for small to moderate-sized collections, and is on par with Kryo or even slightly slower for large collections. For a Vector with 100,000 elements, Kryo v2 finishes in 36ms while scala/pickling finishes in 10ms-- a factor of 3.6 in favor of scala/pickling. Conversely, for a Vector of 1,000,000 elements, Kryo finishes in 84ms whereas scala/pickling finishes in 74ms. The
 performance of manually written pickler combinators, however, is still
 considerably better. This is likely due to the fact that pickler combinators require no runtime checks whatsoever-- picklers combinators are defined per type, and manually composed, requiring no such check. In principle, it should be possible to generate code
@@ -2373,7 +2376,7 @@ running in comparable time and scala/pickling consistently outperforming both of
 
 GeoTrellis~\cite{GeoTrellis} is a geographic data processing engine for high performance applications used by the US federal government among others.
 
-In this benchmark one of the main message classes used in GeoTrellis is pickled. The class is a simple case class containing a primitive array of integers (expected to be large). Figure~\ref{fig:results-geotrellis} shows the time it takes to pickle and unpickle an instance of this case class varying the size of the contained array.
+In this benchmark one of the main message classes used in GeoTrellis is pickled. The class is a simple case class containing a primitive array of integers (expected to be large). Figure~\ref{fig:geotrellis} shows the time it takes to pickle and unpickle an instance of this case class varying the size of the contained array.
 
 The plot shows that Java serialization performs, compared to Kryo, surprisingly well in this benchmark, e.g. a roundtrip for 50000000 elements takes Java 406ms, whereas Kryo is more than two times slower at 836ms. It is likely that modern JVMs support arrays of primitive types well, which is the dominating factor in this case. Scala/pickling is still significantly faster with 124ms, since the static type of the array is final, so that efficient array-pickling code can be generated at compile time.
 
