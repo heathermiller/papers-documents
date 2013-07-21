@@ -526,37 +526,7 @@ with Java serialization and Kryo.
 % \subsection{Reflection}
 % \label{sec:reflection}
 
-% Reflection is the ability of a program to inspect, and possibly even modify
-% itself at runtime. Before Scala 2.10, Scala did not have any reflection
-% capabilities of its own. Instead, one could use Java reflection which provided
-% basic but limited runtime reflection capabilities. In Scala 2.10, a new
-% reflection library was introduced not only to address the shortcomings of
-% Java's runtime reflection on Scala-specific and generic types, but to also add
-% a more powerful toolbox of general reflective capabilities to Scala. Along
-% with full-featured runtime reflection for Scala types and generics, Scala 2.10
-% also ships with compile-time reflection capabilities, in the form of macros
-% (covered in Section \ref{sec:macros}), as well as the ability to reify Scala
-% expressions into abstract syntax trees (ASTs).
 
-% \paragraph{TypeTags.} One aspect of runtime reflection that was introduced in
-% Scala 2.10 is the notion of \verb|TypeTag|s. As with other JVM languages,
-% Scala's types are erased at compile time. \verb|TypeTag|s can be thought of as
-% objects which carry along all type information available at compile time, to
-% runtime. As we will see, \verb|TypeTag|s will prove to be invaluable in
-% situations where precise type information would otherwise not be available at runtime.
-
-% \paragraph{Unified Runtime/Compile-time Reflection API.} Another important
-% aspect of Scala's reflection library is the one-to-one correspondence between
-% Scala Reflection's compile-time (\ie macros) and runtime APIs. Each API is
-% parameterized on a so-called \verb|Universe|, an object which serves as the
-% entry point to Scala reflection, and which provides all principal concepts
-% used in reflection, such as \verb|Type|s, \verb|Tree|s, and
-% \verb|Annotation|s. Depending on the task at hand, the choice between runtime
-% and compile-time reflection is as easy as selecting either a compile-time or a
-% runtime \verb|Universe|. As we will see, this enables maximum code
-% reuse in that a fallback runtime pickler generation mechanism can be achieved
-% by simply reusing the code for static generation, and parameterizing it on a
-% runtime \verb|Universe|.
 
 
 % \paragraph{Macro Annotations.} Unlike macro defs, macro annotations are capable
@@ -823,6 +793,43 @@ correctly after unpickling. Creating custom picklers is greatly facilitated by
 modular composition using object-oriented pickler combinators. The design of
 these first-class object-oriented picklers and pickler combinators is
 discussed in detail in the following Section~\ref{sec:oopicklers}.
+
+
+% \section{Background: Reflection in Scala}
+% \label{sec:reflection}
+
+% Reflection is the ability of a program to inspect, and possibly even modify
+% itself at runtime. Before Scala 2.10, Scala did not have any reflection
+% capabilities of its own. Instead, one could use Java reflection which provided
+% basic but limited runtime reflection capabilities. In Scala 2.10, a new
+% reflection library was introduced not only to address the shortcomings of
+% Java's runtime reflection on Scala-specific and generic types, but to also add
+% a more powerful toolbox of general reflective capabilities to Scala. Along
+% with full-featured runtime reflection for Scala types and generics, Scala 2.10
+% also ships with compile-time reflection capabilities, in the form of macros
+% (covered in Section \ref{sec:macros}), as well as the ability to reify Scala
+% expressions into abstract syntax trees (ASTs).
+
+% \paragraph{TypeTags.} One aspect of runtime reflection that was introduced in
+% Scala 2.10 is the notion of \verb|TypeTag|s. As with other JVM languages,
+% Scala's types are erased at compile time. \verb|TypeTag|s can be thought of as
+% objects which carry along all type information available at compile time, to
+% runtime. As we will see, \verb|TypeTag|s will prove to be invaluable in
+% situations where precise type information would otherwise not be available at runtime.
+
+% \paragraph{Unified Runtime/Compile-time Reflection API.} Another important
+% aspect of Scala's reflection library is the one-to-one correspondence between
+% Scala Reflection's compile-time (\ie macros) and runtime APIs. Each API is
+% parameterized on a so-called \verb|Universe|, an object which serves as the
+% entry point to Scala reflection, and which provides all principal concepts
+% used in reflection, such as \verb|Type|s, \verb|Tree|s, and
+% \verb|Annotation|s. Depending on the task at hand, the choice between runtime
+% and compile-time reflection is as easy as selecting either a compile-time or a
+% runtime \verb|Universe|. As we will see, this enables maximum code
+% reuse in that a fallback runtime pickler generation mechanism can be achieved
+% by simply reusing the code for static generation, and parameterizing it on a
+% runtime \verb|Universe|.
+
 
 % \begin{figure*}[t]
 % $\ba[t]{ll@{\hspace{2mm}}l@{\hspace{2mm}}l@{\hspace{2mm}}l}
