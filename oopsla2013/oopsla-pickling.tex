@@ -2299,16 +2299,17 @@ Java is slower than the other frameworks. This is likely due to the expensive
 runtime cost of the JVM's calculation of the runtime transitive closure of the
 objects to be serialized. For 1,000,000 elements, Java finishes in 495ms while
 scala/pickling finishes in 74ms, or a factor 6.6 faster. As can be seen, the
-performance of our prototype is faster than Kryo for small to moderate-sized
-collections, and is on par with Kryo or even slightly slower for large
+performance of our prototype is clearly faster than Kryo for small to
+moderate-sized collections; even though it remains faster throughout this
+benchmark, the gap between Kryo and scala/pickling shrinks for larger
 collections. For a Vector with 100,000 elements, Kryo v2 finishes in 36ms
-while scala/pickling finishes in 10ms-- a factor of 3.6 in favor of
+while scala/pickling finishes in 10ms--a factor of 3.6 in favor of
 scala/pickling. Conversely, for a Vector of 1,000,000 elements, Kryo finishes
 in 84ms whereas scala/pickling finishes in 74ms. This result clearly shows the
 benefit of our hybrid compile-time/runtime approach: while scala/pickling has
 to incur the overhead of tracking object identity in the case of general
 object graphs, in this case, the compile-time pickler generation is able to
-detect that object identity does not have to be tracked in this case.
+detect that object identity does not have to be tracked for the pickled data types.
 Moreover, it is possible to provide a size hint to the pickle builder,
 enabling the use of a fixed-size array as the target for the pickled data. We
 have found that those two optimizations, which require the kind of static
