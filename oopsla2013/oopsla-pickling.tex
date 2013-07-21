@@ -564,8 +564,8 @@ unpickling an object \term{obj} of type \term{Obj} requires simply,
 
 \begin{lstlisting}
 import scala.pickling._
-val pickl = obj.pickle
-val obj2 = pickl.unpickle[Obj]
+val pickle = obj.pickle
+val obj2 = pickle.unpickle[Obj]
 \end{lstlisting}
 
 Here, the \term{import} statement imports scala/pickling, the method
@@ -598,8 +598,8 @@ on \verb|obj|. The above example can be written in a form where all
 invocations of implicit methods are explicit, as follows:
 
 \begin{lstlisting}
-val pickl = PickleOps[Obj](obj).pickle
-val obj2 = pickl.unpickle[Obj]
+val pickle = PickleOps[Obj](obj).pickle
+val obj2 = pickle.unpickle[Obj]
 \end{lstlisting}
 
 
@@ -632,8 +632,8 @@ class Firefighter(override val name: String, val since: Int)
   extends Person(name)
 
 val ff = new Firefighter("Jim", 2005)
-val pickl = ff.pickle[Person]
-val ff2 = pickl.unpickle[Person]
+val pickle = ff.pickle[Person]
+val ff2 = pickle.unpickle[Person]
 \end{lstlisting}
 
 In the above example, the runtime type of \term{ff2} will correctly be
@@ -651,7 +651,7 @@ Scala/pickling is also able to unpickle values of static type
 types quite convenient, for example:
 
 \begin{lstlisting}
-val unpickld = pickl.unpickle[Any] match {
+val unpickled = pickle.unpickle[Any] match {
   case Firefighter(name, since) => ...
   case x: Int => ...
   ...
@@ -2050,7 +2050,7 @@ can be written to the pickle.
  \centering
  \includegraphics[width=\textwidth]{travInt-all.pdf}
  \caption{Results for pickling and unpickling an immutable
-   \texttt{Vector[Int]} using different frameworks. Figure~\ref{fig:results-vector}(a) shows the rountrip pickle/unpickle time as the size of the \texttt{Vector} varies. Figure~\ref{fig:results-vector}(b) the amount of free memory available during pickling/unpickling as the size of the \texttt{Vector} varies. Figure~\ref{fig:results-vector}(c) shows the pickled size of \texttt{Vector}.}
+   \texttt{Vector[Int]} using different frameworks. Figure~\ref{fig:results-vector}(a) shows the roundtrip pickle/unpickle time as the size of the \texttt{Vector} varies. Figure~\ref{fig:results-vector}(b) shows the amount of free memory available during pickling/unpickling as the size of the \texttt{Vector} varies. Figure~\ref{fig:results-vector}(c) shows the pickled size of \texttt{Vector}.}
  \label{fig:results-vector}
 \end{figure*}
 
@@ -2257,11 +2257,11 @@ for the JVM, Java's native serialization and Kryo.\footnote{We select Kryo and J
 
 \subsection{Experimental Setup}
 
-The following benchmarks were run on a MacBook Pro with a 2.7 GHz
+The following benchmarks were run on a MacBook Pro with a 2.6 GHz
 Intel Core i7 processor with 16 GB of memory running Mac OS X version
-10.8.2 and Oracle's Java HotSpot(TM) 64-Bit Server VM version
-1.6.0\_43. In all cases we used the following configuration flags:
-\texttt{-Xms1536M -Xmx4096M -Xss2M -XX:MaxPermSize=512M -XX:+UseParallelGC}. Each benchmark was run on a warmed-up JVM. The result shown is the median of 9 such ``warm'' runs.
+10.8.4 and Oracle's Java HotSpot(TM) 64-Bit Server VM version
+1.6.0\_51. In all cases we used the following configuration flags:
+\texttt{-XX:MaxPermSize=512m -Xms512m -Xmx2g -XX:ReservedCodeCacheSize=192m -XX:+CMSClassUnloadingEnabled -XX:+UseConcMarkSweepGC}. Each benchmark was run on a warmed-up JVM. The result shown is the median of 10 such ``warm'' runs.
 
 \begin{figure}[ht!]
  \centering
