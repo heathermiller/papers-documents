@@ -1689,8 +1689,7 @@ superclasses, not including the implemented interfaces.}
 
 \footnotetext[2]{TypeTags are part of the mainline Scala
 compiler since version 2.10. They replace the earlier concept of Manifests,
-providing a faithful representation of Scala types at runtime, see Section
-\ref{sec:background}.}
+providing a faithful representation of Scala types at runtime.}
 \footnotetext[3]{Traits in
 Scala can be thought of as a more flexible form of Java-style interfaces that
 allow concrete members, and that support a form of multiple inheritance (mix-
@@ -2325,13 +2324,14 @@ regression example.
 Over the course of the benchmark, frameworks pickle and unpickle an
 \verb|ArrayBuffer| of data points that each consist of a double
 and an accompanying \verb|spark.util.Vector|, which
-is a specialized wrapper over an array of doubles. Here we use a
+is a specialized wrapper over an array of 10 doubles. Here we use a
 mutable buffer as a container for data elements instead
 of more typical lists and vectors from Scala's standard library,
 because that's the data structure of choice for Spark
 to internally partition and represent its data.
 
-The results are shown in Figure~\ref{fig:results-spark}.
+The results are shown in Figure~\ref{fig:results-spark}, with Java and Kryo
+running in comparable time and scala/pickling consistently outperforming both of them. For example, for a dataset of 40000 points, it takes Java 70ms and Kryo 87ms to perform a pickling/unpickling roundtrip, whereas scala/pickling completes in 29ms.
 
 \subsection{Wikipedia: Cyclic Object Graphs}
 
@@ -2440,8 +2440,7 @@ internally. What's more, the demand for pickling generics seems to be
 lower than the need to support subtyping polymorphism (our framework
 supports both, though). At least in one case (Twitter's Chill~\cite{TwitterChill}) a
 framework explicitly serializes Manifests, type descriptors for Scala
-types, which are superceded by TypeTags (see
-Section~\ref{sec:reflection})
+types, which are superceded by TypeTags.
 The shaded area (which groups ``heavily-used'' features across
 applications/frameworks) shows that collections are often used in distributed
 code, in particular with primitive element types. This motivates the choice of
