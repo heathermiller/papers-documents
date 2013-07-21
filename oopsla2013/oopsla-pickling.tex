@@ -360,7 +360,7 @@ Serialization, pickling, meta-programming, distributed programming, Scala
 
 With the growing trend towards cloud computing and mobile applications,
 distributed programming has entered the mainstream. As more and more
-traditional applications migrate to the cloud, the demand for interopability between
+traditional applications migrate to the cloud, the demand for interoperability between
 different services is at an all-time high, and is increasing. At the center of
 it all is communication. Whether we consider a cluster of commodity machines
 churning through a massive data-parallel job, or a smartphone interacting with
@@ -1138,9 +1138,6 @@ unanticipated evolution. This is not possible with picklers that are
 contravariant. Consequently, in scala/pickling the \term{SPickler} trait is
 invariant in its type parameter.
 
-
-\newpage
-
 \subsection{Formalization}\label{sub:picklers-formal}
 
 To define picklers formally we use a standard approach based on an operational
@@ -1196,9 +1193,7 @@ Let $\texttt{def}~m(\seq{x \typ C}) \typ D = e$ be a method defined in the
 most direct superclass of $C$ that defines $m$. Then
 $mbody(m, C) = (\seq{x}, e)$ and $mtype(m, C) = \seq{C} \rightarrow D$.
 
-\subsubsection{Dynamic semantics}
-
-\begin{figure}
+\begin{figure}[ht!]
 
 $\ba[t]{ll@{\hspace{2mm}}l}
 H    ::= & \emptyset ~|~ (H, r \mapsto v)              & \mbox{heap} \\
@@ -1212,6 +1207,8 @@ r \in    & RefLocs                                     & \mbox{reference locatio
 \caption{Heaps, environments, objects, and picklers.}\label{fig:heaps-stacks}
 \end{figure}
 
+\vspace{0em}
+\subsubsection{Dynamic semantics}
 
 % \begin{figure}
 % $\ba[t]{ll@{\hspace{2mm}}l}
@@ -1430,7 +1427,7 @@ object that is structurally equal to the original object''. Formally, a reductio
 % \end{defn}
 
 
-\newpage
+% \newpage
 
 
 \comment{
@@ -1519,7 +1516,7 @@ Object-oriented picklers enable modular pickler combinators with support for
 subtyping, thereby extending a well-known approach in functional programming.
 The distinction between static and dynamic picklers enables optimizations for
 final class types and primitive types. Object-oriented picklers can be
-implemented using various techniques, such as manually-written picklers,
+implemented using various techniques, such as manually written picklers,
 runtime reflection, or Java-style annotation processors. Finally, we argue
 that object-oriented picklers should be invariant in their generic type
 parameter to allow for several scenarios of unanticipated evolution.
@@ -1532,7 +1529,7 @@ parameter to allow for several scenarios of unanticipated evolution.
 An explicit goal of our framework is to require little to no boilerplate in
 client code, since practitioners are typically accustomed to serialization supported
 by the underlying runtime environment like in Java or .NET. Therefore, instead
-of requiring libraries or applications to supply manually-written picklers for
+of requiring libraries or applications to supply manually written picklers for
 all pickled types, our framework provides a component for {\em generating picklers}
 based on their required static type.
 
@@ -1541,7 +1538,7 @@ by generating as much pickling code as possible statically (which corresponds
 to a partial evaluation of pickler combinators). Section~\ref{sec:evaluation}
 reports on the performance improvements that our framework achieves using
 compile-time pickler generation, compared to picklers based on runtime
-reflection, as well as manually-written picklers.
+reflection, as well as manually written picklers.
 
 %\begin{figure}
 % \centering
@@ -1877,7 +1874,7 @@ generated.
 \end{prop}
 
 Since the picklers that are in scope at the point where a pickler is generated
-are under programmer control, it is possible to import manually-written
+are under programmer control, it is possible to import manually written
 picklers which are transparently picked up by the generated pickler. Our
 approach thus has the attractive property that it is an ``open-world''
 approach, in which it is easy to add new custom picklers for selected types at
@@ -2020,7 +2017,7 @@ structure.
 To avoid the overhead of tracking object identities unanimously for all
 objects, ``runtime-based'' serialization frameworks like Java or Kryo have to
 employ reflective/introspective checks to detect whether identities are
-relevant.\footnote{With Kryo some of this overhead can be avoided when using custom, hand-written serializers.}
+relevant.\footnote{With Kryo some of this overhead can be avoided when using custom, handwritten serializers.}
 
 Scala/pickling, on the other hand, employs a hybrid compile-time/runtime
 approach. This makes it possible to avoid the overhead of object identity
@@ -2147,7 +2144,7 @@ In this section we present first results of an experimental evaluation
 of our pickling framework. Our goals are
 \begin{enumerate}
 \item to evaluate the performance of automatically-generated picklers
-  compared to manually-written picklers, analyzing the memory usage
+  compared to manually written picklers, analyzing the memory usage
   compared to other serialization frameworks,
 \item to provide a survey of the properties of data types that are
   commonly used in distributed computing frameworks and applications,
@@ -2185,7 +2182,7 @@ using Kryo, because it is a recursive type in Scala. In order to use Scala's sta
 The results are
 shown in Figure~\ref{fig:results-vector} (a). As can be seen, Java is markedly slower than any other framework. This is likely due to the expensive runtime cost of the JVM's calculation of the runtime transitive closure of the objects to be serialized. For 1,000,000 elements, Java finishes in 491ms while Scala Pickling finishes in 86ms, or a factor 5.7 faster. As can be seen, the
 performance of our prototype is faster than Kryo for small to moderate-sized collections, and is on par with Kryo or even slightly slower for large collections. For a Vector with 100,000 elements, Kryo finishes in 36ms while Scala Pickling finishes in 10ms-- a factor of 3.6 in favor of Scala Pickling. Conversely, for a Vector of 1,000,000 elements, Kryo finishes in 82ms whereas Scala Pickling finishes in 86ms. The
-performance of manually-written pickler combinators, however, is still
+performance of manually written pickler combinators, however, is still
 considerably better. This is likely due to the fact that pickler combinators require no runtime checks whatsoever-- picklers combinators are defined per type, and manually composed, requiring no such check. In principle, it should be possible to generate code
 that is as fast as these pickler combinators in the case
 where static picklers can be generated\footnote{As a framework intended for eventual production use, we are actively seeking to bring performance closer to that of fully-static hand-composed pickler combinators. Towards that aim, we maintain a full benchmark suite at \url{http://lampwww.epfl.ch/~hmiller/pickling}}.
