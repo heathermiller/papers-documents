@@ -323,7 +323,7 @@ combinators and Java-based serialization frameworks tend to be tied to a
 specific pickle format, leaving programmers no choice of how their data is
 persisted. In this paper, we present object-oriented pickler combinators and a
 framework\footnote{\url{http://github.com/scala/pickling/}} for
-generating them at compile-time. While specifically
+generating them at compile-time, called \textit{scala/pickling}. While specifically
 designed for the Scala programming language, many aspects of our
 approach are applicable in other statically-typed object-oriented
 languages. Our framework is
@@ -390,7 +390,7 @@ integration.
 
 This paper takes a step towards more principled open programming through a new
 foundation for pickling in object-oriented languages. We present object-oriented
-picklers and a framework for generation either at runtime or at
+picklers and \textit{scala/pickling}, a framework for their generation either at runtime or at
 compile time. The introduced notion of object-oriented pickler combinators
 extends pickler combinators known from functional
 programming~\cite{Kennedy2004} with support for object-oriented concepts such
@@ -692,7 +692,7 @@ constructor parameters etc.)
 
 \subsection{Basic Usage}
 
-The Scala Pickling framework was designed so as to require as little
+Scala/pickling was designed so as to require as little
 boilerplate from the programmer as possible. For that reason, pickling or
 unpickling an object \term{obj} of type \term{Obj} requires simply,
 
@@ -702,7 +702,7 @@ val pickl = obj.pickle
 val obj2 = pickl.unpickle[Obj]
 \end{lstlisting}
 
-Here, the \term{import} statement imports the Scala Pickling framework,
+Here, the \term{import} statement imports scala/pickling,
 the method \term{pickle} triggers static pickler generation, and the
 method \term{unpickle} triggers static unpickler generation, where
 \verb|unpickle| is parameterized on \verb|obj|'s precise type
@@ -729,7 +729,7 @@ use runtime reflection to access the state that is being pickled and
 unpickled. For example, a runtime pickler is used when pickling instances of a
 generic subclass of the static class type to-be-pickled.
 
-Using the Scala Pickling framework, it's
+Using scala/pickling, it's
 also possible to pickle and unpickle subtypes, even if the pickle and unpickle
 methods are called using supertypes of the type to-be-pickled.
 For example,
@@ -754,7 +754,7 @@ framework will fail with a runtime exception at the call-site of
 type information available at runtime, resulting in wrongly unpickled objects
 often propagating to other areas of the program before an exception is thrown.
 
-The Scala Pickling framework is also able to unpickle values of static type
+Scala/pickling is also able to unpickle values of static type
 \term{Any}. Scala's pattern-matching syntax can make unpickling on less-specific
 types quite convenient, for example:
 
@@ -783,7 +783,7 @@ specialized for the runtime type of the object to-be-pickled, or, if the
 runtime type is unknown, which is to be expected in the presence of separate
 compilation, to a generic, but slower, runtime pickler.
 
-For higher performance, the Scala Pickling framework additionally provides an
+For higher performance, the scala/pickling additionally provides an
 annotation which at compile-time inserts a runtime type test to check whether
 the runtime class extends a certain class/trait; in which case, we call the
 method that returns the pickler specialized for that runtime class. If the
@@ -1750,7 +1750,7 @@ The pickle format provides an interface which plays the role of a simple,
 lower-level ``backend''. Besides a pickle template that is generated inline as
 part of the pickling logic, methods provided by pickle builders aim to do as
 little as possible to minimize runtime overhead. For example,  the JSON
-\term{PickleFormat} included with the Scala Pickling framework simply uses an
+\term{PickleFormat} included with scala/pickling simply uses an
 efficient string builder to concatenate JSON fragments (which are just
 strings) in order to assemble a pickle.
 
@@ -2150,7 +2150,7 @@ of our pickling framework. Our goals are
 \end{enumerate}\noindent
 In the process we are going to evaluate the performance of our
 framework alongside two popular and industrially-prominent serialization frameworks
-for the JVM, Java's native serialization and Kryo.\footnote{We select Kryo and Java because, like the Scala Pickling framework, they both are ``automatic''. That is, they require no schema or extra compilation phases, as is the case for other frameworks such as Apache Avro and Google Protobuf.}
+for the JVM, Java's native serialization and Kryo.\footnote{We select Kryo and Java because, like scala/pickling, they both are ``automatic''. That is, they require no schema or extra compilation phases, as is the case for other frameworks such as Apache Avro and Google Protobuf.}
 
 \subsection{Experimental Setup}
 
@@ -2178,8 +2178,8 @@ Scala's standard \verb|List| type could not be serialized out-of-the-box\footnot
 using Kryo, because it is a recursive type in Scala. In order to use Scala's standard List type with Kryo, one must write a custom serializer, which would sidestep the objective of this benchmark, which is to compare the speed of {\em generated} picklers.
 
 The results are
-shown in Figure~\ref{fig:results-vector} (a). As can be seen, Java is markedly slower than any other framework. This is likely due to the expensive runtime cost of the JVM's calculation of the runtime transitive closure of the objects to be serialized. For 1,000,000 elements, Java finishes in 491ms while Scala Pickling finishes in 86ms, or a factor 5.7 faster. As can be seen, the
-performance of our prototype is faster than Kryo for small to moderate-sized collections, and is on par with Kryo or even slightly slower for large collections. For a Vector with 100,000 elements, Kryo finishes in 36ms while Scala Pickling finishes in 10ms-- a factor of 3.6 in favor of Scala Pickling. Conversely, for a Vector of 1,000,000 elements, Kryo finishes in 82ms whereas Scala Pickling finishes in 86ms. The
+shown in Figure~\ref{fig:results-vector} (a). As can be seen, Java is markedly slower than any other framework. This is likely due to the expensive runtime cost of the JVM's calculation of the runtime transitive closure of the objects to be serialized. For 1,000,000 elements, Java finishes in 491ms while scala/pickling finishes in 86ms, or a factor 5.7 faster. As can be seen, the
+performance of our prototype is faster than Kryo for small to moderate-sized collections, and is on par with Kryo or even slightly slower for large collections. For a Vector with 100,000 elements, Kryo finishes in 36ms while scala/pickling finishes in 10ms-- a factor of 3.6 in favor of scala/pickling. Conversely, for a Vector of 1,000,000 elements, Kryo finishes in 82ms whereas scala/pickling finishes in 86ms. The
 performance of manually written pickler combinators, however, is still
 considerably better. This is likely due to the fact that pickler combinators require no runtime checks whatsoever-- picklers combinators are defined per type, and manually composed, requiring no such check. In principle, it should be possible to generate code
 that is as fast as these pickler combinators in the case
@@ -2199,7 +2199,7 @@ existing buffer which results in unexpected buffer growth. Our
 framework does not do any buffering which makes its behavior very
 predictable, but does not necessarily maximize its performance.
 
-Finally, Figure~\ref{fig:results-vector} (c) shows the relative sizes of the serialized data. For a Vector of 1,000,000 elements, Java required 10,322,966 bytes. As can be seen, all other frameworks perform on par with another, requiring about 40\% of the size of Java's binary format. Or, in order of largest to smallest; Kryo v1 - 4,201,152 bytes; Kryo v2 - 4,088,570 bytes; Scala Pickling 4,000,031 bytes; and Pickler Combinators 4,000,004 bytes.
+Finally, Figure~\ref{fig:results-vector} (c) shows the relative sizes of the serialized data. For a Vector of 1,000,000 elements, Java required 10,322,966 bytes. As can be seen, all other frameworks perform on par with another, requiring about 40\% of the size of Java's binary format. Or, in order of largest to smallest; Kryo v1 - 4,201,152 bytes; Kryo v2 - 4,088,570 bytes; scala/pickling 4,000,031 bytes; and Pickler Combinators 4,000,004 bytes.
 
 \subsection{Data Types in Distributed Frameworks and Applications}
 \label{sec:data-types-in-distributed-applications}
