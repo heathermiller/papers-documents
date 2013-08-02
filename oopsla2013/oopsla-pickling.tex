@@ -20,7 +20,7 @@
 %-----------------------------------------------------------------------------
 
 
-\documentclass[preprint,10pt]{sigplanconf}
+\documentclass[10pt]{sigplanconf}
 
 % The following \documentclass options may be useful:
 %
@@ -48,6 +48,10 @@
 \usepackage{bcprules}
 \usepackage{prooftree}
 \usepackage{multicol}
+
+\usepackage[firstpage]{draftwatermark}
+\SetWatermarkText{\hspace*{8in}\raisebox{3.18in}{\includegraphics[scale=0.08]{aec-badge}}}
+\SetWatermarkAngle{0}
 
 \lstdefinelanguage{Scala}%
 {morekeywords={abstract,case,catch,char,class,%
