@@ -388,7 +388,7 @@ Due to the prohibitive cost of using Java Serialization in high-performance
 distributed applications, many frameworks for distributed computing, like
 Akka~\cite{Akka}, Spark~\cite{Zaharia2012}, SCADS \cite{Armbrust2009}, and
 others, provide support for higher-performance alternative frameworks such as
-Google's Protobuf~\cite{Protobuf}, Apache Avro~\cite{Avro}, or
+Google's Protocol Buffers~\cite{Protobuf}, Apache Avro~\cite{Avro}, or
 Kryo~\cite{Kryo}. However, the higher efficiency typically comes at the cost
 of weaker or no type safety, a fixed serialization format, more restrictions
 placed on the objects to-be-serialized, or only rudimentary language
@@ -430,7 +430,7 @@ changes.
 as to enable their use in high-performance distributed, ``big data'', and
 cloud applications. One factor driving practitioners away from Java's default
 serialization mechanism is its high runtime overhead compared to alternatives
-such as Kryo, Google's protocol buffers or Apache's Avro serialization
+such as Kryo, Google's Protocol Buffers or Apache's Avro serialization
 framework. However, frameworks such as the latter offer only minimal language
 integration.
 
@@ -459,7 +459,7 @@ and mix-in composition are used very commonly to define
 regular object types in object-oriented languages. Our approach is also general,
 supporting object graphs with cycles. Since our framework does
 without a separate data type description language (\eg a schema), it
-is important that regular type definitions are sufficient to describe tahe
+is important that regular type definitions are sufficient to describe the
 types to-be-pickled. The Liskov substitution principle is used as a guidance
 surrounding the substitutability of both objects to-be-pickled and first-class
 picklers.
@@ -2312,7 +2312,7 @@ of our pickling framework. Our goals are
 \end{enumerate}\noindent
 In the process, we are going to evaluate the performance of our
 framework alongside two popular and industrially-prominent serialization frameworks
-for the JVM, Java's native serialization, and Kryo.\footnote{We select Kryo and Java because, like scala/pickling, they both are ``automatic''. That is, they require no schema or extra compilation phases, as is the case for other frameworks such as Apache Avro and Google Protobuf.}
+for the JVM, Java's native serialization, and Kryo.\footnote{We select Kryo and Java because, like scala/pickling, they both are ``automatic''. That is, they require no schema or extra compilation phases, as is the case for other frameworks such as Apache Avro and Google's Protocol Buffers.}
 
 \subsection{Experimental Setup}
 
