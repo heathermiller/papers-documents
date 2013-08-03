@@ -318,7 +318,7 @@
 
 \begin{abstract}
 
-Serialization or pickling, i.e., persisting runtime objects by converting them
+Serialization or pickling, \ie persisting runtime objects by converting them
 into a binary or text representation, is ubiquitous in distributed programming.
 Pickler combinators are a popular approach from functional programming designed to
 alleviate some of the tedium of writing pickling code by hand, but they don't
@@ -375,8 +375,8 @@ communicate in various ways, in many formats, even within the same
 application.
 
 A central aspect to this communication that has received surprisingly little
-attention in the literature is the need to serialize, or {\em pickle} objects
-{\em i.e.,} to persist in-memory data by converting them to a binary, text, or
+attention in the literature is the need to serialize, or {\em pickle} objects,
+\ie to persist in-memory data by converting them to a binary, text, or
 some other representation. On the JVM, serialization has long been
 acknowledged as having a high overhead \cite{Welsh2000, Carpenter1999}, with
 some estimates purporting object serialization to account for 25-65\% of the
@@ -458,7 +458,7 @@ point.
 and mix-in composition are used very commonly to define
 regular object types in object-oriented languages. Our approach is also general,
 supporting object graphs with cycles. Since our framework does
-without a separate data type description language ({\em e.g.,} a schema), it
+without a separate data type description language (\eg a schema), it
 is important that regular type definitions are sufficient to describe tahe
 types to-be-pickled. The Liskov substitution principle is used as a guidance
 surrounding the substitutability of both objects to-be-pickled and first-class
@@ -1354,7 +1354,7 @@ However, while picklers are regular objects in our practical implementation,
 picklers are different from objects in the present formal model. The reason is
 that a pickler has to contain a type tag indicating the types of objects that
 it can pickle (this is apparent in the rules of the operational semantics
-below); however, the alternative of adding parameterized types (as in, \eg,
+below); however, the alternative of adding parameterized types (as in, \eg
 FGJ~\cite{Igarashi2001}) is beyond the scope of the present paper.
 
 According to the grammar in Figure~\ref{fig:lang-syntax}, expressions are
@@ -2100,7 +2100,7 @@ strategies:
 \end{itemize}
 
 \paragraph{Interpreted runtime picklers.} If the runtime type of an object is
-unknown at compile time, e.g., if its static type is \term{Any}, it is
+unknown at compile time, \eg if its static type is \term{Any}, it is
 necessary to carry out the pickling based on inspecting the type of the object
 to-be-pickled at runtime. We call picklers operating in this mode ``interpreted
 runtime picklers'' to emphasize the fact that the pickling code is not
@@ -2479,7 +2479,7 @@ GeoTrellis~\cite{GeoTrellis} is a geographic data processing engine for high per
 
 In this benchmark one of the main message classes used in GeoTrellis is pickled. The class is a simple case class containing a primitive array of integers (expected to be large). Figure~\ref{fig:geotrellis} shows the time it takes to pickle and unpickle an instance of this case class varying the size of the contained array.
 
-The plot shows that Java serialization performs, compared to Kryo, surprisingly well in this benchmark, e.g. a roundtrip for 50000000 elements takes Java 406ms, whereas Kryo is more than two times slower at 836ms. It is likely that modern JVMs support arrays of primitive types well, which is the dominating factor in this case. Scala/pickling is still significantly faster with 124ms, since the static type of the array is final, so that efficient array-pickling code can be generated at compile time.
+The plot shows that Java serialization performs, compared to Kryo, surprisingly well in this benchmark, \eg a roundtrip for 50000000 elements takes Java 406ms, whereas Kryo is more than two times slower at 836ms. It is likely that modern JVMs support arrays of primitive types well, which is the dominating factor in this case. Scala/pickling is still significantly faster with 124ms, since the static type of the array is final, so that efficient array-pickling code can be generated at compile time.
 
 \subsection{Data Types in Distributed Frameworks and Applications}
 \label{sec:data-types-in-distributed-applications}
