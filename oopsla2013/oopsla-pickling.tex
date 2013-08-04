@@ -456,13 +456,12 @@ point.
 
 \item {\bf Robust support for object-orientation}. Concepts such as subtyping
 and mix-in composition are used very commonly to define
-regular object types in object-oriented languages. Our approach is also general,
-supporting object graphs with cycles. Since our framework does
+regular object types in object-oriented languages. Since our framework does
 without a separate data type description language (\eg a schema), it
 is important that regular type definitions are sufficient to describe the
 types to-be-pickled. The Liskov substitution principle is used as a guidance
 surrounding the substitutability of both objects to-be-pickled and first-class
-picklers.
+picklers. Our approach is also general, supporting object graphs with cycles.
 \end{itemize}
 
 
@@ -637,8 +636,8 @@ class Person(val name: String)
 class Firefighter(override val name: String, val since: Int)
   extends Person(name)
 
-val ff = new Firefighter("Jim", 2005)
-val pickle = ff.pickle[Person]
+val ff: Person = new Firefighter("Jim", 2005)
+val pickle = ff.pickle
 val ff2 = pickle.unpickle[Person]
 \end{lstlisting}
 
@@ -647,7 +646,7 @@ In the above example, the runtime type of \term{ff2} will correctly be
 
 This perhaps raises an important concern-- what if the type that is passed as
 a type argument to method \term{unpickle} is incorrect? In this case, the
-framework will fail with a runtime exception at the call-site of
+framework will fail with a runtime exception at the call site of
 \term{unpickle}. This is an improvement over other frameworks, which have less
 type information available at runtime, resulting in wrongly unpickled objects
 often propagating to other areas of the program before an exception is thrown.
@@ -1389,7 +1388,7 @@ $C$ of the pickler must not be exactly equal to the dynamic type of the object
 to-be-pickled (the object at location $r$); it is only necessary that $D \sub
 C$.
 
-\paragraph{Property} The pickling and unpickling methods of a pickler must
+\paragraph{Property.} The pickling and unpickling methods of a pickler must
 satisfy the property that ``pickling followed by unpickling generates an
 object that is structurally equal to the original object''. The following
 definition captures this formally:
