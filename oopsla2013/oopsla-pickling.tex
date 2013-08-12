@@ -448,7 +448,7 @@ safety guarantees provided by type-specialized picklers are ``portable'' in
 the sense that they carry over to different pickle formats.
 
 The design of our framework has been guided by the following principles:
-% \vspace{-0.3cm}
+\vspace{-0.3cm}
 \begin{itemize}
 \item {\bf Ease of use}. The programming interface aims to require as little
 pickling boilerplate as possible. Thanks to dedicated support by the
@@ -463,7 +463,7 @@ as to enable their use in high-performance distributed, ``big data'', and
 cloud applications. One factor driving practitioners away from Java's default
 serialization mechanism is its high runtime overhead compared to alternatives
 such as Kryo, Google's Protocol Buffers or Apache's Avro serialization
-framework. However, frameworks such as the latter offer only minimal language
+framework. However, such alternative frameworks offer only minimal language
 integration.
 
 \item {\bf Extensibility}. It should be possible to add pickling support to existing
@@ -502,7 +502,7 @@ picklers. Our approach is also general, supporting object graphs with cycles.
 Some OO languages like Java and runtime environments like the JVM or
 .NET provide serialization for arbitrary types, provided entirely by
 the underlying virtual machine. While this approach is very convenient
-for the programmer there are also several issues: (a) the pickling
+for the programmer, there are also several issues: (a) the pickling
 format cannot be exchanged (Java), (b) serialization relies on runtime
 reflection which hits performance, and (c) existing classes that do
 not extend a special marker interface are not serializable, which
@@ -650,7 +650,7 @@ providing their own \term{PickleFormat}s (see Section \ref{sec:pickleformat}).
 Typically, the framework generates the required pickler itself inline in the
 compiled code, using the \term{PickleFormat} in scope. In the case of JSON,
 for example, this amounts to the generation of string concatenation code and
-field accessors for getting runtime values, all of which is inlined, resulting
+field accessors for getting runtime values, all of which is inlined, generally resulting
 in high performance (see Section~\ref{sec:evaluation}).
 
 In rare cases, however, it is necessary to fall back to runtime picklers which
@@ -714,13 +714,13 @@ specialized for the runtime type of the object to-be-pickled, or, if the
 runtime type is unknown, which is to be expected in the presence of separate
 compilation, to a generic, but slower, runtime pickler.
 
-For higher performance, the scala/pickling additionally provides an
-annotation which at compile-time inserts a runtime type test to check whether
-the runtime class extends a certain class/trait; in which case, we call the
-method that returns the pickler specialized for that runtime class. If the
-class/trait has been annotated, the returned pickler has been generated
-statically (when the annotation, implemented using a macro, is expanded in
-each subclass, transitively).
+For better performance, scala/pickling additionally provides an
+annotation which, at compile-time, inserts a runtime type test to check whether
+the runtime class extends a certain class/trait. In this case, a
+method that returns the pickler specialized for that runtime class is called. If the
+class/trait has been annotated, the returned pickler is guaranteed to have been generated
+statically. Furthermore, the \verb|@pickleable| annotation (implemented as a macro annotation)
+is expanded transitively in each subclass of the annotated class/trait.
 
 This \verb|@pickleable| annotation enables:
 
@@ -762,7 +762,7 @@ class Person(val name: String)
 First, note that the supertypes of \verb|Person| now additionally include the
 trait \verb|PickleableBase|; it declares the abstract methods that the
 expansion of the macro annotation ``fills in'' with concrete methods. In this
-case a \verb|pickler| method is generated which returns an
+case, a \verb|pickler| method is generated which returns an
 \verb|SPickler[_]|.\footnote{The notation \texttt{SPickler[\_]} is short for
 the existential type \texttt{SPickler[t] forSome \{ type t \}}. It is necessary
 here, because picklers must be invariant in their type parameter, see
