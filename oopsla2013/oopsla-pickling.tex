@@ -1256,7 +1256,6 @@ unanticipated evolution. This is not possible with picklers that are
 contravariant. Consequently, in scala/pickling the \term{SPickler} trait is
 invariant in its type parameter.
 
-
 \subsection{Formalization}\label{sub:picklers-formal}
 
 To define picklers formally we use a standard approach based on an operational
@@ -1409,13 +1408,13 @@ variants of that rule.
 Figure~\ref{fig:opsem-rules} shows the reduction rules for pickling and
 unpickling an object.
 
-Rule \textsc{(R-Pickle-S)} is a refinement of the rule for method invocations.
+Rule \textsc{(R-Pickle-S)} is a refinement of rule \textsc{(R-Invoke)} for method invocations.
 When using a pickler $x$ to pickle an object $y$ such that the pickler's mode
 is $s$ (static), the type tag $C$ of the pickler indicating the type of
 objects that it can pickle must be equal to the dynamic class type of the
 object to-be-pickled (the object at location $r$). This expresses the fact
-that a static pickler can only be applied to objects of a precise statically-
-known type $C$, but not a subtype thereof.
+that a static pickler can only be applied to objects of a precise statically-known
+type $C$, but not a subtype thereof.
 
 In contrast, rule \textsc{(R-Pickle-D)} shows the invocation of the pickling
 method $p$ for a pickler with mode $d$ (dynamic). In this case, the type tag
@@ -1730,9 +1729,18 @@ We additionally define a model for composing IRs, which is designed to capture
 the essence of Scala's object system as it relates to pickling. The model
 defines how the IR for a given type is composed from the IRs of the picklers
 of its supertypes. In Scala, the composition of an IR for a class type is
-defined based on the linearization of its supertraits\footnotemark[2].
+defined based on the linearization of its supertraits.\footnotemark[2]
 This model of inheritance is central to the generation framework, and is
 formally defined in the following Section \ref{sec:ir}
+
+\footnotetext[1]{TypeTags are part of the mainline Scala
+compiler since version 2.10. They replace the earlier concept of Manifests,
+providing a faithful representation of Scala types at runtime.}
+
+% This is the footnote from the definition
+\footnotetext[2]{Traits in
+Scala can be thought of as a more flexible form of Java-style interfaces that
+allow concrete members, and that support a form of multiple inheritance (mix-in composition) that is guaranteed to be safe based on a linearization order.}
 
 % \vspace{-1em}
 \subsection{Model of Inheritance}
@@ -1767,15 +1775,6 @@ pickling its fields provided by $F$.
 $\Upsilon_{opt}$ is an optional $\Upsilon$; a missing $\Upsilon$ is represented using $\epsilon$.
 \end{defn}
 
-\footnotetext[1]{TypeTags are part of the mainline Scala
-compiler since version 2.10. They replace the earlier concept of Manifests,
-providing a faithful representation of Scala types at runtime.}
-
-% This is the footnote from the definition
-\footnotetext[2]{Traits in
-Scala can be thought of as a more flexible form of Java-style interfaces that
-allow concrete members, and that support a form of multiple inheritance (mix-in composition) that is guaranteed to be safe based on a linearization order.}
-
 \noindent In our implementation the IR types are represented using case classes. For
 example, the following case class represents $\Upsilon$s:
 
@@ -1800,7 +1799,7 @@ superclasses, not including the implemented interfaces.}
 
 \vspace{1em}
 
-\begin{defn}{(IR Combinators)}
+\begin{defn}{(IR Combinators - Type Definitions)}
 
 We begin by defining the types of our combinators before we define the
 combinators themselves.
@@ -1823,6 +1822,9 @@ to type $Y$.
 
 The \textit{linearization} function represents the host language's semantics for the
 linearized chain of supertypes.\footnotemark[3]
+\end{defn}
+
+\begin{defn}{(IR Combinators - Function Defns)}
 
 \vspace{1em}
 
@@ -1848,21 +1850,13 @@ denote concatenation of sequences using a comma. We introduce the
 \textit{concat} function for clarity in the definition of \textit{flatten}
 (see below); it is simply an alias for sequence concatenation.
 
-\vspace{1em}
-\textit{Continued in next column...}
-\vspace{1em}
-
-\end{defn}
-
-
-
 % \rule{0.9\columnwidth}{0.7pt}
 
-\begin{defn*}{(IR Combinators) -- Continued}
+% \begin{defn*}{(IR Combinators) -- Continued}
 
 % \vspace{0.3cm}
 
-\vspace{0.4cm}
+% \vspace{0.4cm}
 
 The function \textit{extended} takes two $\Upsilon$s, $C$ and $D$, and returns a new
 $\Upsilon$ for the type of $D$ such that $C$ is registered as its super $\Upsilon$.
@@ -1883,11 +1877,12 @@ The function \textit{flatten}, given an $\Upsilon$ $C$ produces a new $\Upsilon$
 contains a concatenation of all the fields of each nested $\Upsilon$. Given
 these combinators, the $\Upsilon$ of a type $T$ to-be-pickled is obtained
 using $\Upsilon = flatten(compose((T, \epsilon, \lbrack \rbrack))$.
-\end{defn*}
+% \end{defn*}
+\end{defn}
 
-\rule{0.9\columnwidth}{0.7pt}
+% \rule{0.9\columnwidth}{0.7pt}
 
-\vspace{2em}
+% \vspace{2em}
 
 The above IR combinators have direct Scala implementations in scala/pickling.
 For example, function $superIRs$ is implemented as follows:
