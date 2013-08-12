@@ -2216,14 +2216,6 @@ in Scala. Section~\ref{sec:object-graph-analysis} explains how compile-time
 analysis is used to reduce the amount of runtime checking in cases where
 object graphs are statically known to be acyclic.
 
-\begin{figure*}[ht!]
- \centering
- \includegraphics[width=\textwidth]{travInt-all.pdf}
- \caption{Results for pickling and unpickling an immutable
-   \texttt{Vector[Int]} using different frameworks. Figure~\ref{fig:results-vector}(a) shows the roundtrip pickle/unpickle time as the size of the \texttt{Vector} varies. Figure~\ref{fig:results-vector}(b) shows the amount of free memory available during pickling/unpickling as the size of the \texttt{Vector} varies. Figure~\ref{fig:results-vector}(c) shows the pickled size of \texttt{Vector}.}
- \label{fig:results-vector}
-\end{figure*}
-
 \subsubsection{Object Tracking}
 \label{sec:object-tracking}
 
@@ -2358,9 +2350,10 @@ Each benchmark was run on a warmed-up JVM. The result shown is the median of 9 s
 
 \begin{figure*}[ht!]
  \centering
- \includegraphics[width=0.95\textwidth]{wikigraph.pdf}
- \caption{Results for pickling/unpickling a partition of Wikipedia, represented as a graph with many cycles. Figure~\ref{fig:evactor}(a) shows a ``pickling'' benchmark across scala/pickling, Kryo, and Java. In Figure~\ref{fig:evactor}(b), results for a roundtrip pickling/unpickling is shown. Here, Kryo is removed because it crashes during unpickling.}
- \label{fig:wikigraph}
+ \includegraphics[width=\textwidth]{travInt-all.pdf}
+ \caption{Results for pickling and unpickling an immutable
+   \texttt{Vector[Int]} using different frameworks. Figure~\ref{fig:results-vector}(a) shows the roundtrip pickle/unpickle time as the size of the \texttt{Vector} varies. Figure~\ref{fig:results-vector}(b) shows the amount of free memory available during pickling/unpickling as the size of the \texttt{Vector} varies. Figure~\ref{fig:results-vector}(c) shows the pickled size of \texttt{Vector}.}
+ \label{fig:results-vector}
 \end{figure*}
 
 \subsection{Microbenchmark: Collections}
@@ -2404,6 +2397,13 @@ check. In principle, it should be possible to generate code that is as fast as
 these pickler combinators in the case where static picklers can be generated
 
 % \footnote{As a framework intended for eventual production use, we are actively seeking to bring performance closer to that of fully-static hand-composed pickler combinators. Towards that aim, we maintain a full benchmark suite at \url{http://lampwww.epfl.ch/~hmiller/pickling}}.
+
+\begin{figure*}[ht!]
+ \centering
+ \includegraphics[width=0.95\textwidth]{wikigraph.pdf}
+ \caption{Results for pickling/unpickling a partition of Wikipedia, represented as a graph with many cycles. Figure~\ref{fig:evactor}(a) shows a ``pickling'' benchmark across scala/pickling, Kryo, and Java. In Figure~\ref{fig:evactor}(b), results for a roundtrip pickling/unpickling is shown. Here, Kryo is removed because it crashes during unpickling.}
+ \label{fig:wikigraph}
+\end{figure*}
 
 \begin{figure*}[ht!]
  \centering
@@ -2487,6 +2487,13 @@ to internally partition and represent its data.
 The results are shown in Figure~\ref{fig:spark}, with Java and Kryo
 running in comparable time and scala/pickling consistently outperforming both of them. For example, for a dataset of 40000 points, it takes Java 68ms and Kryo 86ms to perform a pickling/unpickling roundtrip, whereas scala/pickling completes in 28ms, a speedup of about 2.4x compared to Java and about 3.0x compared to Kryo.
 
+\begin{figure}[ht!]
+ \centering
+ \includegraphics[width=\columnwidth]{geotrellis.pdf}
+ \caption{Results for pickling/unpickling geotrellis datatypes (case classes and large primitive arrays).}
+ \label{fig:geotrellis}
+\end{figure}
+
 \begin{figure*}[ht!]
  \centering
  \includegraphics[width=0.9\textwidth]{application-table.pdf}
@@ -2494,13 +2501,6 @@ running in comparable time and scala/pickling consistently outperforming both of
  \caption{Scala types used in industrial distributed frameworks and applications.}
  \label{fig:application-table}
 \end{figure*}
-
-\begin{figure}[ht!]
- \centering
- \includegraphics[width=\columnwidth]{geotrellis.pdf}
- \caption{Results for pickling/unpickling geotrellis datatypes (case classes and large primitive arrays).}
- \label{fig:geotrellis}
-\end{figure}
 
 \subsection{Microbenchmark: GeoTrellis}
 
