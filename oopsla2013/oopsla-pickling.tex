@@ -405,13 +405,16 @@ application.
 A central aspect to this communication that has received surprisingly little
 attention in the literature is the need to serialize, or {\em pickle} objects,
 \ie to persist in-memory data by converting them to a binary, text, or
-some other representation. On the JVM, serialization has long been
+some other representation.
+% Though, often, serializing arbitrary data is a messy endeavor; one must either write custom serialization code by hand, often resulting in code duplication which doesn't scale, in the interest of performance (or the other way around, less boilerplate for poor performance), or one must have to contend with cryptic runtime exceptions which have propagated to surprising and confusing points of application code.
+As more and more applications evolve the need to communicate with different machines, providing abstractions and constructs for easy-to-use, typesafe, and performant serialization is more important than ever.
+
+On the JVM, serialization has long been
 acknowledged as having a high overhead \cite{Welsh2000, Carpenter1999}, with
 some estimates purporting object serialization to account for 25-65\% of the
 cost of remote method invocation, and which go on to observe that the cost of
 serialization grows with growing object structures up to 50\%
 \cite{Philippsen2000, Maassen1999}.
-
 Due to the prohibitive cost of using Java Serialization in high-performance
 distributed applications, many frameworks for distributed computing, like
 Akka~\cite{Akka}, Spark~\cite{Zaharia2012}, SCADS \cite{Armbrust2009}, and
@@ -547,11 +550,11 @@ automatically generating picklers at compile time and at runtime, (c) supports
 pluggable pickle formats, and (d) does not require changes to the host
 language or the underlying virtual machine.
 
-\item A complete implementation of the presented approach in and for Scala
-\footnote{See \url{http://github.com/scala/pickling/}}.
+\item A complete implementation of the presented approach in and for Scala.\footnote{See \url{http://github.com/scala/pickling/}}
 
 \item An experimental evaluation comparing the performance of our framework
-with Java serialization and Kryo.
+with Java serialization and Kryo on a number of data types used in real-world,
+large-scale distributed applications and frameworks.
 
 \end{itemize}
 
@@ -2645,9 +2648,9 @@ to extend the framework with support for closures.
 We would like to thank the anonymous OOPSLA 2013 referees for their thorough
 reviews and helpful suggestions which greatly improved the quality of the
 paper. We are grateful to the artifact evaluation committee and the anonymous
-artifact referees for their detailed reviews of \textit{scala/pickling}.
+artifact referees for their detailed reviews of scala/pickling.
 Finally, we would like to thank Denys Shabalin for his work on quasiquotes for
-Scala which has helped simplify the code base of \textit{scala/pickling}
+Scala which has helped simplify the code base of scala/pickling
 considerably.
 
 % Acknowledgments, if needed.
