@@ -806,10 +806,10 @@ def assert_impl(c: Context)
 \end{lstlisting}
 
 In the above example, the parameters of \verb|assert_impl| are syntax trees,
-which the body of \verb|assert_impl| will operate on, itself returning an AST
+which the body of \verb|assert_impl| operates on, itself returning an AST
 of type \verb|Expr[Unit]|. It is \verb|assert_impl| that is expanded and
-evaluated at compile-time. Its result is then inlined at the callsite of
-\verb|assert| and the inlined result is typechecked It is also important to
+evaluated at compile-time. Its result is then inlined at the call site of
+\verb|assert| and the inlined result is typechecked. It is also important to
 note that implicit defs as described above can be implemented as macros.
 
 Scala/pickling provides an implicit macro def returning picklers for arbitrary
@@ -895,7 +895,7 @@ formalization of object-oriented picklers based on an operational semantics.
 \subsection{Picklers in Scala}\label{sub:picklers-scala}
 
 In scala/pickling, a {\em static pickler} for some type \verb|T| is an
-instance of trait \verb|SPickler[T]| which has a single abstract method
+instance of trait \verb|SPickler[T]| which has a single abstract method,
 \verb|pickle|:
 
 \begin{lstlisting}
@@ -909,7 +909,7 @@ the \verb|pickle| method of an \verb|SPickler[Person]| converts
 \verb|Person| instances to a pickled format, using a {\em pickle builder} (the
 \verb|builder| parameter). Given this definition, picklers ``are type safe in
 the sense that a type-specialized pickler can be applied only to values of the
-specialized type.''~\cite{Elsman2005}. The pickled result is not returned
+specialized type''~\cite{Elsman2005}. The pickled result is not returned
 directly; instead, it can be requested from the \verb|builder| using its
 \verb|result()| method. Example:
 
@@ -926,9 +926,9 @@ In the above example, invoking \verb|implicitly[SPickler[Person]]| either
 returns a regular implicit value of type \verb|SPickler[Person]| that is in
 scope, or, if it doesn't exist, triggers the (compile-time) generation of a
 type-specialized pickler (see Section~\ref{sec:generation}). To use the
-pickler it is also necessary to obtain a pickle builder. Since pickle formats
-in scala/pickling are exchangable (see Section~\ref{sec:pickleformat}), pickle
-builders depend on specific pickle formats, which provide builder factory
+pickler, it is also necessary to obtain a pickle builder of type \verb|PBuilder|. Since pickle formats
+in scala/pickling are exchangeable (see Section~\ref{sec:pickleformat}), the pickle
+builder is provided by the specific pickle format, through builder factory
 methods.
 
 The \verb|pickled| result has type \verb|Pickle| which wraps a concrete
