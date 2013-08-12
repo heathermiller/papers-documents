@@ -947,7 +947,7 @@ trait Pickle {
 \noindent
 The type members \verb|ValueType| and \verb|PickleFormatType| abstract from
 the concrete representation type and the pickle format type, respectively.
-Scala/pickling defines a \verb|Pickle| subclass for its default binary format
+For example, scala/pickling defines a \verb|Pickle| subclass for its default binary format
 as follows:
 
 \begin{lstlisting}
@@ -1067,7 +1067,7 @@ flexible, object-oriented form of pickler combinators.
 
 This section explores the composition of the pickler abstractions introduced
 in the previous section by means of an example. Consider a simple class
-\verb|Position| with a field of type String and a field of type \term{Person},
+\verb|Position| with a field of type \verb|String| and a field of type \term{Person},
 respectively:
 
 \begin{lstlisting}
@@ -1096,10 +1096,10 @@ dynamic picklers, static picklers benefit from several optimizations.
 \subsubsection{Implementing Object-Oriented Picklers}
 
 The main challenge when implementing OO picklers comes from the fact that a
-dynamic pickler for type $T$ must be able to pickle objects of any subtype of
-$T$. Thus, the implementation of a dynamic pickler for type $T$ must, in
+dynamic pickler for type \verb|T| must be able to pickle objects of any subtype of
+\verb|T|. Thus, the implementation of a dynamic pickler for type \verb|T| must, in
 general, dynamically dispatch on the runtime type of the object to-be-pickled
-to take into account all possible subtypes of $T$. Because of this dynamic
+to take into account all possible subtypes of \verb|T|. Because of this dynamic
 dispatch, manually constructing dynamic picklers can be difficult. It is
 therefore important for a framework for object-oriented picklers to provide
 good support for realizing this form of dynamic dispatching.
@@ -1114,7 +1114,7 @@ typically simple in such cases. For example, a manual pickler for Scala's
 \term{List} class does not even have to consider subclasses.
 
 \item Java-style runtime reflection can be used to provide a generic
-\term{DPickler}[$Any$] which supports pickling objects of any
+\term{DPickler[Any]} which supports pickling objects of any
 type~\cite{JavaSerialization,Philippsen2000}. Such a pickler can be used as a
 fallback to handle subtypes that are unknown to the pickling code; such
 subtypes must be handled in the presence of separate compilation. In
@@ -1137,14 +1137,14 @@ definitions.
 
 \subsubsection{Supporting Unanticipated Evolution}\label{sec:unanticipated}
 
-Given the fact that the type \term{SPickler}[$T$], as introduced, has a type
-parameter $T$, it is reasonable to ask what the variance of $T$ is. Ruling out
-covariance because of $T$'s occurrence in a contravariant position as the type
-of a method parameter, it remains to determine whether $T$ can be
+Given the fact that the type \term{SPickler[T]}, as introduced, has a type
+parameter \term{T}, it is reasonable to ask what the variance of \term{T} is. Ruling out
+covariance because of \term{T}'s occurrence in a contravariant position as the type
+of a method parameter, it remains to determine whether \term{T} can be
 contravariant.
 
-For this, it is useful to consider the following scenario. Assume $T$ is
-declared to be contravariant, as in \term{SPickler}[$-T$]. Furthermore, assume
+For this, it is useful to consider the following scenario. Assume \term{T} is
+declared to be contravariant, as in \term{SPickler[-T]}. Furthermore, assume
 the existence of a public, non-final class \term{C} with a subclass \term{D}:
 
 \begin{lstlisting}
@@ -1154,33 +1154,13 @@ the existence of a public, non-final class \term{C} with a subclass \term{D}:
 
 Initially, we might define a generic pickler for \term{C}:
 
+\pagebreak
+
 \begin{lstlisting}
     implicit val picklerC = new SPickler[C] {
       def pickle(obj: C): Pickle = { ... }
     }
 \end{lstlisting}
-
-\begin{figure}
-  \centering
-$\ba[t]{l@{\hspace{2mm}}l}
-P    ::=  \seq{cdef}~t                           & \mbox{program}             \\
-cdef ::=  \texttt{class}~C~\texttt{extends}~D~\{\seq{fld}~\seq{meth}\} & \mbox{class} \\
-fld  ::=  \texttt{var}~f: C                      & \mbox{field}               \\
-meth ::=  \texttt{def}~m(\seq{x: C}): D = e      & \mbox{method}              \\
-t    ::=  \texttt{let}~x = e~\texttt{in}~t       & \mbox{let binding}         \\
-\gap ~|~ x.f := y                                & \mbox{assignment}          \\
-\gap ~|~ x                                       & \mbox{variable}            \\
-e    ::=  \texttt{new}~C(\seq{x})                & \mbox{instance creation}   \\
-\gap ~|~ x.f                                     & \mbox{selection}           \\
-\gap ~|~ x.m(\seq{y})                            & \mbox{invocation}          \\
-\gap ~|~ t                                       & \mbox{term}                \\
-\ea$
-  \caption{Core language syntax. $C,D$ are class names, $f,m$ are ﬁeld and
-    method names, and $x,y$ are names of variables and parameters, respectively.}
-  \label{fig:lang-syntax}
-\end{figure}
-
-
 
 Because \term{SPickler}[$T$] is contravariant in its type parameter, instances
 of \term{D} would be pickled using \term{picklerC}. There are several possible
@@ -1206,10 +1186,10 @@ implicit val picklerD = new SPickler[D] { ... }
 However, when pickling an instance of class \term{D} this new pickler,
 \term{picklerD}, would not get selected, even if the type of the object to-be-pickled
 is statically known to be \term{D}. The reason is that
-\term{SPickler}[$C$] $<:$ \term{SPickler}[$D$] because of contravariance which
+\term{SPickler[C]} $<:$ \term{SPickler[D]} because of contravariance which
 means that \term{picklerC} is more specific than \term{picklerD}. As a result,
 according to Scala's implicit look-up rules \term{picklerC} is selected when
-an implicit object of type \term{SPickler}[$D$] is required. (Note that this
+an implicit object of type \term{SPickler[D]} is required. (Note that this
 is the case even if \term{picklerD} is declared in a scope that has higher
 precedence than the scope in which \term{picklerC} is declared.)
 
@@ -1226,11 +1206,31 @@ implicit def picklerC1[T <: C] = new SPickler[T] {
 \end{lstlisting}
 
 With this pickler in scope, it is still possible to define a more specific
-\term{SPickler}[$D$] (or \term{SPickler}[$E$]) as required:
+\term{SPickler[D]} (or \term{SPickler[E]}) as required:
 
 \begin{lstlisting}
 implicit val picklerD1 = new SPickler[D] { ... }
 \end{lstlisting}
+
+\begin{figure}
+  \centering
+$\ba[t]{l@{\hspace{2mm}}l}
+P    ::=  \seq{cdef}~t                           & \mbox{program}             \\
+cdef ::=  \texttt{class}~C~\texttt{extends}~D~\{\seq{fld}~\seq{meth}\} & \mbox{class} \\
+fld  ::=  \texttt{var}~f: C                      & \mbox{field}               \\
+meth ::=  \texttt{def}~m(\seq{x: C}): D = e      & \mbox{method}              \\
+t    ::=  \texttt{let}~x = e~\texttt{in}~t       & \mbox{let binding}         \\
+\gap ~|~ x.f := y                                & \mbox{assignment}          \\
+\gap ~|~ x                                       & \mbox{variable}            \\
+e    ::=  \texttt{new}~C(\seq{x})                & \mbox{instance creation}   \\
+\gap ~|~ x.f                                     & \mbox{selection}           \\
+\gap ~|~ x.m(\seq{y})                            & \mbox{invocation}          \\
+\gap ~|~ t                                       & \mbox{term}                \\
+\ea$
+  \caption{Core language syntax. $C,D$ are class names, $f,m$ are ﬁeld and
+    method names, and $x,y$ are names of variables and parameters, respectively.}
+  \label{fig:lang-syntax}
+\end{figure}
 
 \begin{figure}[ht!]
 
