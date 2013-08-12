@@ -2206,7 +2206,7 @@ Scala/pickling, on the other hand, employs a hybrid compile-time/runtime
 approach. This makes it possible to avoid the overhead of object identity
 tracking in cases where it is statically known to be safe, which we show in
 Section~\ref{sec:data-types-in-distributed-applications} is typically
-important in big data applications.
+common in big data applications.
 
 The following Section~\ref{sec:object-tracking} outlines how object identity
 is tracked in scala/pickling. It also explains how the management of object
@@ -2238,7 +2238,7 @@ by reducing pickle size. Scala's immutable collections hierarchy is one
 example of a set of data structures which are persistent, which means they
 make use of sharing. That is, object subgraphs which occur in multiple
 instances of a data structure can be shared which is more efficient than
-maintaining multiple copies of those subgraphs
+maintaining multiple copies of those subgraphs.
 
 Scala/pickling's management of object identities benefits instances of such
 data structures as follows. First, it reduces the size of the computed pickle,
@@ -2252,12 +2252,12 @@ once.
 
 When generating a pickler for a given type \verb|T|, the IR is analyzed to
 determine whether the graph of objects of type \verb|T| may contain cycles.
-Both \verb|T| and the types of \verb|T|'s fields are examined using a breadth-
-first traversal. Certain types are immediately excluded from the traversal,
+Both \verb|T| and the types of \verb|T|'s fields are examined using a breadth-first
+traversal. Certain types are immediately excluded from the traversal,
 since they cannot be part of a cycle. Examples are primitive types, like
 \verb|Double|, as well as certain immutable reference types that are final,
 like \verb|String|. However, the static inspection of the IR additionally
-allows Scala-pickling to traverse sealed class hierarchies.
+allows scala/pickling to traverse sealed class hierarchies.
 
 For example, consider this small class hierarchy:
 
@@ -2278,7 +2278,7 @@ final subclasses; furthermore, \verb|Person| and its subclasses have only
 fields of primitive type.
 
 In addition to this analysis, our framework allows users to disable all
-identity tracking programmatically, in case it is known that the graphs of
+identity tracking programmatically (by importing an implicit value), in case it is known that the graphs of
 (all) pickled objects are acyclic. While this switch can boost performance, it
 also disables opportunities for sharing (see above), and may thus lead to
 larger ``pickles''.
@@ -2294,7 +2294,7 @@ composition, can be implemented using stable versions of the standard, open-sour
 Scala distribution. The extension of our basic model with
 automatic pickler generation has been implemented using the experimental
 macros feature introduced in Scala 2.10.0. Macros can be thought of as a
-more regularly strucutred, localized, and more stable alternative to compiler
+more regularly structured, localized, and more stable alternative to compiler
 plugins. To simplify tree generation, our implementation leverages a
 quasiquoting library for Scala's macros~\cite{Quasiquotes}.
 
@@ -2325,10 +2325,9 @@ quasiquoting library for Scala's macros~\cite{Quasiquotes}.
 In this section we present first results of an experimental evaluation
 of our pickling framework. Our goals are
 \begin{enumerate}
-\item to evaluate the performance of automatically-generated picklers
-  compared to manually written picklers, analyzing the memory usage
-  compared to other serialization frameworks,
-\item and to provide a survey of the properties of data types that are
+\item to evaluate the performance of automatically-generated picklers, analyzing the memory usage
+  compared to other serialization frameworks, and
+\item to provide a survey of the properties of data types that are
   commonly used in distributed computing frameworks and applications.
 \end{enumerate}\noindent
 In the process, we are going to evaluate the performance of our
@@ -2341,7 +2340,7 @@ The following benchmarks were run on a MacBook Pro with a 2.6 GHz
 Intel Core i7 processor with 16 GB of memory running Mac OS X version
 10.8.4 and Oracle's Java HotSpot(TM) 64-Bit Server VM version
 1.6.0\_51. In all cases we used the following configuration flags:
-\texttt{-XX:MaxPermSize=512m -XX:+CMSClassUnloadingEnabled}
+\linebreak \texttt{-XX:MaxPermSize=512m} \texttt{-XX:+CMSClassUnloadingEnabled}
 \linebreak
 \texttt{-XX:ReservedCodeCacheSize=192m}
 \texttt{-XX:+UseConcMarkSweepGC  -Xms512m -Xmx2g}.
@@ -2377,10 +2376,10 @@ scala/pickling finishes in 74ms, or a factor 6.6 faster. As can be seen, the
 performance of our prototype is clearly faster than Kryo for small to
 moderate-sized collections; even though it remains faster throughout this
 benchmark, the gap between Kryo and scala/pickling shrinks for larger
-collections. For a Vector with 100,000 elements, Kryo v2 finishes in 36ms
+collections. For a \verb|Vector[Int]| with 100,000 elements, Kryo v2 finishes in 36ms
 while scala/pickling finishes in 10ms--a factor of 3.6 in favor of
 scala/pickling. Conversely, for a Vector of 1,000,000 elements, Kryo finishes
-in 84ms whereas scala/pickling finishes in 74ms. This result clearly shows the
+in 84ms whereas scala/pickling finishes in 74ms. This result clearly demonstrates the
 benefit of our hybrid compile-time/runtime approach: while scala/pickling has
 to incur the overhead of tracking object identity in the case of general
 object graphs, in this case, the compile-time pickler generation is able to
@@ -2391,10 +2390,10 @@ have found that those two optimizations, which require the kind of static
 checking that scala/pickling is able to do, can lead to significant
 performance improvements. The performance of manually written pickler
 combinators, however, is still considerably better. This is likely due to the
-fact that pickler combinators require no runtime checks whatsoever-- picklers
+fact that pickler combinators require no runtime checks whatsoever-- pickler
 combinators are defined per type, and manually composed, requiring no such
 check. In principle, it should be possible to generate code that is as fast as
-these pickler combinators in the case where static picklers can be generated
+these pickler combinators in the case where static picklers can be generated.
 
 % \footnote{As a framework intended for eventual production use, we are actively seeking to bring performance closer to that of fully-static hand-composed pickler combinators. Towards that aim, we maintain a full benchmark suite at \url{http://lampwww.epfl.ch/~hmiller/pickling}}.
 
@@ -2433,7 +2432,7 @@ existing buffer which results in unexpected buffer growth. Our
 framework does not do any buffering which makes its behavior very
 predictable, but does not necessarily maximize its performance.
 
-Finally, Figure~\ref{fig:results-vector} (c) shows the relative sizes of the serialized data. For a Vector of 1,000,000 elements, Java required 10,322,966 bytes. As can be seen, all other frameworks perform on par with another, requiring about 40\% of the size of Java's binary format. Or, in order of largest to smallest; Kryo v1 - 4,201,152 bytes; Kryo v2 - 4,088,570 bytes; scala/pickling 4,000,031 bytes; and Pickler Combinators 4,000,004 bytes.
+Finally, Figure~\ref{fig:results-vector} (c) shows the relative sizes of the serialized data. For a \verb|Vector[Int]| of 1,000,000 elements, Java required 10,322,966 bytes. As can be seen, all other frameworks perform on par with another, requiring about 40\% of the size of Java's binary format. Or, in order of largest to smallest; Kryo v1 - 4,201,152 bytes; Kryo v2 - 4,088,570 bytes; scala/pickling 4,000,031 bytes; and Pickler Combinators 4,000,004 bytes.
 
 \subsection{Wikipedia: Cyclic Object Graphs}
 
@@ -2473,12 +2472,12 @@ scala/pickling finishes after about 144ms--a performance gain of about 25\%.
 \subsection{Microbenchmark: Spark}
 
 Spark is a popular distributed in-memory collections abstraction for interactively manipulating big data.
-The Spark benchmark compares performance of scala/pickling, Java, and Kryo when pickling data types from the Spark's implementation of linear regression.
+The Spark benchmark compares performance of scala/pickling, Java, and Kryo when pickling data types from Spark's implementation of linear regression.
 
 Over the course of the benchmark, frameworks pickle and unpickle an
 \verb|ArrayBuffer| of data points that each consist of a double
 and an accompanying \verb|spark.util.Vector|, which
-is a specialized wrapper over an array of 10 doubles. Here we use a
+is a specialized wrapper over an array of 10 \verb|Double|s. Here we use a
 mutable buffer as a container for data elements instead
 of more typical lists and vectors from Scala's standard library,
 because that's the data structure of choice for Spark
@@ -2539,7 +2538,7 @@ like Spark~\cite{Zaharia2012} and Storm~\cite{Storm}.
 The fully shaded circles in the table representing ``heavy use'' means either
 (a) a feature is used frequently in application-level data types or
 (b) a feature is used frequently in data types that the framework registers
-(with its underlying serialization system.
+with its underlying serialization system.
 Half-shaded circles in the table representing ``light use'' mean a feature is used
 only infrequently in the data types used in applications or registered by
 frameworks. We categorize the data types shown in this table into two groups.
@@ -2570,8 +2569,8 @@ prefer the use of simple collections of primitive type
 internally. What's more, the demand for pickling generics seems to be
 lower than the need to support subtyping polymorphism (our framework
 supports both, though). At least in one case (Twitter's Chill~\cite{TwitterChill}) a
-framework explicitly serializes Manifests, type descriptors for Scala
-types, which are superceded by TypeTags.
+framework explicitly serializes manifests, type descriptors for Scala
+types, which are superceded by type tags.
 The shaded area (which groups ``heavily-used'' features across
 applications/frameworks) shows that collections are often used in distributed
 code, in particular with primitive element types. This motivates the choice of
@@ -2648,6 +2647,7 @@ We would like to thank the anonymous OOPSLA 2013 referees for their thorough
 reviews and helpful suggestions which greatly improved the quality of the
 paper. We are grateful to the artifact evaluation committee and the anonymous
 artifact referees for their detailed reviews of scala/pickling.
+We would particularly like to thank Matei Zaharia for all of his helpful conversations which inspired this vein of work.
 Finally, we would like to thank Denys Shabalin for his work on quasiquotes for
 Scala which has helped simplify the code base of scala/pickling
 considerably.
