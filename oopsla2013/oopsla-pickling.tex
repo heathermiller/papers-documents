@@ -428,7 +428,7 @@ The design of our framework has been guided by the following principles:
 pickling boilerplate as possible. Thanks to dedicated support by the
 underlying virtual machine, Java's serialization~\cite{JavaSerialization}
 requires only little boilerplate, which mainstream Java developers have come
-to expect. Our framework aims to be useable in production environments, and
+to expect. Our framework aims to be usable in production environments, and
 must, therefore, be able to integrate with existing systems with minimal
 changes.
 
@@ -1363,7 +1363,7 @@ below); however, the alternative of adding parameterized types (as in, \eg
 FGJ~\cite{Igarashi2001}) is beyond the scope of the present paper.
 
 According to the grammar in Figure~\ref{fig:lang-syntax}, expressions are
-always reduced in the context of a let-binding, except for ﬁeld assignments.
+always reduced in the context of a let-binding, except for field assignments.
 Each operand of an expression is a variable $y$ that the environment maps to a
 reference location $r$. Since the environment is a ﬂat list of variable
 bindings, let-bound variables must be alpha-renamable:
