@@ -981,7 +981,7 @@ beforehand, or it can be selected using the \verb|PickleFormatType| member of
 concrete \verb|PReader| instances:
 
 \begin{lstlisting}
-val reader = pickleFormat.createReader(pickled, currentMirror)
+val reader = pickleFormat.createReader(pickled)
 \end{lstlisting}
 
 The obtained reader can then be passed to the \verb|unpickle| method of a
@@ -1965,7 +1965,7 @@ subset of the interface of \verb|PBuilder| that the presented generation
 algorithm is going to use.\footnote{It is not necessary that \texttt{PBuilder}
 is a class. In fact, in our Scala implementation it is a trait. In Java, it
 could be an interface.} The \verb|beginEntry| method is used to indicate the
-start of a pickle for the argument obj. The field values of a class instance
+start of a pickle for the argument \verb|obj|. The field values of a class instance
 are pickled using \verb|putField| which expects both a field name and a lambda
 encapsulating the pickling logic for the object that the field points to. The
 \verb|endEntry| method indicates the completion of a (partial) pickle of an
@@ -2033,7 +2033,7 @@ from its owner's type.
 \end{itemize}
 
 Pickler generation is compositional; for example, the generated pickler for a
-class type with a string-typed field re-uses the string pickler. This is
+class type with a field of type \verb|String| re-uses the \verb|String| pickler. This is
 achieved by generating picklers for parts of an object type using invocations
 of the form \verb|implicitly[DPickler[T]]|. This means that if there is
 already an implicit value of type \term{DPickler[T]} in scope, it is used for
@@ -2090,14 +2090,14 @@ to a runtime pickler that inspects the picklee using (runtime) reflection.
 
 If the static type $T$ to be pickled is annotated using the
 \term{$@$pickleable} annotation, all subclasses are guaranteed to extend the
-predefined \verb|HasPickler| interface trait. Consequently, a more optimal
+predefined \verb|PickleableBase| interface trait. Consequently, a more optimal
 dispatch can be generated in this case:
 
 \begin{lstlisting}
     val pickler =
       if (picklee != null) {
-        val hasp = picklee.asInstanceOf[HasPickler]
-        hasp.getPickler.asInstanceOf[SPickler[T]]
+        val pbase = picklee.asInstanceOf[PickleableBase]
+        pbase.pickler.asInstanceOf[SPickler[T]]
       }
       else implicitly[SPickler[NullTpe]]
 \end{lstlisting}
