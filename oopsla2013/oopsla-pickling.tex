@@ -2571,6 +2571,12 @@ While work on pickling is typically focused on finding optimally compact
 representations for data \cite{EveryBitCounts}, not all work has focused only
 on distribution and persistence of ground values. Pickling has also been
 used to distribute and persist code to implement module systems~\cite{Roy99,Rossberg2007}.
+Similar to our approach, but in a non-OO context, AliceML's HOT~pickles~\cite{HOTPickles}
+are universal in the sense that any value
+can be pickled. While HOT pickles are deeply integrated into language and
+runtime, scala/pickling exists as a macro-based library, enabling further
+extensibility, \eg user-defined pickle formats can be interchanged.
+
 There is a body of work on maximizing sharing of runtime data
 structures~\cite{appel93hashconsing,Elsman2005,TackKS06} which we believe
 could be applied to the pickler combinators presented in
