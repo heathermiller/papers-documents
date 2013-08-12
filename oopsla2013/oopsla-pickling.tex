@@ -664,11 +664,14 @@ methods are called using supertypes of the type to-be-pickled.
 For example,
 
 \begin{lstlisting}
-class Person(val name: String)
-class Firefighter(override val name: String, val since: Int)
-  extends Person(name)
+abstract class Person {
+  def name: String
+}
 
-val ff: Person = new Firefighter("Jim", 2005)
+case class Firefighter(name: String, since: Int)
+     extends Person
+
+val ff: Person = Firefighter("Jim", 2005)
 val pickle = ff.pickle
 val ff2 = pickle.unpickle[Person]
 \end{lstlisting}
@@ -688,10 +691,9 @@ Scala/pickling is also able to unpickle values of static type
 types quite convenient, for example:
 
 \begin{lstlisting}
-val unpickled = pickle.unpickle[Any] match {
-  case Firefighter(name, since) => ...
-  case x: Int => ...
-  ...
+pickle.unpickle[Any] match {
+  case Firefighter(n, _) => println(n)
+  case _ => println("not a Firefighter")
 }
 \end{lstlisting}
 
