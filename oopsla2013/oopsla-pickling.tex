@@ -291,9 +291,10 @@
 \setmainfont[Mapping=tex-text]{Times New Roman}
 \setmonofont[Scale=0.8,BoldFont={Consolas Bold}]{Consolas}
 
-\conferenceinfo{OOPSLA '13}{October 26-31, Indianapolis, IN, USA.}
+\conferenceinfo{OOPSLA~'13}{October 29--31, 2013, Indianapolis, Indiana, USA}
 \copyrightyear{2013}
-\copyrightdata{[to be supplied]}
+\copyrightdata{978-1-4503-2374-1/13/10}
+\doi{2509136.2509547}
 
 % \titlebanner{banner above paper title}        % These are ignored unless
 % \preprintfooter{short description of paper}   % 'preprint' option specified.
@@ -327,9 +328,10 @@ hierarchies and subtyping polymorphism. Furthermore, both functional pickler
 combinators and Java-based serialization frameworks tend to be tied to a
 specific pickle format, leaving programmers no choice of how their data is
 persisted. In this paper, we present object-oriented pickler combinators and a
-framework\footnote{\url{http://github.com/scala/pickling/}} for
-generating them at compile-time, called \textit{scala/pickling}. While specifically
-designed for the Scala programming language, many aspects of our
+framework for
+generating them at compile-time, called \textit{scala/pickling}, designed
+to be the default serialization mechanism of the Scala programming language. While
+designed for Scala, many aspects of our
 approach are applicable in other statically-typed object-oriented
 languages. Our framework is
 extensible: (1) using Scala's implicit parameters, users can add their own
@@ -337,7 +339,8 @@ easily interchangeable pickle format, (2) using the type class pattern, users ca
 provide their own custom picklers to override the default behavior of
 the pickling framework. In addition to extensibility and need for little to
 no boilerplate, the static generation of our OO picklers enables
-significant performance improvements.
+significant performance improvements-- typically out-performing production frameworks
+like Java Serialization and Kryo.
 % In microbenchmarks, our framework
 % achieves a factor 6 speedup over Java Serialization, and performs on
 % par or up to 3 times faster than popular fast Java serialization frameworks like Kryo.
