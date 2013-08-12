@@ -2071,17 +2071,17 @@ implicit def provided by the pickling framework which generates a
 shape:
 
 \begin{lstlisting}
-    val clazz = if (picklee != null) picklee.getClass else null
-    val pickler = clazz match {
-      case null => implicitly[SPickler[NullTpe]]
-      case c1 if c1 == classOf[S1] => implicitly[SPickler[S1]]
-      ...
-      case cn if cn == classOf[Sn] => implicitly[SPickler[Sn]]
-      case _ => genPickler(clazz)
-    }
+val clazz = if (picklee != null) picklee.getClass else null
+val pickler = clazz match {
+  case null => implicitly[SPickler[NullTpe]]
+  case c1 if c1 == classOf[S1] => implicitly[SPickler[S1]]
+  ...
+  case cn if cn == classOf[Sn] => implicitly[SPickler[Sn]]
+  case _ => genPickler(clazz)
+}
 \end{lstlisting}
 
-The types $S1, \dots, Sn$ are known subtypes of the picklee's type $T$. If $T$
+The types $S_1, \dots, S_n$ are known subtypes of the picklee's type $T$. If $T$
 is a sealed class or trait with final subclasses, this set of types is always
 known at compile time. However, in the presence of separate compilation it is,
 generally, possible that a picklee has an unknown runtime type; therefore, we
@@ -2110,7 +2110,7 @@ as possible. However, due to the interplay of subclassing with both separate
 compilation and generics, we provide a runtime fall back capability to handle
 the cases that cannot be resolved at compile time.
 
-{\bf Subclassing and separate compilation}: A situation arises where it's
+\paragraph{Subclassing and separate compilation} A situation arises where it's
 impossible to statically know all possible subclasses. In this case there are
 three options: (1) provide a custom pickler, and (2) use an annotation which
 is described in Section \ref{sec:pickleable-annotation}. In the case where
@@ -2134,15 +2134,15 @@ necessary to carry out the pickling based on inspecting the type of the object
 to-be-pickled at runtime. We call picklers operating in this mode ``interpreted
 runtime picklers'' to emphasize the fact that the pickling code is not
 partially evaluated in this case. An interpreted pickler is created based on
-the runtime class of the picklee. From that runtime class it is possible to
-obtain a runtime type descriptor.
+the runtime class of the picklee. From that runtime class, it is possible to
+obtain a runtime type descriptor:
 
 \begin{itemize}
 \item to build a static intermediate representation of the type (which describes all its fields with their types, etc.)
 \item to determine in which way the picklee should be pickled (as a primitive or not).
 \end{itemize}
 
-In case the picklee is of primitive type, there are no fields to be pickled.
+In case the picklee is of a primitive type, there are no fields to be pickled.
 Otherwise, the value and runtime type of each field is obtained, so that it
 can be written to the pickle.
 
