@@ -2071,14 +2071,14 @@ implicit def provided by the pickling framework which generates a
 shape:
 
 \begin{lstlisting}
-    val clazz = if (picklee != null) picklee.getClass else null
-    val pickler = clazz match {
-      case null => implicitly[SPickler[NullTpe]]
-      case c1 if c1 == classOf[S1] => implicitly[SPickler[S1]]
-      ...
-      case cn if cn == classOf[Sn] => implicitly[SPickler[Sn]]
-      case _ => genPickler(clazz)
-    }
+val clazz = if (picklee != null) picklee.getClass else null
+val pickler = clazz match {
+  case null => implicitly[SPickler[NullTpe]]
+  case c1 if c1 == classOf[S1] => implicitly[SPickler[S1]]
+  ...
+  case cn if cn == classOf[Sn] => implicitly[SPickler[Sn]]
+  case _ => genPickler(clazz)
+}
 \end{lstlisting}
 
 The types $S1, \dots, Sn$ are known subtypes of the picklee's type $T$. If $T$
