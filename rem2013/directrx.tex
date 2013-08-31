@@ -147,17 +147,18 @@ respect to the basic building blocks: futures and promises play a more and
 more important role in a number of languages like Java, C++, ECMAScript, and
 Scala.
 
-The Async extensions of C\# and Scala provide language support for programming
-with futures, by avoiding an inversion of control that is inherent in designs
-based on callbacks. However, these extensions are so far only applicable to
-futures or future-like abstractions. In this paper we consider an integration
-of the Async model with a richer underlying abstraction, the observable
-streams of the Reactive Extensions model.~\cite{RxCACM} A reactive stream is a
-stream of {\em observable events} which an arbitrary number of {\em observers}
-can subscribe to. The set of possible event patterns of observable streams is
-strictly greater than those of futures. A stream can produce zero or more
-regular events, before it either completes normally or with an error; it's
-even possible for a stream to never complete.
+The Async extensions of F\#~\cite{SymePL11}, C\#~\cite{FormalizingAsync}, and
+Scala~\cite{ScalaAsyncSIP} provide language support for programming with
+futures (or ``tasks''), by avoiding an inversion of control that is inherent
+in designs based on callbacks. However, these extensions are so far only
+applicable to futures or future-like abstractions. In this paper we consider
+an integration of the Async model with a richer underlying abstraction, the
+observable streams of the Reactive Extensions model.~\cite{RxCACM} A reactive
+stream is a stream of {\em observable events} which an arbitrary number of
+{\em observers} can subscribe to. The set of possible event patterns of
+observable streams is strictly greater than those of futures. A stream can
+produce zero or more regular events, before it either completes normally or
+with an error; it's even possible for a stream to never complete.
 
 Given the richer substrate of reactive streams, the Async model has to be
 generalized in several dimensions. This paper presents a design and proposal
