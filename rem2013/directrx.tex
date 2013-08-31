@@ -164,7 +164,7 @@ Typesafe and proposed for adoption in mainline Scala~\cite{ScalaAsyncSIP}.
 
 \section{Background}
 
-\subsection{Scala Async}
+\subsection{Scala Async}\label{sec:scala-async}
 
 Scala Async provides constructs that aim to facilitate programming with
 asynchronous events in Scala. The introduced constructs are inspired to a
@@ -317,6 +317,68 @@ observer which outputs all received events to the \verb|output| stream. (The
 shown example suffers from a problem explained in~\cite{RxCACM} which
 motivates the use of an additional \verb|Switch| combinator which is omitted
 here for brevity.)
+
+\section{The Reactive Async Model}
+
+This Section provides an (example-driven) overview of the Reactive Async Model
+which integrates the Async Model and the Reactive Extensions Model.
+
+The basic idea is to generalize the Async model, so that it can be used not
+only with futures, but also with observable streams. This means, we need
+constructs that can create observables, as opposed to only futures (like
+\verb|async|), and we need ways to wait for more events than just the
+completion of a future. Essentially, it should be possible to await all kinds
+of events produced by an observable stream. Analogous to \verb|await| which
+waits for the completion event of a future, we introduce variations like
+\verb|awaitNext|, \verb|awaitDone|, and \verb|awaitFailure| to express waiting
+for the events of an observable stream.
+
+The following example shows how to await a fixed number of events of a stream
+in the Reactive Async Model:
+
+\begin{lstlisting}
+val obs = rasync {
+  var events = List[Int]()
+  while (events.size < 5) {
+    val event = awaitNext(stream)
+    events = event :: events
+  }
+  events
+}
+\end{lstlisting}
+
+Note that we are using the \verb|rasync| construct; it is a generalized
+version of the \verb|async| construct of Section~\ref{sec:scala-async} (in
+Scala implemented as a macro) which additionally supports methods to await
+events of observable streams. The invocation of \verb|awaitNext| suspends the
+\verb|rasync| block until the producer of \verb|stream| calls \verb|onNext| on
+its observers. The argument of these \verb|onNext| calls (the next produced
+event) is returned as a result from \verb|awaitNext|. The result of
+\verb|rasync|, \verb|obs|, has type \verb|Observable[List[Int]]|. Once the
+\verb|rasync| block has been evaluated to the end, the
+
+[The result of rasync is an observable. Which events can be observed when?]
+
+Sometimes it is not known statically how many events a stream might still
+produce. One might want to collect all elements until the stream is done
+(finished producing elements). In this case it is necessary to have a way to
+wait for either of two events: the stream has a next element, or the stream is
+done. This can be supported using a method \verb|awaitNextOrDone| which
+returns an \verb|Option[T]| when applied to an \verb|Observable[T]|.
+
+For example:
+
+\begin{lstlisting}
+rasync {
+  var elems: List[Int] = List()
+  var next: Option[Int] = awaitNextOrDone(stream)
+  while (next.nonEmpty) {
+    elems = next.get :: elems
+    next = awaitNextOrDone(stream)
+  }
+  elems
+}
+\end{lstlisting}
 
 %
 % The following two commands are all you need in the
