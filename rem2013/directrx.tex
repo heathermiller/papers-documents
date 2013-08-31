@@ -55,6 +55,8 @@
   xleftmargin=0.0cm
 }
 
+\newcommand{\note}[1]{{\bf $\clubsuit$ #1 $\spadesuit$}}
+
 \begin{document}
 
 \title{DirectRx: Integrating Async/Await and Reactive Extensions}
@@ -152,7 +154,7 @@ futures or future-like abstractions. In this paper we consider an integration
 of the Async model with a richer underlying abstraction, the observable
 streams of the Reactive Extensions model.~\cite{RxCACM} A reactive stream is a
 stream of {\em observable events} which an arbitrary number of {\em observers}
-can subscribe to. The set of possible event patterns of observable streams are
+can subscribe to. The set of possible event patterns of observable streams is
 strictly greater than those of futures. A stream can produce zero or more
 regular events, before it either completes normally or with an error; it's
 even possible for a stream to never complete.
@@ -161,6 +163,7 @@ Given the richer substrate of reactive streams, the Async model has to be
 generalized in several dimensions. This paper presents a design and proposal
 in the context of the Scala Async project~\cite{ScalaAsync} developed at
 Typesafe and proposed for adoption in mainline Scala~\cite{ScalaAsyncSIP}.
+
 
 \section{Background}
 
@@ -234,6 +237,7 @@ future \verb|respFut| with the same exception. Likewise, the \verb|await| on
 line 9 suspends the execution of the \verb|async| block until
 \verb|futureDaysLeft| is completed.
 
+
 \subsection{Reactive Extensions}
 
 The Rx programming model is based on two interface traits: \verb|Observable|
@@ -297,7 +301,7 @@ def textChanges(tf: JTextField): Observable[String] =
   }
 \end{lstlisting}
 
-[TODO: mention Closable]
+\note{mention Closable}
 
 This newly-defined \verb|textChanges| combinator can be used with other Rx
 combinators as follows:
@@ -318,6 +322,7 @@ shown example suffers from a problem explained in~\cite{RxCACM} which
 motivates the use of an additional \verb|Switch| combinator which is omitted
 here for brevity.)
 
+
 \section{The Reactive Async Model}
 
 This Section provides an (example-driven) overview of the Reactive Async Model
@@ -330,8 +335,10 @@ constructs that can create observables, as opposed to only futures (like
 completion of a future. Essentially, it should be possible to await all kinds
 of events produced by an observable stream. Analogous to \verb|await| which
 waits for the completion event of a future, we introduce variations like
-\verb|awaitNext|, \verb|awaitDone|, and \verb|awaitFailure| to express waiting
-for the events of an observable stream.
+\verb|awaitNext| and \verb|awaitNextOrDone| to express waiting for the events
+of an observable stream.
+
+\subsection{A first example}
 
 The following example shows how to await a fixed number of events of a stream
 in the Reactive Async Model:
@@ -343,42 +350,99 @@ val obs = rasync {
     val event = awaitNext(stream)
     events = event :: events
   }
-  events
+  Some(events)
 }
 \end{lstlisting}
 
 Note that we are using the \verb|rasync| construct; it is a generalized
-version of the \verb|async| construct of Section~\ref{sec:scala-async} (in
-Scala implemented as a macro) which additionally supports methods to await
-events of observable streams. The invocation of \verb|awaitNext| suspends the
-\verb|rasync| block until the producer of \verb|stream| calls \verb|onNext| on
-its observers. The argument of these \verb|onNext| calls (the next produced
-event) is returned as a result from \verb|awaitNext|. The result of
-\verb|rasync|, \verb|obs|, has type \verb|Observable[List[Int]]|. Once the
-\verb|rasync| block has been evaluated to the end, the
+version of the \verb|async| construct of Section~\ref{sec:scala-async} which
+additionally supports methods to await events of observable streams.
 
-[The result of rasync is an observable. Which events can be observed when?]
+In the above example, the invocation of \verb|awaitNext| suspends the
+\verb|rasync| block until the producer of \verb|stream| calls \verb|onNext| on
+its observers. The argument of this \verb|onNext| call (the next event) is
+returned as a result from \verb|awaitNext|. The result of \verb|rasync|,
+\verb|obs|, has type \verb|Observable[List[Int]]|. Once the body of
+\verb|rasync| has been fully evaluated, \verb|obs| publishes two events:
+first, an \verb|onNext| event which carries \verb|events| (the list with five
+elements), and second, an \verb|onDone| event; it is not possible for
+\verb|obs| to publish further events.
+
+Note that the result of an \verb|rasync| block has a type of the form
+\verb|Option[T]|; in the case where this optional value is empty
+(\verb|None|), only an \verb|onDone| event is published as a result of fully
+evaluating the \verb|rasync| block. (It is, however, possible to publish other
+events beforehand, as shown in the following sections.) Otherwise, the
+semantics of \verb|rasync| is analogous to the behavior of a regular
+\verb|async| block: when its body has been fully evaluated, the future, which
+is the result of \verb|async|, is completed and further changes to the state
+of the future are impossible.
+
+
+\subsection{Awaiting the end of a stream}
 
 Sometimes it is not known statically how many events a stream might still
-produce. One might want to collect all elements until the stream is done
-(finished producing elements). In this case it is necessary to have a way to
-wait for either of two events: the stream has a next element, or the stream is
-done. This can be supported using a method \verb|awaitNextOrDone| which
-returns an \verb|Option[T]| when applied to an \verb|Observable[T]|.
-
-For example:
+publish. One might want to collect all events until the stream is done
+(finished publishing events). In this case it is necessary to have a way to
+wait for either of two events: the stream publishes a next event, or the
+stream is done. This can be supported using a method \verb|awaitNextOrDone|
+which returns an \verb|Option[T]| when applied to an \verb|Observable[T]|:
 
 \begin{lstlisting}
 rasync {
-  var elems: List[Int] = List()
+  var events: List[Int] = List()
   var next: Option[Int] = awaitNextOrDone(stream)
   while (next.nonEmpty) {
-    elems = next.get :: elems
+    events = next.get :: events
     next = awaitNextOrDone(stream)
   }
-  elems
+  Some(events)
 }
 \end{lstlisting}
+
+In the above example, the body of \verb|rasync| repeatedly waits for the given
+\verb|stream| to publish either a next event or to reach its end, using
+\verb|awaitNextOrDone|. As long as the \verb|stream| continues to publish
+events (in which case \verb|next| of type \verb|Option[Int]| is non-empty),
+each event is prepended to the \verb|events| list; this list is the single
+event that the observable which is, in turn, created by \verb|rasync|
+publishes (once the body of \verb|rasync| has been fully evaluated).
+
+
+\subsection{Creating more complex streams}
+
+The streams created by \verb|rasync| in the previous sections are rather
+simple: after consuming events from other streams only a single interesting
+event is published on the created stream (by virtue of reaching the end of the
+\verb|rasync| block). In this section, we explain how more complex streams can
+be created in the Reactive Async Model.
+
+\subsubsection{A simple forwarder stream}
+
+Suppose we would like to create a stream which simply publishes an event for
+each event observed on another \verb|stream|. In this case, the constructs we
+have seen so far are not sufficient, since an arbitrary number of events have
+to be published from within the \verb|rasync| block. This is where the new
+method \verb|yieldNext| comes in: it publishes the next event to the stream
+returned by \verb|rasync|. Our simple forwarder example can then be expressed
+as follows:
+
+\begin{lstlisting}
+val forwarder = rasync[Int] {
+  var next: Option[Int] = awaitNextOrDone(stream)
+  while (next.nonEmpty) {
+    yieldNext(next.get)
+    next = awaitNextOrDone(stream)
+  }
+  None
+}
+\end{lstlisting}
+
+Note that in the above example, the result of the body of the \verb|rasync|
+block is \verb|None|; consequently, the resulting \verb|forwarder| stream only
+publishes an \verb|onDone| event when \verb|rasync|'s body has been fully
+evaluated. In this case, it is assumed that the only ``interesting'' non-done
+events of \verb|forwarder| are published using \verb|yieldNext|.
 
 %
 % The following two commands are all you need in the
