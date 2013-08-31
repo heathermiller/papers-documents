@@ -28,6 +28,33 @@
 
 \documentclass{acm_proc_article-sp}
 
+\usepackage{listings}
+\usepackage{url}
+
+\lstdefinelanguage{Scala}%
+{morekeywords={abstract,case,catch,char,class,%
+    def,else,extends,final,%
+    if,import,%
+    match,module,new,null,object,override,package,private,protected,%
+    public,return,super,this,throw,trait,try,type,val,var,with,implicit,%
+    macro,sealed,%
+  },%
+  sensitive,%
+  morecomment=[l]//,%
+  morecomment=[s]{/*}{*/},%
+  morestring=[b]",%
+  morestring=[b]',%
+  showstringspaces=false%
+}[keywords,comments,strings]%
+
+\lstset{language=Scala,%
+  mathescape=true,%
+  columns=[c]fixed,%
+  basewidth={0.5em, 0.40em},%
+  basicstyle=\tt,%
+  xleftmargin=0.0cm
+}
+
 \begin{document}
 
 \title{DirectRx: Integrating Async/Await and Reactive Extensions}
@@ -85,23 +112,211 @@ Heather Miller\\
 
 \maketitle
 \begin{abstract}
-Languages like F\#, C\#, and recently also Scala, provide ``async'' extensions which aim to make asynchronous programming easier by avoiding an inversion of control that is inherent in traditional callback-based programming models (for the purpose of this paper called the ``Async'' model). This paper outlines a novel approach to integrate the Async model with observable streams of the ``Reactive Extensions'' model which is best-known from the .NET platform, and of which popular implementations exist for Java, Ruby, and other widespread languages. We outline the translation of ``Reactive Async'' programs to efficient state machines, in a way that generalizes the state machine translation of regular Async programs. Finally, we sketch a formalization of the Reactive Async model in terms of a small-step operational semantics.
+
+Languages like F\#, C\#, and recently also Scala, provide ``async'' extensions
+which aim to make asynchronous programming easier by avoiding an inversion of
+control that is inherent in traditional callback-based programming models (for
+the purpose of this paper called the ``Async'' model). This paper outlines a
+novel approach to integrate the Async model with observable streams of the
+``Reactive Extensions'' model which is best-known from the .NET platform, and
+of which popular implementations exist for Java, Ruby, and other widespread
+languages. We outline the translation of ``Reactive Async'' programs to
+efficient state machines, in a way that generalizes the state machine
+translation of regular Async programs. Finally, we sketch a formalization of
+the Reactive Async model in terms of a small-step operational semantics.
+
 \end{abstract}
 
 % A category with the (minimum) three required fields
-\category{H.4}{Information Systems Applications}{Miscellaneous}
+%\category{H.4}{Information Systems Applications}{Miscellaneous}
 %A category including the fourth, optional field follows...
-\category{D.2.8}{Software Engineering}{Metrics}[complexity measures, performance measures]
+%\category{D.2.8}{Software Engineering}{Metrics}[complexity measures, performance measures]
 
-\terms{Theory}
+%\terms{Theory}
 
-\keywords{ACM proceedings, \LaTeX, text tagging} % NOT required for Proceedings
+%\keywords{ACM proceedings, \LaTeX, text tagging} % NOT required for Proceedings
 
 \section{Introduction}
-yeah. \cite{RxCACM, FormalizingAsync}
 
+Asynchronous programming has been a challenge for a long time. A multitude of
+programming models has been proposed that aim to simplify the task.
+Interestingly, there are elements of a convergence arising, at least with
+respect to the basic building blocks: futures and promises play a more and
+more important role in a number of languages like Java, C++, ECMAScript, and
+Scala.
 
+The Async extensions of C\# and Scala provide language support for programming
+with futures, by avoiding an inversion of control that is inherent in designs
+based on callbacks. However, these extensions are so far only applicable to
+futures or future-like abstractions. In this paper we consider an integration
+of the Async model with a richer underlying abstraction, the observable
+streams of the Reactive Extensions model.~\cite{RxCACM} A reactive stream is a
+stream of {\em observable events} which an arbitrary number of {\em observers}
+can subscribe to. The set of possible event patterns of observable streams are
+strictly greater than those of futures. A stream can produce zero or more
+regular events, before it either completes normally or with an error; it's
+even possible for a stream to never complete.
 
+Given the richer substrate of reactive streams, the Async model has to be
+generalized in several dimensions. This paper presents a design and proposal
+in the context of the Scala Async project~\cite{ScalaAsync} developed at
+Typesafe and proposed for adoption in mainline Scala~\cite{ScalaAsyncSIP}.
+
+\section{Background}
+
+\subsection{Scala Async}
+
+Scala Async provides constructs that aim to facilitate programming with
+asynchronous events in Scala. The introduced constructs are inspired to a
+large extent by extensions that have been introduced in C\# version 5 in a
+similar form.~\cite{FormalizingAsync} The goal is to enable expressing
+asynchronous code in ``direct style'', i.e., in a familiar blocking style
+where suspending operations look as if they were blocking while at the same
+time using efficient non-blocking APIs under the hood.
+
+In Scala, an immediate consequence is that non-blocking code using Scala's
+futures API~\cite{ScalaFuturesSIP} does not have to resort to (a) low-level
+callbacks, or (b) higher-order functions like map and flatMap. While the
+latter have great composability properties, they can appear unnatural when
+used to express the regular control flow of a program.
+
+The main methods provided by Scala Async, \verb|async| and \verb|await|, have
+the following type signatures:
+
+\begin{lstlisting}
+def async[T](body: => T): Future[T]
+def await[T](future: Future[T]): T
+\end{lstlisting}
+
+Given the above definitions, \verb|async| and \verb|await| ``cancel each other
+out:''
+
+\begin{lstlisting}
+await(async { <expr> }) = <expr>
+\end{lstlisting}
+
+This ``equation'' paints a grossly over-simplified picture, though, since the
+actual operational behavior is much more complicated: \verb|async| typically
+schedules its argument expression to run asynchronously on a thread pool;
+moreover, \verb|await| may only be invoked within a syntactically enclosing
+\verb|async| block.
+
+In practice, the \verb|async| and \verb|await| methods are used as follows
+(this example is adopted from the SIP proposal~\cite{ScalaAsyncSIP}):
+
+\lstset{numbers=left,xleftmargin=2em}
+\begin{lstlisting}
+val futureDOY: Future[Response] =
+  WS.url("http://api.day-of-year/today").get
+
+val futureDaysLeft: Future[Response] =
+  WS.url("http://api.days-left/today").get
+
+val respFut = async {
+  val dayOfYear = await(futureDOY).body
+  val daysLeft = await(futureDaysLeft).body
+  Ok("" + dayOfYear + ": " +
+          daysLeft + " days left!")
+}
+\end{lstlisting}
+
+Line 1 and 4 define two futures obtained as results of asynchronous requests
+to two hypothetical web services using an API inspired by Play Framework (for
+the purpose of this example, the definition of type \verb|Response| is
+unimportant). The await on line 8 causes the execution of the \verb|async|
+block to suspend until \verb|futureDOY| is completed (with a successful result
+or with an exception). When the future is completed successfully, its result
+is bound to the \verb|dayOfYear| local variable, and the execution of the
+\verb|async| block is resumed. When the future is completed with an exception
+(for example, because of a timeout), the invocation of \verb|await| re-throws
+the exception that the future was completed with. In turn, this completes
+future \verb|respFut| with the same exception. Likewise, the \verb|await| on
+line 9 suspends the execution of the \verb|async| block until
+\verb|futureDaysLeft| is completed.
+
+\subsection{Reactive Extensions}
+
+The Rx programming model is based on two interface traits: \verb|Observable|
+and \verb|Observer|. \verb|Observable| represents observable streams, i.e.,
+streams that produce a sequence of events. These events can be observed by
+registering an \verb|Observer| with the \verb|Observable|. The \verb|Observer|
+provides methods which are invoked for each of the kinds of events produced by
+the \verb|Observable|. In Scala, the two traits can be defined as follows:
+
+\lstset{numbers=none,xleftmargin=0em}
+\begin{lstlisting}
+trait Observable[T] {
+  def subscribe(obs: Observer[T]): Closable
+}
+
+trait Observer[T] extends (Try[T] => Unit) {
+  def apply(tr: Try[T]): Unit
+  def onNext(v: T) = apply(Success(v))
+  def onFailure(t: Throwable) = apply(Failure(t))
+  def onDone(): Unit
+}
+\end{lstlisting}
+
+The idea of the \verb|Observer| is that it can respond to three different
+kinds of events, (1) the next regular event (\verb|onNext|), (2) a failure
+(\verb|onFailure|), and (3) the end of the observable stream (\verb|onDone|).
+
+Note that in our Scala version the \verb|Observer| trait extends the function
+type \verb|Try[T] => Unit|. \verb|Try[T]| is a simple container type which
+supports heap-based exception handling (as opposed to the traditional stack-
+based exception handling using expressions like \verb|try-catch-finally|.)
+There are two subclasses of \verb|Try[T]|: \verb|Success| (encapsulating a
+value of type \verb|T|) and \verb|Failure| (encapsulating an exception). Given
+the above definition, a concrete \verb|Observer| only has to provide
+implementations for the \verb|apply| and \verb|onDone| methods. Since
+\verb|apply| takes a parameter of type \verb|Try[T]| its implementation
+handles the \verb|onNext| and \verb|onFailure| events all at once (in Scala,
+this is tyically done by pattern matching on \verb|tr| with cases for
+\verb|Success| and \verb|Failure|).
+
+The \verb|Observer| and \verb|Observable| traits are used as follows. For
+example, here is a factory method for creating an observable from a text input
+field of typical GUI toolkits (this example is adapted from~\cite{RxCACM}):
+
+\begin{lstlisting}
+def textChanges(tf: JTextField): Observable[String] =
+  new ObservableBase[String] {
+    def subscribe(o: Observer[String]) = {
+      val l = new DocumentListener {
+        def changedUpdate(e: DocumentEvent) = {
+          o.onNext(tf.getText())
+        }
+      }
+      tf.addDocumentListener(l)
+      new Closable() {
+        def close() = {
+          tf.removeDocumentListener(l)
+        }
+      }
+    }
+  }
+\end{lstlisting}
+
+[TODO: mention Closable]
+
+This newly-defined \verb|textChanges| combinator can be used with other Rx
+combinators as follows:
+
+\begin{lstlisting}
+textChanges(input)
+.flatMap(word => completions(word))
+.subscribe(observeChanges(output))
+\end{lstlisting}
+
+We start with the observable created using the \verb|textChanges| method from
+above. Then we use the \verb|flatMap| combinator (called \verb|Select| in C\#)
+to transform the observable into a new observable which is a stream of
+completions for a given word (a string). On the resulting observable we call
+\verb|subscribe| to register a consumer: \verb|observeChanges| creates an
+observer which outputs all received events to the \verb|output| stream. (The
+shown example suffers from a problem explained in~\cite{RxCACM} which
+motivates the use of an additional \verb|Switch| combinator which is omitted
+here for brevity.)
 
 %
 % The following two commands are all you need in the
