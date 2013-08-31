@@ -246,21 +246,27 @@ and \verb|Observer|. \verb|Observable| represents observable streams, i.e.,
 streams that produce a sequence of events. These events can be observed by
 registering an \verb|Observer| with the \verb|Observable|. The \verb|Observer|
 provides methods which are invoked for each of the kinds of events produced by
-the \verb|Observable|. In Scala, the two traits can be defined as follows:
+the \verb|Observable|. In Scala, the two traits can be defined as shown in
+Figure~\ref{fig:observable-observer}.
 
-\lstset{numbers=none,xleftmargin=0em}
-\begin{lstlisting}
-trait Observable[T] {
-  def subscribe(obs: Observer[T]): Closable
-}
+\begin{figure}[ht!]
+  \centering
+  \lstset{numbers=none,xleftmargin=0em}
+  \begin{lstlisting}
+  trait Observable[T] {
+    def subscribe(obs: Observer[T]): Closable
+  }
 
-trait Observer[T] extends (Try[T] => Unit) {
-  def apply(tr: Try[T]): Unit
-  def onNext(v: T) = apply(Success(v))
-  def onFailure(t: Throwable) = apply(Failure(t))
-  def onDone(): Unit
-}
-\end{lstlisting}
+  trait Observer[T] extends (Try[T] => Unit) {
+    def apply(tr: Try[T]): Unit
+    def onNext(v: T) = apply(Success(v))
+    def onFailure(t: Throwable) = apply(Failure(t))
+    def onDone(): Unit
+  }
+  \end{lstlisting}
+  \caption{The \texttt{Observable} and \texttt{Observer} traits.}
+  \label{fig:observable-observer}
+\end{figure}
 
 The idea of the \verb|Observer| is that it can respond to three different
 kinds of events, (1) the next regular event (\verb|onNext|), (2) a failure
@@ -283,6 +289,7 @@ The \verb|Observer| and \verb|Observable| traits are used as follows. For
 example, here is a factory method for creating an observable from a text input
 field of typical GUI toolkits (this example is adapted from~\cite{RxCACM}):
 
+\lstset{numbers=none,xleftmargin=0em}
 \begin{lstlisting}
 def textChanges(tf: JTextField): Observable[String] =
   new ObservableBase[String] {
@@ -418,6 +425,24 @@ event is published on the created stream (by virtue of reaching the end of the
 \verb|rasync| block). In this section, we explain how more complex streams can
 be created in the Reactive Async Model.
 
+\begin{figure}[ht!]
+  \centering
+  \begin{lstlisting}
+  val forwarder = rasync[Int] {
+    var next: Option[Int] =
+      awaitNextOrDone(stream)
+
+    while (next.nonEmpty) {
+      yieldNext(next.get)
+      next = awaitNextOrDone(stream)
+    }
+    None
+  }
+  \end{lstlisting}
+  \caption{A simple forwarder stream.}
+  \label{fig:forwarder}
+\end{figure}
+
 \subsubsection{A simple forwarder stream}
 
 Suppose we would like to create a stream which simply publishes an event for
@@ -426,24 +451,90 @@ have seen so far are not sufficient, since an arbitrary number of events have
 to be published from within the \verb|rasync| block. This is where the new
 method \verb|yieldNext| comes in: it publishes the next event to the stream
 returned by \verb|rasync|. Our simple forwarder example can then be expressed
-as follows:
-
-\begin{lstlisting}
-val forwarder = rasync[Int] {
-  var next: Option[Int] = awaitNextOrDone(stream)
-  while (next.nonEmpty) {
-    yieldNext(next.get)
-    next = awaitNextOrDone(stream)
-  }
-  None
-}
-\end{lstlisting}
+as shown in Figure~\ref{fig:forwarder}.
 
 Note that in the above example, the result of the body of the \verb|rasync|
 block is \verb|None|; consequently, the resulting \verb|forwarder| stream only
 publishes an \verb|onDone| event when \verb|rasync|'s body has been fully
 evaluated. In this case, it is assumed that the only ``interesting'' non-done
 events of \verb|forwarder| are published using \verb|yieldNext|.
+
+\section{Translation}\label{sec:translation}
+
+In this section we describe the translation of the introduced constructs.
+Before considering the translation of \verb|rasync| blocks in combination with
+methods like \verb|awaitNext|, we first give a short overview of the
+translation of regular \verb|async| blocks as it is implemented in Scala
+Async. As before, the exposition is driven by concrete code examples.
+
+Consider the following simple use of \verb|async|/\verb|await|:
+
+\begin{lstlisting}
+val fut1: Future[T] = async {
+  <expr1>
+  val res = await(fut2)
+  <expr2>
+}
+\end{lstlisting}
+
+In general, \verb|async| blocks are translated into state
+machines~\cite{ScalaAsyncSIP}. The above example is simple enough, though,
+that we can illustrate how it maps to Scala's futures API without the
+complexities associated with a state machine. For simplicity, we assume that
+\verb|<expr2>| does not contain another invocation of \verb|await|. Then, the
+above \verb|async| block can be translated, intuitively, as follows:
+
+\begin{lstlisting}
+val fut1: Future[T] = {
+  val p = Promise[T]()
+  future {
+    <expr1>
+    fut2 onComplete {
+      case Success(res) => p.success(<expr2>)
+      case Failure(t)   => p.failure(t)
+    }
+  }
+  p.future
+}
+\end{lstlisting}
+
+In the resulting program the body of the \verb|async { ... }| block is
+contained within \verb|future { ... }| which asynchronously executes it on a
+thread pool. Before starting this future, a new promise \verb|p| is created. A
+promise is a placeholder for a result that becomes available asynchronously. A
+promise can be resolved either with a successful result (using the
+\verb|success| method) or with an exception (using the \verb|failure| method),
+{\em at most once.} Each promise has a future associated with it which
+provides a {\em read-only} interface to the asynchronous result. The future
+associated with \verb|p| is the result of the original \verb|async| block.
+
+One of the critical parts of the translation is the replacement of invocations
+of \verb|await|. Instead of blocking the current thread until the awaited
+future is completed, a completion callback is registered with the awaited
+future. The completion callback is invoked when \verb|fut2| is completed; it
+handles two cases for the successful (\verb|case Success(res)|) and the failed
+(\verb|case Failure(t)|) completion of the future, respectively. In case of a
+failure, promise \verb|p| is immediately completed with the exception \verb|t|
+of the observed failure event. Otherwise, the rest of the \verb|async| block,
+which in this case is just \verb|<expr2>|, is executed, and its result used to
+complete \verb|p| successfully. Apart from the missing state machine logic
+(which is not required in this simple case), this example translation does not
+handle exceptions that are thrown within \verb|<expr2>|.
+
+With this simplified overview of the translation of regular \verb|async|
+blocks, we provide a sketch explaining the translation of \verb|rasync|
+blocks.
+
+\subsection{Reactive Async Translation}\label{sec:rasync-translation}
+
+The translation of \verb|rasync| in combination with the \verb|await*| and
+\verb|yield*| methods is very similar to the previous translation. The main
+changes are the implementation of observables as the result of an
+\verb|rasync| block, as well as the replacement of \verb|await*| invocations.
+
+Consider the forwarder example from Figure~\ref{fig:forwarder}.
+
+
 
 %
 % The following two commands are all you need in the
