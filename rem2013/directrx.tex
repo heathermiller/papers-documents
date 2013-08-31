@@ -59,7 +59,7 @@
 
 \begin{document}
 
-\title{DirectRx: Integrating Async/Await and Reactive Extensions}
+\title{RAY: Towards Direct-Style Reactive Streams}
 %
 % You need the command \numberofauthors to handle the 'placement
 % and alignment' of the authors beneath the title.
@@ -532,7 +532,67 @@ The translation of \verb|rasync| in combination with the \verb|await*| and
 changes are the implementation of observables as the result of an
 \verb|rasync| block, as well as the replacement of \verb|await*| invocations.
 
-Consider the forwarder example from Figure~\ref{fig:forwarder}.
+\begin{figure}[ht!]
+  \centering
+\lstset{numbers=left,xleftmargin=2em}
+\begin{lstlisting}
+val forwarder = {
+  val ofp = ObservableFlowPool[T]()
+  val sm  = new StateMachine {
+    var state: Int         = 0
+    var next:  Option[Int] = None
+
+    val obs = new Observer[Int] {
+      def apply(tr: Try[Int]) = tr match {
+        case Success(res) =>
+          next  = Some(res)
+          state = 1
+          resume()
+        case Failure(t) =>
+          ofp.failure(t)
+      }
+      def onDone(): Unit = {
+        next  = None
+        state = 2
+        resume()
+      }
+    }
+
+    def apply(): Unit = {
+      stream.subscribe(obs)
+    }
+
+    def resume(): Unit = state match {
+      case 1 =>
+        ofp << next.get
+
+      case 2 =>
+        ofp.done()
+    }
+  }
+
+  future {
+    sm.apply()
+  }
+
+  ofp.observable
+}
+\end{lstlisting}
+  \caption{Result of reactive async translation.}
+  \label{fig:rasync-translation}
+\end{figure}
+
+Consider the forwarder example from Figure~\ref{fig:forwarder}. Our extended
+translation produces the program shown in Figure~\ref{fig:rasync-translation}
+(simplified). The first interesting change is that instead of creating a
+promise, an instance of \verb|ObservableFlowPool| is created. Like Scala's
+promises, flowpools~\cite{ProkopecMSHO12} are a non-blocking data structure
+which can be completed programmatically. Instead of carrying at most one
+result, though, flowpools can carry an unbounded number of elements. Flowpools
+are observable: callbacks can be registered which are called whenever a new
+element is added to the flowpool. Moreover, it is possible to ``seal'' a
+flowpool which means that no more elements can be added. This event, too, can
+be observed; it plays the role of the \verb|onDone| event of reactive streams.
 
 
 
