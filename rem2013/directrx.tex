@@ -120,8 +120,8 @@ which aim to make asynchronous programming easier by avoiding an inversion of
 control that is inherent in traditional callback-based programming models (for
 the purpose of this paper called the ``Async'' model). This paper outlines a
 novel approach to integrate the Async model with observable streams of the
-``Reactive Extensions'' model which is best-known from the .NET platform, and
-of which popular implementations exist for Java, Ruby, and other widespread
+Reactive Extensions model which is best-known from the .NET platform, and of
+which popular implementations exist for Java, Ruby, and other widespread
 languages. We outline the translation of ``Reactive Async'' programs to
 efficient state machines, in a way that generalizes the state machine
 translation of regular Async programs. Finally, we sketch a formalization of
@@ -162,8 +162,8 @@ with an error; it's even possible for a stream to never complete.
 
 Given the richer substrate of reactive streams, the Async model has to be
 generalized in several dimensions. This paper presents a design and proposal
-in the context of the Scala Async project~\cite{ScalaAsync} developed at
-Typesafe and proposed for adoption in mainline Scala~\cite{ScalaAsyncSIP}.
+in the context of the Scala Async project developed at Typesafe and proposed
+for adoption in mainline Scala~\cite{ScalaAsyncSIP}.
 
 
 \section{Background}
@@ -594,6 +594,44 @@ element is added to the flowpool. Moreover, it is possible to ``seal'' a
 flowpool which means that no more elements can be added. This event, too, can
 be observed; it plays the role of the \verb|onDone| event of reactive streams.
 
+
+\section{Related Work}
+
+There is a large body of work investigating the relationship of events and
+threads. Several proposals attempt to reconcile the flexibility and efficiency
+of event-based programming with the simpler reasoning afforded by direct-
+style, thread-based programming. Although similar in spirit, the present work
+proposes an integration of two existing programming models: async/await in the
+style of C\# and Reactive Extensions. Consequently, we refer to other recent
+publications (e.g.,~\cite{FormalizingAsync}) for a discussion of events and
+threads, and how they relate to the async/await model.
+
+The implementation of our RAY model is related to Scala's CPS compiler
+plugin~\cite{RompfMO09} which provides first-class delimited continuations.
+However, there are important differences. Both Scala Async and RAY are
+implemented using the macro system~\cite{burmako13} introduced in Scala 2.10,
+which is a more lightweight approach compared to a compiler plugin. The
+translation avoids a complex interaction with Scala's type checker; the
+\verb|rasync|, \verb|await*|, and \verb|yield*| constructs are purely
+syntactic instead of type-driven. The {\em Scala.React} programming
+framework~\cite{MaierO13} builds on Scala's CPS plugin to avoid the inversion
+of control inherent in the observer pattern. Like other FRP frameworks it
+provides first-class time-varying signals which support the automatic
+propagation of updates to other signals. This power comes at the cost of
+support for concurrent signal propagation. In contrast, RAY is designed for
+concurrency, but does not feature first-class signals.
+
+
+\section{Conclusion}
+
+This paper proposes RAY, a programming model and macro-based library for
+Scala, which integrates the Async model of C\# and Scala with the Reactive
+Extensions model. RAY supports both consuming and creating observable streams
+in a familiar direct style, avoiding higher-order functions and low-level
+callbacks in many cases. Moreover, it integrates Scala's widely-adopted
+futures library into a unified programming model. Our goal with this
+integration is to simplify reactive programming with Scala, async/await, and
+reactive streams significantly.
 
 
 %
