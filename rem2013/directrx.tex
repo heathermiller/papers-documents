@@ -30,6 +30,11 @@
 
 \usepackage{listings}
 \usepackage{url}
+\usepackage{bcprules}
+\usepackage{prooftree}
+\usepackage{multicol}
+\usepackage{caption}
+\usepackage{subcaption}
 
 \lstdefinelanguage{Scala}%
 {morekeywords={abstract,case,catch,char,class,%
@@ -56,6 +61,69 @@
 }
 
 \newcommand{\note}[1]{{\bf $\clubsuit$ #1 $\spadesuit$}}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%   Language abstraction commands     %
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+%% Relations
+% Subtype
+\newcommand{\sub}{<:}
+% Type assignment
+\newcommand{\typ}{:}
+% reduction
+\newcommand{\reduces}{\;\rightarrow\;}
+% well-formedness
+\newcommand{\wf}{\;\mbox{\textbf{wf}}}
+
+%% Operators
+% Type selection
+\newcommand{\tsel}{\#}
+% Function type
+\newcommand{\tfun}{\rightarrow}
+\newcommand{\dfun}[3]{(#1\!:\!#2) \Rightarrow #3}
+% Conjunction
+\newcommand{\tand}{\wedge}
+% Disjunction
+\newcommand{\tor}{\vee}
+% Singleton type suffix
+\newcommand{\sing}{.\textbf{type}}
+
+%% Syntax
+% Header for typing rules
+\newcommand{\judgement}[2]{{\bf #1} \hfill \fbox{#2}}
+% Refinement
+\newcommand{\refine}[2]{\left\{#1 \Rightarrow #2 \right\}}
+% Field definitions
+\newcommand{\ldefs}[1]{\left\{#1\right\}}
+% Member sequences
+\newcommand{\seq}[1]{\overline{#1}}
+% Lambda
+\newcommand{\dabs}[3]{(#1\!:\!#2)\Rightarrow #3}
+\newcommand{\abs}[3]{\lambda #1\!:\!#2.#3}
+% Application
+\newcommand{\app}[2]{#1\;#2}
+% Substitution
+\newcommand{\subst}[3]{[#1/#2]#3}
+% Object creation
+\newcommand{\new}[3]{\textbf{val }#1 = \textbf{new }#2 ;\; #3}
+%\renewcommand{\new}[3]{#1 \leftarrow #2 \,\textbf{in}\, #3}
+% Field declaration
+\newcommand{\Ldecl}[3]{#1 \typ #2..#3}%{#1 \operatorname{>:} #2 \operatorname{<:} #3}
+\newcommand{\ldecl}[2]{#1 \typ #2}
+% Top and Bottom
+\newcommand{\Top}{\top}%{\textbf{Top}}
+\newcommand{\Bot}{\bot}%\textbf{Bot}}
+% Environment extension
+\newcommand{\envplus}[1]{\uplus \{ #1 \}}
+
+\newcommand{\aframe}[3]{\langle #1, #2 \rangle ^{#3}}
+
+\newcommand{\reduce}[4]{#1, #2 \;\leadsto\; #3, #4}
+\newcommand{\reducebreak}[4]{#1, #2 \\ \;\leadsto\; #3, #4}
+
+\newcommand{\sreduce}[6]{#1, #2, #3 \;\longrightarrow\; #4, #5, #6}
+\newcommand{\sreducebreak}[6]{#1, #2, #3 \\ \;\longrightarrow\; #4, #5, #6}
 
 \begin{document}
 
@@ -593,6 +661,50 @@ are observable: callbacks can be registered which are called whenever a new
 element is added to the flowpool. Moreover, it is possible to ``seal'' a
 flowpool which means that no more elements can be added. This event, too, can
 be observed; it plays the role of the \verb|onDone| event of reactive streams.
+
+
+\section{Formalization}
+
+One of the contributions of this paper is an operational semantics of the
+proposed programming model. Our operational semantics generalizes the formal
+model presented in~\cite{FormalizingAsync}. We are going to re-use their
+formal model; this makes it easier to pinpoint the essential semantic
+differences. At the same time we can be confident that the rest of the formal
+model is sound.
+
+\subsection{Operational Semantics}
+
+\begin{figure*}[ht!]
+  \centering
+
+\infrule[\textsc{E-RAsync-Yield}]
+{  H_0(o) = \langle \texttt{Task}, state \mapsto running(\bar{F}, \bar{D}) \rangle \\
+   \bar{R} = \{ \aframe {L[x \mapsto \texttt{Some}(v)]} {\bar{s}} l~|~ \aframe L {\texttt{x = y.GetResult();} \bar{s}} {a(o)} \in \bar{F} \} \\
+   \bar{N} = \{ \langle l, [] \rangle ~|~ \aframe {\_} {\_} l \in \bar{R} \} \\
+   H_1 = H_0[o \mapsto \langle \texttt{Task}, state \mapsto running(\epsilon, \bar{D} \cup \bar{N}) \rangle]
+}
+{ \reducebreak {H_0} {\{ \aframe L {\texttt{yieldNext(y);} \bar{s}} {a(o)} \circ FS\} \cup P}
+    {H_1} {\{ \aframe L {\bar{s}} {a(o)} \circ FS \} \cup \{ R \circ \epsilon ~|~ R \in \bar{R} \} \cup P}
+}
+
+  \caption{Transition rules for reactive async features.}
+  \label{fig:opsem-rules}
+\end{figure*}
+% \vspace{-4em}
+
+Rule (E-RAsync-Yield) is an extended version of rule (E-Async-Return)
+in~\cite{FormalizingAsync}. It shows how awaiters (frames $\bar{F}$) are
+resumed when the current stream yields a next event. Note that the state of a
+task is $running(\bar{F}, \bar{D})$ as opposed to $running(\bar{F})$ in the
+simpler async case. The $\bar{D}$ are ``dormant'' frames, which are frames of
+awaiters that are currently not suspended, but that might call
+\verb|awaitNextOrDone| again. To prevent these awaiters from skipping events,
+we record them in this list of dormant frames, so that new events can be
+queued up in the dormant frames, until \verb|awaitNextOrDone| is called again.
+
+Another difference from the async formalization is that \verb|GetResult|
+returns an option, which means upon yielding a next result, the awaiter is
+resumed with value \verb|Some(v)|.
 
 
 \section{Related Work}
