@@ -61,6 +61,8 @@
 }
 
 \newcommand{\note}[1]{{\bf $\clubsuit$ #1 $\spadesuit$}}
+%\newcommand{\note}[1]{}
+\newcommand{\comment}[1]{}
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %   Language abstraction commands     %
@@ -121,6 +123,9 @@
 
 \newcommand{\reduce}[4]{#1, #2 \;\leadsto\; #3, #4}
 \newcommand{\reducebreak}[4]{#1, #2 \\ \;\leadsto\; #3, #4}
+
+\newcommand{\fsreduce}[4]{#1, #2 \;\twoheadrightarrow\; #3, #4}
+\newcommand{\fsreducebreak}[4]{#1, #2 \\ \;\twoheadrightarrow\; #3, #4}
 
 \newcommand{\sreduce}[6]{#1, #2, #3 \;\longrightarrow\; #4, #5, #6}
 \newcommand{\sreducebreak}[6]{#1, #2, #3 \\ \;\longrightarrow\; #4, #5, #6}
@@ -679,12 +684,43 @@ model is sound.
 
 \infrule[\textsc{E-RAsync-Yield}]
 {  H_0(o) = \langle \texttt{Task}, state \mapsto running(\bar{F}, \bar{D}) \rangle \\
-   \bar{R} = \{ \aframe {L[x \mapsto \texttt{Some}(v)]} {\bar{s}} l~|~ \aframe L {\texttt{x = y.GetResult();} \bar{s}} {a(o)} \in \bar{F} \} \\
-   \bar{N} = \{ \langle l, [] \rangle ~|~ \aframe {\_} {\_} l \in \bar{R} \} \\
-   H_1 = H_0[o \mapsto \langle \texttt{Task}, state \mapsto running(\epsilon, \bar{D} \cup \bar{N}) \rangle]
+   \bar{R} = \{ \aframe {L_2[x \mapsto \texttt{Some}(L(z))]} {\bar{s_2}} {a(o_2)}~|~ \aframe {L_2} {\texttt{x = y.GetResult();} \bar{s_2}} {a(o_2)} \in \bar{F} \} \\
+   \bar{N} = \{ \langle {o_2}, [] \rangle ~|~ \aframe {\_} {\_} {a(o_2)} \in \bar{R} \} \\
+   \bar{D'} = \{ \langle {o_3}, L(z) :: q \rangle ~|~ \langle {o_3}, q \rangle \in \bar{D} \} \\
+   H_1 = H_0[o \mapsto \langle \texttt{Task}, state \mapsto running(\epsilon, \bar{D'} \cup \bar{N}) \rangle]
 }
-{ \reducebreak {H_0} {\{ \aframe L {\texttt{yieldNext(y);} \bar{s}} {a(o)} \circ FS\} \cup P}
+{ \reducebreak {H_0} {\{ \aframe L {\texttt{yieldNext(z);} \bar{s}} {a(o)} \circ FS\} \cup P}
     {H_1} {\{ \aframe L {\bar{s}} {a(o)} \circ FS \} \cup \{ R \circ \epsilon ~|~ R \in \bar{R} \} \cup P}
+}
+
+\infrule[\textsc{E-AwaitNextOrDone-1}]
+{  L(y) = o_1 \\
+   H_0(o_1) = \langle \texttt{Task}, state \mapsto running(\bar{F}, \bar{D}) \rangle \\
+   \forall \langle {o_2}, q \rangle \in \bar{D}.~o_2 \neq o \\
+   H_1 = H_0[o_1 \mapsto \langle \texttt{Task}, state \mapsto running(\aframe L {\texttt{x = y.GetResult();} \bar{s}} {a(o)} :: \bar{F}, \bar{D}) \rangle]
+}
+{ \fsreducebreak {H_0} {\aframe L {\texttt{x = awaitNextOrDone(y);} \bar{s}} {a(o)} \circ FS}
+    {H_1} {FS}
+}
+
+\infrule[\textsc{E-AwaitNextOrDone-2}]
+{  L(y) = o_1 \\
+   H_0(o_1) = \langle \texttt{Task}, state \mapsto running(\bar{F}, \bar{D}) \rangle \\
+   \langle o, [] \rangle \in \bar{D} \\
+   H_1 = H_0[o_1 \mapsto \langle \texttt{Task}, state \mapsto running(\aframe L {\texttt{x = y.GetResult();} \bar{s}} {a(o)} :: \bar{F}, \bar{D} \setminus \{ \langle o, [] \rangle \}) \rangle]
+}
+{ \fsreducebreak {H_0} {\aframe L {\texttt{x = awaitNextOrDone(y);} \bar{s}} {a(o)} \circ FS}
+    {H_1} {FS}
+}
+
+\infrule[\textsc{E-AwaitNextOrDone-3}]
+{  L(y) = o_1 \\
+   H_0(o_1) = \langle \texttt{Task}, state \mapsto running(\bar{F}, \bar{D}) \rangle \\
+   \bar{D} = \bar{D'} \cup \{ \langle o, e :: q \rangle \} \\
+   H_1 = H_0[o_1 \mapsto \langle \texttt{Task}, state \mapsto running(\bar{F}, \bar{D'} \cup \{ \langle o, q \rangle \}) \rangle]
+}
+{ \fsreducebreak {H_0} {\aframe L {\texttt{x = awaitNextOrDone(y);} \bar{s}} {a(o)} \circ FS}
+    {H_1} {\aframe {L[x \mapsto e]} {\bar{s}} {a(o)} \circ FS}
 }
 
   \caption{Transition rules for reactive async features.}
@@ -696,16 +732,28 @@ Rule (E-RAsync-Yield) is an extended version of rule (E-Async-Return)
 in~\cite{FormalizingAsync}. It shows how awaiters (frames $\bar{F}$) are
 resumed when the current stream yields a next event. Note that the state of a
 task is $running(\bar{F}, \bar{D})$ as opposed to $running(\bar{F})$ in the
-simpler async case. The $\bar{D}$ are ``dormant'' frames, which are frames of
+simpler async case. The $\bar{D}$ are ``dormant'' queues, which are queues of
 awaiters that are currently not suspended, but that might call
 \verb|awaitNextOrDone| again. To prevent these awaiters from skipping events,
-we record them in this list of dormant frames, so that new events can be
-queued up in the dormant frames, until \verb|awaitNextOrDone| is called again.
+we record them in this list of dormant queues, so that new events can be
+queued up in the dormant queues, until \verb|awaitNextOrDone| is called again.
 
 Another difference from the async formalization is that \verb|GetResult|
 returns an option, which means upon yielding a next result, the awaiter is
-resumed with value \verb|Some(v)|.
+resumed with value $\texttt{Some}(L(z))$.
 
+Rule (E-AwaitNextOrDone-1) only applies if in task $o_1$ (the task of
+\verb|y|) there is no dormant queue for task $o$ (the task that is waiting for
+the next event). In this case, a new awaiter is created and added to task
+$o_1$ in $H_1$.
+
+Rule (E-AwaitNextOrDone-2) applies if the task awaiting an event has an empty
+dormant queue; in this case the empty dormant queue is removed and a regular
+awaiter is added to the awaiters of task $o_1$.
+
+Rule (E-AwaitNextOrDone-3) applies if the task awaiting an event has a non-
+empty dormant queue; in this case, the task can continue while taking an
+element out of the dormant queue.
 
 \section{Related Work}
 
