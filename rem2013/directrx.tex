@@ -885,17 +885,29 @@ Frames have the form $\aframe L {\bar{e}} l$ where $L$ maps local variables to
 their values, $\bar{e}$ is a sequence of expressions, and $l$ is a label. A
 label is either $s$ denoting a regular, synchronous frame, or $a(o)$ denoting
 an asynchronous frame; in this case, $o$ is the heap address of a
-corresponding task object.
+corresponding task object $\langle \texttt{Task}, state \mapsto
+running(\bar{F}, \bar{D}) \rangle$. $\bar{F}$ is a set of asynchronous frames,
+namely, all tasks that are currently suspended awaiting $o$ to publish a new
+event. $\bar{D}$ is a set of so-called ``dormant queues'' which are explained
+below. Invoking a synchronous method pushes a synchronous frame to the current
+frame stack; invoking an asynchronous method pushes an asynchronous frame to
+the current frame stack.
+
+\subsubsection{Transition Rules}
 
 Rule (E-RAsync-Yield) is an extended version of rule (E-Async-Return)
 in~\cite{FormalizingAsync}. It shows how awaiters (frames $\bar{F}$) are
-resumed when the current stream yields a next event. Note that the state of a
-task is $running(\bar{F}, \bar{D})$ as opposed to $running(\bar{F})$ in the
-simpler async case. The $\bar{D}$ are ``dormant'' queues, which are queues of
-awaiters that are currently not suspended, but that might call
-\verb|awaitNextOrDone| again. To prevent these awaiters from skipping events,
-we record them in this list of dormant queues, so that new events can be
-queued up in the dormant queues, until \verb|awaitNextOrDone| is called again.
+resumed when the current asynchronous frame yields a next event. An awaiter
+has the form $\aframe {L_2} {\texttt{x = y.GetResult();} \bar{s_2}} {a(o_2)}$.
+The call $\texttt{x = y.GetResult();}$ is just a placeholder indicating that
+the awaiter should be resumed with the next event that stream \verb|y| yields.
+Note that the state of a task is $running(\bar{F}, \bar{D})$ as opposed to
+$running(\bar{F})$ in the simpler async case. The $\bar{D}$ are ``dormant''
+queues, which are queues of awaiters that are currently not suspended, but
+that might call \verb|awaitNextOrDone| again. To prevent these awaiters from
+skipping events, we record them in this list of dormant queues, so that new
+events can be queued up in the dormant queues, until \verb|awaitNextOrDone| is
+called again.
 
 Another difference from the async formalization is that \verb|GetResult|
 returns an option, which means upon yielding a next result, the awaiter is
