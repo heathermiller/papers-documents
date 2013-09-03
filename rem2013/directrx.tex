@@ -285,13 +285,7 @@ an integration of the Async model with a richer underlying abstraction, the
 observable streams of the Reactive Extensions model.~\cite{RxCACM} A reactive
 stream is a stream of {\em observable events} which an arbitrary number of
 {\em observers} can subscribe to. The set of possible event patterns of
-observable streams is strictly greater than those of futures. A stream can:
-
-\begin{itemize}
-\item produce zero or more regular events,
-\item complete normally,
-\item or complete with an error (it's even possible for a stream to never complete.)
-\end{itemize}
+observable streams is strictly greater than those of futures. A stream can (a) produce zero or more regular events, (b) complete normally, or (c) complete with an error (it's even possible for a stream to never complete.)
 
 Given the richer substrate of reactive streams, the Async model has to be
 generalized in several dimensions. This paper presents a design and proposal
@@ -788,8 +782,8 @@ p    ::=  \seq{cd}~mb                                & \mbox{program}           
 cd   ::=  \texttt{class}~C~\{\seq{fd}~\seq{md}\}     & \mbox{class declaration}   \\
 fd   ::=  \texttt{var}~f: \sigma                     & \mbox{field}               \\
 md   ::=                                             & \mbox{method declaration}  \\
-\gap \texttt{def}~m(\seq{x: \sigma}): \phi = mb      & \\
-\gap \texttt{def}~m(\seq{x: \sigma}): \phi = \texttt{rasync}~\{~mb~\}  & \\
+\gap \texttt{def}~m(\seq{x: \sigma}): \phi = mb      & \mbox{sync method}         \\
+\gap \texttt{def}~m(\seq{x: \sigma}): \phi = \texttt{rasync}~\{~mb~\}  & \mbox{async method} \\
 mb   ::=  \{~\seq{\texttt{var}~x: \sigma};\seq{e}~\} & \mbox{method body}         \\
 \phi ::=  \sigma                                     & \mbox{return type}         \\
 \sigma,\tau ::=                                      & \mbox{type}                \\
