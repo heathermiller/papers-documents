@@ -60,9 +60,64 @@
   xleftmargin=0.0cm
 }
 
-\newcommand{\note}[1]{{\bf $\clubsuit$ #1 $\spadesuit$}}
-%\newcommand{\note}[1]{}
+% comments and notes
 \newcommand{\comment}[1]{}
+\newcommand{\note}[1]{{\bf $\clubsuit$ #1 $\spadesuit$}}
+\newcommand{\ifreport}[1]{#1}
+%\newcommand{\ifreport}[1]{}
+
+\newcommand{\todo}{{\bf \colorbox{red}{\color{white}TODO:}}}
+\newcommand{\ie}{{\em i.e.,~}}
+\newcommand{\eg}{{\em e.g.,~}}
+\newcommand{\term}[1]{\mbox{\texttt{#1}}}
+\newcommand{\itl}[1]{\mbox{\textit{#1}}}
+
+% commas and semicolons
+\newcommand{\comma}{,\,}
+\newcommand{\commadots}{\comma \ldots \comma}
+\newcommand{\semi}{;\mbox{;};}
+\newcommand{\semidots}{\semi \ldots \semi}
+
+% spacing
+\newcommand{\gap}{\quad\quad}
+\newcommand{\biggap}{\quad\quad\quad}
+\newcommand{\nextline}{\\ \\}
+\newcommand{\htabwidth}{0.5cm}
+\newcommand{\tabwidth}{1cm}
+\newcommand{\htab}{\hspace{\htabwidth}}
+\newcommand{\tab}{\hspace{\tabwidth}}
+\newcommand{\linesep}{\ \hrulefill \ \smallskip}
+
+\newcommand{\sectionline}{%
+  \nointerlineskip \vspace{\baselineskip}%
+  \hspace{\fill}\rule{0.5\linewidth}{.7pt}\hspace{\fill}%
+  \par\nointerlineskip \vspace{\baselineskip}
+}
+
+% figures
+\newcommand{\figurebox}[1]
+        {\fbox{\begin{minipage}{\textwidth} #1 \medskip\end{minipage}}}
+\newcommand{\twofig}[3]
+        {\begin{figure*}[t]#3\ \hrulefill\
+        \caption{\label{#1}#2}\end{figure*}}
+\newcommand{\boxfig}[3]
+        {\begin{figure*}\figurebox{#3\caption{\label{#1}#2}}\end{figure*}}
+\newcommand{\figref}[1]
+        {Figure~\ref{#1}}
+
+% \newcommand{\note}[1]{{\bf $\clubsuit$ #1 $\spadesuit$}}
+% %\newcommand{\note}[1]{}
+% \newcommand{\comment}[1]{}
+
+% arrays
+\newcommand{\ba}{\begin{array}}
+\newcommand{\ea}{\end{array}}
+\newcommand{\bda}{\[\ba}
+\newcommand{\eda}{\ea\]}
+\newcommand{\ei}{\end{array}}
+\newcommand{\bcases}{\left\{\begin{array}{ll}}
+\newcommand{\ecases}{\end{array}\right.}
+
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %   Language abstraction commands     %
@@ -241,9 +296,6 @@ Given the richer substrate of reactive streams, the Async model has to be
 generalized in several dimensions. This paper presents a design and proposal
 in the context of the Scala Async project developed at Typesafe and proposed
 for adoption in mainline Scala~\cite{ScalaAsyncSIP}.
-
-
-% \todo List contributions here.
 
 \section{Background}
 
@@ -676,14 +728,37 @@ be observed; it plays the role of the \verb|onDone| event of reactive streams.
 
 \section{Formalization}
 
-One of the contributions of this paper is an operational semantics of the
+One of the contributions of this paper is a sketch of the operational semantics of the
 proposed programming model. Our operational semantics generalizes the formal
-model presented in~\cite{FormalizingAsync}. We are going to re-use their
-formal model; this makes it easier to pinpoint the essential semantic
-differences. At the same time we can be confident that the rest of the formal
-model is sound.
+model presented in~\cite{FormalizingAsync}. To make it easier to pinpoint the essential
+semantic differences between our models, we will re-use their formal model.
+At the same time we can be confident that the rest of the formal model is sound.
 
 \subsection{Operational Semantics}
+
+\begin{figure}
+  \centering
+$\ba[t]{l@{\hspace{2mm}}l}
+p    ::=  \seq{cd}~mb                                & \mbox{program}             \\
+cd   ::=  \texttt{class}~C~\{\seq{fd}~\seq{md}\}     & \mbox{class declaration}   \\
+fd   ::=  \texttt{var}~f: \sigma                     & \mbox{field}               \\
+md   ::=  \texttt{def}~m(\seq{x: \sigma}): \phi = mb & \mbox{method declaration}  \\
+mb   ::=  \{\seq{x: \sigma};\seq{s}\}                & \mbox{method body}         \\
+\phi ::=  \sigma                                     & \mbox{return type}         \\
+\sigma,\tau ::=                                      & \mbox{type}                \\
+\gap \gamma                                          & \gap\mbox{value type}      \\
+\gap \texttt{C}                                      & \gap\mbox{class type}      \\
+                                                     & \gap\mbox{\em{(including a family}} \\
+                                                     & \gap\mbox{\em{of types \texttt{Task}$[\sigma]$)}} \\
+\gamma ::=                                           & \mbox{value type} \\
+\gap \texttt{bool}                                   & \gap\mbox{boolean}         \\
+\gap \texttt{int}                                    & \gap\mbox{integer}         \\
+\psi ::=                                             & \mbox{\texttt{Task$[\sigma]$}}         \\
+\ea$
+  \caption{Core language syntax. $C$ is a class name, $f,m$ are field and
+    method names.}
+  \label{fig:lang-syntax}
+\end{figure}
 
 \begin{figure*}[ht!]
   \centering
