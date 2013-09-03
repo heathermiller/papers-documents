@@ -804,10 +804,10 @@ mb   ::=  \{~\seq{\texttt{var}~x: \sigma};\seq{e}~\} & \mbox{method body}       
 \begin{figure}
   \centering
 $\ba[t]{l@{\hspace{2mm}}l}
-t    ::=  \texttt{let}~x~e~\mbox{in}~t               & \mbox{let binding}      \\
-\gap ~|~ x.f ::= y                                       & \gap\mbox{assignment}   \\
+t    ::=  \texttt{let}~x~e~\mbox{in}~t                   & \mbox{let binding}      \\
+\gap ~|~ x.f = y                                         & \gap\mbox{assignment}   \\
 \gap ~|~ x                                               & \gap\mbox{variable}     \\
-e    ::=                                             & \mbox{expressions}      \\
+e    ::=                                                 & \mbox{expressions}      \\
 \gap ~|~ \uline{b}                                       & \gap\mbox{boolean}      \\
 \gap ~|~ \uline{i}                                       & \gap\mbox{integer}      \\
 % \gap x \oplus y                                      & \gap\mbox{built-in operator}      \\
@@ -818,8 +818,7 @@ e    ::=                                             & \mbox{expressions}      \
 \gap ~|~ \texttt{new C()}                                & \gap\mbox{instance creation}   \\
 \gap ~|~ t                                               & \gap\mbox{term}         \\
 \ea$
-  \caption{Core language syntax. $C$ is a class name, $f,m$ are field and
-    method names.}
+  \caption{}
   \label{fig:lang-syntax-2}
 \end{figure}
 
