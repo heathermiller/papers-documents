@@ -838,6 +838,8 @@ e    ::=                                                 & \mbox{expressions}   
     {H_1} {\{ \aframe L {\bar{s}} {a(o)} \circ FS \} \cup \{ R \circ \epsilon ~|~ R \in \bar{R} \} \cup P}
 }
 
+\vspace{0.3cm}
+
 \infrule[\textsc{E-AwaitNextOrDone-1}]
 {  L(y) = o_1 \\
    H_0(o_1) = \langle \texttt{Observable$[\sigma]$}, state \mapsto running(\bar{F}, \bar{D}) \rangle \\
@@ -847,6 +849,8 @@ e    ::=                                                 & \mbox{expressions}   
 { \fsreducebreak {H_0} {\aframe L {\texttt{x = awaitNextOrDone(y);} \bar{s}} {a(o)} \circ FS}
     {H_1} {FS}
 }
+
+\vspace{0.3cm}
 
 \infrule[\textsc{E-AwaitNextOrDone-2}]
 {  L(y) = o_1 \\
@@ -858,6 +862,8 @@ e    ::=                                                 & \mbox{expressions}   
     {H_1} {FS}
 }
 
+\vspace{0.3cm}
+
 \infrule[\textsc{E-AwaitNextOrDone-3}]
 {  L(y) = o_1 \\
    H_0(o_1) = \langle \texttt{Observable$[\sigma]$}, state \mapsto running(\bar{F}, \bar{D}) \rangle \\
@@ -866,6 +872,18 @@ e    ::=                                                 & \mbox{expressions}   
 }
 { \fsreducebreak {H_0} {\aframe L {\texttt{x = awaitNextOrDone(y);} \bar{s}} {a(o)} \circ FS}
     {H_1} {\aframe {L[x \mapsto e]} {\bar{s}} {a(o)} \circ FS}
+}
+
+\vspace{0.3cm}
+
+\infrule[\textsc{E-RAsync-Return}]
+{  H_0(o) = \langle \texttt{Observable$[\sigma]$}, state \mapsto running(\bar{F}, \bar{D}) \rangle \\
+   \bar{R} = \{ \aframe {L_2[x \mapsto \texttt{None}]} {\bar{s_2}} {a(o_2)}~|~ \aframe {L_2} {\texttt{x = y.GetResult();} \bar{s_2}} {a(o_2)} \in \bar{F} \} \\
+   \bar{D'} = \{ \langle {o_3}, \texttt{None} :: q \rangle ~|~ \langle {o_3}, q \rangle \in \bar{D} \} \\
+   H_1 = H_0[o \mapsto \langle \texttt{Observable$[\sigma]$}, state \mapsto done(\bar{D'}) \rangle]
+}
+{ \reducebreak {H_0} {\{ \aframe L {\epsilon} {a(o)} \circ FS\} \cup P}
+    {H_1} {\{ FS \} \cup \{ R \circ \epsilon ~|~ R \in \bar{R} \} \cup P}
 }
 
   \caption{Transition rules for reactive async features.}
