@@ -787,17 +787,19 @@ $\ba[t]{l@{\hspace{2mm}}l}
 p    ::=  \seq{cd}~mb                                & \mbox{program}             \\
 cd   ::=  \texttt{class}~C~\{\seq{fd}~\seq{md}\}     & \mbox{class declaration}   \\
 fd   ::=  \texttt{var}~f: \sigma                     & \mbox{field}               \\
-md   ::=  \texttt{def}~m(\seq{x: \sigma}): \phi = mb & \mbox{method declaration}  \\
-mb   ::=  \{\seq{x: \sigma};\seq{e}\}                & \mbox{method body}         \\
+md   ::=                                             & \mbox{method declaration}  \\
+\gap \texttt{def}~m(\seq{x: \sigma}): \phi = mb      & \\
+\gap \texttt{def}~m(\seq{x: \sigma}): \phi = \texttt{rasync}~\{~mb~\}  & \\
+mb   ::=  \{~\seq{\texttt{var}~x: \sigma};\seq{e}~\} & \mbox{method body}         \\
 \phi ::=  \sigma                                     & \mbox{return type}         \\
 \sigma,\tau ::=                                      & \mbox{type}                \\
-\gap ~|~ \gamma                                      & \gap\mbox{value type}      \\
-\gap ~|~ \texttt{C}                                  & \gap\mbox{class type}      \\
+\gap \gamma                                          & \gap\mbox{value type}      \\
+\gap \texttt{C}                                      & \gap\mbox{class type}      \\
                                                      & \gap\mbox{\em{(including a family}} \\
                                                      & \gap\mbox{\em{of types \texttt{Task}$[\sigma]$)}} \\
 \gamma ::=                                           & \mbox{value type} \\
-\gap ~|~ \texttt{Boolean}                            & \gap\mbox{boolean}         \\
-\gap ~|~ \texttt{Int}                                & \gap\mbox{integer}         \\
+\gap \texttt{Boolean}                                & \gap\mbox{boolean}         \\
+\gap \texttt{Int}                                    & \gap\mbox{integer}         \\
 \psi ::= \texttt{Task$[\sigma]$}                     & \mbox{taskable return type}    \\
 \ea$
   \caption{Core language syntax. $C$ is a class name, $f,m$ are field and
@@ -884,6 +886,11 @@ goes from a heap and a frame stack to a new heap and a new frame stack (double
 right arrow). The third kind goes from a heap and a set of frame stacks to a
 new heap and a new set of frame stacks (squiggly right arrow).
 
+Frames have the form $\aframe L {\bar{e}} l$ where $L$ maps local variables to
+their values, $\bar{e}$ is a sequence of expressions, and $l$ is a label. A
+label is either $s$ denoting a regular, synchronous frame, or $a(o)$ denoting
+an asynchronous frame; in this case, $o$ is the heap address of a
+corresponding task object.
 
 Rule (E-RAsync-Yield) is an extended version of rule (E-Async-Return)
 in~\cite{FormalizingAsync}. It shows how awaiters (frames $\bar{F}$) are
