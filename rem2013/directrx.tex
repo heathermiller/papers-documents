@@ -671,34 +671,45 @@ changes are the implementation of observables as the result of an
 val forwarder = {
   val ofp = ObservableFlowPool[T]()
   val sm  = new StateMachine {
-    var state: Int         = 0
-    var next:  Option[Int] = None
+    var state: Int = 0
+    var next: Option[Int] = None
+    var channels = Map[Observable, Channel[_]]()
+    var subs = List[Closable]()
+    def apply(): Unit = {
+      val c = channels.get(stream) match {
+        case None =>
+          val channel = new Channel[Option[Int]]
+          channels += (stream -> channel)
+          subs ::= stream.subscribe(new Observer {
+            def apply(tr: Try[Int]) = tr match {
+              case Success(res) =>
+                channel.put(Some(res))
+              case Failure(t) =>
+                ofp.failure(t)
+            }
+            def onDone() =
+              channel.put(None)
+          })
+          channel
 
-    val obs = new Observer[Int] {
-      def apply(tr: Try[Int]) = tr match {
-        case Success(res) =>
-          next  = Some(res)
-          state = 1
-          resume()
-        case Failure(t) =>
-          ofp.failure(t)
+        case Some(c) =>
+          c.asInstanceOf[Channel[Option[Int]]]
       }
-      def onDone(): Unit = {
-        next  = None
-        state = 2
+
+      c get { res =>
+        next = res
+        state = if (res.isEmpty) 2 else 1
         resume()
       }
-    }
-
-    def apply(): Unit = {
-      stream.subscribe(obs)
     }
 
     def resume(): Unit = state match {
       case 1 =>
         ofp << next.get
+        apply()
 
       case 2 =>
+        subs.foreach(c => c.close())
         ofp.done()
     }
   }
@@ -725,6 +736,26 @@ are observable: callbacks can be registered which are called whenever a new
 element is added to the flowpool. Moreover, it is possible to ``seal'' a
 flowpool which means that no more elements can be added. This event, too, can
 be observed; it plays the role of the \verb|onDone| event of reactive streams.
+The observable associated with the flowpool is returned as the result of an
+\verb|rasync| block (this is an extension of the original design
+of~\cite{ProkopecMSHO12}).
+
+For each observable that the \verb|rasync| block is awaiting events from, the
+state machine maintains a non-blocking channel (in the \verb|channels| map). A
+channel supports a non- blocking \verb|put| operation, as well as a non-
+blocking \verb|get| operation. Each invocation of \verb|awaitNextOrDone| is
+translated as follows. First, we check whether there is already a channel for
+\verb|stream|. If not, we create a channel and subscribe an observer which put
+new events into the channel. Moreover, we call \verb|get| on the channel,
+passing the current continuation. Whenever the channel receives the first
+event, the continuation is called, which executes the corresponding state of
+the state machine. The continuation is (atomically) deregistered, though, so
+that the following events are just enqueued in the channel. When the consumer
+reaches the original \verb|awaitNextOrDone| invocation it gets either a queued
+element from the channel, or if the channel is empty, it registers its
+continuation once again using \verb|get|. At the end of the \verb|rasync|
+block, all collected subscriptions (\verb|subs|) are closed; this turns all
+created channels into garbage.
 
 
 \section{Formalization}
