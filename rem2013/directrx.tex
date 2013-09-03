@@ -211,9 +211,9 @@ the Reactive Async model in terms of a small-step operational semantics.
 Asynchronous programming has been a challenge for a long time. A multitude of
 programming models has been proposed that aim to simplify the task.
 Interestingly, there are elements of a convergence arising, at least with
-respect to the basic building blocks: futures and promises play a more and
-more important role in a number of languages like Java, C++, ECMAScript, and
-Scala.
+respect to the basic building blocks: futures and promises have begun to play
+a more and more important role in a number of languages like Java, C++,
+ECMAScript, and Scala.
 
 The Async extensions of F\#~\cite{SymePL11}, C\#~\cite{FormalizingAsync}, and
 Scala~\cite{ScalaAsyncSIP} provide language support for programming with
@@ -224,15 +224,21 @@ an integration of the Async model with a richer underlying abstraction, the
 observable streams of the Reactive Extensions model.~\cite{RxCACM} A reactive
 stream is a stream of {\em observable events} which an arbitrary number of
 {\em observers} can subscribe to. The set of possible event patterns of
-observable streams is strictly greater than those of futures. A stream can
-produce zero or more regular events, before it either completes normally or
-with an error; it's even possible for a stream to never complete.
+observable streams is strictly greater than those of futures. A stream can:
+
+\begin{itemize}
+\item produce zero or more regular events,
+\item complete normally,
+\item or complete with an error (it's even possible for a stream to never complete.)
+\end{itemize}
 
 Given the richer substrate of reactive streams, the Async model has to be
 generalized in several dimensions. This paper presents a design and proposal
 in the context of the Scala Async project developed at Typesafe and proposed
 for adoption in mainline Scala~\cite{ScalaAsyncSIP}.
 
+
+\todo List contributions here.
 
 \section{Background}
 
