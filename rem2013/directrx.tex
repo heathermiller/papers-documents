@@ -782,19 +782,19 @@ p    ::=  \seq{cd}~mb                                & \mbox{program}           
 cd   ::=  \texttt{class}~C~\{\seq{fd}~\seq{md}\}     & \mbox{class declaration}   \\
 fd   ::=  \texttt{var}~f: \sigma                     & \mbox{field}               \\
 md   ::=                                             & \mbox{method declaration}  \\
-\gap \texttt{def}~m(\seq{x: \sigma}): \phi = mb      & \mbox{sync method}         \\
-\gap \texttt{def}~m(\seq{x: \sigma}): \phi = \texttt{rasync}~\{~mb~\}  & \mbox{async method} \\
+\gap \texttt{def}~m(\seq{x: \sigma}): \psi = mb      & \mbox{sync method}         \\
+\gap \texttt{def}~m(\seq{x: \sigma}): \psi = \texttt{rasync}~\{~mb~\}  & \mbox{async method} \\
 mb   ::=  \{~\seq{\texttt{var}~x: \sigma};\seq{e}~\} & \mbox{method body}         \\
 \phi ::=  \sigma                                     & \mbox{return type}         \\
 \sigma,\tau ::=                                      & \mbox{type}                \\
 \gap \gamma                                          & \gap\mbox{value type}      \\
 \gap \texttt{C}                                      & \gap\mbox{class type}      \\
                                                      & \gap\mbox{\em{(including a family}} \\
-                                                     & \gap\mbox{\em{of types \texttt{Task}$[\sigma]$)}} \\
+                                                     & \gap\mbox{\em{of types \texttt{Observable}$[\sigma]$)}} \\
 \gamma ::=                                           & \mbox{value type} \\
 \gap \texttt{Boolean}                                & \gap\mbox{boolean}         \\
 \gap \texttt{Int}                                    & \gap\mbox{integer}         \\
-\psi ::= \texttt{Task$[\sigma]$}                     & \mbox{taskable return type}    \\
+\psi ::= \texttt{Observable$[\sigma]$}               & \mbox{observable return type}    \\
 \ea$
   \caption{Core language syntax. $C$ is a class name, $f,m$ are field and
     method names.}
@@ -828,11 +828,11 @@ e    ::=                                                 & \mbox{expressions}   
   \centering
 
 \infrule[\textsc{E-RAsync-Yield}]
-{  H_0(o) = \langle \texttt{Task}, state \mapsto running(\bar{F}, \bar{D}) \rangle \\
+{  H_0(o) = \langle \texttt{Observable($\sigma$)}, state \mapsto running(\bar{F}, \bar{D}) \rangle \\
    \bar{R} = \{ \aframe {L_2[x \mapsto \texttt{Some}(L(z))]} {\bar{s_2}} {a(o_2)}~|~ \aframe {L_2} {\texttt{x = y.GetResult();} \bar{s_2}} {a(o_2)} \in \bar{F} \} \\
    \bar{N} = \{ \langle {o_2}, [] \rangle ~|~ \aframe {\_} {\_} {a(o_2)} \in \bar{R} \} \\
    \bar{D'} = \{ \langle {o_3}, L(z) :: q \rangle ~|~ \langle {o_3}, q \rangle \in \bar{D} \} \\
-   H_1 = H_0[o \mapsto \langle \texttt{Task}, state \mapsto running(\epsilon, \bar{D'} \cup \bar{N}) \rangle]
+   H_1 = H_0[o \mapsto \langle \texttt{Observable($\sigma$)}, state \mapsto running(\epsilon, \bar{D'} \cup \bar{N}) \rangle]
 }
 { \reducebreak {H_0} {\{ \aframe L {\texttt{yieldNext(z);} \bar{s}} {a(o)} \circ FS\} \cup P}
     {H_1} {\{ \aframe L {\bar{s}} {a(o)} \circ FS \} \cup \{ R \circ \epsilon ~|~ R \in \bar{R} \} \cup P}
@@ -840,9 +840,9 @@ e    ::=                                                 & \mbox{expressions}   
 
 \infrule[\textsc{E-AwaitNextOrDone-1}]
 {  L(y) = o_1 \\
-   H_0(o_1) = \langle \texttt{Task}, state \mapsto running(\bar{F}, \bar{D}) \rangle \\
+   H_0(o_1) = \langle \texttt{Observable($\sigma$)}, state \mapsto running(\bar{F}, \bar{D}) \rangle \\
    \forall \langle {o_2}, q \rangle \in \bar{D}.~o_2 \neq o \\
-   H_1 = H_0[o_1 \mapsto \langle \texttt{Task}, state \mapsto running(\aframe L {\texttt{x = y.GetResult();} \bar{s}} {a(o)} :: \bar{F}, \bar{D}) \rangle]
+   H_1 = H_0[o_1 \mapsto \langle \texttt{Observable($\sigma$)}, state \mapsto running(\aframe L {\texttt{x = y.GetResult();} \bar{s}} {a(o)} :: \bar{F}, \bar{D}) \rangle]
 }
 { \fsreducebreak {H_0} {\aframe L {\texttt{x = awaitNextOrDone(y);} \bar{s}} {a(o)} \circ FS}
     {H_1} {FS}
@@ -850,9 +850,9 @@ e    ::=                                                 & \mbox{expressions}   
 
 \infrule[\textsc{E-AwaitNextOrDone-2}]
 {  L(y) = o_1 \\
-   H_0(o_1) = \langle \texttt{Task}, state \mapsto running(\bar{F}, \bar{D}) \rangle \\
+   H_0(o_1) = \langle \texttt{Observable($\sigma$)}, state \mapsto running(\bar{F}, \bar{D}) \rangle \\
    \langle o, [] \rangle \in \bar{D} \\
-   H_1 = H_0[o_1 \mapsto \langle \texttt{Task}, state \mapsto running(\aframe L {\texttt{x = y.GetResult();} \bar{s}} {a(o)} :: \bar{F}, \bar{D} \setminus \{ \langle o, [] \rangle \}) \rangle]
+   H_1 = H_0[o_1 \mapsto \langle \texttt{Observable($\sigma$)}, state \mapsto running(\aframe L {\texttt{x = y.GetResult();} \bar{s}} {a(o)} :: \bar{F}, \bar{D} \setminus \{ \langle o, [] \rangle \}) \rangle]
 }
 { \fsreducebreak {H_0} {\aframe L {\texttt{x = awaitNextOrDone(y);} \bar{s}} {a(o)} \circ FS}
     {H_1} {FS}
@@ -860,9 +860,9 @@ e    ::=                                                 & \mbox{expressions}   
 
 \infrule[\textsc{E-AwaitNextOrDone-3}]
 {  L(y) = o_1 \\
-   H_0(o_1) = \langle \texttt{Task}, state \mapsto running(\bar{F}, \bar{D}) \rangle \\
+   H_0(o_1) = \langle \texttt{Observable($\sigma$)}, state \mapsto running(\bar{F}, \bar{D}) \rangle \\
    \bar{D} = \bar{D'} \cup \{ \langle o, e :: q \rangle \} \\
-   H_1 = H_0[o_1 \mapsto \langle \texttt{Task}, state \mapsto running(\bar{F}, \bar{D'} \cup \{ \langle o, q \rangle \}) \rangle]
+   H_1 = H_0[o_1 \mapsto \langle \texttt{Observable($\sigma$)}, state \mapsto running(\bar{F}, \bar{D'} \cup \{ \langle o, q \rangle \}) \rangle]
 }
 { \fsreducebreak {H_0} {\aframe L {\texttt{x = awaitNextOrDone(y);} \bar{s}} {a(o)} \circ FS}
     {H_1} {\aframe {L[x \mapsto e]} {\bar{s}} {a(o)} \circ FS}
@@ -885,9 +885,9 @@ Frames have the form $\aframe L {\bar{e}} l$ where $L$ maps local variables to
 their values, $\bar{e}$ is a sequence of expressions, and $l$ is a label. A
 label is either $s$ denoting a regular, synchronous frame, or $a(o)$ denoting
 an asynchronous frame; in this case, $o$ is the heap address of a
-corresponding task object $\langle \texttt{Task}, state \mapsto
+corresponding observable object $\langle \texttt{Observable($\sigma$)}, state \mapsto
 running(\bar{F}, \bar{D}) \rangle$. $\bar{F}$ is a set of asynchronous frames,
-namely, all tasks that are currently suspended awaiting $o$ to publish a new
+namely, all observables that are currently suspended awaiting $o$ to publish a new
 event. $\bar{D}$ is a set of so-called ``dormant queues'' which are explained
 below. Invoking a synchronous method pushes a synchronous frame to the current
 frame stack; invoking an asynchronous method pushes an asynchronous frame to
@@ -901,7 +901,7 @@ resumed when the current asynchronous frame yields a next event. An awaiter
 has the form $\aframe {L_2} {\texttt{x = y.GetResult();} \bar{s_2}} {a(o_2)}$.
 The call $\texttt{x = y.GetResult();}$ is just a placeholder indicating that
 the awaiter should be resumed with the next event that stream \verb|y| yields.
-Note that the state of a task is $running(\bar{F}, \bar{D})$ as opposed to
+Note that the state of an observable is $running(\bar{F}, \bar{D})$ as opposed to
 $running(\bar{F})$ in the simpler async case. The $\bar{D}$ are ``dormant''
 queues, which are queues of awaiters that are currently not suspended, but
 that might call \verb|awaitNextOrDone| again. To prevent these awaiters from
@@ -913,17 +913,17 @@ Another difference from the async formalization is that \verb|GetResult|
 returns an option, which means upon yielding a next result, the awaiter is
 resumed with value $\texttt{Some}(L(z))$.
 
-Rule (E-AwaitNextOrDone-1) only applies if in task $o_1$ (the task of
-\verb|y|) there is no dormant queue for task $o$ (the task that is waiting for
-the next event). In this case, a new awaiter is created and added to task
+Rule (E-AwaitNextOrDone-1) only applies if in observable $o_1$ (the observable of
+\verb|y|) there is no dormant queue for observable $o$ (the observable that is waiting for
+the next event). In this case, a new awaiter is created and added to observable
 $o_1$ in $H_1$.
 
-Rule (E-AwaitNextOrDone-2) applies if the task awaiting an event has an empty
+Rule (E-AwaitNextOrDone-2) applies if the observable awaiting an event has an empty
 dormant queue; in this case the empty dormant queue is removed and a regular
-awaiter is added to the awaiters of task $o_1$.
+awaiter is added to the awaiters of observable $o_1$.
 
-Rule (E-AwaitNextOrDone-3) applies if the task awaiting an event has a non-
-empty dormant queue; in this case, the task can continue while taking an
+Rule (E-AwaitNextOrDone-3) applies if the observable awaiting an event has a non-
+empty dormant queue; in this case, the observable can continue while taking an
 element out of the dormant queue.
 
 \section{Related Work}
