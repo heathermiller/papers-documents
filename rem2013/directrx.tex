@@ -884,7 +884,15 @@ Frames have the form $\aframe L {\bar{e}} l$ where $L$ maps local variables to
 their values, $\bar{e}$ is a sequence of expressions, and $l$ is a label. A
 label is either $s$ denoting a regular, synchronous frame, or $a(o)$ denoting
 an asynchronous frame; in this case, $o$ is the heap address of a
-corresponding task object.
+corresponding task object $\langle \texttt{Task}, state \mapsto
+running(\bar{F}, \bar{D}) \rangle$. $\bar{F}$ is a set of asynchronous frames,
+namely, all tasks that are currently suspended awaiting $o$ to publish a new
+event. $\bar{D}$ is a set of so-called ``dormant queues'' which are explained
+below. Invoking a synchronous method pushes a synchronous frame to the current
+frame stack; invoking an asynchronous method pushes an asynchronous frame to
+the current frame stack.
+
+\subsubsection{Transition Rules}
 
 Rule (E-RAsync-Yield) is an extended version of rule (E-Async-Return)
 in~\cite{FormalizingAsync}. It shows how awaiters (frames $\bar{F}$) are
