@@ -766,6 +766,19 @@ model presented in~\cite{FormalizingAsync}. To make it easier to pinpoint the es
 semantic differences between our models, we will re-use their formal model.
 At the same time we can be confident that the rest of the formal model is sound.
 
+\subsection{Syntax}
+
+Figure~\ref{fig:lang-syntax} and Figure~\ref{fig:lang-syntax-2} show the
+syntax of our core language. The core language is taken virtually unchanged
+from~\cite{FormalizingAsync}. To make it more uniform with the rest of the
+paper we use a Scala-like syntax, though. Like in the original paper, programs
+are written in {\em statement normal form} (SNF) which forces all
+subexpressions to be named; this simplifies the presentation of the
+operational semantics. Note that our core language does not support any form
+of subtyping, so class declarations do not specify a superclass. This is again
+adopted from~\cite{FormalizingAsync}; the presented reactive features are
+orthogonal to subtyping.
+
 \subsection{Operational Semantics}
 
 \begin{figure}
@@ -811,7 +824,7 @@ e    ::=                                             & \mbox{expressions}      \
 \ea$
   \caption{Core language syntax. $C$ is a class name, $f,m$ are field and
     method names.}
-  \label{fig:lang-syntax}
+  \label{fig:lang-syntax-2}
 \end{figure}
 
 \begin{figure*}[ht!]
@@ -862,6 +875,15 @@ e    ::=                                             & \mbox{expressions}      \
   \label{fig:opsem-rules}
 \end{figure*}
 % \vspace{-4em}
+
+\subsubsection{Notation}
+
+There are three kinds of transition rules. The first kind goes from a heap and
+a frame to a new heap and a new frame (simple right arrow). The second kind
+goes from a heap and a frame stack to a new heap and a new frame stack (double
+right arrow). The third kind goes from a heap and a set of frame stacks to a
+new heap and a new set of frame stacks (squiggly right arrow).
+
 
 Rule (E-RAsync-Yield) is an extended version of rule (E-Async-Return)
 in~\cite{FormalizingAsync}. It shows how awaiters (frames $\bar{F}$) are
