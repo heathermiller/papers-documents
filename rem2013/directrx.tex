@@ -895,13 +895,17 @@ the current frame stack.
 
 Rule (E-RAsync-Yield) is an extended version of rule (E-Async-Return)
 in~\cite{FormalizingAsync}. It shows how awaiters (frames $\bar{F}$) are
-resumed when the current stream yields a next event. Note that the state of a
-task is $running(\bar{F}, \bar{D})$ as opposed to $running(\bar{F})$ in the
-simpler async case. The $\bar{D}$ are ``dormant'' queues, which are queues of
-awaiters that are currently not suspended, but that might call
-\verb|awaitNextOrDone| again. To prevent these awaiters from skipping events,
-we record them in this list of dormant queues, so that new events can be
-queued up in the dormant queues, until \verb|awaitNextOrDone| is called again.
+resumed when the current asynchronous frame yields a next event. An awaiter
+has the form $\aframe {L_2} {\texttt{x = y.GetResult();} \bar{s_2}} {a(o_2)}$.
+The call $\texttt{x = y.GetResult();}$ is just a placeholder indicating that
+the awaiter should be resumed with the next event that stream \verb|y| yields.
+Note that the state of a task is $running(\bar{F}, \bar{D})$ as opposed to
+$running(\bar{F})$ in the simpler async case. The $\bar{D}$ are ``dormant''
+queues, which are queues of awaiters that are currently not suspended, but
+that might call \verb|awaitNextOrDone| again. To prevent these awaiters from
+skipping events, we record them in this list of dormant queues, so that new
+events can be queued up in the dormant queues, until \verb|awaitNextOrDone| is
+called again.
 
 Another difference from the async formalization is that \verb|GetResult|
 returns an option, which means upon yielding a next result, the awaiter is
