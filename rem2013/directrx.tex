@@ -742,17 +742,17 @@ of~\cite{ProkopecMSHO12}).
 
 For each observable that the \verb|rasync| block is awaiting events from, the
 state machine maintains a non-blocking channel (in the \verb|channels| map). A
-channel supports a non- blocking \verb|put| operation, as well as a non-
+channel supports a non-blocking \verb|put| operation, as well as a non-
 blocking \verb|get| operation. Each invocation of \verb|awaitNextOrDone| is
 translated as follows. First, we check whether there is already a channel for
-\verb|stream|. If not, we create a channel and subscribe an observer which put
+\verb|stream|. If not, we create a channel and subscribe an observer which puts
 new events into the channel. Moreover, we call \verb|get| on the channel,
 passing the current continuation. Whenever the channel receives the first
-event, the continuation is called, which executes the corresponding state of
-the state machine. The continuation is (atomically) deregistered, though, so
+event the continuation is called, which executes the corresponding state of
+the state machine. The continuation is (atomically) deregistered, so
 that the following events are just enqueued in the channel. When the consumer
 reaches the original \verb|awaitNextOrDone| invocation it gets either a queued
-element from the channel, or if the channel is empty, it registers its
+element from the channel, or, if the channel is empty, it registers its
 continuation once again using \verb|get|. At the end of the \verb|rasync|
 block, all collected subscriptions (\verb|subs|) are closed; this turns all
 created channels into garbage.
