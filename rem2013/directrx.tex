@@ -843,19 +843,7 @@ e    ::=                                                 & \mbox{expressions}   
 \infrule[\textsc{E-AwaitNextOrDone-1}]
 {  L(y) = o_1 \\
    H_0(o_1) = \langle \texttt{Observable$[\sigma]$}, state \mapsto running(\bar{F}, \bar{D}) \rangle \\
-   \forall \langle {o_2}, q \rangle \in \bar{D}.~o_2 \neq o \\
-   H_1 = H_0[o_1 \mapsto \langle \texttt{Observable$[\sigma]$}, state \mapsto running(\aframe L {\texttt{x = y.GetResult();} \bar{s}} {a(o)} :: \bar{F}, \bar{D}) \rangle]
-}
-{ \fsreducebreak {H_0} {\aframe L {\texttt{x = awaitNextOrDone(y);} \bar{s}} {a(o)} \circ FS}
-    {H_1} {FS}
-}
-
-\vspace{0.3cm}
-
-\infrule[\textsc{E-AwaitNextOrDone-2}]
-{  L(y) = o_1 \\
-   H_0(o_1) = \langle \texttt{Observable$[\sigma]$}, state \mapsto running(\bar{F}, \bar{D}) \rangle \\
-   \langle o, [] \rangle \in \bar{D} \\
+   \langle o, [] \rangle \in \bar{D} \lor \forall \langle {o_2}, q \rangle \in \bar{D}.~o_2 \neq o \\
    H_1 = H_0[o_1 \mapsto \langle \texttt{Observable$[\sigma]$}, state \mapsto running(\aframe L {\texttt{x = y.GetResult();} \bar{s}} {a(o)} :: \bar{F}, \bar{D} \setminus \{ \langle o, [] \rangle \}) \rangle]
 }
 { \fsreducebreak {H_0} {\aframe L {\texttt{x = awaitNextOrDone(y);} \bar{s}} {a(o)} \circ FS}
@@ -864,7 +852,7 @@ e    ::=                                                 & \mbox{expressions}   
 
 \vspace{0.3cm}
 
-\infrule[\textsc{E-AwaitNextOrDone-3}]
+\infrule[\textsc{E-AwaitNextOrDone-2}]
 {  L(y) = o_1 \\
    H_0(o_1) = \langle \texttt{Observable$[\sigma]$}, state \mapsto running(\bar{F}, \bar{D}) \rangle \\
    \bar{D} = \bar{D'} \cup \{ \langle o, e :: q \rangle \} \\
@@ -931,16 +919,14 @@ Another difference from the async formalization is that \verb|GetResult|
 returns an option, which means upon yielding a next result, the awaiter is
 resumed with value $\texttt{Some}(L(z))$.
 
-Rule (E-AwaitNextOrDone-1) only applies if in observable $o_1$ (the observable of
-\verb|y|) there is no dormant queue for observable $o$ (the observable that is waiting for
-the next event). In this case, a new awaiter is created and added to observable
-$o_1$ in $H_1$.
+Rule (E-AwaitNextOrDone-1) only applies if in observable $o_1$ (the observable
+of \verb|y|) there is no dormant queue for observable $o$ (the observable that
+is waiting for the next event) or the dormant queue is empty. In the former
+case, a new awaiter is created and added to observable $o_1$ in $H_1$. In the
+latter case, the empty dormant queue is removed and a regular awaiter is added
+to the awaiters of observable $o_1$.
 
-Rule (E-AwaitNextOrDone-2) applies if the observable awaiting an event has an empty
-dormant queue; in this case the empty dormant queue is removed and a regular
-awaiter is added to the awaiters of observable $o_1$.
-
-Rule (E-AwaitNextOrDone-3) applies if the observable awaiting an event has a non-
+Rule (E-AwaitNextOrDone-2) applies if the observable awaiting an event has a non-
 empty dormant queue; in this case, the observable can continue while taking an
 element out of the dormant queue.
 
