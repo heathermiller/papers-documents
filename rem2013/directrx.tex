@@ -35,6 +35,7 @@
 \usepackage{multicol}
 \usepackage{caption}
 \usepackage{subcaption}
+\usepackage[normalem]{ulem}
 
 \lstdefinelanguage{Scala}%
 {morekeywords={abstract,case,catch,char,class,%
@@ -754,6 +755,24 @@ mb   ::=  \{\seq{x: \sigma};\seq{s}\}                & \mbox{method body}       
 \gap \texttt{bool}                                   & \gap\mbox{boolean}         \\
 \gap \texttt{int}                                    & \gap\mbox{integer}         \\
 \psi ::=                                             & \mbox{\texttt{Task$[\sigma]$}}         \\
+\ea$
+  \caption{Core language syntax. $C$ is a class name, $f,m$ are field and
+    method names.}
+  \label{fig:lang-syntax}
+\end{figure}
+
+\begin{figure}
+  \centering
+$\ba[t]{l@{\hspace{2mm}}l}
+e    ::=                                             & \mbox{expressions}      \\
+\gap \uline{b}                                       & \gap\mbox{boolean}      \\
+\gap \uline{i}                                       & \gap\mbox{integer}      \\
+% \gap x \oplus y                                      & \gap\mbox{built-in operator}      \\
+\gap x                                               & \gap\mbox{variable}     \\
+% \texttt{null}                                        & \gap\mbox{null}          \\
+\gap x.f                                             & \gap\mbox{selection}    \\
+\gap x.m(\seq{y})                                    & \gap\mbox{invocation}   \\
+\gap \texttt{new C()}                                & \gap\mbox{instance creation}   \\
 \ea$
   \caption{Core language syntax. $C$ is a class name, $f,m$ are field and
     method names.}
