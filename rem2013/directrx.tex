@@ -828,11 +828,11 @@ e    ::=                                                 & \mbox{expressions}   
   \centering
 
 \infrule[\textsc{E-RAsync-Yield}]
-{  H_0(o) = \langle \texttt{Observable($\sigma$)}, state \mapsto running(\bar{F}, \bar{D}) \rangle \\
+{  H_0(o) = \langle \texttt{Observable$[\sigma]$}, state \mapsto running(\bar{F}, \bar{D}) \rangle \\
    \bar{R} = \{ \aframe {L_2[x \mapsto \texttt{Some}(L(z))]} {\bar{s_2}} {a(o_2)}~|~ \aframe {L_2} {\texttt{x = y.GetResult();} \bar{s_2}} {a(o_2)} \in \bar{F} \} \\
    \bar{N} = \{ \langle {o_2}, [] \rangle ~|~ \aframe {\_} {\_} {a(o_2)} \in \bar{R} \} \\
    \bar{D'} = \{ \langle {o_3}, L(z) :: q \rangle ~|~ \langle {o_3}, q \rangle \in \bar{D} \} \\
-   H_1 = H_0[o \mapsto \langle \texttt{Observable($\sigma$)}, state \mapsto running(\epsilon, \bar{D'} \cup \bar{N}) \rangle]
+   H_1 = H_0[o \mapsto \langle \texttt{Observable$[\sigma]$}, state \mapsto running(\epsilon, \bar{D'} \cup \bar{N}) \rangle]
 }
 { \reducebreak {H_0} {\{ \aframe L {\texttt{yieldNext(z);} \bar{s}} {a(o)} \circ FS\} \cup P}
     {H_1} {\{ \aframe L {\bar{s}} {a(o)} \circ FS \} \cup \{ R \circ \epsilon ~|~ R \in \bar{R} \} \cup P}
@@ -840,9 +840,9 @@ e    ::=                                                 & \mbox{expressions}   
 
 \infrule[\textsc{E-AwaitNextOrDone-1}]
 {  L(y) = o_1 \\
-   H_0(o_1) = \langle \texttt{Observable($\sigma$)}, state \mapsto running(\bar{F}, \bar{D}) \rangle \\
+   H_0(o_1) = \langle \texttt{Observable$[\sigma]$}, state \mapsto running(\bar{F}, \bar{D}) \rangle \\
    \forall \langle {o_2}, q \rangle \in \bar{D}.~o_2 \neq o \\
-   H_1 = H_0[o_1 \mapsto \langle \texttt{Observable($\sigma$)}, state \mapsto running(\aframe L {\texttt{x = y.GetResult();} \bar{s}} {a(o)} :: \bar{F}, \bar{D}) \rangle]
+   H_1 = H_0[o_1 \mapsto \langle \texttt{Observable$[\sigma]$}, state \mapsto running(\aframe L {\texttt{x = y.GetResult();} \bar{s}} {a(o)} :: \bar{F}, \bar{D}) \rangle]
 }
 { \fsreducebreak {H_0} {\aframe L {\texttt{x = awaitNextOrDone(y);} \bar{s}} {a(o)} \circ FS}
     {H_1} {FS}
@@ -850,9 +850,9 @@ e    ::=                                                 & \mbox{expressions}   
 
 \infrule[\textsc{E-AwaitNextOrDone-2}]
 {  L(y) = o_1 \\
-   H_0(o_1) = \langle \texttt{Observable($\sigma$)}, state \mapsto running(\bar{F}, \bar{D}) \rangle \\
+   H_0(o_1) = \langle \texttt{Observable$[\sigma]$}, state \mapsto running(\bar{F}, \bar{D}) \rangle \\
    \langle o, [] \rangle \in \bar{D} \\
-   H_1 = H_0[o_1 \mapsto \langle \texttt{Observable($\sigma$)}, state \mapsto running(\aframe L {\texttt{x = y.GetResult();} \bar{s}} {a(o)} :: \bar{F}, \bar{D} \setminus \{ \langle o, [] \rangle \}) \rangle]
+   H_1 = H_0[o_1 \mapsto \langle \texttt{Observable$[\sigma]$}, state \mapsto running(\aframe L {\texttt{x = y.GetResult();} \bar{s}} {a(o)} :: \bar{F}, \bar{D} \setminus \{ \langle o, [] \rangle \}) \rangle]
 }
 { \fsreducebreak {H_0} {\aframe L {\texttt{x = awaitNextOrDone(y);} \bar{s}} {a(o)} \circ FS}
     {H_1} {FS}
@@ -860,9 +860,9 @@ e    ::=                                                 & \mbox{expressions}   
 
 \infrule[\textsc{E-AwaitNextOrDone-3}]
 {  L(y) = o_1 \\
-   H_0(o_1) = \langle \texttt{Observable($\sigma$)}, state \mapsto running(\bar{F}, \bar{D}) \rangle \\
+   H_0(o_1) = \langle \texttt{Observable$[\sigma]$}, state \mapsto running(\bar{F}, \bar{D}) \rangle \\
    \bar{D} = \bar{D'} \cup \{ \langle o, e :: q \rangle \} \\
-   H_1 = H_0[o_1 \mapsto \langle \texttt{Observable($\sigma$)}, state \mapsto running(\bar{F}, \bar{D'} \cup \{ \langle o, q \rangle \}) \rangle]
+   H_1 = H_0[o_1 \mapsto \langle \texttt{Observable$[\sigma]$}, state \mapsto running(\bar{F}, \bar{D'} \cup \{ \langle o, q \rangle \}) \rangle]
 }
 { \fsreducebreak {H_0} {\aframe L {\texttt{x = awaitNextOrDone(y);} \bar{s}} {a(o)} \circ FS}
     {H_1} {\aframe {L[x \mapsto e]} {\bar{s}} {a(o)} \circ FS}
@@ -885,7 +885,7 @@ Frames have the form $\aframe L {\bar{e}} l$ where $L$ maps local variables to
 their values, $\bar{e}$ is a sequence of expressions, and $l$ is a label. A
 label is either $s$ denoting a regular, synchronous frame, or $a(o)$ denoting
 an asynchronous frame; in this case, $o$ is the heap address of a
-corresponding observable object $\langle \texttt{Observable($\sigma$)}, state \mapsto
+corresponding observable object $\langle \texttt{Observable$[\sigma]$}, state \mapsto
 running(\bar{F}, \bar{D}) \rangle$. $\bar{F}$ is a set of asynchronous frames,
 namely, all observables that are currently suspended awaiting $o$ to publish a new
 event. $\bar{D}$ is a set of so-called ``dormant queues'' which are explained
