@@ -398,7 +398,10 @@ The idea of the \verb|Observer| is that it can respond to three different
 kinds of events, (1) the next regular event (\verb|onNext|), (2) a failure
 (\verb|onFailure|), and (3) the end of the observable stream (\verb|onDone|).
 Thus, the two traits constitute a variation of the classic subject/observer
-pattern~\cite{EugsterFGK03}.
+pattern~\cite{EugsterFGK03}. Note that \verb|Observable|'s \verb|subscribe|
+method returns a \verb|Closable|; it has only a single abstract \verb|close|
+method which removes the subscription from the observable. The next listing
+shows an example implementation.
 
 Note that in our Scala version the \verb|Observer| trait extends the function
 type \verb|Try[T] => Unit|. \verb|Try[T]| is a simple container type which
@@ -436,8 +439,6 @@ def textChanges(tf: JTextField): Observable[String] =
     }
   }
 \end{lstlisting}
-
-\note{mention Closable}
 
 This newly-defined \verb|textChanges| combinator can be used with other Rx
 combinators as follows:
