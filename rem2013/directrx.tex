@@ -818,10 +818,10 @@ as synchronous methods.
 \begin{figure}
   \centering
 $\ba[t]{l@{\hspace{2mm}}l}
-t    ::=  \texttt{let}~x~e~\mbox{in}~t                   & \mbox{let binding}      \\
+t    ::=  \texttt{let}~x = e~\mbox{in}~t                 & \gap\mbox{let binding}  \\
 \gap ~|~ x.f = y                                         & \gap\mbox{assignment}   \\
+\gap ~|~ \texttt{yieldNext}(x)                           & \gap\mbox{yield event}  \\
 \gap ~|~ x                                               & \gap\mbox{variable}     \\
-\gap ~|~ \texttt{yieldNext(x)}                           & \gap\mbox{yield}        \\
 e    ::=                                                 & \mbox{expressions}      \\
 \gap ~|~ \uline{b}                                       & \gap\mbox{boolean}      \\
 \gap ~|~ \uline{i}                                       & \gap\mbox{integer}      \\
@@ -831,7 +831,7 @@ e    ::=                                                 & \mbox{expressions}   
 \gap ~|~ x.f                                             & \gap\mbox{selection}    \\
 \gap ~|~ x.m(\seq{y})                                    & \gap\mbox{invocation}   \\
 \gap ~|~ \texttt{new C()}                                & \gap\mbox{instance creation}   \\
-\gap ~|~ \texttt{awaitNextOrDone(x)}                     & \gap\mbox{await next event}   \\
+\gap ~|~ \texttt{awaitNextOrDone}(x)                     & \gap\mbox{await next event}   \\
 \gap ~|~ t                                               & \gap\mbox{term}         \\
 \ea$
   \caption{Ray expressions and terms.}
