@@ -808,9 +808,9 @@ $\sigma$ and $\seq{md}$, respectively. Importantly, method declarations may be
 either synchronous, or asynchronous. In the synchronous case, methods are
 public with return type $\phi$, a type which may represent either a class or
 value type, and they may contain local variables and/or a list of terms
-$\seq{t}$. Asynchronous methods on the other hand marked with the
-$\texttt{async}$ modifier and are expected to return the
-\texttt{Observable$[\sigma]$} type, but are otherwise syntactically the same
+$\seq{t}$. Asynchronous methods on the other hand are marked with the
+$\texttt{async}$ modifier and are expected have return type
+\texttt{Observable$[\sigma]$}, but are otherwise syntactically the same
 as synchronous methods.
 
 \subsection{Operational Semantics}
@@ -898,8 +898,8 @@ e    ::=                                                 & \mbox{expressions}   
 A heap, denoted $H$, partially maps object identifiers (ranged over by $o$) to
 heap objects, denoted $\langle\texttt{C}, FM\rangle$, representing a pair of
 type $\texttt{C}$ and a field map, $FM$. A field map partially maps fields $f$
-to values (ranged over by $v$), where $v$ can take either an integer, boolean,
-or \texttt{null} value.
+to values (ranged over by $v$), where $v$ can be either an integer, a boolean,
+\texttt{null}, or an object identifier (the address of an object in the heap).
 
 Frames have the form $\aframe L {\bar{e}} l$ where $L$ maps local variables to
 their values, $\bar{e}$ is a sequence of expressions, and $l$ is a label. A
