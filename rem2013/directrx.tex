@@ -803,8 +803,15 @@ orthogonal to subtyping.
 
 A RAY program consists of a collection of class definitions, as well as the
 definition of a (\texttt{main}) method body. A class \texttt{C} has (a
-possibly empty) sequence of fields and methods, $\seq{f}$ with types $\signa$
-and $\seq{md}$, respectively.
+possibly empty) sequence of  public fields and methods, $\seq{f}$ with types
+$\sigma$ and $\seq{md}$, respectively. Importantly, method declarations may be
+either synchronous, or asynchronous. In the synchronous case, methods are
+public with return type $\phi$, a type which may represent either a class or
+value type, and they may contain local variables and/or a list of terms
+$\seq{t}$. Asynchronous methods on the other hand marked with the
+$\texttt{async}$ modifier and are expected to return the
+\texttt{Observable$[\sigma]$} type, but are otherwise syntactically the same
+as synchronous methods.
 
 \subsection{Operational Semantics}
 
