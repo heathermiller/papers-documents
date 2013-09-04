@@ -358,7 +358,7 @@ val respFut = async {
 }
 \end{lstlisting}
 
-The await on line 2 causes the execution of the \verb|async|
+The \verb|await| on line 2 causes the execution of the \verb|async|
 block to suspend until \verb|futureDOY| is completed (with a successful result
 or with an exception). When the future is completed successfully, its result
 is bound to the \verb|dayOfYear| local variable, and the execution of the
