@@ -280,7 +280,7 @@ The Async extensions of F\#~\cite{SymePL11}, C\#~\cite{FormalizingAsync}, and
 Scala~\cite{ScalaAsyncSIP} provide language support for programming with
 futures (or ``tasks''), by avoiding an inversion of control that is inherent
 in designs based on callbacks. However, these extensions are so far only
-applicable to futures or future-like abstractions. In this paper we consider
+applicable to futures or future-like abstractions. In this paper we present
 an integration of the Async model with a richer underlying abstraction, the
 observable streams of the Reactive Extensions model.~\cite{RxCACM} A reactive
 stream is a stream of {\em observable events} which an arbitrary number of
@@ -291,6 +291,9 @@ with an error (it's even possible for a stream to never complete.) Given the
 richer substrate of reactive streams, the Async model has to be generalized in
 several dimensions.
 
+We call our model RAY, inspired by its main constructs, \texttt{rasync},
+\texttt{await}, \texttt{yield}, introduced later in the paper.
+
 This paper makes the following contributions:
 \begin{itemize}
   \item  A design of a new programming model, RAY, which integrates the Async model and the Reactive Extensions model in the context of the Scala Async project~\cite{ScalaAsync}~(proposed for adoption in mainline Scala~\cite{ScalaAsyncSIP});
@@ -298,9 +301,9 @@ This paper makes the following contributions:
     formal model presented in~\cite{FormalizingAsync} for C\#'s async/await to observable streams.
 \end{itemize}
 
-
 \section{Background}
 
+\vspace{0.2cm}
 \subsection{Scala Async}\label{sec:scala-async}
 
 Scala Async provides constructs that aim to facilitate programming with
