@@ -813,6 +813,21 @@ $\texttt{async}$ modifier and are expected to return the
 \texttt{Observable$[\sigma]$} type, but are otherwise syntactically the same
 as synchronous methods.
 
+The \texttt{Observable[$\sigma$]} type is a family of types to model the
+generic nature of observables. They represent observables such that an async
+method can choose to await their next event using \texttt{awaitNextOrDone}.
+Conversely, inside the body of an async method with result type
+\texttt{Observable[$\sigma$]}, \texttt{yieldNext} can be used to publish an
+event of type $\sigma$.
+
+Expressions in RAY include constants, which can be either an integer $i$,
+boolean $b$, or the \texttt{null} literal. They may also be represented by
+class declarations, selections, invocations, or terms. Here, $x$ and $y$
+represent variable names, while $f$ ranges over field names and $m$ ranges
+over method names. In order to enforce the above-mentioned SNF, we include a
+second syntactic category for terms.
+
+
 \subsection{Operational Semantics}
 
 \begin{figure}
@@ -834,7 +849,7 @@ e    ::=                                                 & \mbox{expressions}   
 \gap ~|~ \texttt{awaitNextOrDone(x)}                     & \gap\mbox{await next event}   \\
 \gap ~|~ t                                               & \gap\mbox{term}         \\
 \ea$
-  \caption{Ray expressions and terms.}
+  \caption{RAY expressions and terms.}
   \label{fig:lang-syntax-2}
 \end{figure}
 
