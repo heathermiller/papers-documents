@@ -755,29 +755,6 @@ block, all collected subscriptions (\verb|subs|) are closed; this turns all
 created channels into garbage.
 
 
-\section{Formalization}
-
-One of the contributions of this paper is a sketch of the operational semantics of the
-proposed programming model. Our operational semantics generalizes the formal
-model presented in~\cite{FormalizingAsync}. To make it easier to pinpoint the essential
-semantic differences between our models, we will re-use their formal model.
-At the same time we can be confident that the rest of the formal model is sound.
-
-\subsection{Syntax}
-
-Figure~\ref{fig:lang-syntax} and Figure~\ref{fig:lang-syntax-2} show the
-syntax of our core language. The core language is taken virtually unchanged
-from~\cite{FormalizingAsync}. To make it more uniform with the rest of the
-paper we use a Scala-like syntax, though. Like in the original paper, programs
-are written in {\em statement normal form} (SNF) which forces all
-subexpressions to be named; this simplifies the presentation of the
-operational semantics. Note that our core language does not support any form
-of subtyping, so class declarations do not specify a superclass. This is again
-adopted from~\cite{FormalizingAsync}; the presented reactive features are
-orthogonal to subtyping.
-
-\subsection{Operational Semantics}
-
 \begin{figure}
   \centering
 $\ba[t]{l@{\hspace{2mm}}l}
@@ -785,24 +762,51 @@ p    ::=  \seq{cd}~mb                                & \mbox{program}           
 cd   ::=  \texttt{class}~C~\{\seq{fd}~\seq{md}\}     & \mbox{class declaration}   \\
 fd   ::=  \texttt{var}~f: \sigma                     & \mbox{field}               \\
 md   ::=                                             & \mbox{method declaration}  \\
-\gap \texttt{def}~m(\seq{x: \sigma}): \phi = mb      & \mbox{sync method}         \\
-\gap \texttt{def}~m(\seq{x: \sigma}): \psi = \texttt{rasync}~\{~mb~\}  & \mbox{async method} \\
+\gap ~|~  \texttt{def}~m(\seq{x: \sigma}): \phi = mb & \mbox{sync method}         \\
+\gap ~|~  \texttt{def}~m(\seq{x: \sigma}): \psi = \texttt{rasync}~\{~mb~\}  & \mbox{async method} \\
 mb   ::=  \{~\seq{\texttt{var}~x: \sigma};\seq{e}~\} & \mbox{method body}         \\
 \phi ::=  \sigma                                     & \mbox{return type}         \\
 \sigma,\tau ::=                                      & \mbox{type}                \\
-\gap \gamma                                          & \gap\mbox{value type}      \\
-\gap \texttt{C}                                      & \gap\mbox{class type}      \\
+\gap ~|~  \gamma                                     & \gap\mbox{value type}      \\
+\gap ~|~  \texttt{C}                                 & \gap\mbox{class type}      \\
                                                      & \gap\mbox{\em{(including a family}} \\
                                                      & \gap\mbox{\em{of types \texttt{Observable}$[\sigma]$)}} \\
 \gamma ::=                                           & \mbox{value type} \\
-\gap \texttt{Boolean}                                & \gap\mbox{boolean}         \\
-\gap \texttt{Int}                                    & \gap\mbox{integer}         \\
+\gap ~|~  \texttt{Boolean}                           & \gap\mbox{boolean}         \\
+\gap ~|~  \texttt{Int}                               & \gap\mbox{integer}         \\
 \psi ::= \texttt{Observable$[\sigma]$}               & \mbox{observable return type}    \\
 \ea$
   \caption{Core language syntax. $C$ is a class name, $f,m$ are field and
     method names.}
   \label{fig:lang-syntax}
 \end{figure}
+
+\section{Formalization}
+
+One of the contributions of this paper is a sketch of the operational semantics of the
+proposed programming model. Our operational semantics generalizes the formal
+model presented in~\cite{FormalizingAsync}. To make it easier to pinpoint the essential
+semantic differences between our models, we will re-use their formal model.
+
+\subsection{Syntax}
+
+Figure~\ref{fig:lang-syntax} and Figure~\ref{fig:lang-syntax-2} show the
+syntax of our core language. The core language is taken virtually unchanged
+from~\cite{FormalizingAsync}. To make it more uniform with the rest of the
+paper we use a Scala-like syntax, however. Like in the original paper, programs
+are written in {\em statement normal form} (SNF) which forces all
+subexpressions to be named; this simplifies the presentation of the
+operational semantics. Note that our core language does not support any form
+of subtyping, so class declarations do not specify a superclass. This is again
+adopted from~\cite{FormalizingAsync}; the presented reactive features are
+orthogonal to subtyping.
+
+A RAY program consists of a collection of class definitions, as well as the
+definition of a (\texttt{main}) method body. A class \texttt{C} has (a
+possibly empty) sequence of fields and methods, $\seq{f}$ with types $\signa$
+and $\seq{md}$, respectively.
+
+\subsection{Operational Semantics}
 
 \begin{figure}
   \centering
@@ -816,14 +820,14 @@ e    ::=                                                 & \mbox{expressions}   
 \gap ~|~ \uline{i}                                       & \gap\mbox{integer}      \\
 % \gap x \oplus y                                      & \gap\mbox{built-in operator}      \\
 \gap ~|~ x                                               & \gap\mbox{variable}     \\
-% \texttt{null}                                        & \gap\mbox{null}          \\
+\gap ~|~ \texttt{null}                                        & \gap\mbox{null}          \\
 \gap ~|~ x.f                                             & \gap\mbox{selection}    \\
 \gap ~|~ x.m(\seq{y})                                    & \gap\mbox{invocation}   \\
 \gap ~|~ \texttt{new C()}                                & \gap\mbox{instance creation}   \\
 \gap ~|~ \texttt{awaitNextOrDone(x)}                     & \gap\mbox{await next event}   \\
 \gap ~|~ t                                               & \gap\mbox{term}         \\
 \ea$
-  \caption{}
+  \caption{Ray expressions and terms.}
   \label{fig:lang-syntax-2}
 \end{figure}
 
@@ -884,11 +888,11 @@ e    ::=                                                 & \mbox{expressions}   
 
 \subsubsection{Notation}
 
-There are three kinds of transition rules. The first kind goes from a heap and
-a frame to a new heap and a new frame (simple right arrow). The second kind
-goes from a heap and a frame stack to a new heap and a new frame stack (double
-right arrow). The third kind goes from a heap and a set of frame stacks to a
-new heap and a new set of frame stacks (squiggly right arrow).
+A heap, denoted $H$, partially maps object identifiers (ranged over by $o$) to
+heap objects, denoted $\langle\texttt{C}, FM\rangle$, representing a pair of
+type $\texttt{C}$ and a field map, $FM$. A field map partially maps fields $f$
+to values (ranged over by $v$), where $v$ can take either an integer, boolean,
+or \texttt{null} value.
 
 Frames have the form $\aframe L {\bar{e}} l$ where $L$ maps local variables to
 their values, $\bar{e}$ is a sequence of expressions, and $l$ is a label. A
@@ -901,6 +905,12 @@ event. $\bar{D}$ is a set of so-called ``dormant queues'' which are explained
 below. Invoking a synchronous method pushes a synchronous frame to the current
 frame stack; invoking an asynchronous method pushes an asynchronous frame to
 the current frame stack.
+
+There are three kinds of transition rules. The first kind goes from a heap and
+a frame to a new heap and a new frame (simple right arrow). The second kind
+goes from a heap and a frame stack to a new heap and a new frame stack (double
+right arrow). The third kind goes from a heap and a set of frame stacks to a
+new heap and a new set of frame stacks (squiggly right arrow).
 
 \subsubsection{Transition Rules}
 
