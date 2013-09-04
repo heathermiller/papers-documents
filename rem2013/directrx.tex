@@ -786,7 +786,6 @@ One of the contributions of this paper is a sketch of the operational semantics 
 proposed programming model. Our operational semantics generalizes the formal
 model presented in~\cite{FormalizingAsync}. To make it easier to pinpoint the essential
 semantic differences between our models, we will re-use their formal model.
-At the same time we can be confident that the rest of the formal model is sound.
 
 \subsection{Syntax}
 
@@ -801,7 +800,10 @@ of subtyping, so class declarations do not specify a superclass. This is again
 adopted from~\cite{FormalizingAsync}; the presented reactive features are
 orthogonal to subtyping.
 
-A RAY program consists of
+A RAY program consists of a collection of class definitions, as well as the
+definition of a (\texttt{main}) method body. A class \texttt{C} has (a
+possibly empty) sequence of fields and methods, $\seq{f}$ with types $\signa$
+and $\seq{md}$, respectively.
 
 \subsection{Operational Semantics}
 
