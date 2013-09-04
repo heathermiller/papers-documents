@@ -813,13 +813,13 @@ possibly empty) sequence of  public fields and methods, $\seq{f}$ with types
 $\sigma$, and $\seq{md}$, respectively. Importantly, method declarations may be
 either synchronous, or asynchronous. In the synchronous case, methods are
 public with return type $\phi$, a type which may represent either a class or
-value type, and they may contain local variables and/or a list of terms
-$\seq{t}$. Asynchronous methods on the other hand are marked with the
-$\texttt{async}$ modifier and are expected have return type
+value type, and they may contain local variables and/or a list of expressions
+$\seq{e}$. Asynchronous methods on the other hand are marked with
+$\texttt{rasync}$ and are expected to have return type
 \texttt{Observable$[\sigma]$}, but are otherwise syntactically the same
 as synchronous methods.
 
-The \texttt{Observable[$\sigma$]} type is a family of types to model the
+The \texttt{Observable[$\sigma$]} family of types is used to model the
 generic nature of observables. They represent observables such that an async
 method can choose to await their next event using \texttt{awaitNextOrDone}.
 Conversely, inside the body of an async method with result type
