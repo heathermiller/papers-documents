@@ -754,6 +754,32 @@ block, all collected subscriptions (\verb|subs|) are closed; this turns all
 created channels into garbage.
 
 
+\begin{figure}
+  \centering
+$\ba[t]{l@{\hspace{2mm}}l}
+p    ::=  \seq{cd}~mb                                & \mbox{program}             \\
+cd   ::=  \texttt{class}~C~\{\seq{fd}~\seq{md}\}     & \mbox{class declaration}   \\
+fd   ::=  \texttt{var}~f: \sigma                     & \mbox{field}               \\
+md   ::=                                             & \mbox{method declaration}  \\
+\gap ~|~  \texttt{def}~m(\seq{x: \sigma}): \phi = mb & \mbox{sync method}         \\
+\gap ~|~  \texttt{def}~m(\seq{x: \sigma}): \psi = \texttt{rasync}~\{~mb~\}  & \mbox{async method} \\
+mb   ::=  \{~\seq{\texttt{var}~x: \sigma};\seq{e}~\} & \mbox{method body}         \\
+\phi ::=  \sigma                                     & \mbox{return type}         \\
+\sigma,\tau ::=                                      & \mbox{type}                \\
+\gap ~|~  \gamma                                     & \gap\mbox{value type}      \\
+\gap ~|~  \texttt{C}                                 & \gap\mbox{class type}      \\
+                                                     & \gap\mbox{\em{(including a family}} \\
+                                                     & \gap\mbox{\em{of types \texttt{Observable}$[\sigma]$)}} \\
+\gamma ::=                                           & \mbox{value type} \\
+\gap ~|~  \texttt{Boolean}                           & \gap\mbox{boolean}         \\
+\gap ~|~  \texttt{Int}                               & \gap\mbox{integer}         \\
+\psi ::= \texttt{Observable$[\sigma]$}               & \mbox{observable return type}    \\
+\ea$
+  \caption{Core language syntax. $C$ is a class name, $f,m$ are field and
+    method names.}
+  \label{fig:lang-syntax}
+\end{figure}
+
 \section{Formalization}
 
 One of the contributions of this paper is a sketch of the operational semantics of the
@@ -782,32 +808,6 @@ A RAY program consists of
 \begin{figure}
   \centering
 $\ba[t]{l@{\hspace{2mm}}l}
-p    ::=  \seq{cd}~mb                                & \mbox{program}             \\
-cd   ::=  \texttt{class}~C~\{\seq{fd}~\seq{md}\}     & \mbox{class declaration}   \\
-fd   ::=  \texttt{var}~f: \sigma                     & \mbox{field}               \\
-md   ::=                                             & \mbox{method declaration}  \\
-\gap \texttt{def}~m(\seq{x: \sigma}): \phi = mb      & \mbox{sync method}         \\
-\gap \texttt{def}~m(\seq{x: \sigma}): \psi = \texttt{rasync}~\{~mb~\}  & \mbox{async method} \\
-mb   ::=  \{~\seq{\texttt{var}~x: \sigma};\seq{e}~\} & \mbox{method body}         \\
-\phi ::=  \sigma                                     & \mbox{return type}         \\
-\sigma,\tau ::=                                      & \mbox{type}                \\
-\gap \gamma                                          & \gap\mbox{value type}      \\
-\gap \texttt{C}                                      & \gap\mbox{class type}      \\
-                                                     & \gap\mbox{\em{(including a family}} \\
-                                                     & \gap\mbox{\em{of types \texttt{Observable}$[\sigma]$)}} \\
-\gamma ::=                                           & \mbox{value type} \\
-\gap \texttt{Boolean}                                & \gap\mbox{boolean}         \\
-\gap \texttt{Int}                                    & \gap\mbox{integer}         \\
-\psi ::= \texttt{Observable$[\sigma]$}               & \mbox{observable return type}    \\
-\ea$
-  \caption{Core language syntax. $C$ is a class name, $f,m$ are field and
-    method names.}
-  \label{fig:lang-syntax}
-\end{figure}
-
-\begin{figure}
-  \centering
-$\ba[t]{l@{\hspace{2mm}}l}
 t    ::=  \texttt{let}~x~e~\mbox{in}~t                   & \mbox{let binding}      \\
 \gap ~|~ x.f = y                                         & \gap\mbox{assignment}   \\
 \gap ~|~ x                                               & \gap\mbox{variable}     \\
@@ -817,14 +817,14 @@ e    ::=                                                 & \mbox{expressions}   
 \gap ~|~ \uline{i}                                       & \gap\mbox{integer}      \\
 % \gap x \oplus y                                      & \gap\mbox{built-in operator}      \\
 \gap ~|~ x                                               & \gap\mbox{variable}     \\
-\texttt{null}                                        & \gap\mbox{null}          \\
+\gap ~|~ \texttt{null}                                        & \gap\mbox{null}          \\
 \gap ~|~ x.f                                             & \gap\mbox{selection}    \\
 \gap ~|~ x.m(\seq{y})                                    & \gap\mbox{invocation}   \\
 \gap ~|~ \texttt{new C()}                                & \gap\mbox{instance creation}   \\
 \gap ~|~ \texttt{awaitNextOrDone(x)}                     & \gap\mbox{await next event}   \\
 \gap ~|~ t                                               & \gap\mbox{term}         \\
 \ea$
-  \caption{}
+  \caption{Ray expressions and terms.}
   \label{fig:lang-syntax-2}
 \end{figure}
 
