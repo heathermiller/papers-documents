@@ -960,7 +960,14 @@ called again. Another difference from the async formalization is that
 the awaiter is resumed with value $\texttt{Some}(L(z))$.
 
 Rule (E-RAsync-Return) applies when an asynchronous frame has been evaluated
-to the end.
+to the end (the expressions in the frame are just $\epsilon$). In this case
+all awaiters $\bar{F}$ of observable $o$ are resumed with result \texttt{None}
+to indicate that the observable is done publishing events. Like before, the
+result is added to existing dormant queues yielding $\bar{D'}$. The state of
+observable $o$ is changed to $done(\bar{D'})$. As a result, subsequent calls
+to \verb|awaitNextOrDone| can immediately return \texttt{None} (not shown); at
+the same time, events in dormant queues can be consumed until the last element,
+\texttt{None}, is removed from the queue.
 
 Rule (E-AwaitNextOrDone-1) only applies if in observable $o_1$ (the observable
 of \verb|y|) there is no dormant queue for observable $o$ (the observable that
