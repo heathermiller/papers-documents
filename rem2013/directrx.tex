@@ -314,9 +314,59 @@ callbacks, or (b) higher-order functions like \verb|map| and \verb|flatMap|. Whi
 latter have great composability properties, they can appear unnatural when
 used to express the regular control flow of a program.
 
+For example, an efficient non-blocking composition of asynchronous web service
+calls using futures can be expressed as follows in Scala:
+
+\lstset{numbers=left,xleftmargin=2em}
+\begin{lstlisting}
+val futureDOY: Future[Response] =
+  WS.url("http://api.day-of-year/today").get
+
+val futureDaysLeft: Future[Response] =
+  WS.url("http://api.days-left/today").get
+
+futureDOY.flatMap { doyResponse =>
+  val dayOfYear = doyResponse.body
+  futureDaysLeft.map { daysLeftResponse =>
+    val daysLeft = daysLeftResponse.body
+    Ok("" + dayOfYear + ": " +
+            daysLeft + " days left!")
+  }
+}
+\end{lstlisting}
+
+Line 1 and 4 define two futures obtained as results of asynchronous requests
+to two hypothetical web services using an API inspired by the Play! Framework (for
+the purpose of this example, the definition of type \verb|Response| is
+unimportant).
+
+The equivalent logic can be expressed using Scala Async as follows (this
+example is adopted from the SIP proposal~\cite{ScalaAsyncSIP}):
+
+\begin{lstlisting}
+val respFut = async {
+  val dayOfYear = await(futureDOY).body
+  val daysLeft = await(futureDaysLeft).body
+  Ok("" + dayOfYear + ": " +
+          daysLeft + " days left!")
+}
+\end{lstlisting}
+
+The await on line 2 causes the execution of the \verb|async|
+block to suspend until \verb|futureDOY| is completed (with a successful result
+or with an exception). When the future is completed successfully, its result
+is bound to the \verb|dayOfYear| local variable, and the execution of the
+\verb|async| block is resumed. When the future is completed with an exception
+(for example, because of a timeout), the invocation of \verb|await| re-throws
+the exception that the future was completed with. In turn, this completes
+future \verb|respFut| with the same exception. Likewise, the \verb|await| on
+line 3 suspends the execution of the \verb|async| block until
+\verb|futureDaysLeft| is completed.
+
 The main methods provided by Scala Async, \verb|async| and \verb|await|, have
 the following type signatures:
 
+\lstset{numbers=none,xleftmargin=0em}
 \begin{lstlisting}
 def async[T](body: => T): Future[T]
 def await[T](future: Future[T]): T
@@ -334,39 +384,6 @@ actual operational behavior is much more complicated: \verb|async| typically
 schedules its argument expression to run asynchronously on a thread pool;
 moreover, \verb|await| may only be invoked within a syntactically enclosing
 \verb|async| block.
-
-In practice, the \verb|async| and \verb|await| methods are used as follows
-(this example is adopted from the SIP proposal~\cite{ScalaAsyncSIP}):
-
-\lstset{numbers=left,xleftmargin=2em}
-\begin{lstlisting}
-val futureDOY: Future[Response] =
-  WS.url("http://api.day-of-year/today").get
-
-val futureDaysLeft: Future[Response] =
-  WS.url("http://api.days-left/today").get
-
-val respFut = async {
-  val dayOfYear = await(futureDOY).body
-  val daysLeft = await(futureDaysLeft).body
-  Ok("" + dayOfYear + ": " +
-          daysLeft + " days left!")
-}
-\end{lstlisting}
-
-Line 1 and 4 define two futures obtained as results of asynchronous requests
-to two hypothetical web services using an API inspired by Play Framework (for
-the purpose of this example, the definition of type \verb|Response| is
-unimportant). The await on line 8 causes the execution of the \verb|async|
-block to suspend until \verb|futureDOY| is completed (with a successful result
-or with an exception). When the future is completed successfully, its result
-is bound to the \verb|dayOfYear| local variable, and the execution of the
-\verb|async| block is resumed. When the future is completed with an exception
-(for example, because of a timeout), the invocation of \verb|await| re-throws
-the exception that the future was completed with. In turn, this completes
-future \verb|respFut| with the same exception. Likewise, the \verb|await| on
-line 9 suspends the execution of the \verb|async| block until
-\verb|futureDaysLeft| is completed.
 
 
 \subsection{Reactive Extensions}
