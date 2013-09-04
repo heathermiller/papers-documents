@@ -285,12 +285,18 @@ an integration of the Async model with a richer underlying abstraction, the
 observable streams of the Reactive Extensions model.~\cite{RxCACM} A reactive
 stream is a stream of {\em observable events} which an arbitrary number of
 {\em observers} can subscribe to. The set of possible event patterns of
-observable streams is strictly greater than those of futures. A stream can (a) produce zero or more regular events, (b) complete normally, or (c) complete with an error (it's even possible for a stream to never complete.)
+observable streams is strictly greater than those of futures. A stream can (a) produce zero or more regular events, (b) complete normally, or (c) complete with an error (it's even possible for a stream to never complete.) Given the richer substrate of reactive streams, the Async model has to be
+generalized in several dimensions.
 
-Given the richer substrate of reactive streams, the Async model has to be
-generalized in several dimensions. This paper presents a design and proposal
-in the context of the Scala Async project~\cite{ScalaAsync} developed at
-Typesafe and proposed for adoption in mainline Scala~\cite{ScalaAsyncSIP}.
+This paper makes the following contributions:
+\begin{itemize}
+  \item A design and proposal to integrate the Async model and the Reactive Extensions model in the context
+    of the Scala Async project~\cite{ScalaAsync} developed at Typesafe and proposed for adoption in 
+    mainline Scala~\cite{ScalaAsyncSIP};
+  \item An operational semantics of the proposed programming model. Our operational semantics generalizes the 
+    formal model presented in~\cite{FormalizingAsync} for C\#'s async/await.
+\end{itemize}
+
 
 \section{Background}
 
