@@ -767,13 +767,15 @@ At the same time we can be confident that the rest of the formal model is sound.
 Figure~\ref{fig:lang-syntax} and Figure~\ref{fig:lang-syntax-2} show the
 syntax of our core language. The core language is taken virtually unchanged
 from~\cite{FormalizingAsync}. To make it more uniform with the rest of the
-paper we use a Scala-like syntax, though. Like in the original paper, programs
+paper we use a Scala-like syntax, however. Like in the original paper, programs
 are written in {\em statement normal form} (SNF) which forces all
 subexpressions to be named; this simplifies the presentation of the
 operational semantics. Note that our core language does not support any form
 of subtyping, so class declarations do not specify a superclass. This is again
 adopted from~\cite{FormalizingAsync}; the presented reactive features are
 orthogonal to subtyping.
+
+A RAY program consists of
 
 \subsection{Operational Semantics}
 
@@ -815,7 +817,7 @@ e    ::=                                                 & \mbox{expressions}   
 \gap ~|~ \uline{i}                                       & \gap\mbox{integer}      \\
 % \gap x \oplus y                                      & \gap\mbox{built-in operator}      \\
 \gap ~|~ x                                               & \gap\mbox{variable}     \\
-% \texttt{null}                                        & \gap\mbox{null}          \\
+\texttt{null}                                        & \gap\mbox{null}          \\
 \gap ~|~ x.f                                             & \gap\mbox{selection}    \\
 \gap ~|~ x.m(\seq{y})                                    & \gap\mbox{invocation}   \\
 \gap ~|~ \texttt{new C()}                                & \gap\mbox{instance creation}   \\
@@ -883,11 +885,11 @@ e    ::=                                                 & \mbox{expressions}   
 
 \subsubsection{Notation}
 
-There are three kinds of transition rules. The first kind goes from a heap and
-a frame to a new heap and a new frame (simple right arrow). The second kind
-goes from a heap and a frame stack to a new heap and a new frame stack (double
-right arrow). The third kind goes from a heap and a set of frame stacks to a
-new heap and a new set of frame stacks (squiggly right arrow).
+A heap, denoted $H$, partially maps object identifiers (ranged over by $o$) to
+heap objects, denoted $\langle\texttt{C}, FM\rangle$, representing a pair of
+type $\texttt{C}$ and a field map, $FM$. A field map partially maps fields $f$
+to values (ranged over by $v$), where $v$ can take either an integer, boolean,
+or \texttt{null} value.
 
 Frames have the form $\aframe L {\bar{e}} l$ where $L$ maps local variables to
 their values, $\bar{e}$ is a sequence of expressions, and $l$ is a label. A
@@ -900,6 +902,12 @@ event. $\bar{D}$ is a set of so-called ``dormant queues'' which are explained
 below. Invoking a synchronous method pushes a synchronous frame to the current
 frame stack; invoking an asynchronous method pushes an asynchronous frame to
 the current frame stack.
+
+There are three kinds of transition rules. The first kind goes from a heap and
+a frame to a new heap and a new frame (simple right arrow). The second kind
+goes from a heap and a frame stack to a new heap and a new frame stack (double
+right arrow). The third kind goes from a heap and a set of frame stacks to a
+new heap and a new set of frame stacks (squiggly right arrow).
 
 \subsubsection{Transition Rules}
 
