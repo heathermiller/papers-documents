@@ -285,12 +285,18 @@ an integration of the Async model with a richer underlying abstraction, the
 observable streams of the Reactive Extensions model.~\cite{RxCACM} A reactive
 stream is a stream of {\em observable events} which an arbitrary number of
 {\em observers} can subscribe to. The set of possible event patterns of
-observable streams is strictly greater than those of futures. A stream can (a) produce zero or more regular events, (b) complete normally, or (c) complete with an error (it's even possible for a stream to never complete.)
+observable streams is strictly greater than those of futures. A stream can (a) produce zero or more regular events, (b) complete normally, or (c) complete with an error (it's even possible for a stream to never complete.) Given the richer substrate of reactive streams, the Async model has to be
+generalized in several dimensions.
 
-Given the richer substrate of reactive streams, the Async model has to be
-generalized in several dimensions. This paper presents a design and proposal
-in the context of the Scala Async project~\cite{ScalaAsync} developed at
-Typesafe and proposed for adoption in mainline Scala~\cite{ScalaAsyncSIP}.
+This paper makes the following contributions:
+\begin{itemize}
+  \item A design and proposal to integrate the Async model and the Reactive Extensions model in the context
+    of the Scala Async project~\cite{ScalaAsync} developed at Typesafe and proposed for adoption in 
+    mainline Scala~\cite{ScalaAsyncSIP};
+  \item An operational semantics of the proposed programming model. Our operational semantics generalizes the 
+    formal model presented in~\cite{FormalizingAsync} for C\#'s async/await.
+\end{itemize}
+
 
 \section{Background}
 
@@ -306,7 +312,7 @@ time using efficient non-blocking APIs under the hood.
 
 In Scala, an immediate consequence is that non-blocking code using Scala's
 futures API~\cite{ScalaFuturesSIP} does not have to resort to (a) low-level
-callbacks, or (b) higher-order functions like map and flatMap. While the
+callbacks, or (b) higher-order functions like \verb|map| and \verb|flatMap|. While the
 latter have great composability properties, they can appear unnatural when
 used to express the regular control flow of a program.
 
@@ -804,13 +810,13 @@ orthogonal to subtyping.
 A RAY program consists of a collection of class definitions, as well as the
 definition of a (\texttt{main}) method body. A class \texttt{C} has (a
 possibly empty) sequence of  public fields and methods, $\seq{f}$ with types
-$\sigma$ and $\seq{md}$, respectively. Importantly, method declarations may be
+$\sigma$, and $\seq{md}$, respectively. Importantly, method declarations may be
 either synchronous, or asynchronous. In the synchronous case, methods are
 public with return type $\phi$, a type which may represent either a class or
 value type, and they may contain local variables and/or a list of terms
-$\seq{t}$. Asynchronous methods on the other hand marked with the
-$\texttt{async}$ modifier and are expected to return the
-\texttt{Observable$[\sigma]$} type, but are otherwise syntactically the same
+$\seq{t}$. Asynchronous methods on the other hand are marked with the
+$\texttt{async}$ modifier and are expected have return type
+\texttt{Observable$[\sigma]$}, but are otherwise syntactically the same
 as synchronous methods.
 
 The \texttt{Observable[$\sigma$]} type is a family of types to model the
@@ -833,10 +839,10 @@ second syntactic category for terms.
 \begin{figure}
   \centering
 $\ba[t]{l@{\hspace{2mm}}l}
-t    ::=  \texttt{let}~x~e~\mbox{in}~t                   & \mbox{let binding}      \\
+t    ::=  \texttt{let}~x = e~\mbox{in}~t                 & \gap\mbox{let binding}  \\
 \gap ~|~ x.f = y                                         & \gap\mbox{assignment}   \\
+\gap ~|~ \texttt{yieldNext}(x)                           & \gap\mbox{yield event}  \\
 \gap ~|~ x                                               & \gap\mbox{variable}     \\
-\gap ~|~ \texttt{yieldNext(x)}                           & \gap\mbox{yield}        \\
 e    ::=                                                 & \mbox{expressions}      \\
 \gap ~|~ \uline{b}                                       & \gap\mbox{boolean}      \\
 \gap ~|~ \uline{i}                                       & \gap\mbox{integer}      \\
@@ -846,7 +852,7 @@ e    ::=                                                 & \mbox{expressions}   
 \gap ~|~ x.f                                             & \gap\mbox{selection}    \\
 \gap ~|~ x.m(\seq{y})                                    & \gap\mbox{invocation}   \\
 \gap ~|~ \texttt{new C()}                                & \gap\mbox{instance creation}   \\
-\gap ~|~ \texttt{awaitNextOrDone(x)}                     & \gap\mbox{await next event}   \\
+\gap ~|~ \texttt{awaitNextOrDone}(x)                     & \gap\mbox{await next event}   \\
 \gap ~|~ t                                               & \gap\mbox{term}         \\
 \ea$
   \caption{RAY expressions and terms.}
@@ -860,11 +866,23 @@ e    ::=                                                 & \mbox{expressions}   
 {  H_0(o) = \langle \texttt{Observable$[\sigma]$}, state \mapsto running(\bar{F}, \bar{D}) \rangle \\
    \bar{R} = \{ \aframe {L_2[x \mapsto \texttt{Some}(L(z))]} {\bar{s_2}} {a(o_2)}~|~ \aframe {L_2} {\texttt{x = y.GetResult();} \bar{s_2}} {a(o_2)} \in \bar{F} \} \\
    \bar{N} = \{ \langle {o_2}, [] \rangle ~|~ \aframe {\_} {\_} {a(o_2)} \in \bar{R} \} \\
-   \bar{D'} = \{ \langle {o_3}, L(z) :: q \rangle ~|~ \langle {o_3}, q \rangle \in \bar{D} \} \\
+   \bar{D'} = \{ \langle {o_3}, \texttt{Some}(L(z)) :: q \rangle ~|~ \langle {o_3}, q \rangle \in \bar{D} \} \\
    H_1 = H_0[o \mapsto \langle \texttt{Observable$[\sigma]$}, state \mapsto running(\epsilon, \bar{D'} \cup \bar{N}) \rangle]
 }
 { \reducebreak {H_0} {\{ \aframe L {\texttt{yieldNext(z);} \bar{s}} {a(o)} \circ FS\} \cup P}
     {H_1} {\{ \aframe L {\bar{s}} {a(o)} \circ FS \} \cup \{ R \circ \epsilon ~|~ R \in \bar{R} \} \cup P}
+}
+
+\vspace{0.3cm}
+
+\infrule[\textsc{E-RAsync-Return}]
+{  H_0(o) = \langle \texttt{Observable$[\sigma]$}, state \mapsto running(\bar{F}, \bar{D}) \rangle \\
+   \bar{R} = \{ \aframe {L_2[x \mapsto \texttt{None}]} {\bar{s_2}} {a(o_2)}~|~ \aframe {L_2} {\texttt{x = y.GetResult();} \bar{s_2}} {a(o_2)} \in \bar{F} \} \\
+   \bar{D'} = \{ \langle {o_3}, \texttt{None} :: q \rangle ~|~ \langle {o_3}, q \rangle \in \bar{D} \} \\
+   H_1 = H_0[o \mapsto \langle \texttt{Observable$[\sigma]$}, state \mapsto done(\bar{D'}) \rangle]
+}
+{ \reducebreak {H_0} {\{ \aframe L {\epsilon} {a(o)} \circ FS\} \cup P}
+    {H_1} {\{ FS \} \cup \{ R \circ \epsilon ~|~ R \in \bar{R} \} \cup P}
 }
 
 \vspace{0.3cm}
@@ -884,23 +902,11 @@ e    ::=                                                 & \mbox{expressions}   
 \infrule[\textsc{E-AwaitNextOrDone-2}]
 {  L(y) = o_1 \\
    H_0(o_1) = \langle \texttt{Observable$[\sigma]$}, state \mapsto running(\bar{F}, \bar{D}) \rangle \\
-   \bar{D} = \bar{D'} \cup \{ \langle o, e :: q \rangle \} \\
+   \bar{D} = \bar{D'} \cup \{ \langle o, q :: \texttt{Some}(e) \rangle \} \\
    H_1 = H_0[o_1 \mapsto \langle \texttt{Observable$[\sigma]$}, state \mapsto running(\bar{F}, \bar{D'} \cup \{ \langle o, q \rangle \}) \rangle]
 }
 { \fsreducebreak {H_0} {\aframe L {\texttt{x = awaitNextOrDone(y);} \bar{s}} {a(o)} \circ FS}
     {H_1} {\aframe {L[x \mapsto e]} {\bar{s}} {a(o)} \circ FS}
-}
-
-\vspace{0.3cm}
-
-\infrule[\textsc{E-RAsync-Return}]
-{  H_0(o) = \langle \texttt{Observable$[\sigma]$}, state \mapsto running(\bar{F}, \bar{D}) \rangle \\
-   \bar{R} = \{ \aframe {L_2[x \mapsto \texttt{None}]} {\bar{s_2}} {a(o_2)}~|~ \aframe {L_2} {\texttt{x = y.GetResult();} \bar{s_2}} {a(o_2)} \in \bar{F} \} \\
-   \bar{D'} = \{ \langle {o_3}, \texttt{None} :: q \rangle ~|~ \langle {o_3}, q \rangle \in \bar{D} \} \\
-   H_1 = H_0[o \mapsto \langle \texttt{Observable$[\sigma]$}, state \mapsto done(\bar{D'}) \rangle]
-}
-{ \reducebreak {H_0} {\{ \aframe L {\epsilon} {a(o)} \circ FS\} \cup P}
-    {H_1} {\{ FS \} \cup \{ R \circ \epsilon ~|~ R \in \bar{R} \} \cup P}
 }
 
   \caption{Transition rules for reactive async features.}
@@ -913,8 +919,8 @@ e    ::=                                                 & \mbox{expressions}   
 A heap, denoted $H$, partially maps object identifiers (ranged over by $o$) to
 heap objects, denoted $\langle\texttt{C}, FM\rangle$, representing a pair of
 type $\texttt{C}$ and a field map, $FM$. A field map partially maps fields $f$
-to values (ranged over by $v$), where $v$ can take either an integer, boolean,
-or \texttt{null} value.
+to values (ranged over by $v$), where $v$ can be either an integer, a boolean,
+\texttt{null}, or an object identifier (the address of an object in the heap).
 
 Frames have the form $\aframe L {\bar{e}} l$ where $L$ maps local variables to
 their values, $\bar{e}$ is a sequence of expressions, and $l$ is a label. A
