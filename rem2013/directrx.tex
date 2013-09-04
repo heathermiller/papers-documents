@@ -346,8 +346,8 @@ to two hypothetical web services using an API inspired by the Play! Framework (f
 the purpose of this example, the definition of type \verb|Response| is
 unimportant).
 
-The equivalent logic can be expressed using Scala Async as follows (this
-example is adopted from the SIP proposal~\cite{ScalaAsyncSIP}):
+This can be expressed more intuitively in direct-styling using Scala Async as
+follows (this example is adopted from the SIP proposal~\cite{ScalaAsyncSIP}):
 
 \begin{lstlisting}
 val respFut = async {
@@ -654,40 +654,6 @@ val fut1: Future[T] = {
 }
 \end{lstlisting}
 
-In the resulting program the body of the \verb|async { ... }| block is
-contained within \verb|future { ... }| which asynchronously executes it on a
-thread pool. Before starting this future, a new promise \verb|p| is created. A
-promise is a placeholder for a result that becomes available asynchronously. A
-promise can be resolved either with a successful result (using the
-\verb|success| method) or with an exception (using the \verb|failure| method),
-{\em at most once.} Each promise has a future associated with it which
-provides a {\em read-only} interface to the asynchronous result. The future
-associated with \verb|p| is the result of the original \verb|async| block.
-
-One of the critical parts of the translation is the replacement of invocations
-of \verb|await|. Instead of blocking the current thread until the awaited
-future is completed, a completion callback is registered with the awaited
-future. The completion callback is invoked when \verb|fut2| is completed; it
-handles two cases for the successful (\verb|case Success(res)|) and the failed
-(\verb|case Failure(t)|) completion of the future, respectively. In case of a
-failure, promise \verb|p| is immediately completed with the exception \verb|t|
-of the observed failure event. Otherwise, the rest of the \verb|async| block,
-which in this case is just \verb|<expr2>|, is executed, and its result used to
-complete \verb|p| successfully. Apart from the missing state machine logic
-(which is not required in this simple case), this example translation does not
-handle exceptions that are thrown within \verb|<expr2>|.
-
-With this simplified overview of the translation of regular \verb|async|
-blocks, we provide a sketch explaining the translation of \verb|rasync|
-blocks.
-
-\subsection{Reactive Async Translation}\label{sec:rasync-translation}
-
-The translation of \verb|rasync| in combination with the \verb|await*| and
-\verb|yield*| methods is very similar to the previous translation. The main
-changes are the implementation of observables as the result of an
-\verb|rasync| block, as well as the replacement of \verb|await*| invocations.
-
 \begin{figure}[ht!]
   \centering
 \lstset{numbers=left,xleftmargin=2em}
@@ -748,6 +714,40 @@ val forwarder = {
   \caption{Result of reactive async translation.}
   \label{fig:rasync-translation}
 \end{figure}
+
+In the resulting program the body of the \verb|async { ... }| block is
+contained within \verb|future { ... }| which asynchronously executes it on a
+thread pool. Before starting this future, a new promise \verb|p| is created. A
+promise is a placeholder for a result that becomes available asynchronously. A
+promise can be resolved either with a successful result (using the
+\verb|success| method) or with an exception (using the \verb|failure| method),
+{\em at most once.} Each promise has a future associated with it which
+provides a {\em read-only} interface to the asynchronous result. The future
+associated with \verb|p| is the result of the original \verb|async| block.
+
+One of the critical parts of the translation is the replacement of invocations
+of \verb|await|. Instead of blocking the current thread until the awaited
+future is completed, a completion callback is registered with the awaited
+future. The completion callback is invoked when \verb|fut2| is completed; it
+handles two cases for the successful (\verb|case Success(res)|) and the failed
+(\verb|case Failure(t)|) completion of the future, respectively. In case of a
+failure, promise \verb|p| is immediately completed with the exception \verb|t|
+of the observed failure event. Otherwise, the rest of the \verb|async| block,
+which in this case is just \verb|<expr2>|, is executed, and its result used to
+complete \verb|p| successfully. Apart from the missing state machine logic
+(which is not required in this simple case), this example translation does not
+handle exceptions that are thrown within \verb|<expr2>|.
+
+With this simplified overview of the translation of regular \verb|async|
+blocks, we provide a sketch explaining the translation of \verb|rasync|
+blocks.
+
+\subsection{Reactive Async Translation}\label{sec:rasync-translation}
+
+The translation of \verb|rasync| in combination with the \verb|await*| and
+\verb|yield*| methods is very similar to the previous translation. The main
+changes are the implementation of observables as the result of an
+\verb|rasync| block, as well as the replacement of \verb|await*| invocations.
 
 Consider the forwarder example from Figure~\ref{fig:forwarder}. Our extended
 translation produces the program shown in Figure~\ref{fig:rasync-translation}
@@ -828,6 +828,29 @@ of subtyping, so class declarations do not specify a superclass. This is again
 adopted from~\cite{FormalizingAsync}; the presented reactive features are
 orthogonal to subtyping.
 
+\begin{figure}
+  \centering
+$\ba[t]{l@{\hspace{2mm}}l}
+t    ::=  \texttt{let}~x = e~\mbox{in}~t                 & \gap\mbox{let binding}  \\
+\gap ~|~ x.f = y                                         & \gap\mbox{assignment}   \\
+\gap ~|~ \texttt{yieldNext}(x)                           & \gap\mbox{yield event}  \\
+\gap ~|~ x                                               & \gap\mbox{variable}     \\
+e    ::=                                                 & \mbox{expressions}      \\
+\gap ~|~ \uline{b}                                       & \gap\mbox{boolean}      \\
+\gap ~|~ \uline{i}                                       & \gap\mbox{integer}      \\
+% \gap x \oplus y                                      & \gap\mbox{built-in operator}      \\
+\gap ~|~ x                                               & \gap\mbox{variable}     \\
+\gap ~|~ \texttt{null}                                        & \gap\mbox{null}          \\
+\gap ~|~ x.f                                             & \gap\mbox{selection}    \\
+\gap ~|~ x.m(\seq{y})                                    & \gap\mbox{invocation}   \\
+\gap ~|~ \texttt{new C()}                                & \gap\mbox{instance creation}   \\
+\gap ~|~ \texttt{awaitNextOrDone}(x)                     & \gap\mbox{await next event}   \\
+\gap ~|~ t                                               & \gap\mbox{term}         \\
+\ea$
+  \caption{RAY expressions and terms.}
+  \label{fig:lang-syntax-2}
+\end{figure}
+
 A RAY program consists of a collection of class definitions, as well as the
 definition of a (\texttt{main}) method body. A class \texttt{C} has (a
 possibly empty) sequence of  public fields and methods, $\seq{f}$ with types
@@ -856,29 +879,6 @@ second syntactic category for terms.
 
 
 \subsection{Operational Semantics}
-
-\begin{figure}
-  \centering
-$\ba[t]{l@{\hspace{2mm}}l}
-t    ::=  \texttt{let}~x = e~\mbox{in}~t                 & \gap\mbox{let binding}  \\
-\gap ~|~ x.f = y                                         & \gap\mbox{assignment}   \\
-\gap ~|~ \texttt{yieldNext}(x)                           & \gap\mbox{yield event}  \\
-\gap ~|~ x                                               & \gap\mbox{variable}     \\
-e    ::=                                                 & \mbox{expressions}      \\
-\gap ~|~ \uline{b}                                       & \gap\mbox{boolean}      \\
-\gap ~|~ \uline{i}                                       & \gap\mbox{integer}      \\
-% \gap x \oplus y                                      & \gap\mbox{built-in operator}      \\
-\gap ~|~ x                                               & \gap\mbox{variable}     \\
-\gap ~|~ \texttt{null}                                        & \gap\mbox{null}          \\
-\gap ~|~ x.f                                             & \gap\mbox{selection}    \\
-\gap ~|~ x.m(\seq{y})                                    & \gap\mbox{invocation}   \\
-\gap ~|~ \texttt{new C()}                                & \gap\mbox{instance creation}   \\
-\gap ~|~ \texttt{awaitNextOrDone}(x)                     & \gap\mbox{await next event}   \\
-\gap ~|~ t                                               & \gap\mbox{term}         \\
-\ea$
-  \caption{RAY expressions and terms.}
-  \label{fig:lang-syntax-2}
-\end{figure}
 
 \begin{figure*}[ht!]
   \centering
