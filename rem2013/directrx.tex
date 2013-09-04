@@ -298,8 +298,8 @@ Typesafe and proposed for adoption in mainline Scala~\cite{ScalaAsyncSIP}.
 
 Scala Async provides constructs that aim to facilitate programming with
 asynchronous events in Scala. The introduced constructs are inspired to a
-large extent by extensions that have been introduced in C\# version 5 in a
-similar form.~\cite{FormalizingAsync} The goal is to enable expressing
+large extent by extensions that have been introduced in C\# version 5~\cite{Hejlsberg:2011:CPL} in a
+similar form. The goal is to enable expressing
 asynchronous code in ``direct style'', i.e., in a familiar blocking style
 where suspending operations look as if they were blocking while at the same
 time using efficient non-blocking APIs under the hood.
@@ -397,6 +397,8 @@ Figure~\ref{fig:observable-observer}.
 The idea of the \verb|Observer| is that it can respond to three different
 kinds of events, (1) the next regular event (\verb|onNext|), (2) a failure
 (\verb|onFailure|), and (3) the end of the observable stream (\verb|onDone|).
+Thus, the two traits constitute a variation of the classic subject/observer
+pattern~\cite{EugsterFGK03}.
 
 Note that in our Scala version the \verb|Observer| trait extends the function
 type \verb|Try[T] => Unit|. \verb|Try[T]| is a simple container type which
