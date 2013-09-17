@@ -1,0 +1,583 @@
+
+Cristina V. Lopes <oopsla@splashcon.org>
+May 25
+
+to heather.miller, philipp.haller, eugene.burmako, martin.odersky, oopsla2013-pap.
+Dear Heather, Philipp, Eugene and Martin,
+
+Congratulations! Your paper
+
+"Object-Oriented Pickler Combinators and an Extensible Generation Framework"
+
+has been selected to advance to the 2nd phase of OOPSLA 2013! Please
+see the main editorial feedback as well as the individual reviews
+enclosed in this email.
+
+I look forward to receiving the improved version of your paper!
+
+Crista Lopes
+OOPSLA 2013 PC Chair
+
+-----------------------------------------------------------------
+
+PLEASE PAY CLOSE ATTENTION TO ALL PARTS OF THIS EMAIL, AS IT CONTAINS
+IMPORTANT INFORMATION THAT YOU NEED IN ORDER TO REVISE AND RESUBMIT
+YOUR PAPER.
+
+*** OOPSLA Artifacts ***
+
+I would like to strongly encourage you to formally submit supporting
+materials to the Artifact Evaluation (AE) process. The deadline is
+June 1, 2013. For more information, please see
+http://splashcon.org/2013/cfp/due-june-01-2013/665-oopsla-artifacts
+
+Submission to the AE is not mandatory, and your decision to submit
+your artifacts, or not, will not influence the outcome of your
+paper. Nevertheless, the readers of your paper will likely benefit
+from having access to those artifacts, and the attention that your
+work will get may likely increase if you make those artifacts publicly
+available.
+
+Papers whose artifacts are endorsed by the AE committee will be given
+a stamp on the final camera-ready version attesting that endorsement.
+
+For further questions regarding the AE process, please contact the AE
+committee chairs Matthias Hauswirth and Steve Blackburn, at
+artifacts@splashcon.org
+
+*** Resubmission of the paper ***
+
+* You must submit your revised paper on or before July 20, 2013. The
+resubmission can be done at any time between now and then. If you
+resubmit early, please send me an email notifying me of your final
+submission, and I will try to inform you of the final decision early,
+too. Otherwise, the official final notification date is July 29, 2013.
+
+* Your revised paper should be no longer than 20 pages, including
+everything -- appendices, bibliography, etc.
+
+* Your paper must be revised and improved according to the feedback in
+this email. In order for reviewers to make a speedy assessment of
+your improvements to the paper, you must submit a "cover letter" along
+with your paper detailing how you reacted to the revision requests and
+the reviewers' comments. If you have never written one of these cover
+letters before, you can find an example here:
+
+http://www.ics.uci.edu/~lopes/documents/cover_letter_example.pdf
+
+You can find many additional resources for writing responses to
+reviewers if you search the Web for "response to reviewers".
+
+The goal of the cover letter is to speed up the reviewers'
+reassessment of your work. Please do not engage in long explanations
+in the cover letter; the best reactions to revision requests are those
+made in the paper itself. The reviewers simply need to know where to
+look.
+
+Unless your paper has been considered acceptable as-is, THE ABSENCE OF
+THE COVER LETTER IS GROUNDS FOR THE PAPER'S REJECTION.
+
+* The resubmission must consist of one single ZIP file containing
+both the paper and the cover letter, both in PDF. The resubmission
+can be done with your usual credentials:
+
+Resubmission link: http://cyberchair.acm.org/oopslapapers/submit/
+Username: heather.miller@epfl.ch
+Password: SPL-136399808380865
+
+(It is ok to override what is currently in Cyberchair, even though
+that wouldn't happen normally, because you will now be submitting a
+ZIP file instead of a single PDF file)
+
+* Optionally, additionally to the paper itself and the cover letter,
+you can also include another PDF file that highlights the differences
+between your original submission and the revised submission. (If you
+are using latex, you can use latexdiff). This is optional.
+
+*** Main editorial feedback ***
+
+What follows is a summary of the perceived contributions of your work,
+and a list of requested revisions that the Committee agreed must be
+addressed in the revised submission.
+
+----
+
+The contributions of the papers are
+
+1. use of functional cominators for scala
+2. combine combinators with micros
+3. faster and flexible
+4. considering subtyping
+5. novels ways of combining static and dynamic approaches
+6. well-written and easy to read
+
+The revisions that have to be made in order
+for the paper to be accepted:
+
+1. need to show the serialization of graphs.
+2. tone down the claims.
+3. provide more details for the sharing issue.
+
+----
+
+If you are unable or unwilling to perform these revisions, please
+contact me as soon as possible explaining the situation.
+
+Failing to revise the paper according to this main editorial feedback
+may lead to the paper being rejected. Also, if the revisions are such
+that would affect the main conclusions of your paper, that should be
+clearly noted in the cover letter, and the new conclusions should be
+reflected in the paper. While it may be acceptable to present weaker
+conclusions than originally submitted, trying to defend the same
+conclusions with weaker results will likely lead to rejection of your
+paper.
+
+*** Individual Reviews ***
+
+Additionally to the Committee's feedback, each reviewer produced a
+technical review of your paper that you may want to take closely into
+consideration when revising it. While it is not mandatory to address
+every single revision request in the individual reviews, it is
+generally a good idea to acknowledge their existence and to try to
+improve the paper accordingly, when it makes sense.
+
+*=--=*=--=*=--=*=--=*=--=*=--=*=--=*=--=*=--=*=--=*=--=*=--=*=--=*=--=*=--=*=
+
+First reviewer's review:
+
+          >>> Summary of the submission <<<
+
+This paper proposes a pickling framework in Scala. This
+framework supports both static and dynamic pickling;
+allows users to choose the pickling format and flexibly customize
+picklers; and accounts for OO features like subtyping.
+To implement the framework the authors use type classes
+and macros. Type classes provide flexibility (such as
+changing the format or customization of the pickling).
+Macros allow for efficient generation of picklers at
+compile-time. The authors have conducted an experimental
+evaluation which shows that the performance is much better
+than Java serialization, and on par to state-of-the-art
+serialization frameworks like kryo.
+
+          >>> Contributions <<<
+
+A pickling framework that supports:
+
+1) static pickling via macros;
+2) choice of pickling format and flexible customization via type classes;
+3) accounts for OO features (subtyping).
+
+          >>> Technical Review <<<
+
+Evaluation
+
+Pros:
+
++ A general, robust, efficient implementation of
+pickler combinators for Scala. Support for both
+static (more performant) and dynamic (more flexible)
+picklers.
+
++ Support for OO features. Namely careful accounting for subtyping,
+which is not supported in other setting (functional picklers).
+
++ Very nice application of the type class pattern and macros in Scala.
+
++ Implementation and experimental evaluation.
+
+Cons:
+
+- I was a bit lukewarm about the (semi) formal
+presentation in Section's 4 and 5. I think I'd prefer
+to see some actual Scala code (for example for the IR combinators),
+or go fully formal. But I guess this presentation may have it's
+merits.
+
++/- It could be said that it is hard to port the ideas in this
+paper to languages other than Scala, which do not have
+macros or (good support for) type classes. However, I guess
+the paper also makes a case for why such features are useful.
+
+Overall I think this is a nice paper, taking a serious
+approach to pickling/serialization in an OO language.
+
+Detailed comments:
+
+- Section 3.2: When explaining the pickeable
+annotation, it could be helpful to illustrate
+the concept using some code. Perhaps show a class
+annotated with @picklable (say Firefighter) and
+then show an excerpt of the kind of code that
+gets generated.
+
+- Experimental evaluation: I wonder if something more
+could be said about kryo v2. It seems that the larger the
+number of elements is the better is the relative performance
+of kryo 2. In particular it beats Scala pickling for large
+number of elements. Is the reason for better perfomance the
+fact that a custom pickler was used for kryo?
+
+- Figure 2: Maybe a small legend in the figure would be useful.
+I guess the full circle means "heavy use", the empty
+circle means "not used", and the half-full
+circle mean "sparsely used".
+
+Small typos/comments:
+
+- page 5, 2nd column:
+
+"return type Unit"
+
+should this be:
+
+"return type U"?
+
+The unpickle combinator returns a value of type U,
+I believe.
+
+- page 8, 2nd column:
+
+"The function concat takes two arguments that are each
+sequences"
+
+sounds a little strange, maybe:
+
+"The function concat takes two sequences as arguments"
+
+- page 11, 2nd column: "Scala's macros** [28]"
+
+          >>> Revisions <<<
+
+Perhaps add some more Scala code corresponding to some of the semi-formal
+definitions in Section 4 and 5.
+
+*=--=*=--=*=--=*=--=*=--=*=--=*=--=*=--=*=--=*=--=*=--=*=--=*=--=*=--=*=--=*
+
+Second reviewer's review:
+
+          >>> Summary of the submission <<<
+
+The paper describes a new type-safe approach to object serialization
+(a.k.a. pickling) for class and mixin based OO languages implemented in
+Scala, designed to surplant Java's built-in convenient but inflexible
+and inefficient serialization. The work is inspired by Kennedy's
+pickling combinators for FP (Haskell and ML), but requires major
+revision to maintain Java's convenience of built-in serialization and
+accommodate subtyping and separate compilation. The solution shares
+the flexibility and performance of combinator based pickling but is
+quite different in detail, relying on Scala's implicit parameters to
+select customizable back-end pickle formats, Scala's type class
+pattern to customize front-end pickling, Scala's macros to partially
+evaluate picklers on known class meta-data (avoiding interpretative
+overhead) while escaping to slower reflection, possibly mediated by
+run-time code-generation, to pickle statically unknown subtypes
+introduced by clients.
+
+The paper included a rudimentary evaluation section but the
+favourable comparison with Java serialization seems inappropriate since the
+pickling framework makes no attempt to preserve graph structure
+(sharing) and avoid loops.
+
+          >>> Contributions <<<
+
+A reasonably elegant, flexible and efficient design for pickling
+object-oriented data that offers type safety, support for known and
+unknown subclassing and, at first sight, has promising performance.
+
+The described implementation has a serious shortcoming: it does not
+preserve graph structure or object identity and I expect will loop on
+cyclic object graphs. Though I do not see why it could not be
+extended to do so, I expect the claimed performance benefits (over
+Java serialization) may be significantly less once object identity
+is tracked and maintained.
+
+          >>> Technical Review <<<
+
+At first glance, this is a nicely presented, easy to read paper that
+showcases some of the features of Scala and some of the challenges of
+pickling objects in a language with generics and subtyping. As such it
+provides a useful first step towards the design of flexible, safe and
+fast serialization library.
+
+In a purely a functional setting, preserving sharing (let alone
+discovering additional sharing by hash-consing) is just an important
+optimization, so it's perhaps reasonable to ignore it at first. But in
+an imperative, object oriented language, like Scala, object identity
+is observable. The paper doesn't mention how this is dealt with at all
+and making performance comparisons with Java's serialization, which,
+as far as I'm aware, does preserve identity and deals with cycles,
+seem out of place.
+
+You may wish to have a look at Kennedy et al. more recent work on
+combinators for encoding and decoding terms, which is closely related
+to the pickling work.
+
+@article{Vytiniotis:2010:FPB:1932681.1863548,
+ author = {Vytiniotis, Dimitrios and Kennedy, Andrew J.},
+ title = {Functional pearl: every bit counts},
+ journal = {SIGPLAN Not.},
+ issue_date = {September 2010},
+ volume = {45},
+ number = {9},
+ month = sep,
+ year = {2010},
+ issn = {0362-1340},
+ pages = {15--26},
+ numpages = {12},
+ url = {http://doi.acm.org/10.1145/1932681.1863548},
+ doi = {10.1145/1932681.1863548},
+ acmid = {1863548},
+ publisher = {ACM},
+ address = {New York, NY, USA},
+ keywords = {decoders, encoders, games},
+}
+
+Detailed Comments:
+
+page 3. You name subtype polymorphism and open class hierarchies as
+core components of object oriented programming but leave out object
+identity.
+
+Definition 4.1 "unpickle ... of type Pickle and return type Unit" - shouldn't
+that Unit be T?
+
+You don't describe how you deal with Java's covariant arrays.
+
+You use implicitly[T] in a number of places - without describing what it does.
+I assume it's just: def implicitly[T](implicit e: T): T = e?
+
+I don't fully understand why you don't support pickling of Scala
+functions - can you explain the issue? I imagine function values are
+represented as classes with a single method.
+
+          >>> Revisions <<<
+
+Please address more prominently the issue with preserving object
+identity. Either describe how you do it, or if you don't (as I
+surmised from the paper) please clearly state why you have made this
+choice and why your comparison with Java serialization is fair.
+
+*=--=*=--=*=--=*=--=*=--=*=--=*=--=*=--=*=--=*=--=*=--=*=--=*=--=*=--=*=--=*
+
+Third reviewer's review:
+
+          >>> Summary of the submission <<<
+
+This paper describes a flexible serialization/deserialization framework and
+a meta programming system for serialization code generation.
+
+          >>> Contributions <<<
+
+1. Serializers/Deserializers (called picklers and unpicklers in their system)
+are first-class
+citizens
+
+2. Flexible composition is allowed for picklers and unpicklers
+
+3. An interesting exploration on the static/dynamic interaction for
+serialization/deserialization,
+motivated by both efficiency and type safety
+
+4. A substantial implementation that works with the majority of non-trivial
+Scala features
+(generics, case classes, etc)
+
+5. A careful consideration in the impact on software engineering, such as
+extensibility, boilerplate
+code reduction, and code evolution
+
+          >>> Technical Review <<<
+
+Overal Evaluation
+
+This paper has presentation problems, but it is unusually strong both in the
+terms of novelty and
+significance, and contribution:
+
+[a] this paper addresses an important and timely topic in the Big Data era and
+a distributed
+world; the problem is also somewhat less explored;
+
+[b] it offers a comprehensive solution to a challenging problem, with
+considerations ranging
+from first-class support, compositionality, static and dynamic interaction,
+type variance, meta
+programming, flexibility, extensibility, and usability. This is a broad scope
+typically unseen
+for language design papers;
+
+[c] The paper describes a real-world implementation for Scala. This requires a
+very significant
+amount of work, because their implementation has to address numerous issues
+coming with the
+base language (such as how to serialize a case class) and how to unify the
+design with the
+base language both in terms of semantics and aesthetics.
+
+
+I think this paper should be accepted. The paper does have problems with
+presentation (see
+below), but I think this is what the two-phase review process can address. In a
+way, I feel
+this paper is a good example of what the two-phase review process is best at:
+select papers
+unusually strong in substance but a bit "raw" in presentation.
+
+Language design papers are known to be notoriously difficult to publish. These
+papers usually
+demand more work, but hard to please every reader because of its innate broader
+scopes. This
+paper -- especially the scope it covers and its potential real-world impact --
+stands out
+among language design papers.
+
+
+Detailed Comments:
+
+
+
+Except the presentation, I only have several small comments for the technical
+contents:
+
+1. Do you support modular unpickling? For instance, imagine we have a network
+packet whose
+first bits indicate the destination address. Instead of unpickling the whole
+packet, a receiver
+may want to find out whether the packet is directed to her, and only need to
+unpickle the
+packet partially. You support partial pickles, so you may very well already
+have this feature.
+(I'm not sure because you only explained PickleBuilder.)
+
+2. As a future work, it might be worth it to consider how much the DPickler vs.
+SPickler distinction
+can be inferred. I imagine in the most general case of open programming, full
+inference is not
+possible, but some may be viable (the trivial case is the final type picklers I
+guess).
+
+3. You described type variance in Sec 4.3. I don't think you made it clear
+which mechanism was
+eventually used. The F-bounded invariance? Or do you allow it all, i.e.
+whatever is a legal generic
+type use is also a legal pickler type use?
+
+
+Now the presentation:
+
+I. I think Sec 2 can be removed, with its content dispersed into respective
+sections. For instance,
+Sec 3 only needs some minimal knowledge of Sec 2 (implicit methods and
+annotations).
+As it stands now, Sec 2 is detailed (such as explaining @withNewToString) but
+Sec 3 is not (e.g.
+there is no example for @pickleable). Merging the two can reduce distractions
+and give you space
+to explain the key features better.
+
+II. I wonder if the definitions you introduced in Sec 4 can be formalized as
+opsem rules and definitions:
+(1) For Def 4.1, instead of defining picklers and unpicklers as Scala traits,
+just define them as values,
+e.g. <id; m; t> where id is the ID, m is a tag either as static or dynamic, and
+t is the type tag. With
+that, your dynTypeOf is just a tuple selector. (3) Def 4.3 can be defined as
+two opsem rules for "pickle"
+and "unpickle" expressions. What you have there is almost there. (4) There are
+some complexities when it gets to formalize partial pickles and the behaviors
+of static picklers.
+
+III. I wonder if some of the discussion in 5.3 can be formalized, especially
+5.3.2. It now looks like
+a very algorithmic definition, with words like "emit" "generate." Some sort of
+rewriting rules may
+help here. Or if you really think the algorithmic description is a good idea,
+try to use the more
+rigorous pseudo-code form more commonly seen in program analysis papers.
+
+Overall, I'm not advocating a full formalization of your language. In the case
+of this paper, it is
+good to explain through examples as much as you can. The comments above are
+only addressing the
+parts you chose to formalize.
+
+Small issues:
+
+==XX== page 1, abstract: "Out framework is extensible;" semicolon to colon?
+
+==XX== page 1, abstract: "swappable" -- unclear -- use more descriptive words,
+"interchangeable"? "alternative"?
+
+==XX== page 1, right column: "interop" use full word
+
+page 1, "objects to-be-serialized," I would perhaps use "to-be-serialized
+objects" or rephrase it. You
+use the same form several times later e.g. "objects to-be-pickled." In this
+latter case, if you need this
+distinction so often, maybe it's worth it to define it explicitly and call it
+e.g. "picklee."
+
+page 2, left column: "aims to require as little pickling boilerplate as
+possible." This reference to
+"boilerplate" occurs several times in the paper, I probably would rephrase it
+with some more mundane
+word, such as "succinct syntax" or "little redundancy." Overall, this usability
+aspect is important
+in the real world, but perhaps does not require repeated reminders to readers.
+
+page 2, left column: "big data." This is a great theme. I wish you could bring
+this out more in the intro.
+
+page 2: I think compositionality is a crucial feature of your framework, and it
+should be put into
+the principle list.
+
+page 2 right column: "since our framework does without a separate" -- rephrase
+
+page 2 "related work" --> some related work, or just remove the header
+
+==XX== page 2 "what's more" too colloquial
+
+==XX== page 3 left column "This section introduces everything that ..." too
+colloquial
+
+page 3 "implicit conversions": reminds me of AOP
+
+==XX== page 4: AST acronym. This is in fact the second time the phrase appears. First
+in page 3 right column.
+
+==XX== page 4 right column, "It is assert_impl which" which --> that
+
+==XX== page 4 same paragraph, following: comma should be full stop.
+
+==XX== page 4 same paragraph, bad space for "use- site"
+
+==XX== page 4 right column: "Note that in the above example, the unpickle method is
+parameterized on obj's precise
+type..." This should be mentioned right after the example. I have been
+wondering what "[Obj]" is for a while.
+Some of this problem can be fixed by introducing a simple abstract syntax for a
+core language.
+
+page 5 "contract" This word is a bit overused these days to carry some specific
+meanings. Perhaps "invariant"?
+
+==XX== page 7 "manually-written" no hyphen
+
+==XX== page 7 remove "Basically"
+
+page 8 "IR" metavariable. Single character symbols preferred
+
+page 9 Sec 5.3: This is in fact a very interesting algorithm. Unfortunately, it
+is a bit too late
+in the presentation. Consider moving it up a bit if possible.
+
+
+page 12 Interesting experiments on time and space.
+
+page 12 Sec 7.3. I'm not sure if this belongs to experimental validation.
+
+          >>> Revisions <<<
+
+See I, II, III above.
