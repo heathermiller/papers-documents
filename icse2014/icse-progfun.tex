@@ -47,7 +47,32 @@
 
 \documentclass{sig-alternate}
 
+\usepackage{listings,xspace}
 \usepackage{url}
+
+\lstdefinelanguage{Scala}%
+{morekeywords={abstract,case,catch,char,class,%
+    def,else,extends,final,%
+    if,import,%
+    match,module,new,null,object,override,package,private,protected,%
+    public,return,super,this,throw,trait,try,type,val,var,with,implicit,%
+    macro,sealed,%
+  },%
+  sensitive,%
+  morecomment=[l]//,%
+  morecomment=[s]{/*}{*/},%
+  morestring=[b]",%
+  morestring=[b]',%
+  showstringspaces=false%
+}[keywords,comments,strings]%
+
+\lstset{language=Scala,%
+  mathescape=true,%
+  columns=[c]fixed,%
+  basewidth={0.5em, 0.40em},%
+  basicstyle=\tt,%
+  xleftmargin=0.0cm
+}
 
 \begin{document}
 %
@@ -169,8 +194,8 @@ MOOCs with professional software engineering, in particular.
 
 % number of respondents:
 % Fall 2012:    7,492 (out of ~50,000 registered students)
-% Spring 2013:  4,596 (out of ~37,000 registered students)
-% Total:       12,088
+% Spring 2013:  4,595 (out of ~37,000 registered students)
+% Total:       12,087
 
 \paragraph{Contributions} This paper makes the following contributions:
 
@@ -263,6 +288,97 @@ time zones.
 \section{Tooling and Automated Grading}
 
 \section{Survey and Data Set}
+
+After the completion of each iteration of our MOOC we sent a survey to all
+registered participants. For the Fall 2012 iteration of the course, we
+received responses from 7,492 out of about 50,000 registered students. For the
+Spring 2013 iteration of the course, we received responses from 4,595 out of
+about 37,000 registered students. Thus, we collected results from a total of
+12,087 respondents.
+
+The survey consisted of questions such as the following:
+
+\begin{itemize}
+
+\item What's your age group? (Possible choices: 10-17, 18-24, 25-34, 35-44,
+  45-54, 55-64, 65+)
+
+\item What country do you live in?
+
+\item What's your highest degree? (Possible choices: No High School (or equivalent), Some High 
+  School (or equivalent), High School (or equivalent), Some College (or equivalent), Bachelor's 
+  Degree (or equivalent), Master's Degree (or equivalent), Doctorate Degree (or equivalent), 
+  Other)
+
+\item Did you finish the course?
+
+\item How difficult did you find the homework assignments? (Possible choices: 1 - Too Easy, 2, 
+  3, 4, 5 - Too Hard)
+
+\item Where do you plan to apply what you've learned in this course? (Possible choices: 
+  Personal projects, Individual project at work, Team project at work, University projects, No 
+  application plans, Attended for general interest)
+
+\item What experience do you have with other programming languages or paradigms? (asked once 
+  each for Java, C/C++/Objective-C, Python/Ruby/Perl/other scripting language, C\#/.NET, 
+  JavaScript, \\Haskell/OCaml/ML/F\#, Lisp/Scheme/Clojure, possible choices: No experience / 
+  not seen it at all, I've seen and understand some code, I have some experience writing code, 
+  I'm fluent, I'm an expert)
+
+\end{itemize}
+
+% this represents the data that goes into your bar graph
+% where the String is the label on the x-axis, and the
+% Int is the value for each bar
+
+
+\begin{figure}[ht!]
+  \begin{lstlisting}
+object WorthItBarGraph
+    extends SimpleBarGraphFactory {
+  import CourseraData.worthIt
+
+  val name = "worth-it.html" // file name
+  val label = "Percentage"   // label on y axis
+
+  override val width = 250
+  override val height = 250
+  override val maxy = 70
+
+  def data: List[(String, Int)] = {
+    val counts = getFreqs(worthIt)
+      .sortBy(_._1)
+      .map { case (name, value) =>
+        (name.toString, (value.toDouble /
+          worthIt.length * 100).round.toInt)
+      }
+
+    val correctedLabels: List[(String, Int)] =
+      List(("1 Disagree", counts(0)._2)) ++
+        counts.drop(1).take(3) ++
+        List(("5 Agree",counts(4)._2))
+
+    correctedLabels
+  }
+}
+  \end{lstlisting}
+  \caption{Generating a bar graph which
+    represents how ``worth it'' the course was for students.}
+
+  \label{fig:bar-chart}
+\end{figure}
+
+All survey results have been released as part of the \textsc{progfun-stats} open-source
+project~\cite{progfun-stats}. The survey data is available in simple
+plain text formats, such  as tab-separated values. Thus, it is easy to process
+and analyze the data in any general-purpose programming language. In addition
+to the raw data set, \textsc{progfun-stats} provides a library extension for
+the Scala programming language~\cite{Odersky-Spoon-Venners07} which makes it
+easy to generate interactive, web-based visualizations.
+
+For example, Figure~\ref{fig:bar-chart} shows how to create a simple bar chart
+that represents how ``worth it'' the course was for students, on a scale from
+1 (disagree) to 5 (agree).
 
 
 \section{Evaluation}
