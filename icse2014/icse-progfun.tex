@@ -354,13 +354,14 @@ are discouraged in the context of the course on functional programming principle
 Examples are mutable variables, return statements, the \lstinline@null@ value,
 while loops, magic numbers, overlong lines or non-standard capitalization.
 
-The main portion of the grade is obtained by running a private test suite on
-the submitted code. Tests are executed in using ScalaTest~\cite{scalatest}, a
-unit testing framework for Scala and Java. The framework was customized so that
-each unit test can be assigned an individual weight and the framework computes
-the overall score of the successful tests. Some of the unit tests are handed
-out to the students as part of the assignment, which ensures that the function
-signatures in their code are compatible with the test suite.
+The main portion of the grade is obtained by running a comprehensive test suite
+that is private to the automated graders on each student's submitted code.
+Tests are executed in using ScalaTest~\cite{scalatest}, a unit testing framework
+for Scala and Java. The framework was customized so that each unit test can be
+assigned an individual weight and the framework computes the overall score of
+the successful tests. Some of the unit tests are handed out to the students as
+part of the assignment, which ensures that the function signatures in their code
+are compatible with the test suite.
 
 A subset of the unit tests are implemented using a custom-written Java virtual
 machine agent \cite{vmagents} that instruments the bytecode to record statistics about
