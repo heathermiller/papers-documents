@@ -254,14 +254,34 @@ quizzes requiring real-time participation of the students.
 
 \paragraph{Assignments}
 
-- weekly or biweekly assignments, all programming exercises.
+The lectures were accompanied by weekly or biweekly assignments, all of which
+consisted of programming exercises. The used tools enabled students to
+interact with the assignments and their submission in a unique way. Solutions
+could be submitted to our cloud-based grading infrastructure from within the
+interactive build tool~\cite{sbt} that was also used to run unit tests.
+Submitted solutions were processed in the cloud in several steps. First, the
+solution was analyzed with a custom code style checker (based on
+Scalastyle~\cite{ScalaStyle}) to penalize submissions that were obviously not
+written in the functional style taught in the course. Second, the solution was
+tested using a comprehensive test suite.
 
-- unique aspects of the assignment handling: submit assignments via command line, compile remotely, automatic grading: (a) subject submission to a test suite, and (b) analyze with a custom style checker. goal of the style checker: penalize submissions that were obviously not written in the functional style taught in the course.
+The test suite that was used for grading was {\em secret}; only a small
+scafolding containing a couple of sample tests was provided to the students.
+This was an incentive for students to try and create a comprehensive test
+suite themselves. Students could submit revisions of their solution as often
+as they liked without penalty until the submission deadline. This policy was
+changed for the second iteration of the course where assignments could only be
+re-submitted up to five times (the sixth and later submission attempts would
+earn zero credit). Only the best of each student's submissions was considered
+(the grade of each assignment was the grade of the best submission for that
+assignment). In Section~\ref{sec:eval-grading-policy} we evaluate the effect
+of the different grading policies on the grades of submissions.
 
-- The test suite that was used for grading was {\em secret}; only a small scafolding containing a couple of sample tests was provided to the students (correct?). This was an incentive for students to try and create a comprehensive test suite themselves.
-
-- students could submit revisions of their solution as often as they liked
- without penalty until the submission deadline. upon each submission: receive feedback about how their code fared on the secret test suite. This feedback contained hints about failing tests including the hypothetical reduction in points. Additionally, the result of running our style checker was included to give feedback on aspects of style that needed to be improved.
+Upon each submission students received feedback about how their code fared on
+the secret test suite. This feedback contained hints about failing tests
+including the hypothetical reduction in points. Additionally, the result of
+running our style checker was included to give feedback on aspects of style
+that needed to be improved.
 
 \paragraph{Certificate of completion} Students who obtained more than 60\% of
 all possible points received a certificate of completion. In addition, those
@@ -276,9 +296,9 @@ case, on the Coursera platform. The elements exclusive to EPFL students
 consisted of
 
 \begin{itemize}
-\item interactive sessions were students could review the course material and
+\item {\em interactive sessions} were students could review the course material and
   answer questions; and
-\item written exams which accounted for a majority of the final grade on the
+\item {\em written exams} which accounted for a majority of the final grade on the
   academic record; these exams were essential to satisfy the requirements of
   their degree.
 \end{itemize}
@@ -395,9 +415,41 @@ that represents how ``worth it'' the course was for students, on a scale from
 1 (disagree) to 5 (agree).
 
 
-\section{Evaluation}
+\section{Evaluation}\label{sec:eval}
 
-\subsection{Explaning the high completion rate}
+This section evaluates the collected data. In the first part, we evaluate
+results obtained through Coursera~\cite{coursera}, the platform used for our
+MOOC. In the second part, we evalute results from surveys collected after the
+completion of the MOOC.
+
+\subsection{Assignment submission}
+
+In this section we evaluate how students used the assignment submission
+system. In particular, we are interested in the number of re-submissions per
+student for select assignments, as well as the correlation between the number
+of re-submissions and the received grade.
+
+\subsubsection{Correlating grade and number of submissions}
+
+In the first iteration of the course solutions to assignments could be re-
+submitted without penalty before the submission deadline; no limit was placed
+on the number of re-submissions. Interestingly, the collected results indicate
+that even without a re-submission limit, there is a clear difference in the
+number of submissions for solutions with a grade of 90\% or better and all
+others.
+
+[show plot that shows correlation between grade and number of submissions]
+
+
+Question: to get a very good grade, did people have to submit more often than average?
+
+
+\subsubsection{Evaluating the grading policy}\label{sec:eval-grading-policy}
+
+\subsection{Post-course survey results}
+
+
+\subsection{Explaining the high completion rate}
 
 Show how people used the submission system. People were ``hooked'' on submitting solutions.
 
