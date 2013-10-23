@@ -47,6 +47,7 @@
 
 \documentclass{sig-alternate}
 
+\usepackage{fontspec}
 \usepackage{listings,xspace}
 \usepackage{url}
 
@@ -77,6 +78,8 @@
 }
 
 \begin{document}
+
+\setmonofont[Scale=0.8,BoldFont={Consolas Bold}]{Consolas}
 %
 % --- Author Metadata here ---
 \conferenceinfo{ICSE}{'14 Hyderabad, India}
@@ -524,7 +527,7 @@ grades.
 \begin{figure*}[ht!]
   \centering
   \includegraphics[width=\textwidth]{plots/score-2d-histogram-fall2012-spring2013.pdf}
-  \caption{Heat maps correlating scores for the ``Huffman'' assignment and the number 
+  \caption{Heat maps correlating scores for the ``Huffman'' assignment and the number
   of required submissions.}
   \label{fig:2d-histogram}
 \end{figure*}
