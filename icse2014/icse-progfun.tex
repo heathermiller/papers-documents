@@ -524,36 +524,43 @@ grades.
 \begin{figure*}[ht!]
   \centering
   \includegraphics[width=\textwidth]{plots/score-2d-histogram-fall2012-spring2013.pdf}
-  \caption{}
+  \caption{Heat maps correlating scores for the ``Huffman'' assignment and the number 
+  of required submissions.}
   \label{fig:2d-histogram}
 \end{figure*}
 
+\subsubsection{Grading policies}\label{sec:grading-policies}
+
+As mentioned in Section~\ref{sec:mooc-elements} the grading policy changed
+between the Fall 2012 and the Spring 2013 iterations of the course. In the
+Fall 2012 iteration, students could re-submit solutions as often as they
+wanted without penalty until the submission deadline. In the Spring 2013
+iteration, students were allowed to re-submit only up to five times; the sixth
+and later submissions would not give any credit. In both iterations the
+(valid) submission with the highest grade determined the final grade for that
+assignment.
+
 \subsubsection{Correlating grade and number of submissions}
 
-Figure~\ref{???} shows the correlation between the grade of students and the
-number of (re-)submissions required to achieve that grade. The heatmap shows
-that the largest concentration of students is close to the perfect score (10);
-this is likely due to the fact that an unbounded number of re-submissions was
-allowed in the 2012 iteration (TODO: compare with 2013!!). Moreover, the
-concentrations of students are at a low number of submissions (1 or 2: TODO
-verify). This result suggests that to get a better grade a higher number of
-submission was {\em not usually necessary}. However, the heatmap also shows
-that a small number of students made use of the unbounded number of
-submissions to improve their scores; however, it is a relatively small number
-of students.
+Figure~\ref{fig:2d-histogram} shows the correlation between the achieved
+score for one particular assignment (on implementing Huffman coding using
+pattern matching) and the number of submissions required to achieve that
+score. For both the Fall 2012 and the Spring 2013 iterations of the course it
+shows the largest concentration of students at or close to the perfect score
+(10). A large number of students required only five submissions or less to
+achieve their final/best score. Moreover, the results suggest that to get a
+better grade a higher number of submissions was {\em not usually necessary}.
 
-Comparing the 2012 and 2013 heatmaps:
-- quite a different picture
-- same colormap, same scale
-- in 2012 there are 1000s of people with like 15 submissions
-
-Conclusion:
-
-- people worked differently
-- in 2013 most people got it right after 2 or 4 submissions
-- quite a few tried to improve even with a 6th submissions, even though it didn't
-  give credit any more
-- that's interesting, people wanted to learn, not only score
+However, for the Fall 2012 iteration there are still thousands of students
+with 10 or even 15 submissions. The results for the Spring 2013 iteration are
+quite different: most people achieved their final score after only two or four
+submissions. This is very likely due to the different grading policies used in
+the two iterations: the grading policy in Spring 2013 does not give credit for
+the sixth and later submissions. This is clearly reflected in the changed
+submission statistics. However, interestingly there is still a significant
+number of students who also submitted a sixth time (thus earning no additional
+credit); this is a clear indication that the automated grading and feedback
+was also used for learning without improving one's score.
 
 \begin{figure}[ht!]
   \centering
@@ -571,15 +578,6 @@ Conclusion:
 
 
 \subsubsection{Evaluating the grading policy}\label{sec:eval-grading-policy}
-
-As mentioned in Section~\ref{sec:mooc-elements} the grading policy changed
-between the Fall 2012 and the Spring 2013 iterations of the course. In the
-Fall 2012 iteration, students could re-submit solutions as often as they
-wanted without penalty until the submission deadline. In the Spring 2013
-iteration, students were allowed to re-submit only up to five times; the sixth
-and later submissions would not give any credit. In both iterations the
-(valid) submission with the highest grade determined the final grade for that
-assignment.
 
 This change in the grading policy had an interesting effect on the number of
 submitted solutions. Figure~\ref{fig:top-scores-submissions} shows the change
