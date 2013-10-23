@@ -261,9 +261,10 @@ could be submitted to our cloud-based grading infrastructure from within the
 interactive build tool~\cite{sbt} that was also used to run unit tests.
 Submitted solutions were processed in the cloud in several steps. First, the
 solution was analyzed with a custom code style checker (based on
-Scalastyle~\cite{ScalaStyle}) to penalize submissions that were obviously not
-written in the functional style taught in the course. Second, the solution was
-tested using a comprehensive test suite.
+Scalastyle~\cite{ScalaStyle} which is built on the same principles as
+Checkstyle~\cite{Ware08} for Java) to penalize submissions that were obviously
+not written in the functional style taught in the course. Second, the solution
+was tested using a comprehensive test suite.
 
 The test suite that was used for grading was {\em secret}; only a small
 scafolding containing a couple of sample tests was provided to the students.
@@ -467,7 +468,7 @@ in the number of submissions of students who achieved a perfect score on a
 particular assignment. The change in submission behavior is quite noticeable.
 In the Fall 2012 iteration about 25\% of students achieved a perfect score
 with their first submitted solution, whereas in the Spring 2013 iteration this
-percentage has grown to about 40\%.
+percentage grew to about 40\%.
 
 \subsection{Post-course survey results}
 
