@@ -375,29 +375,28 @@ we rely on the security manager infrastructure provided by the Java platform~\ci
 This facility allows disabling sensitive functionality with detailed granularity
 for specific parts of the executed code. This allows executing the testing framework
 with elevated privileges (it requires access to IO and reflection), but the code
-by the students is executed in a restricted environment within each test case.
+from the students is executed in a restricted environment within each test case.
 We may also add that we are not aware of any attempts to compromise our grading
 infrastructure.
 
+Given the large number of participants and the submission model that gives the
+students an unlimited number of attempts at each assignment, the use of a scalable
+cloud computing service was a natural choice to implement the grading infrastructure.
+The goal is to provide the students feedback for each submission within 15--20
+minutes. For this course, the grading infrastructure is implemented using Amazon
+Web Services (AWS). This service can be configured to automatically start up or
+terminate virtual machines based on custom workload measures. The machines are
+configured such that they automatically start downloading and grading assignments
+from the work queue provided by Coursera once they are booted.
 
-Scaling
-  - given the number of students and our desire to provide them with feedback
-    on their submission within 15 to 30 minutes, the use of a scalable cloud
-    service was a natural choice.
-  - our grading service is built on top of amazon web services (aws). they provide
-    infrastructure to start up and terminate virtual machines automatically based
-    on custom workload measures.
-  - the virtual machines are configured to automatically start downloading and
-    grading assignments and uploading the results once they are booted.
-
-
-platform specific
-  - code cannot easily be re-used
-  - coursera  - they use SQS
-  - test framework customizations - test framework for scala and java
-  - sbt - build tool for scala and java
-  - but concepts would work in other programming courses
-
+The source code of our grading and submission infrastructure has been developed
+for one specific MOOC and cannot be reused directly for other online courses.
+Most of the implementation is written as a plugin for the sbt build tool, which
+can be used for Scala and Java projects. The same applies to the customized test
+framework. Finally, the scripts interact with the HTTP API of Coursera and would
+need to be adapted for other providers. However, the main concepts of our
+infrastructure apply to programming courses in general and many of the ideas
+we implemented can be re-used.
 
 
 
