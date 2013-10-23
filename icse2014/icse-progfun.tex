@@ -335,6 +335,73 @@ time zones.
 
 \section{Tooling and Automated Grading}
 
+The only mandatory tool that students are required to use is sbt~\cite{sbt}, a
+standard build tool for Scala and Java. Sbt is used to compile, run, test and
+submit the code for the assignments. The build tool can also generate project
+definitions for the Scala IDE for eclipse and IntelliJ IDEA, which gives the
+students effortless access to those IDEs.
+
+The submission scripts uploads the source code to the servers of Coursera, the
+MOOC provider used for this class, using their custom REST HTTP API. This API
+does not only allow uploading solutions, but it also provides access for grading
+scripts to download the submitted assignments and upload a grade and feedback
+for the student.
+
+The automated grading system for each assignment is based on two components: a
+style checker and a test suite of unit tests. The style checker is based on
+Scalastyle~\cite{ScalaStyle} and allows identifying syntactic constructs that
+are discouraged in the context of the course on functional programming principles.
+Examples are mutable variables, return statements, the \lstinline@null@ value,
+while loops, magic numbers, overlong lines or non-standard capitalization.
+
+The main portion of the grade is obtained by running a private test suite on
+the submitted code. Tests are executed in using ScalaTest~\cite{scalatest}, a
+unit testing framework for Scala and Java. The framework was customized so that
+each unit test can be assigned an individual weight and the framework computes
+the overall score of the successful tests. Some of the unit tests are handed
+out to the students as part of the assignment, which ensures that the function
+signatures in their code are compatible with the test suite.
+
+A subset of the unit tests are implemented using a custom-written Java virtual
+machine agent \cite{vmagents} that instruments the bytecode to record statistics about
+invoked methods. This allows enforcing constraints that could not be tested with a
+classical unit test, for example that some method is implemented in terms of another
+one, or that some specific libraries are not being used.
+
+Executing code that was written and uploaded by arbitrary students has obvious
+security issues: an adversary could try to read the private test suite, modify
+the computed grade or sabotage the grading infrastructure. To prevent such issues
+we rely on the security manager infrastructure provided by the Java platform~\cite{securityManager}.
+This facility allows disabling sensitive functionality with detailed granularity
+for specific parts of the executed code. This allows executing the testing framework
+with elevated privileges (it requires access to IO and reflection), but the code
+by the students is executed in a restricted environment within each test case.
+We may also add that we are not aware of any attempts to compromise our grading
+infrastructure.
+
+
+Scaling
+  - given the number of students and our desire to provide them with feedback
+    on their submission within 15 to 30 minutes, the use of a scalable cloud
+    service was a natural choice.
+  - our grading service is built on top of amazon web services (aws). they provide
+    infrastructure to start up and terminate virtual machines automatically based
+    on custom workload measures.
+  - the virtual machines are configured to automatically start downloading and
+    grading assignments and uploading the results once they are booted.
+
+
+platform specific
+  - code cannot easily be re-used
+  - coursera  - they use SQS
+  - test framework customizations - test framework for scala and java
+  - sbt - build tool for scala and java
+  - but concepts would work in other programming courses
+
+
+
+
+
 \section{Survey and Data Set}
 
 After the completion of each iteration of our MOOC we sent a survey to all
