@@ -245,7 +245,7 @@ students in Computer Science in addition to the MOOC. The online part
 comprises all the elements of our MOOC, whereas the offline part comprises
 additional elements exclusive to EPFL students.
 
-\subsection{Elements of the MOOC}\label{sec:mooc-elements}
+\subsection{Lectures}\label{sec:mooc-elements}
 
 The course lectures are provided in the form of short
 online videos with a length of about 8--12 minutes each. Each week 5--7
@@ -256,7 +256,7 @@ The online video player has controls for speeding up or slowing down the video
 playback. Finally, each video contains interactive, non-graded
 quizzes requiring real-time participation of the students.
 
-\paragraph{Assignments}
+\subsection{Assignments}
 
 The lectures are accompanied by weekly or biweekly assignments, all of which
 consist of programming exercises. The provided tools enables students to
@@ -269,6 +269,8 @@ on Scalastyle~\cite{ScalaStyle}, which is built on the same principles as
 Checkstyle~\cite{Ware08} for Java. Submissions that are not written in the
 functional style taught in the course are penalized. In a second step,
 the solution is tested using a comprehensive test suite.
+
+\paragraph{Testing and submission}
 
 The test suite that is used for grading is {\em secret}; only a small
 scaffolding containing a couple of sample tests is provided to the students.
@@ -283,11 +285,14 @@ the grade of an assignment is the grade of the best submission for that
 assignment. In Section~\ref{sec:eval-grading-policy} we evaluate the effect
 of the different grading policies on the grades of submissions.
 
+\paragraph{Interactive feedback}
+
 Upon each submission the student receives feedback about how the code fared on
 the secret test suite. This feedback contains hints about failing tests and
 lists the reduction in points. Additionally, the result of
 running our style checker is included to give feedback on aspects of style
 that need to be improved.
+
 
 \paragraph{Certificate of completion} Students who obtain more than 60\% of
 all possible points receive a certificate of completion. In addition, those
@@ -427,9 +432,9 @@ that represents how ``worth it'' the course was for students, on a scale from
 \section{Evaluation}\label{sec:eval}
 
 This section evaluates the collected data. In the first part, we evaluate
-results obtained through Coursera~\cite{coursera}, the platform used for our
-MOOC. In the second part, we evalute results from surveys collected after the
-completion of the MOOC.
+statistics obtained through Coursera~\cite{coursera}, the platform used for
+our MOOC. In the second part, we evalute results from surveys collected after
+the completion of the MOOC.
 
 \begin{figure*}[ht!]
   \centering
@@ -438,26 +443,50 @@ completion of the MOOC.
   \label{fig:final-scores}
 \end{figure*}
 
-\subsection{Assignment submission}
+\subsection{Assignments, submissions, and grades}
 
-In this section we evaluate how students used the assignment submission
-system. In particular, we are interested in the number of re-submissions per
-student for select assignments, as well as the correlation between the number
-of re-submissions and the received grade.
+In this section we evaluate statistics obtained through the MOOC platform such
+as final grades, per-assignment grades, and the number of re-submissions per
+assignment. In the process, we present several correlations between
+submissions and grades. Furthermore, we compare statistics obtained for two
+different iterations of the MOOC. The results can provide insight into the
+usage of the assignment submission system, and how it affects students'
+grades.
+
+
+\begin{figure*}[ht!]
+  \centering
+  \includegraphics[width=\textwidth]{plots/score-2d-histogram-fall2012-spring2013.pdf}
+  \caption{}
+  \label{fig:final-scores}
+\end{figure*}
 
 \subsubsection{Correlating grade and number of submissions}
 
-In the first iteration of the course solutions to assignments could be re-
-submitted without penalty before the submission deadline; no limit was placed
-on the number of re-submissions. Interestingly, the collected results indicate
-that even without a re-submission limit, there is a clear difference in the
-number of submissions for solutions with a grade of 90\% or better and all
-others.
+Figure~\ref{???} shows the correlation between the grade of students and the
+number of (re-)submissions required to achieve that grade. The heatmap shows
+that the largest concentration of students is close to the perfect score (10);
+this is likely due to the fact that an unbounded number of re-submissions was
+allowed in the 2012 iteration (TODO: compare with 2013!!). Moreover, the
+concentrations of students are at a low number of submissions (1 or 2: TODO
+verify). This result suggests that to get a better grade a higher number of
+submission was {\em not usually necessary}. However, the heatmap also shows
+that a small number of students made use of the unbounded number of
+submissions to improve their scores; however, it is a relatively small number
+of students.
 
-[show plot that shows correlation between grade and number of submissions]
+Comparing the 2012 and 2013 heatmaps:
+- quite a different picture
+- same colormap, same scale
+- in 2012 there are 1000s of people with like 15 submissions
 
+Conclusion:
 
-Question: to get a very good grade, did people have to submit more often than average?
+- people worked differently
+- in 2013 most people got it right after 2 or 4 submissions
+- quite a few tried to improve even with a 6th submissions, even though it didn't
+  give credit any more
+- that's interesting, people wanted to learn, not only score
 
 \begin{figure}[ht!]
   \centering
@@ -481,9 +510,11 @@ This change in the grading policy had an interesting effect on the number of
 submitted solutions. Figure~\ref{fig:top-scores-submissions} shows the change
 in the number of submissions of students who achieved a perfect score on a
 particular assignment. The change in submission behavior is quite noticeable.
-In the Fall 2012 iteration about 25\% of students achieved a perfect score
-with their first submitted solution, whereas in the Spring 2013 iteration this
-percentage grew to about 40\%.
+In the Fall 2012 iteration about 25\% of those perfect-scorers needed only one
+submission, whereas in the Spring 2013 iteration this percentage grew to about
+40\%. For perfect-scorers who needed two submissions, the difference between
+the two iterations is not as large, but still significant (an increase of
+about 30\%).
 
 \subsection{Post-course survey results}
 
