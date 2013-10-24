@@ -270,47 +270,39 @@ Programs} MIT course~\cite{Abelson85}. Instead of Scheme, the Scala
 programming language~\cite{Odersky-Spoon-Venners07} is used throughout the
 course, both in the lectures and in the homework assignments.
 
-The course consists of both an online part and an offline part, since it is
-offered as a regular on-campus course at EPFL for second-year undergraduate
-students in Computer Science in addition to the MOOC. The first half of the course ({\em online}, seven weeks) is offered as a MOOC worldwide and to EPFL undergraduates alike, whereas the second half of the course ({\em offline}, seven weeks) comprises a continuation of the course material exclusive to EPFL students.
+The first half of the course ({\em online}, seven weeks) is offered as a MOOC worldwide and to EPFL undergraduates alike, whereas the second half of the course ({\em offline}, seven weeks) comprises a continuation of the course material exclusive to EPFL students, intended for second year students in Computer Science.
 
 \subsection{Lectures}\label{sec:mooc-elements}
 
 The course lectures are provided in the form of short
 online videos, each about 8--12 minutes in duration. Each week, 5--7
 videos are released.
-Students are able to speed up or slow down the video to suit their preferred pace. Finally, each video contains interactive, not-for-credit
-quizzes requiring real-time participation of the students.
+Students are able to speed up or slow down the video to suit their preferred pace. 
 
 \subsection{Assignments}
 
-The lectures are accompanied by weekly or biweekly assignments, all of which
-consist of programming exercises. The provided tools enable students to
-interact with the assignments and their submission in a unique way. The
+The lectures are accompanied by interactive, not-for-credit
+quizzes requiring real-time participation from the students as they watch the videos, as well as weekly or biweekly assignments, all of which
+consist of programming exercises. 
+
+\paragraph{Testing and submission}
+Several provided tools enable students to
+interact with the assignments and their submission. The
 interactive build tool~\cite{sbt} allows students to run unit tests and to
 directly submit their solutions to our cloud-based grading infrastructure.
 Submitted solutions are processed in the cloud in several steps. First, the
 solution is analyzed with a custom code style checker. This style checker is based
-on Scalastyle~\cite{ScalaStyle}, which is built on the same principles as
+on Scalastyle~\cite{ScalaStyle}, which is similar to 
 Checkstyle~\cite{Ware08} for Java. Submissions that are not written in the
-functional style taught in the course are penalized. In a second step,
+functional style taught in the course are penalized. 
+
+In a second step,
 the solution is tested using a comprehensive test suite.
-
-\paragraph{Testing and submission}
-
 The test suite that is used for grading is {\em secret}; only a small
 scaffolding containing a couple of sample tests is provided to the students.
 This ensures that their solutions are compatible with our test suite, and
-also creates an incentive for students build a comprehensive test
-suite themselves. Students can submit revisions of their solution as often
-as they like until the submission deadline without penalty. This policy was
-changed for the second iteration of the course where assignments could only be
-re-submitted up to five times (the later submission attempts would
-earn no credit). Only the best of the student's submissions is considered:
-the grade of an assignment is the grade of the best submission for that
-assignment.
-% In Section~\ref{sec:eval-grading-policy} we evaluate the effect
-% of the different grading policies on the grades of submissions.
+also creates an incentive for students to build a comprehensive test
+suite of their own. 
 
 \paragraph{Interactive feedback}
 
@@ -320,6 +312,15 @@ lists the reduction in points. Additionally, the result of
 running our style checker is included to give feedback on aspects of style
 that need to be improved.
 
+Students can submit revisions of their solution as often
+as they like until the submission deadline without penalty. This policy was
+changed for the second iteration of the course where assignments could only be
+re-submitted up to five times (the later submission attempts would
+earn no credit), as we will discuss below. Only the best of the student's submissions is considered:
+the grade of an assignment is the grade of the best submission for that
+assignment.
+% In Section~\ref{sec:eval-grading-policy} we evaluate the effect
+% of the different grading policies on the grades of submissions.
 
 \paragraph{Certificate of completion} Students who obtain more than 60\% of
 all possible points (or 48 points out of a total of 80 possible points) receive a certificate of completion. In addition, those
@@ -340,7 +341,7 @@ consisted of:
 \item {\bf offline second-half of the course} where subsequent course material was presented to students as a traditional on-campus course.
 \end{itemize}
 
-\subsection{Commercial Offering}
+\subsection{Commercial Tutorial Sessions}
 
 The course format lends itself to additional, commercial offerings. For the
 third iteration of our course on functional programming principles, Typesafe~\cite{typesafe}
