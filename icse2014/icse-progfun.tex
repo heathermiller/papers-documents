@@ -87,7 +87,10 @@
 %\crdata{0-12345-67-8/90/01}  % Allows default copyright data (0-89791-88-6/97/05) to be over-ridden - IF NEED BE.
 % --- End of Author Metadata ---
 
-\title{Case Study: Teaching Functional Programming en masse (need title)}
+% \title{Popularizing FP with a MOOC:\\For Students And Software Engineers Alike!}
+\title{Functional Programming For All!:\\Scaling a MOOC for Students \& Software Engineers Alike}
+% \subtitle{Scaling Up A Functional Programming MOOC For Students and Software Engineers Alike}
+
 %
 % You need the command \numberofauthors to handle the 'placement
 % and alignment' of the authors beneath the title.
@@ -181,7 +184,7 @@ that are invaluable in day-to-day software engineering practice.
 
 In this paper, we describe our experience organizing a MOOC on the principles of functional
 programming with more than 100,000 registered students, which is now in its third iteration.
-What sets the course apart from other MOOCs related to programming or software engineering is not only its large number of registered students; perhaps more importantly, the course has had one of the highest completion rates of any MOOC worldwide~\cite{Parr13}.\footnote{At the time the first iteration of the course was completed at the end of November 2012, and still one of the highest rates of completion (19.2\%) for its size/magnitude~\cite{moocCompletionRates}}
+What sets the course apart from other MOOCs related to programming or software engineering is not only its large number of registered students; perhaps more importantly, the course has had one of the highest completion rates of any MOOC worldwide~\cite{Parr13}\footnote{At the time the first iteration of the course was completed at the end of November 2012, and still one of the highest rates of completion (19.2\%) for its size/magnitude~\cite{moocCompletionRates}}.
 
 In contrast to other similar SE-related MOOCs, we have leveraged the popularity of the course to collect an unprecedented amount of course statistics and survey results. This paper describes our data set which consists of the following components:
 
@@ -250,7 +253,7 @@ This paper makes the following contributions:
 
 \end{itemize}
 
-The remainder of the paper is organized as follows. Section~\ref{sec:course-format} covers the format and organization of our MOOC, and interaction between the MOOC and the on-campus course. In Section~\ref{sec:tooling-automated-grading} we describe the tools used to support teaching and learning, as well as the integration with the MOOC infrastructure. In Section~\ref{sec:survey-data-set} we describe the data set and interactive tools for experimenting with it, released as an open-source project~\cite{progfun-stats}. In Section~\ref{sec:eval} we present an evaluation and analysis of some of our data. Finally, we survey related work in Section~\ref{sec:related-work} and conclude in Section~\ref{sec:conclusion}
+The remainder of the paper is organized as follows. Section~\ref{sec:course-format} covers the format and organization of our MOOC, and interaction between the MOOC and the on-campus course. In Section~\ref{sec:tooling-automated-grading} we describe the tools used to support teaching and learning, as well as the integration with the MOOC infrastructure. In Section~\ref{sec:survey-data-set} we describe the data set and interactive tools for experimenting with it, released as an open-source project~\cite{progfun-stats}. In Section~\ref{sec:eval} we present an evaluation and analysis of some of our data. Finally, we survey related work in Section~\ref{sec:related-work} and conclude in Section~\ref{sec:conclusion}.
 
 
 \section{Course Format}
@@ -258,10 +261,10 @@ The remainder of the paper is organized as follows. Section~\ref{sec:course-form
 
 The objective of our MOOC, {\em Functional Programming Principles in Scala} (or ``progfun" for short),
 is to introduce functional programming
-principles. As such it covers topics such as recursion, persistent/immutable data
+principles. As such, it covers topics such as recursion, persistent/immutable data
 structures, higher-order functions, and pattern matching. Some of the material
-is based on the well-known ``Structure and Interpretation of Computer
-Programs'' MIT course~\cite{Abelson85}. Instead of Scheme, the Scala
+is based on the well-known {\em Structure and Interpretation of Computer
+Programs} MIT course~\cite{Abelson85}. Instead of Scheme, the Scala
 programming language~\cite{Odersky-Spoon-Venners07} is used throughout the
 course, both in the lectures and in the homework assignments.
 
@@ -303,8 +306,9 @@ changed for the second iteration of the course where assignments could only be
 re-submitted up to five times (the later submission attempts would
 earn no credit). Only the best of the student's submissions is considered:
 the grade of an assignment is the grade of the best submission for that
-assignment. In Section~\ref{sec:eval-grading-policy} we evaluate the effect
-of the different grading policies on the grades of submissions.
+assignment.
+% In Section~\ref{sec:eval-grading-policy} we evaluate the effect
+% of the different grading policies on the grades of submissions.
 
 \paragraph{Interactive feedback}
 
@@ -637,7 +641,7 @@ the heat map shows people improved scores by submitting again and again.
 
 \subsubsection{The Worksheet IDE plugin}
 
-Survey results show (see Figure~\ref{fig:ide-usage}) that the use
+Survey results show (see Figure~\ref{fig:ides}) that the use
 of the new worksheet technology lead to a doubling in the percentage of use of
 the Eclipse IDE compared to a non-course setting. Thus, the worksheet was a
 very strong incentive for people to use Eclipse during the course. Again, the
@@ -655,12 +659,14 @@ people completing the course could come from the fact that they were trying to
 learn something that's important for the job, and something that they can't
 get anywhere else in a comparable form (indeed, Scala is not yet taught in
 many universities). Survey results indicate that about 40\% of respondents
-plan to apply the learned knowledge at work (see Figure~\ref{??}).
+plan to apply the learned knowledge at work (see Figure~\ref{fig:where-apply}).
 Interestingly, even more so than across all participants, the professional
 participants felt like the course was well worth their time
 (Figure~\ref{fig:worth-it-apply-it}), thus, it was ``effective'' for learning.
 These results also indicate that MOOCs are an effective training tool for practicing
 software engineers.
+
+From Figure~\ref{fig:worth-it-apply-it}, it's evident that there is not a large disparity in how ``worth it'' the course was for complete newcomers to Scala and its ecosystem as well as people familiar with the Scala tool-chain (those who work with Scala on a daily basis). That is to say that the Scala tool-chain and ecosystem weren't a hindrance.
 
 Furthermore, a certificate of completion was issued. Unlike languages
 established in industry for many years, there is no standard Scala
