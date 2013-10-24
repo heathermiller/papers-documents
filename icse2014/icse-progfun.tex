@@ -548,7 +548,7 @@ that represents how ``worth it'' the course was for students, on a scale from
 
 In this section, we analyze and evaluate a selection of the collected data.
 First, we'll examine the role of the MOOC's tooling infrastructure
-(e.g., IDEs, or the automated grader) for making distance learning more effective.
+(e.g., IDEs, or the automated grader) in making distance learning more effective.
 Next, we'll examine the background and motivation of MOOC participants which helps
 explain whether MOOCs can be useful to professional software engineers. Finally,
 as a third step, we evaluate the acceptance of our MOOC in a university setting.
@@ -638,19 +638,21 @@ about 30\%).
 \end{figure}
 
 
-\paragraph{Summary}
+% \paragraph{Summary}
 
-The interaction with the submission system worked well, since (1) people used
-it beyond just getting assignment scores (shown in heat map for 2013 in Figure~\ref{fig:2d-histogram}), and (2)
-the heat map shows people improved scores by submitting again and again.
+% The interaction with the submission system worked well, since (1) people used
+% it beyond just getting assignment scores (shown in heat map for 2013 in Figure~\ref{fig:2d-histogram}), and (2)
+% the heat map shows people improved scores by submitting again and again.
 
 
 \subsubsection{The Worksheet IDE plugin}
 
-The survey results on code editor usage in Figure~\ref{fig:ides} show that
-80\% of all students prefer to use the Scala IDE for eclipse. For almost half
-of those students, eclipse is not their preferred IDE for projects outside
-the class. One feature that was only available in the Scala IDE for eclipse
+Figure~\ref{fig:ides} shows survey respondents' code editor preferences both
+(a) preferred for use outside of the course, as well as (b) the code editor used
+for a majority of the course. The results show that
+80\% of all students prefer to use the Scala IDE for Eclipse for the course.
+For almost half of those students, Eclipse is not their preferred IDE for projects outside
+the course. One feature that was only available in the Scala IDE for Eclipse
 during the first course iteration is the Scala worksheet, introduced in Section
 \ref{sec:tooling-automated-grading}. The students are encouraged to use the
 worksheet for testing their code, and the feature is also used by the lecturer
@@ -661,8 +663,11 @@ course.
 
 \subsection{Not just for students}
 
+In this section, we evaluate the background and motivation of MOOC participants,
+in an effort to show that MOOCs can be useful to professional software engineers.
+
 Figure~\ref{fig:education} shows a summary of the educational background of
-participants of the MOOC. Surprisingly, a majority already has completed a
+participants of the MOOC. Surprisingly, nearly half of all respondents has completed a
 Master's degree. Thus, the question arises: how relevant are the topics of the
 MOOC to participants' professional work? Survey results indicate that about
 40\% of respondents plan to apply the learned knowledge at work (see
@@ -671,25 +676,55 @@ to be a strong motivating factor. We suspect that the fact that the Scala
 programming language is not yet taught in many universities could also
 contribute to the popularity of the MOOC to (recent) university graduates.
 
-Interestingly, even more so than across all participants, professional
-participants felt like the course was well worth their time
-(Figure~\ref{fig:worth-it-apply-it}), thus, it was ``effective'' for learning.
-These results also indicate that MOOCs are an effective training tool for practicing
-software engineers.
-
-From Figure~\ref{fig:worth-it-apply-it}, it's evident that there is not a large disparity in how ``worth it'' the course was for complete newcomers to Scala and its ecosystem as well as people familiar with the Scala tool-chain (those who work with Scala on a daily basis). That is to say that the Scala tool-chain and ecosystem weren't a hindrance.
-
-Furthermore, a certificate of completion was issued. Unlike languages
-established in industry for many years, there is no standard Scala
-certification for developers; the completion certificate could be regarded by
-many as the closest substitute.
-
 \begin{figure}[ht!]
   \centering
   \includegraphics[width=\columnwidth]{plots/where-apply.png}
   \caption{Results for the survey question: where do you plan to apply what you've learned in this course?}
   \label{fig:where-apply}
 \end{figure}
+
+Interestingly, professional participants felt like the course was well worth
+their time even more so than across all participants. Figure~\ref{fig:worth-it-apply-it}
+shows the results of the question, ``do you feel the course was worth the time you invested in it?"
+for two groups of individuals; ``all respondents" as well as those respondents who
+indicated they were interested applying knowledge gained from the course towards a
+(group or individual) project at work. For the Fall 2012 offering, for example, the
+results show that 71\% of professionals (i.e., 2,148/3,203 professional respondents)
+felt the course was well worth their time, as opposed to 68\% (5,077/7,492) for all respondents.
+Thus, progfun was quite ``effective'' for practicing software engineers, indicating
+that some MOOCs can be an effective training tool for professional software engineers.
+
+Another interesting observation that can be garnered from Figure~\ref{fig:worth-it-apply-it}
+is that the difference in how ``worth it" progfun was to professionals vs all respondents
+is large enough to be statistically significant, but still not disparate enough to indicate
+that potential newcomers (potentially 57\%, or some 4,289/7,492 respondents) struggled or were
+hindered by the Scala tooling and build infrastructure. On the contrary, newcomers and
+Scala professionals alike followed suit in their positive overall experience with the course.
+
+% still left
+% the course with a positive
+% From Figure~\ref{fig:worth-it-apply-it}, it's evident that there is not a large disparity in how ``worth it'' the course was for complete newcomers to Scala and its ecosystem as well as people familiar with the Scala tool-chain (those who work with Scala on a daily basis). That is to say that the Scala tool-chain and ecosystem weren't a hindrance.
+
+Furthermore, a certificate of completion was issued. Unlike languages
+established in industry for many years, there is no standard Scala
+certification for developers; the completion certificate could be regarded by
+many as the closest substitute.
+
+
+\begin{figure*}[ht!]
+  \centering
+  \includegraphics[width=\textwidth]{plots/worth-it-apply-it.pdf}
+  \caption{Correlated results from two groups of individuals for the survey question: do you feel the course was worth the time you invested in it? Shown are ``all respondents'', and respondents that indicated they were interested applying knowledge gained from the course towards a (group or individual) project at work.}
+  \label{fig:worth-it-apply-it}
+\end{figure*}
+
+\begin{figure*}[ht!]
+  \centering
+  \includegraphics[width=\textwidth]{plots/epfl-course-eval.pdf}
+  \caption{MOOC-related responses from EPFL's specialized course evaluation, given to on-campus EPFL students following the conclusion of the online MOOC half of the course, as well as the offline traditional half of the course.}
+  \label{fig:epfl-course-eval}
+\end{figure*}
+
 \subsection{Acceptance and student evaluation}
 
 Figure~\ref{fig:epfl-course-eval} shows the result of our survey among
@@ -717,21 +752,6 @@ or very good.
 % While this
 % might have been evident in the lower attendance numbers for the weekly exercise sessions as
 % compared to previous years,
-
-
-\begin{figure*}[ht!]
-  \centering
-  \includegraphics[width=\textwidth]{plots/worth-it-apply-it.pdf}
-  \caption{Correlated results from two groups of individuals for the survey question: do you feel the course was worth the time you invested in it? Shown are ``all respondents'', and respondents that indicated they were interested applying knowledge gained from the course towards a (group or individual) project at work.}
-  \label{fig:worth-it-apply-it}
-\end{figure*}
-
-\begin{figure*}[ht!]
-  \centering
-  \includegraphics[width=\textwidth]{plots/epfl-course-eval.pdf}
-  \caption{MOOC-related responses from EPFL's specialized course evaluation, given to on-campus EPFL students following the conclusion of the online MOOC half of the course, as well as the offline traditional half of the course.}
-  \label{fig:epfl-course-eval}
-\end{figure*}
 
 \section{Related Work}
 \label{sec:related-work}
