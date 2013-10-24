@@ -537,7 +537,7 @@ plain text formats, such  as tab-separated values. Thus, it is easy to process
 and analyze the data in any general-purpose programming language. In addition
 to the raw data set, \textsc{progfun-stats} provides a library extension for
 the Scala programming language~\cite{Odersky-Spoon-Venners07} which makes it
-easy to generate interactive, web-based visualizations.
+easy to generate interactive, web-based visualizations\footnote{There is also a website showcasing more data and visualizations than shown in this paper, \url{http://lampwww.epfl.ch/~hmiller/progfun}}.
 
 For example, Figure~\ref{fig:bar-chart} shows how to create a simple bar chart
 that represents how ``worth it'' the course was for students, on a scale from
@@ -546,17 +546,18 @@ that represents how ``worth it'' the course was for students, on a scale from
 \section{Evaluation}
 \label{sec:eval}
 
-This section evaluates the collected data. In the first part, we examine the
-role of tools for making distance learning effective. In the second part, we
-evaluate the background and motivation of MOOC participants which helps
-explain whether MOOCs can be useful to professional software engineers. In the
-third part, we evaluate the acceptance of our MOOC in a university setting.
+In this section, we analyze and evaluate a selection of the collected data.
+First, we'll examine the role of the MOOC's tooling infrastructure
+(e.g., IDEs, or the automated grader) for making distance learning more effective.
+Next, we'll examine the background and motivation of MOOC participants which helps
+explain whether MOOCs can be useful to professional software engineers. Finally,
+as a third step, we evaluate the acceptance of our MOOC in a university setting.
 
 \subsection{Tools for effective distance learning}
 
 In this section we evaluate the use of two important tools: (a) the automated
-grading system and (b) the Worksheet IDE plugin which was released
-specifically for use in the first iteration of the course.
+grading system and (b) the Scala IDE for Eclipse plugin with the Worksheet IDE,
+which was released specifically for use in the first iteration of the course.
 
 \subsubsection{Automated grading system}
 
@@ -567,7 +568,7 @@ course. In the Fall 2012 iteration, students could re-submit solutions as
 often as they wanted without penalty until the submission deadline. In the
 Spring 2013 iteration, students were allowed to re-submit only up to five
 times; the sixth and later submissions would not give any credit. In both
-iterations the (valid) submission with the highest grade determined the final
+iterations, the (valid) submission with the highest grade determined the final
 grade for that assignment.
 
 \paragraph{Usage of the submission system}
@@ -577,20 +578,24 @@ score for one particular assignment (an implementation of Huffman coding using
 pattern matching) and the number of submissions required of each student to achieve that
 score. For both the Fall 2012 and the Spring 2013 iterations of the course,
 the largest concentration of students at or close to the perfect score
-(10). In fact, a large number of students required only five submissions or less to
-achieve their final/best score. Moreover, the results suggest that to achieve
-a higher score, a higher number of submissions was {\em not usually necessary}.
+(10). In fact, both plots in Figure~\ref{fig:2d-histogram} show that
+for a large number of students, only five submissions or less were required to
+achieve their final/best score.
+
+For the Fall 2012 plot, for example, each bright yellow dot
+along the y-axis and concentrated around a score of 10 represents approximately 1,200-1,700
+individual user submissions. Above 5 submissions however, the density of individual user submissions
+drastically drops to approximately 250 or less individual user submissions.
+This suggests that to achieve a higher score (even when submissions are unlimited),
+a higher number of submissions was {\em not usually necessary}.
 
 However, for the Fall 2012 iteration there are still thousands of students
 with 10 or even 15 submissions. The results for the Spring 2013 iteration are
 quite different: most people achieved their final score after only two or four
-submissions. This is very likely due to the different grading policies used in
-the two iterations: the grading policy in Spring 2013 does not give credit for
+submissions. This difference stems from the adoption of a different grading policy used in
+the second iteration of the course: no credit for
 the sixth and later submissions. This is clearly reflected in the changed
-submission statistics. However, interestingly there is still a significant
-number of students who also submitted a sixth time (thus earning no additional
-credit); this is a clear indication that the automated grading and feedback
-was also used for learning without improving one's score.
+submission statistics.
 
 \begin{figure}[ht!]
   \centering
@@ -599,10 +604,17 @@ was also used for learning without improving one's score.
   \label{fig:ides}
 \end{figure}
 
-This change in the grading policy had an interesting effect on the number of
-submitted solutions. Figure~\ref{fig:top-scores-submissions} shows the change
+
+However, interestingly, there are still a significant
+number of students who also submitted six or more times (thus earning no additional
+credit); this is a clear indication that the automated grading and feedback
+was also used for learning without improving one's score.
+
+This change in the grading policy had an interesting effect on the quality of
+initial submissions. Figure~\ref{fig:top-scores-submissions} shows the change
 in the number of submissions of students who achieved a perfect score on a
-particular assignment. The change in submission behavior is quite noticeable.
+particular assignment. The change in submission behavior between the Fall 2012
+and Spring 2013 offerings is quite noticeable.
 In the Fall 2012 iteration about 25\% of those perfect-scorers needed only one
 submission, whereas in the Spring 2013 iteration this percentage grew to about
 40\%. For perfect-scorers who needed two submissions, the difference between
@@ -725,7 +737,7 @@ or very good.
 \label{sec:related-work}
 
 The well-known MOOC on software engineering organized by Fox and
-Patterson~\cite{FoxP12} has had around 50'000 registered students in its first
+Patterson~\cite{FoxP12} has had around 50,000 registered students in its first
 iteration, and is thus comparable in size to our course; however, no survey of
 a comparable size was conducted among participants of the MOOC. Moreover, our
 selection of questions provides new insights, related to the interplay of
@@ -766,7 +778,6 @@ provides too much assistance.
 
 \section{Conclusion}
 \label{sec:conclusion}
-
 
 %
 % The following two commands are all you need in the
