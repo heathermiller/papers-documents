@@ -251,7 +251,7 @@ The remainder of the paper is organized as follows. Section~\ref{sec:course-form
 \label{sec:course-format}
 
 The objective of the present MOOC is to introduce functional programming
-principles. As such it covers topics such as recursion, persistent \todo{immutable?} data
+principles. As such it covers topics such as recursion, persistent/immutable data
 structures, higher-order functions, and pattern matching. Some of the material
 is based on the well-known ``Structure and Interpretation of Computer
 Programs'' MIT course~\cite{Abelson85}. Instead of Scheme, the Scala
@@ -260,25 +260,20 @@ course, both in the lectures and in the homework assignments.
 
 The course consists of both an online part and an offline part, since it is
 offered as a regular on-campus course at EPFL for second-year undergraduate
-students in Computer Science in addition to the MOOC. The online part
-comprises all the elements of our MOOC, whereas the offline part comprises
-additional elements exclusive to EPFL students.
+students in Computer Science in addition to the MOOC. The first half of the course ({\em online}, seven weeks) is offered as a MOOC worldwide and to EPFL undergraduates alike, whereas the second half of the course ({\em offline}, seven weeks) comprises a continuation of the course material exclusive to EPFL students.
 
 \subsection{Lectures}\label{sec:mooc-elements}
 
 The course lectures are provided in the form of short
-online videos with a length of about 8--12 minutes each. Each week 5--7
-videos are released. In the first iteration of the course all videos came with
-transcriptions. Those transcriptions were dropped for the second iteration.
-\todo{mention why}.
-The online video player has controls for speeding up or slowing down the video
-playback. Finally, each video contains interactive, non-graded
+online videos, each about 8--12 minutes in duration. Each week, 5--7
+videos are released. 
+Students are able to speed up or slow down the video to suit their preferred pace. Finally, each video contains interactive, not-for-credit
 quizzes requiring real-time participation of the students.
 
 \subsection{Assignments}
 
 The lectures are accompanied by weekly or biweekly assignments, all of which
-consist of programming exercises. The provided tools enables students to
+consist of programming exercises. The provided tools enable students to
 interact with the assignments and their submission in a unique way. The
 interactive build tool~\cite{sbt} allows students to run unit tests and to
 directly submit their solutions to our cloud-based grading infrastructure.
@@ -307,15 +302,15 @@ of the different grading policies on the grades of submissions.
 \paragraph{Interactive feedback}
 
 Upon each submission the student receives feedback about how the code fared on
-the secret test suite. This feedback contains hints about failing tests and
+the secret test suite. This feedback contains non-obvious hints about where the submitted code could be logically incorrect, causing failing tests, and
 lists the reduction in points. Additionally, the result of
 running our style checker is included to give feedback on aspects of style
 that need to be improved.
 
 
 \paragraph{Certificate of completion} Students who obtain more than 60\% of
-all possible points receive a certificate of completion. In addition, those
-who earn more then 80\% of all possible points receive a so-called
+all possible points (or 48 points out of a total of 80 possible points) receive a certificate of completion. In addition, those
+who earn more than 80\% of all possible points (or 64 points out of a total of 80 possible points) receive a so-called
 ``certificate of distinction''.
 
 \subsection{Additional elements of the EPFL course}
@@ -326,23 +321,16 @@ case on the Coursera platform. The elements exclusive to EPFL students
 consisted of:
 
 \begin{itemize}
-\item {\em interactive sessions} were students could review the course material and
-  answer questions; and
-\item {\em written exams} which accounted for a majority of the final grade on the
-  academic record. These exams were essential to satisfy the requirements of
+\item {\bf in-person exercise sessions} where students can work on programming assignments or review the course material and ask teaching assistants questions; and
+\item {\bf written exams} which accounted for a majority of the final grade on students'  academic record. These exams were essential to satisfy the requirements of
   their degree.
-\item \todo{mention the second seven weeks?}
+\item {\bf offline second-half of the course} where subsequent course material was presented to students as a traditional on-campus course.
 \end{itemize}
-
-One interesting aspect of our course is that it did not require a change in
-the way typical on-site university courses are organized. \todo{rephrase - i didn't
-understand.}
 
 \subsection{Commercial Offering}
 
 The course format lends itself to additional, commercial offerings. For the
-third iteration of our course on functional programming principles, Typesafe
-\todo{reference / foontote with website, or something?}
+third iteration of our course on functional programming principles, Typesafe~\cite{typesafe}
 has introduced supervised tutorial sessions accompanying selected Coursera
 classes. In weekly, one-hour tutorial sessions, experts from Typesafe provide
 in-depth answers to questions about the course material and discuss solutions
@@ -350,7 +338,6 @@ to homework assignments past the deadline. Tutorial groups are small (10
 participants max) in order to meet individual mentoring needs as much as
 possible. Tutorial session slots are offered in both European and American
 time zones.
-
 
 \section{Tooling and Automated Grading}
 \label{sec:tooling-automated-grading}
