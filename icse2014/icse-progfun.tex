@@ -177,7 +177,6 @@ In this paper, we describe our experience organizing a MOOC on the principles of
 programming with more than 100,000 registered students, which is now in its third iteration.
 What sets the course apart from other MOOCs related to programming or software engineering is not only its large number of registered students; perhaps more importantly, the course has had one of the highest completion rates of any MOOC worldwide~\cite{Parr13}.\footnote{At the time the first iteration of the course was completed at the end of November 2012.}
 
-
 In contrast to other similar SE-related MOOCs, we have leveraged the popularity of the course to collect an unprecedented amount of course statistics and survey results. This paper describes our data set which consists of the following components:
 
 \begin{itemize}
@@ -230,22 +229,26 @@ This paper makes the following contributions:
   more than 100,000 participants have registered for the course. Moreover, the course has had
   one of the highest completion rates of any MOOC worldwide.
 
-\item A large data set with all course statistics and survey results evaluated in this paper,
-  released as an open-source project~\cite{progfun-stats}. To the best of our knowledge data
+\item A large data set with most course statistics and survey results evaluated in this paper,
+  released as an open-source project~\cite{progfun-stats}. To the best of our knowledge, data
   sets on MOOC statistics and survey results of a comparable size have not been published
   before. In addition, the open-source project provides a collection of scripts and tools for
   further analysis and exploration of the collected data through interactive, web-based
-  visualizations of the data.
+  visualizations.
 
 \item An evaluation of course statistics and surveys among more than 12,000 respondents
-  collected for the first two completed iterations of the course. Our evaluation uncovers facts
-  and correlations which support a new explanation for the course's very high completion rate.
+  collected for the first two completed iterations of the course. The results of our evaluation support a new explanation
+  for the course's very high completion rate.
   Moreover, the survey results provide new insights into the role of new technologies and tools
   for effective teaching and learning.
 
 \end{itemize}
 
+The remainder of the paper is organized as follows. Section~\ref{sec:course-format} covers the format and organization of our MOOC, and interaction between the MOOC and the on-campus course. In Section~\ref{sec:tooling-automated-grading} we describe the tools used to support teaching and learning, as well as the integration with the MOOC infrastructure. In Section~\ref{sec:survey-data-set} we describe the data set and interactive tools for experimenting with it, released as an open-source project~\cite{progfun-stats}. In Section~\ref{sec:eval} we present an evaluation and analysis of some of our data. Finally, we survey related work in Section~\ref{sec:related-work} and conclude in Section~\ref{sec:conclusion}
+
+
 \section{Course Format}
+\label{sec:course-format}
 
 The objective of the present MOOC is to introduce functional programming
 principles. As such it covers topics such as recursion, persistent \todo{immutable?} data
@@ -350,6 +353,7 @@ time zones.
 
 
 \section{Tooling and Automated Grading}
+\label{sec:tooling-automated-grading}
 
 The only mandatory tool that students are required to use is sbt~\cite{sbt}, a
 standard build tool for Scala and Java. Sbt is used to compile, run, test and
@@ -419,6 +423,7 @@ we implemented can be re-used.
 
 
 \section{Survey and Data Set}
+\label{sec:survey-data-set}
 
 After the completion of each iteration of our MOOC we sent a survey to all
 registered participants. For the Fall 2012 iteration of the course, we
@@ -512,7 +517,8 @@ that represents how ``worth it'' the course was for students, on a scale from
 1 (disagree) to 5 (agree).
 
 
-\section{Evaluation}\label{sec:eval}
+\section{Evaluation}
+\label{sec:eval}
 
 This section evaluates the collected data. In the first part, we evaluate
 statistics obtained through Coursera~\cite{coursera}, the platform used for
@@ -677,7 +683,7 @@ citation: http://www.katyjordan.com/MOOCproject.html].
 Could be good to cite, too:~\cite{Parr13}
 
 \section{Related Work}
-
+\label{sec:related-work}
 
 For example, the well-known MOOC on software engineering organized by Fox and
 Patterson~\cite{FoxP12} has had around 50'000 registered students in its first
