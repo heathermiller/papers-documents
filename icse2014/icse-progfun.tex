@@ -88,7 +88,7 @@
 % --- End of Author Metadata ---
 
 % \title{Popularizing FP with a MOOC:\\For Students And Software Engineers Alike!}
-\title{Functional Programming For All!\\Scaling a MOOC for Students \& Software Engineers Alike}
+\title{Functional Programming For All!\\Scaling a MOOC for Students \& Professionals Alike}
 % \subtitle{Scaling Up A Functional Programming MOOC For Students and Software Engineers Alike}
 
 %
@@ -277,13 +277,13 @@ The first half of the course ({\em online}, seven weeks) is offered as a MOOC wo
 The course lectures are provided in the form of short
 online videos, each about 8--12 minutes in duration. Each week, 5--7
 videos are released.
-Students are able to speed up or slow down the video to suit their preferred pace. 
+Students are able to speed up or slow down the video to suit their preferred pace.
 
 \subsection{Assignments}
 
 The lectures are accompanied by interactive, not-for-credit
 quizzes requiring real-time participation from the students as they watch the videos, as well as weekly or biweekly assignments, all of which
-consist of programming exercises. 
+consist of programming exercises.
 
 \paragraph{Testing and submission}
 Several provided tools enable students to
@@ -292,9 +292,9 @@ interactive build tool~\cite{sbt} allows students to run unit tests and to
 directly submit their solutions to our cloud-based grading infrastructure.
 Submitted solutions are processed in the cloud in several steps. First, the
 solution is analyzed with a custom code style checker. This style checker is based
-on Scalastyle~\cite{ScalaStyle}, which is similar to 
+on Scalastyle~\cite{ScalaStyle}, which is similar to
 Checkstyle~\cite{Ware08} for Java. Submissions that are not written in the
-functional style taught in the course are penalized. 
+functional style taught in the course are penalized.
 
 In a second step,
 the solution is tested using a comprehensive test suite.
@@ -302,7 +302,7 @@ The test suite that is used for grading is {\em secret}; only a small
 scaffolding containing a couple of sample tests is provided to the students.
 This ensures that their solutions are compatible with our test suite, and
 also creates an incentive for students to build a comprehensive test
-suite of their own. 
+suite of their own.
 
 \paragraph{Interactive feedback}
 
@@ -619,14 +619,6 @@ the second iteration of the course: no credit for
 the sixth and later submissions. This is clearly reflected in the changed
 submission statistics.
 
-\begin{figure}[ht!]
-  \centering
-  \includegraphics[width=\columnwidth]{plots/ides.png}
-  \caption{Results for the survey questions, what is your preferred editor, for use outside of this course?, and what editor did you end up using for the majority of the course?}
-  \label{fig:ides}
-\end{figure}
-
-
 However, interestingly, there are still a significant
 number of students who also submitted six or more times (thus earning no additional
 credit); this is a clear indication that the automated grading and feedback
@@ -642,6 +634,13 @@ submission, whereas in the Spring 2013 iteration this percentage grew to about
 40\%. For perfect-scorers who needed two submissions, the difference between
 the two iterations is not as large, but still significant (an increase of
 about 30\%).
+
+\begin{figure}[ht!]
+  \centering
+  \includegraphics[width=\columnwidth]{plots/ides.png}
+  \caption{Results for the survey questions, what is your preferred editor, for use outside of this course?, and what editor did you end up using for the majority of the course?}
+  \label{fig:ides}
+\end{figure}
 
 \begin{figure*}[htb!]
   \centering
@@ -667,7 +666,7 @@ about 30\%).
 % the heat map shows people improved scores by submitting again and again.
 
 
-\subsubsection{The Worksheet IDE plugin}
+\subsubsection{The Scala IDE and Worksheet plugin}
 
 Figure~\ref{fig:ides} shows survey respondents' code editor preferences both
 (a) preferred for use outside of the course, as well as (b) the code editor used
@@ -683,6 +682,12 @@ Scala IDE: it is straightforward to download and install, the assignments can
 be easily imported into the IDE, and it is the recommended code editor for the
 course.
 
+\subsubsection{Student Performance}
+
+Figure~\ref{fig:final-scores} shows how students performed in both Fall 2012 and Spring 2013 offerings of the course.
+Students had access to an immediate feedback loop, giving them insight into how their code fared our automated test suite, including hints about which of our tests failed and cost them points, or which aspects of style needed to be improved (also a score deduction). This format resulted in a markedly different trend in how students seemed to navigate course material, how they seemed to learn, and certainly how they scored compared to a traditional course. Of particular interest is the strong tendency of students to continue improving their submission. Of all possible scores, the highest concentration of any one score (excluding scores of 0/0) for both iterations of the course was the perfect score of 80/80.
+
+\pagebreak
 \subsection{Not just for students}
 
 In this section, we evaluate the background and motivation of MOOC participants,
@@ -698,13 +703,6 @@ to be a strong motivating factor. We suspect that the fact that the Scala
 programming language is not yet taught in many universities could also
 contribute to the popularity of the MOOC to (recent) university graduates.
 
-\begin{figure}[ht!]
-  \centering
-  \includegraphics[width=\columnwidth]{plots/where-apply.png}
-  \caption{Results for the survey question: where do you plan to apply what you've learned in this course?}
-  \label{fig:where-apply}
-\end{figure}
-
 Interestingly, professional participants felt like the course was well worth
 their time even more so than across all participants. Figure~\ref{fig:worth-it-apply-it}
 shows the results of the question, ``do you feel the course was worth the time you invested in it?"
@@ -715,6 +713,13 @@ results show that 71\% of professionals (i.e., 2,148/3,203 professional responde
 felt the course was well worth their time, as opposed to 68\% (5,077/7,492) for all respondents.
 Thus, progfun was quite ``effective'' for practicing software engineers, indicating
 that some MOOCs can be an effective training tool for professional software engineers.
+
+\begin{figure}[ht!]
+  \centering
+  \includegraphics[width=\columnwidth]{plots/where-apply.png}
+  \caption{Results for the survey question: where do you plan to apply what you've learned in this course?}
+  \label{fig:where-apply}
+\end{figure}
 
 Another interesting observation that can be garnered from Figure~\ref{fig:worth-it-apply-it}
 is that the difference in how ``worth it" progfun was to professionals vs all respondents
