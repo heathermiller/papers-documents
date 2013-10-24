@@ -711,6 +711,18 @@ different roles and responsibilities. It is unclear whether the XA methodology
 would scale to a course of the scale of progfun (50,000 registered students
 versus 500 registered students).
 
+Looking back into the literature a bit further, there also exists a body of
+of work on automated grading of programming, beginning as early as the late 1960's,
+much of which is nicely summarized in a survey by Douce et al.~\cite{Douce}. These approaches
+are somewhat similar in that they are predominantly test-based. That is, even the very
+first automated testing systems introduced by Hext et al.~\cite{Hext69} sought to compare
+some stored testing data with data from a running application. Some of these early systems,
+such as Assyst~\cite{Assyst}, even developed methodologies for testing for qualities such as
+efficiency and modularity, though naturally, none of these systems are able to be run
+concurrently in the cloud. Similar, however, is RoboProf~\cite{RoboProf}, a web-based system for
+testing code submissions and providing feedback, though not suited for use with MOOCs.
+Meanwhile, more recent work~\cite{PLDI13} differs in that its focus is not test-based, but
+rather, based on program synthesis.
 
 \section{Conclusion}
 \label{sec:conclusion}
