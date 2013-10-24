@@ -187,7 +187,7 @@ In contrast to other similar SE-related MOOCs, we have leveraged the popularity 
 
 The data set has been made available in form of an open-source project, providing additional scripts and tools for generating interactive web-based visualizations\footnote{https://github.com/heathermiller/progfun-stats}. Moreover, we present first results, evaluating the course statistics and survey data. Our results provide insight into (a) the interaction of participants with the automated grading system, (b) the effect of different grading policies, (c) the profile, background, and motivation of participants, and (d) the acceptance and student evaluation of a MOOC integrated with an on-campus software-development course.
 
-In evaluating this large amount of data, we aim to show that providing innovative course-supporting tools (IDE plugins, testing frameworks, interactive build tools, automated cloud-based graders, style checkers) and paying attention to issues related to human-computer interaction aids distance learning and lead our course to achieve its exceptionally high completion rate. In fact, our on-campus students who followed the MOOC in place of the first half of our functional programming course overwhelmingly preferred the online format over the traditional format of the course, thanks mostly to such course-supporting tools, enabling them to have a tighter feedback loop than is even possible in traditional on-campus courses.
+In evaluating this large amount of data, we aim to show that providing innovative course-supporting tools (IDE plugins, testing frameworks, interactive build tools, automated cloud-based graders, style checkers) and paying attention to issues related to human-computer interaction helps make distance learning effective and enjoyable. In fact, our on-campus students who followed the MOOC in place of the first half of our functional programming course overwhelmingly preferred the online format over the traditional format of the course, thanks mostly to such course-supporting tools, enabling them to have a tighter feedback loop than is even possible in traditional on-campus courses.
 
 % In this paper, we describe our experience organizing a MOOC on the principles of functional
 % programming with more than 100,000 registered students. However, what sets
@@ -237,8 +237,8 @@ This paper makes the following contributions:
   visualizations.
 
 \item An evaluation of course statistics and surveys among more than 12,000 respondents
-  collected for the first two completed iterations of the course. The results of our evaluation support a new explanation
-  for the course's very high completion rate.
+  collected for the first two completed iterations of the course. The results of our evaluation show that SE-related MOOCs can be very useful not just for students, but
+  also for professional software engineers.
   Moreover, the survey results provide new insights into the role of new technologies and tools
   for effective teaching and learning.
 
@@ -507,49 +507,31 @@ that represents how ``worth it'' the course was for students, on a scale from
 \section{Evaluation}
 \label{sec:eval}
 
-This section evaluates the collected data. In the first part, we evaluate
-statistics obtained through Coursera~\cite{coursera}, the platform used for
-our MOOC. In the second part, we evalute results from surveys collected after
-the completion of the MOOC.
+This section evaluates the collected data. In the first part, we examine the
+role of tools for making distance learning effective. In the second part, we
+evaluate the background and motivation of MOOC participants which helps
+explain whether MOOCs can be useful to professional software engineers. In the
+third part, we evaluate the acceptance of our MOOC in a university setting.
 
-\begin{figure*}[ht!]
-  \centering
-  \includegraphics[width=\textwidth]{plots/final-scores.pdf}
-  \caption{Final scores after the entire course (both iterations).}
-  \label{fig:final-scores}
-\end{figure*}
+\subsection{Tools for effective distance learning}
 
-\subsection{Assignments, submissions, and grades}
+In this section we evaluate the use of two important tools: (a) the automated
+grading system and (b) the Worksheet IDE plugin which was released
+specifically for use in the first iteration of the course.
 
-In this section we evaluate statistics obtained through the MOOC platform such
-as final grades, per-assignment grades, and the number of re-submissions per
-assignment. In the process, we present several correlations between
-submissions and grades. Furthermore, we compare statistics obtained for two
-different iterations of the MOOC. The results can provide insight into the
-usage of the assignment submission system, and how it affects students'
-grades.
+\subsubsection{Automated grading system}
 
+Before evaluating the grading system, we first clarify the respective grading
+policies used. As mentioned in Section~\ref{sec:mooc-elements} the grading
+policy changed between the Fall 2012 and the Spring 2013 iterations of the
+course. In the Fall 2012 iteration, students could re-submit solutions as
+often as they wanted without penalty until the submission deadline. In the
+Spring 2013 iteration, students were allowed to re-submit only up to five
+times; the sixth and later submissions would not give any credit. In both
+iterations the (valid) submission with the highest grade determined the final
+grade for that assignment.
 
-\begin{figure*}[ht!]
-  \centering
-  \includegraphics[width=\textwidth]{plots/score-2d-histogram-fall2012-spring2013.pdf}
-  \caption{Heat maps correlating scores for the ``Huffman'' assignment and the number
-  of required submissions.}
-  \label{fig:2d-histogram}
-\end{figure*}
-
-\subsubsection{Grading policies}\label{sec:grading-policies}
-
-As mentioned in Section~\ref{sec:mooc-elements} the grading policy changed
-between the Fall 2012 and the Spring 2013 iterations of the course. In the
-Fall 2012 iteration, students could re-submit solutions as often as they
-wanted without penalty until the submission deadline. In the Spring 2013
-iteration, students were allowed to re-submit only up to five times; the sixth
-and later submissions would not give any credit. In both iterations the
-(valid) submission with the highest grade determined the final grade for that
-assignment.
-
-\subsubsection{Correlating grade and number of submissions}
+\paragraph{Usage of the submission system}
 
 Figure~\ref{fig:2d-histogram} shows the correlation between the achieved
 score for one particular assignment (an implementation of Huffman coding using
@@ -593,8 +575,6 @@ was also used for learning without improving one's score.
 \end{figure*}
 
 
-\subsubsection{Evaluating the grading policy}\label{sec:eval-grading-policy}
-
 This change in the grading policy had an interesting effect on the number of
 submitted solutions. Figure~\ref{fig:top-scores-submissions} shows the change
 in the number of submissions of students who achieved a perfect score on a
@@ -605,47 +585,31 @@ submission, whereas in the Spring 2013 iteration this percentage grew to about
 the two iterations is not as large, but still significant (an increase of
 about 30\%).
 
-\subsection{Post-course survey results}
+\begin{figure*}[ht!]
+  \centering
+  \includegraphics[width=\textwidth]{plots/final-scores.pdf}
+  \caption{Final scores after the entire course (both iterations).}
+  \label{fig:final-scores}
+\end{figure*}
+
+\begin{figure*}[ht!]
+  \centering
+  \includegraphics[width=\textwidth]{plots/score-2d-histogram-fall2012-spring2013.pdf}
+  \caption{Heat maps correlating scores for the ``Huffman'' assignment and the number
+  of required submissions.}
+  \label{fig:2d-histogram}
+\end{figure*}
+
+\paragraph{Summary}
+
+The interaction with the submission system worked well, since (1) people used
+it beyond just getting assignment scores (shown in heat map for 2013), and (2)
+the heat map shows people improved scores by submitting again and again.
 
 
-\subsection{Explaining the high completion rate}
+\subsubsection{The Worksheet IDE plugin}
 
-Show how people used the submission system. People were ``hooked'' on submitting solutions.
-
-\begin{itemize}
-
-\item what we can show is how people used the submission system (how often submitted, how
-  many points on final submission)
-
-\item we can also show how many people submitted solutions until the end (did the points
-  earned by submitting go down or not? If so, by how much?)
-
-\item so, if we can somehow show that people got ``hooked'' on submitting solutions, then
-  the setup of allowing multiple (unbounded) submissions with immediate feedback was
-  successful: submitting was motivating
-
-\end{itemize}
-
-Examine motivation and background of participants. A lot of the motivation for
-people completing the course could come from the fact that they were trying to
-learn something that's important for the job, and something that they can't
-get anywhere else in a comparable form (indeed, Scala is not yet taught in
-many universities). Survey results indicate that about 40\% of respondents
-plan to apply the learned knowledge at work. Of those 40\% respondents, we
-found that ??\% said that the course was well worth their time (thus, it was
-``effective'' for learning). [New correlation] These results also indicate
-that MOOCs are an effective training tool for practicing software engineers.
-
-Furthermore, a certificate of completion was issued. Unlike languages
-established in industry for many years, there is no standard Scala
-certification for developers; the completion certificate could be regarded by
-many as the closest substitute.
-
-\subsection{The role of new tools for teaching and learning}
-
-[submission system]
-
-Furthermore, survey results show (see Figure~\ref{fig:ide-usage}) that the use
+Survey results show (see Figure~\ref{fig:ide-usage}) that the use
 of the new worksheet technology lead to a doubling in the percentage of use of
 the Eclipse IDE compared to a non-course setting. Thus, the worksheet was a
 very strong incentive for people to use Eclipse during the course. Again, the
@@ -655,19 +619,34 @@ IDEs such as IntelliJ IDEA. However, even so, the use of Eclipse was so much
 higher than usual. Thus, people welcomed the difference in learning that the
 worksheet enabled.
 
-\subsection{Educational Background}
 
-[It turns out most participants already have a degree.]
+\subsection{Not just for students}
 
-[We also have results for the question: why did you chose to do the course.]
+Examine motivation and background of participants. A lot of the motivation for
+people completing the course could come from the fact that they were trying to
+learn something that's important for the job, and something that they can't
+get anywhere else in a comparable form (indeed, Scala is not yet taught in
+many universities). Survey results indicate that about 40\% of respondents
+plan to apply the learned knowledge at work (see Figure~\ref{??}).
+Interestingly, even more so than across all participants, the professional
+participants felt like the course was well worth their time
+(Figure~\ref{fig:worth-it-apply-it}), thus, it was ``effective'' for learning.
+These results also indicate that MOOCs are an effective training tool for practicing
+software engineers.
 
-\subsection{Course Completion Rate}
+Furthermore, a certificate of completion was issued. Unlike languages
+established in industry for many years, there is no standard Scala
+certification for developers; the completion certificate could be regarded by
+many as the closest substitute.
 
-At the time the first iteration of the progfun course was completed, the
-course had one of the highest completion rate of any MOOC world-wide [needs
-citation: http://www.katyjordan.com/MOOCproject.html].
 
-Could be good to cite, too:~\cite{Parr13}
+\subsection{Acceptance and student evaluation}
+
+Figure~\ref{fig:epfl-course-eval} shows the result of our survey among EPFL
+students. Confirms that integrating a MOOC as part of a regular university
+course works well, and is in fact preferred.
+
+
 
 \section{Related Work}
 \label{sec:related-work}
