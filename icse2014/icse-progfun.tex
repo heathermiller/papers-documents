@@ -155,8 +155,8 @@
 
 \maketitle
 \begin{abstract}
-Massive open online courses (MOOCs) have begun a paradigm shift in higher education, with several individual MOOCs boasting tens or hundreds of thousands of participants worldwide. Our MOOC on the principles of functional
-programming has more than 100,000 registered students to date, meanwhile boasting one of the highest rates of completion (19.2\%) for its size. In this paper, we describe our experience organizing our popular MOOC, and aim to show through many types of collected data that providing innovative course-supporting tools (IDE plugins, testing frameworks, interactive build tools, automated cloud-based graders, style checkers) and paying attention to issues related to human-computer interaction aids distance-learning, potentially helping our course achieve its markedly high completion rate. Moreover, we have collected an unprecedented amount of course statistics and survey results, which has been made available in form of an open-source project that additionally provides scripts and tools for generating interactive web-based visualizations.
+Massive open online courses (MOOCs) have launched a scale shift in higher education, with several individual MOOCs now boasting tens or hundreds of thousands of participants worldwide. Our MOOC on the principles of functional
+programming has more than 100,000 registered students to date, and boasts one of the highest rates of completion (19.2\%) for its size. In this paper, we describe our experience organizing this popular MOOC, and demonstrate how providing innovative supporting tools (IDE plugins, testing frameworks, interactive build tools, automated cloud-based graders, style checkers) and considering key human-computer interaction factors potentially contributed to this markedly high completion rate. We collect an unprecedented volume of course statistics and survey results and have made them available, along with scripts for generating interactive web-based visualizations, as an open-source project.
 % SE education
 % Our Mooc, stats
 % In this paper, we describe our experience organizing a MOOC on the principles of functional
@@ -176,27 +176,31 @@ programming has more than 100,000 registered students to date, meanwhile boastin
 \section{Introduction}
 
 Massive open online courses (MOOCs) have the potential to revolutionize teaching
-and learning not only at
-universities, but also in industry, in particular, the software industry.
-Courses with topics related to software engineering, using tools and technologies accepted by and relevant in
-industry, can be very attractive to students and professionals alike for developing skills
-that are invaluable in day-to-day software engineering practice.
+and learning in both academia and industry. 
+Courses that teach tools and technologies accepted by and relevant to 
+industry have proven a particularly attractive option for students and professionals seeking  skills
+that they can apply immediately in practice.
 
 In this paper, we describe our experience organizing a MOOC on the principles of functional
-programming with more than 100,000 registered students, which is now in its third iteration.
-What sets the course apart from other MOOCs related to programming or software engineering is not only its large number of registered students; perhaps more importantly, the course has had one of the highest completion rates of any MOOC worldwide~\cite{Parr13}\footnote{At the time the first iteration of the course was completed at the end of November 2012, and still one of the highest rates of completion (19.2\%) for its size/magnitude~\cite{moocCompletionRates}. Completion rates of around 7\% are standard~\cite{Parr13}}.
+programming, now in its third iteration, that has attracted more than 100,000 registered students.
+What sets the course apart from other MOOCs related to programming or software engineering is that it has enjoyed one of the highest completion rates (19.2\%) of any MOOC worldwide~\cite{Parr13}\footnote{At the time the first iteration of the course ended in November 2012. Today, it still has one of the highest rates of completion given its size~\cite{moocCompletionRates}.}. Completion rates of around 7\% are standard.
 
-In contrast to other similar SE-related MOOCs, we have leveraged the popularity of the course to collect an unprecedented amount of course statistics and survey results. This paper describes our data set which consists of the following components:
+We have leveraged the popularity of the course to collect an unprecedented volume of course statistics and survey results. This paper describes our data set, consisting of the following components:
 
 \begin{itemize}
 \item A large-scale and detailed survey with over 12,000 respondents worldwide, covering their experience in the course as well as their background, software development experience, and skills;
-\item the results from a specialized on-campus course evaluation of our MOOC, which over 150 undergraduate students at EPFL participated in in place of the on-campus offering of the same course for the first half of a semester (they then took our traditional on-campus offering during the second half of the semester);
-\item anonymous statistics about student engagement and performance throughout each iteration of our course so far.
+\item The results from a specialized on-campus course evaluation of our MOOC, where over 150 undergraduate students at EPFL participated in the MOOC instead of taking the first half of an on-campus offering of a longer version of the same course; 
+\item Anonymous statistics about student engagement and performance throughout each iteration of our course so far.
 \end{itemize}
 
-The data set has been made available in form of an open-source project, providing additional scripts and tools for generating interactive web-based visualizations\footnote{\url{https://github.com/heathermiller/progfun-stats}}. Moreover, we present first results, evaluating the course statistics and survey data. Our results provide insight into (a) the interaction of participants with the automated grading system, (b) the effect of different grading policies, (c) the profile, background, and motivation of participants, and (d) the acceptance and student evaluation of a MOOC integrated with an on-campus software-development course.
+The data set has been made available in form of an open-source project, providing additional scripts and tools for generating interactive web-based visualizations\footnote{\url{https://github.com/heathermiller/progfun-stats}}. To the best of our knowledge, data sets on MOOC statistics and survey results of a comparable size have not been published   before.
 
-In evaluating this large amount of data, we aim to show that providing innovative course-supporting tools (IDE plugins, testing frameworks, interactive build tools, automated cloud-based graders, style checkers) and paying attention to issues related to human-computer interaction helps make distance learning effective and enjoyable. In fact, our on-campus students who followed the MOOC in place of the first half of our functional programming course overwhelmingly preferred the online format over the traditional format of the course, thanks mostly to such course-supporting tools, enabling them to have a tighter feedback loop than is even possible in traditional on-campus courses.
+This data provides insight into (a) the interaction of participants with the automated grading system, (b) the effect of different grading policies, (c) the profile, background, and motivation of participants, and (d) the acceptance and student evaluation of a MOOC, both in isolation and as integrated as a significant component of an on-campus software-development course.
+
+The data shows that SE-related MOOCs can be very useful not just for students, but 
+  also for professional software engineers.
+  Moreover, the survey results provide new insights into the role of new technologies and tools
+  for effective teaching and learning. We find that providing innovative course-supporting tools (IDE plugins, testing frameworks, interactive build tools, automated cloud-based graders, style checkers) and considering human-computer interaction factors has helped make distance learning effective and enjoyable. In fact, our on-campus students who followed the MOOC in place of the first half of our functional programming course overwhelmingly preferred the online format over the traditional format of the course, thanks mostly to the tighter feedback loop made possible by the tools.
 
 % In this paper, we describe our experience organizing a MOOC on the principles of functional
 % programming with more than 100,000 registered students. However, what sets
@@ -227,33 +231,31 @@ In evaluating this large amount of data, we aim to show that providing innovativ
 % Spring 2013:  4,595 (out of ~37,000 registered students)
 % Total:       12,087
 
-\subsection{Contributions}
+% \subsection{Contributions}
 
-This paper makes the following contributions:
+% This paper makes the following contributions:
 
-\begin{itemize}
+% \begin{itemize}
 
-\item A detailed experience report on a large-scale MOOC on functional programming
-  principles. At the time of this writing, the third iteration of the course is running. So far,
-  more than 100,000 participants have registered for the course. Moreover, the course has had
-  one of the highest completion rates of any MOOC worldwide.
+% \item A detailed experience report on a large-scale MOOC on functional programming
+%   principles. At the time of this writing, the third iteration of the course is running. So far,
+%   more than 100,000 participants have registered for the course. Moreover, the course has had
+%   one of the highest completion rates of any MOOC worldwide.
 
-\item A large data set with most course statistics and survey results evaluated in this paper,
-  released as an open-source project~\cite{progfun-stats}. To the best of our knowledge, data
-  sets on MOOC statistics and survey results of a comparable size have not been published
-  before. In addition, the open-source project provides a collection of scripts and tools for
-  further analysis and exploration of the collected data through interactive, web-based
-  visualizations.
+% \item A large data set with most course statistics and survey results evaluated in this paper,
+%   released as an open-source project~\cite{progfun-stats}.  In addition, the open-source project provides a collection of scripts and tools for
+%   further analysis and exploration of the collected data through interactive, web-based
+%   visualizations.
 
-\item An evaluation of course statistics and surveys among more than 12,000 respondents
-  collected for the first two completed iterations of the course. The results of our evaluation show that SE-related MOOCs can be very useful not just for students, but
-  also for professional software engineers.
-  Moreover, the survey results provide new insights into the role of new technologies and tools
-  for effective teaching and learning.
+% \item An evaluation of course statistics and surveys among more than 12,000 respondents
+%   collected for the first two completed iterations of the course. The results of our evaluation show that SE-related MOOCs can be very useful not just for students, but
+%   also for professional software engineers.
+%   Moreover, the survey results provide new insights into the role of new technologies and tools
+%   for effective teaching and learning.
 
-\end{itemize}
+% \end{itemize}
 
-The remainder of the paper is organized as follows. Section~\ref{sec:course-format} covers the format and organization of our MOOC, and interaction between the MOOC and the on-campus course. In Section~\ref{sec:tooling-automated-grading} we describe the tools used to support teaching and learning, as well as the integration with the MOOC infrastructure. In Section~\ref{sec:survey-data-set} we describe the data set and interactive tools for experimenting with it, released as an open-source project~\cite{progfun-stats}. In Section~\ref{sec:eval} we present an evaluation and analysis of some of our data. Finally, we survey related work in Section~\ref{sec:related-work} and conclude in Section~\ref{sec:conclusion}.
+The remainder of the paper is organized as follows. Section~\ref{sec:course-format} covers the format and organization of our MOOC, and interaction between the MOOC and the on-campus course. In Section~\ref{sec:tooling-automated-grading} we describe the tools used to support teaching and learning, as well as the integration with Coursera, the MOOC infrastructure. In Section~\ref{sec:survey-data-set} we describe the data set and interactive tools for experimenting with it, released as an open-source project. In Section~\ref{sec:eval} we present an evaluation and analysis of some of this data. Finally, we survey related work in Section~\ref{sec:related-work} and conclude in Section~\ref{sec:conclusion}.
 
 
 \section{Course Format}
