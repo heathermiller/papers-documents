@@ -173,27 +173,35 @@ Courses with topics related to software engineering, using tools and technologie
 industry, can be very attractive to students and professionals alike for developing skills
 that are invaluable in day-to-day software engineering practice.
 
-This paper describes the experience organizing a MOOC on functional
-programming principles with more than 100'000 registered students. What sets
-the course apart from other MOOCs related to programming or software
-engineering is not only its large number of registered students; perhaps more
-importantly, the course has had one of the highest completion rates of any
-MOOC worldwide~\cite{Parr13}.\footnote{At the time the first iteration of the
-course was completed at the end of November 2012.}
+In this paper, we describe our experience organizing a MOOC on the principles of functional
+programming with more than 100,000 registered students, which is now in its third iteration.
 
-We present results of surveys among more than 12'000 respondents that we
-collected for the first two completed iterations of the course. Our results
-reveal several surprising trends related to aspects such as the motivation for
-participants to take the course, the educational background of participants,
-or the perceived difficulty. To the best of our knowledge, results of related
-surveys of a comparable size have not been evaluated before.
+In contrast to other similar SE-related MOOCs, we have leveraged the popularity of the course to collect an unprecedented amount of course statistics and survey results. This paper describes our data set which consists of the following components:
 
-For example, the well-known MOOC on software engineering organized by Fox and
-Patterson~\cite{FoxP12} has had around 50'000 registered students in its first
-iteration, and is thus comparable in size to our course; however, no survey of
-a comparable size was conducted among participants of the MOOC. Moreover, our
-selection of questions provides new insights, related to the interplay of
-MOOCs with professional software engineering, in particular.
+\begin{itemize}
+\item A large-scale and detailed survey with over 12,000 respondents worldwide, covering their experience in the course as well as their background, software development experience, and skills,
+\item the results from a specialized on-campus course evaluation of our MOOC, which over 150 undergraduate students at EPFL participated in in place of the on-campus offering of the same course for the first half of a semester (they then took our traditional on-campus offering during the second half of the semester.)
+\item anonymous statistics about student engagement and performance throughout each iteration of our course so far.
+\end{itemize}
+
+The data set has been made available in form of an open-source project, providing additional scripts and tools for generating interactive web-based visualizations\footnote{https://github.com/heathermiller/progfun-stats}. Moreover, we present first results, evaluating the course statistics and survey data. Our results provide insight into (a) the interaction of participants with the automated grading system, (b) the effect of different grading policies, (c) the profile, background, and motivation of participants, and (d) the acceptance and student evaluation of a MOOC integrated with an on-campus software-development course.
+
+In evaluating this large amount of data, we aim to show that providing innovative course-supporting tools (IDE plugins, testing frameworks, interactive build tools, automated cloud-based graders, style checkers) and paying attention to issues related to human-computer interaction aids distance learning and lead our course to achieve its exceptionally high completion rate. In fact, our on-campus students who followed the MOOC in place of the first half of our functional programming course overwhelmingly preferred the online format over the traditional format of the course, thanks mostly to such course-supporting tools, enabling them to have a tighter feedback loop than is even possible in traditional on-campus courses.
+
+% In this paper, we describe our experience organizing a MOOC on the principles of functional
+% programming with more than 100,000 registered students. However, what sets
+% the course apart from other MOOCs related to programming or software
+% engineering is not only its large number of registered students; perhaps more
+% importantly, the course has had one of the highest completion rates of any
+% MOOC worldwide~\cite{Parr13}.\footnote{At the time the first iteration of the
+% course was completed at the end of November 2012.}
+
+% We present results of surveys from more than 12,000 respondents that were
+% collected following the first two completed runs of the course. Our results
+% reveal several surprising trends related to aspects such as the motivation for
+% participants to take the course, the educational background of participants,
+% or the perceived difficulty. To the best of our knowledge, results of related
+% surveys of a comparable size have not been evaluated before.
 
 
 \subsection{The data}
@@ -665,6 +673,15 @@ citation: http://www.katyjordan.com/MOOCproject.html].
 Could be good to cite, too:~\cite{Parr13}
 
 \section{Related Work}
+
+
+For example, the well-known MOOC on software engineering organized by Fox and
+Patterson~\cite{FoxP12} has had around 50'000 registered students in its first
+iteration, and is thus comparable in size to our course; however, no survey of
+a comparable size was conducted among participants of the MOOC. Moreover, our
+selection of questions provides new insights, related to the interplay of
+MOOCs with professional software engineering, in particular.
+
 
 Vihavainen et al. report on a MOOC ("Helsinki MOOC") on introductory computer
 science with an emphasis on programming~\cite{VihavainenLK12}. Compared to the
