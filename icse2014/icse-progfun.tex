@@ -357,13 +357,15 @@ The only mandatory tool that students are required to use is sbt~\cite{sbt}, a
 standard build tool for Scala and Java. Sbt is used to compile, run, test and
 submit the code for the assignments. The build tool can also generate project
 definitions for the Scala IDE for eclipse and IntelliJ IDEA, which gives the
-students effortless access to those IDEs.
+students effortless access to those IDEs. The developers of the Scala IDE at
+Typesafe introduced Scala worksheets for the start of the first iteration
+of the course. A worksheet is a single source file in which each line is
+evaluated as a separate expression and the result is presented in a separate
+column on the side. This feature makes exploring the language and library
+features even easier than a classical read-eval-print-loop, and the sessions
+can be saved for future reference.
 
-The submission scripts uploads the source code to the servers of Coursera, the
-MOOC provider used for this class, using their custom REST HTTP API. This API
-does not only allow uploading solutions, but it also provides access for grading
-scripts to download the submitted assignments and upload a grade and feedback
-for the student.
+\paragraph{Automated Grading System}
 
 The automated grading system for each assignment is based on two components: a
 style checker and a test suite of unit tests. The style checker is based on
@@ -372,8 +374,8 @@ are discouraged in the context of the course on functional programming principle
 Examples are mutable variables, return statements, the \lstinline@null@ value,
 while loops, magic numbers, overlong lines or non-standard capitalization.
 
-The main portion of the grade is obtained by running a comprehensive test suite
-that is private to the automated graders on each student's submitted code.
+The majority of the grade is obtained by running a comprehensive test suite
+that is private to the automated graders on each student's submission.
 Tests are executed in using ScalaTest~\cite{scalatest}, a unit testing framework
 for Scala and Java. The framework was customized so that each unit test can be
 assigned an individual weight and the framework computes the overall score of
@@ -384,8 +386,10 @@ are compatible with the test suite.
 A subset of the unit tests are implemented using a custom-written Java virtual
 machine agent \cite{vmagents} that instruments the bytecode to record statistics about
 invoked methods. This allows enforcing constraints that could not be tested with a
-classical unit test, for example that some method is implemented in terms of another
+classical unit test, for example that a method is implemented in terms of another
 one, or that some specific libraries are not being used.
+
+\paragraph{Security}
 
 Executing code that was written and uploaded by arbitrary students has obvious
 security issues: an adversary could try to read the private test suite, modify
@@ -397,6 +401,14 @@ with elevated privileges (it requires access to IO and reflection), but the code
 from the students is executed in a restricted environment within each test case.
 We may also add that we are not aware of any attempts to compromise our grading
 infrastructure.
+
+\paragraph{Infrastructure for Grading}
+
+The submission scripts uploads the source code to the servers of Coursera, the
+MOOC provider used for this class, using their custom REST HTTP API. This API
+does not only allow uploading solutions, but it also provides access for grading
+scripts to download the submitted assignments and upload a grade and feedback
+for the student.
 
 Given the large number of participants and the submission model that gives the
 students an arbitrary (or even unlimited) number of attempts at each assignment, the use of a scalable
