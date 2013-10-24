@@ -88,7 +88,7 @@
 % --- End of Author Metadata ---
 
 % \title{Popularizing FP with a MOOC:\\For Students And Software Engineers Alike!}
-\title{Functional Programming For All!:\\Scaling a MOOC for Students \& Software Engineers Alike}
+\title{Functional Programming For All!\\Scaling a MOOC for Students \& Software Engineers Alike}
 % \subtitle{Scaling Up A Functional Programming MOOC For Students and Software Engineers Alike}
 
 %
@@ -156,7 +156,7 @@
 \maketitle
 \begin{abstract}
 Massive open online courses (MOOCs) have begun a paradigm shift in higher education, with several individual MOOCs boasting tens or hundreds of thousands of participants worldwide. Our MOOC on the principles of functional
-programming has more than 100,000 registered students to date, meanwhile boasting one of the highest rates of completion (19.2\%) for its size. In this paper, we describe our experience organizing our popular MOOC, and aim to show through many types of collected data that providing innovative course-supporting tools (IDE plugins, testing frameworks, interactive build tools, automated cloud-based graders, style checkers) and paying attention to issues related to human-computer interaction aids distance-learning, potentially helping our course achieve its markedly high completion rate. Moreover, we have collected an unprecedented amount of course statistics and survey results, which has been made available in form of an open-source project which additionally provides scripts and tools for generating interactive web-based visualizations.
+programming has more than 100,000 registered students to date, meanwhile boasting one of the highest rates of completion (19.2\%) for its size. In this paper, we describe our experience organizing our popular MOOC, and aim to show through many types of collected data that providing innovative course-supporting tools (IDE plugins, testing frameworks, interactive build tools, automated cloud-based graders, style checkers) and paying attention to issues related to human-computer interaction aids distance-learning, potentially helping our course achieve its markedly high completion rate. Moreover, we have collected an unprecedented amount of course statistics and survey results, which has been made available in form of an open-source project that additionally provides scripts and tools for generating interactive web-based visualizations.
 % SE education
 % Our Mooc, stats
 % In this paper, we describe our experience organizing a MOOC on the principles of functional
@@ -636,7 +636,7 @@ submission, whereas in the Spring 2013 iteration this percentage grew to about
 the two iterations is not as large, but still significant (an increase of
 about 30\%).
 
-\begin{figure*}[ht!]
+\begin{figure*}[htb!]
   \centering
   \includegraphics[width=\textwidth]{plots/final-scores.pdf}
   \caption{Final scores after the entire course (both iterations).}
@@ -646,21 +646,23 @@ about 30\%).
 \paragraph{Summary}
 
 The interaction with the submission system worked well, since (1) people used
-it beyond just getting assignment scores (shown in heat map for 2013), and (2)
+it beyond just getting assignment scores (shown in heat map for 2013 in Figure~\ref{fig:2d-histogram}), and (2)
 the heat map shows people improved scores by submitting again and again.
 
 
 \subsubsection{The Worksheet IDE plugin}
 
-Survey results show (see Figure~\ref{fig:ides}) that the use
-of the new worksheet technology lead to a doubling in the percentage of use of
-the Eclipse IDE compared to a non-course setting. Thus, the worksheet was a
-very strong incentive for people to use Eclipse during the course. Again, the
-worksheet fundamentally changed the way people interacted with the course
-material. The use of Eclipse was voluntary; in fact, many people used other
-IDEs such as IntelliJ IDEA. However, even so, the use of Eclipse was so much
-higher than usual. Thus, people welcomed the difference in learning that the
-worksheet enabled.
+The survey results on code editor usage in Figure~\ref{fig:ides} show that
+80\% of all students prefer to use the Scala IDE for eclipse. For almost half
+of those students, eclipse is not their preferred IDE for projects outside
+the class. One feature that was only available in the Scala IDE for eclipse
+during the first course iteration is the Scala worksheet, introduced in Section
+\ref{sec:tooling-automated-grading}. The students are encouraged to use the
+worksheet for testing their code, and the feature is also used by the lecturer
+in the videos. There are other reasons that explain the popularity of the
+Scala IDE: it is straightforward to download and install, the assignments can
+be easily imported into the IDE, and it is the recommended code editor for the
+course.
 
 
 \subsection{Not just for students}
