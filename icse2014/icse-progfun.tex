@@ -514,6 +514,21 @@ object WorthItBarGraph
   \label{fig:bar-chart}
 \end{figure}
 
+\begin{figure*}[ht!]
+  \centering
+  \includegraphics[width=\textwidth]{plots/score-2d-histogram-fall2012-spring2013.pdf}
+  \caption{Heat maps correlating scores for the ``Huffman'' assignment and the number
+  of required submissions.}
+  \label{fig:2d-histogram}
+\end{figure*}
+
+\begin{figure}[ht!]
+  \centering
+  \includegraphics[width=\columnwidth]{plots/top-scores-submissions-histogram.pdf}
+  \caption{The number of submissions required to achieve a perfect score in the ``Huffman'' assignment.}
+  \label{fig:top-scores-submissions}
+\end{figure}
+
 All survey results have been released as part of the \textsc{progfun-stats} open-source
 project~\cite{progfun-stats}. The survey data is available in simple
 plain text formats, such  as tab-separated values. Thus, it is easy to process
@@ -525,7 +540,6 @@ easy to generate interactive, web-based visualizations.
 For example, Figure~\ref{fig:bar-chart} shows how to create a simple bar chart
 that represents how ``worth it'' the course was for students, on a scale from
 1 (disagree) to 5 (agree).
-
 
 \section{Evaluation}
 \label{sec:eval}
@@ -575,13 +589,6 @@ submission statistics. However, interestingly there is still a significant
 number of students who also submitted a sixth time (thus earning no additional
 credit); this is a clear indication that the automated grading and feedback
 was also used for learning without improving one's score.
-
-\begin{figure}[ht!]
-  \centering
-  \includegraphics[width=\columnwidth]{plots/top-scores-submissions-histogram.pdf}
-  \caption{The number of submissions required to achieve a perfect score in the ``Huffman'' assignment.}
-  \label{fig:top-scores-submissions}
-\end{figure}
 
 \begin{figure*}[ht!]
   \centering
@@ -636,14 +643,6 @@ about 30\%).
   \label{fig:final-scores}
 \end{figure*}
 
-\begin{figure*}[ht!]
-  \centering
-  \includegraphics[width=\textwidth]{plots/score-2d-histogram-fall2012-spring2013.pdf}
-  \caption{Heat maps correlating scores for the ``Huffman'' assignment and the number
-  of required submissions.}
-  \label{fig:2d-histogram}
-\end{figure*}
-
 \paragraph{Summary}
 
 The interaction with the submission system worked well, since (1) people used
@@ -694,15 +693,30 @@ many as the closest substitute.
 
 Figure~\ref{fig:epfl-course-eval} shows the result of our survey among
 students at EPFL who took both the MOOC as well as the subsequent second part
-of a regular on-campus course. The results show that the online part was very
-well received: about 80\% of all respondents think the online part was very
-good or excellent. About 57\% of respondents agree or strongly agree that they
-would like to get more online courses. Maybe most interesting is the fact that
-69\% would prefer to have all 14 weeks of their semester-long course to be
-online; only about 18\% think that the configuration which was actually used,
-namely 7 weeks online, 7 weeks on-campus, was ideal. These results show that
-EPFL students fully accepted the novel online part, and in fact preferred it
-compared to the traditional on-campus part.
+of a regular on-campus course.
+
+The results show that the online part was very
+well received: in Figure~\ref{fig:epfl-course-eval}(a) about 80\% of all respondents
+think the online part was very good or excellent.
+In Figure~\ref{fig:epfl-course-eval}(b), about 57\% of respondents agree or strongly
+agree that they would like to have the opportunity to take more online courses.
+
+In fact, 69\% of students say they would prefer to
+have all 14 weeks of {\em a semester-long course like principles of functional programming}
+be online; only about 18\% think that the configuration which was actually used,
+namely 7 weeks online, 7 weeks on-campus, was ideal. The results shown in
+Figure~\ref{fig:epfl-course-eval}(e) show that EPFL students fully accepted the novel
+online part, and in fact preferred it compared to the traditional on-campus part.
+
+Figure~\ref{fig:epfl-course-eval}(c-d) also show that students seem to prefer the online
+help forums over EPFL's traditional on-campus help during weekly exercise sessions, with
+nearly 50\% of all students rating the online forums as excellent or very good, as opposed
+to a mere 30\% of students rating the traditional in-person exercise sessions as excellent
+or very good.
+% While this
+% might have been evident in the lower attendance numbers for the weekly exercise sessions as
+% compared to previous years,
+
 
 
 \section{Related Work}
