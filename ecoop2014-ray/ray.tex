@@ -1,0 +1,100 @@
+% This is LLNCS.DEM the demonstration file of
+% the LaTeX macro package from Springer-Verlag
+% for Lecture Notes in Computer Science,
+% version 2.4 for LaTeX2e as of 16. April 2010
+%
+\documentclass{llncs}
+%
+\usepackage{makeidx}  % allows for indexgeneration
+%
+\begin{document}
+%
+\mainmatter              % start of the contributions
+%
+\title{RAY: Integrating Rx and Async for Direct-Style Reactive Streams}
+%
+\titlerunning{RAY: Integrating Rx and Async for Direct-Style Reactive Streams}  % abbreviated title (for running head)
+%                                     also used for the TOC unless
+%                                     \toctitle is used
+%
+\author{Philipp Haller\inst{1} \and Heather Miller\inst{2}}
+%
+\authorrunning{Heather Miller et al.} % abbreviated author list (for running head)
+%
+%%%% list of authors for the TOC (use if author list has to be modified)
+\tocauthor{Philipp Haller, and Heather Miller}
+%
+\institute{Typesafe, Switzerland\\
+\and
+EPFL, Switzerland}
+
+\maketitle              % typeset the title of the contribution
+
+\begin{abstract}
+The abstract should summarize the contents of the paper
+using at least 70 and at most 150 words. It will be set in 9-point
+font size and be inset 1.0 cm from the right and left margins.
+There will be two blank lines before and after the Abstract. \dots
+\keywords{computational geometry, graph theory, Hamilton cycles}
+\end{abstract}
+%
+\section{Introduction}
+%
+With this chapter, the preliminaries are over, and we begin the search
+for periodic solutions to Hamiltonian systems. All this will be done in
+the convex case; that is, we shall study the boundary-value problem
+\begin{eqnarray*}
+  \dot{x}&=&JH' (t,x)\\
+  x(0) &=& x(T)
+\end{eqnarray*}
+with $H(t,\cdot)$ a convex function of $x$, going to $+\infty$ when
+$\left\|x\right\| \to \infty$.
+
+%
+\subsection{Motivation}
+%
+In this section, we will consider the case when the Hamiltonian $H(x)$
+is autonomous. For the sake of simplicity, we shall also assume that it
+is $C^{1}$.
+
+% ---- Bibliography ----
+%
+\begin{thebibliography}{5}
+%
+\bibitem {clar:eke}
+Clarke, F., Ekeland, I.:
+Nonlinear oscillations and
+boundary-value problems for Hamiltonian systems.
+Arch. Rat. Mech. Anal. 78, 315--333 (1982)
+
+\bibitem {clar:eke:2}
+Clarke, F., Ekeland, I.:
+Solutions p\'{e}riodiques, du
+p\'{e}riode donn\'{e}e, des \'{e}quations hamiltoniennes.
+Note CRAS Paris 287, 1013--1015 (1978)
+
+\bibitem {mich:tar}
+Michalek, R., Tarantello, G.:
+Subharmonic solutions with prescribed minimal
+period for nonautonomous Hamiltonian systems.
+J. Diff. Eq. 72, 28--55 (1988)
+
+\bibitem {tar}
+Tarantello, G.:
+Subharmonic solutions for Hamiltonian
+systems via a $\bbbz_{p}$ pseudoindex theory.
+Annali di Matematica Pura (to appear)
+
+\bibitem {rab}
+Rabinowitz, P.:
+On subharmonic solutions of a Hamiltonian system.
+Comm. Pure Appl. Math. 33, 609--633 (1980)
+
+\end{thebibliography}
+
+%
+% second contribution with nearly identical text,
+% slightly changed contribution head (all entries
+% appear as defaults), and modified bibliography
+%
+\end{document}
