@@ -53,7 +53,7 @@ vocabulary with respect to environment for duration of paper.
 A survey of the way different languages deal with functions and closures. How
 the environment is kept, scoping, stack frames, etc.
 
-Languages to compare with closures: 
+Languages to compare with closures:
 
 \begin{itemize}
 \item Scala
@@ -106,6 +106,24 @@ then what happens.
 
 Comparison and relationship with Java8 SAM stuff.
 
+\subsection{Use-Cases?}
+
+We could show in an example-driven (or even paradigm-driven) way how the
+active objects pattern can be implemented on top of spores. And then we can
+show how spores help enforce certain safety properties that are important for
+that pattern. For example, in the active objects pattern it's important to
+either capture only immutable things, or clone things upon capturing.
+
+Paradigms or patterns built on top of spores:
+
+\begin{itemize}
+\item Distributed collections like Spark
+\item Active objects
+\item Futures
+\item Hot-swapping actors
+\item Distributed pipelines / distributed streams
+\end{itemize}
+
 \subsection{Related Work}
 
 Non-academic related work: functions in Rust, 3 different types based on
@@ -117,6 +135,10 @@ with effectively immutable environment.
 
 CloudHaskell \cite{CloudHaskell}. Introduces a type system that rejects anything
 that is not static. Too strict.
+
+C++ 11 comes with a capture syntax. Though, it's not possible to guarantee that construction is correct. If you require certain things from the closure, how is it expressed? If a method declares a parameter type which is a closure, the important thing is that in this parameter type, you can specify the requirements about capturing. So it's ensured that whatever's passed as an argument to the method satisfies these requirements. This isn't possible with C++ 11 closures. \cite{Cplusplus11Spec}
+
+Active objects also related. \cite{ActiveObjects}
 
 
 \bibliographystyle{abbrv}
