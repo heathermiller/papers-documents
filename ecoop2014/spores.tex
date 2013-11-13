@@ -11,9 +11,9 @@
 %
 \mainmatter              % start of the contributions
 %
-\title{Spores: Function Passing-Style}
+\title{Spores: Function-Passing Style}
 %
-\titlerunning{Spores: Function Passing-Style}  % abbreviated title (for running head)
+\titlerunning{Spores: Function-Passing Style}  % abbreviated title (for running head)
 %                                     also used for the TOC unless
 %                                     \toctitle is used
 %
@@ -32,70 +32,89 @@ Typesafe, Switzerland}
 \maketitle              % typeset the title of the contribution
 
 \begin{abstract}
-The abstract should summarize the contents of the paper
-using at least 70 and at most 150 words. It will be set in 9-point
-font size and be inset 1.0 cm from the right and left margins.
-There will be two blank lines before and after the Abstract. \dots
+Go.
 \keywords{computational geometry, graph theory, Hamilton cycles}
 \end{abstract}
 %
 \section{Introduction}
-%
-With this chapter, the preliminaries are over, and we begin the search
-for periodic solutions to Hamiltonian systems. All this will be done in
-the convex case; that is, we shall study the boundary-value problem
-\begin{eqnarray*}
-  \dot{x}&=&JH' (t,x)\\
-  x(0) &=& x(T)
-\end{eqnarray*}
-with $H(t,\cdot)$ a convex function of $x$, going to $+\infty$ when
-$\left\|x\right\| \to \infty$.
 
-%
+
 \subsection{Motivation}
-%
-In this section, we will consider the case when the Hamiltonian $H(x)$
-is autonomous. For the sake of simplicity, we shall also assume that it
-is $C^{1}$.
 
-% ---- Bibliography ----
-%
-\begin{thebibliography}{5}
-%
-\bibitem {clar:eke}
-Clarke, F., Ekeland, I.:
-Nonlinear oscillations and
-boundary-value problems for Hamiltonian systems.
-Arch. Rat. Mech. Anal. 78, 315--333 (1982)
+Distributed programming supposed to be made easier by going functional. But a problem of object-oriented languages with lambdas and functional programming languages alike is that functions can have free variables. Closures that close over some tricky environment. This means that regardless of the paradigm, framework designers can't confidently expose lambdas in APIs to users.
 
-\bibitem {clar:eke:2}
-Clarke, F., Ekeland, I.:
-Solutions p\'{e}riodiques, du
-p\'{e}riode donn\'{e}e, des \'{e}quations hamiltoniennes.
-Note CRAS Paris 287, 1013--1015 (1978)
+Section on jargon. Lambdas, functions, closures. Introduce a baseline
+vocabulary with respect to environment for duration of paper.
 
-\bibitem {mich:tar}
-Michalek, R., Tarantello, G.:
-Subharmonic solutions with prescribed minimal
-period for nonautonomous Hamiltonian systems.
-J. Diff. Eq. 72, 28--55 (1988)
+\subsection{Functions Across Languages}
 
-\bibitem {tar}
-Tarantello, G.:
-Subharmonic solutions for Hamiltonian
-systems via a $\bbbz_{p}$ pseudoindex theory.
-Annali di Matematica Pura (to appear)
+A survey of the way different languages deal with functions and closures. How
+the environment is kept, scoping, stack frames, etc.
 
-\bibitem {rab}
-Rabinowitz, P.:
-On subharmonic solutions of a Hamiltonian system.
-Comm. Pure Appl. Math. 33, 609--633 (1980)
+Languages to compare with closures: 
 
-\end{thebibliography}
+\begin{itemize}
+\item Scala
+\item Objective C
+\item Java
+\item VB.net
+\item Python
+\item Ruby
+\item Javascript
+\item Lisp
+\item Perl
+\item Lisp
+\item Racket
+\item Scheme
+\item Clojure
+\item Rust
+\item Go
+\item Dart
+\item Haskell
+\item ML
+\item C++
+\item Lua
+\end{itemize}
 
-%
-% second contribution with nearly identical text,
-% slightly changed contribution head (all entries
-% appear as defaults), and modified bibliography
-%
+\subsection{Function-Passing Paradigm}
+
+Frameworks this new paradigm would enable. Relationship to NoSQL?
+
+\subsection{General Model}
+
+Goal of general model: to take this mess of closures and functions and trouble with environments that pains people across languages and propose an abstraction that gets rid of this confusion.
+
+Include in the general model typing rules that makes this abstraction guaranteeably shippable
+given some baseline simplified formalism.
+
+\subsection{Meat}
+
+Need to work out structure of this and an appropriate title for this section. Would include stuff like type system and type constraints for spores perhaps (or keep that in the general model section?). Composing spores with type constraints. Subtyping and type constraints.
+
+\subsubsection{OO}
+
+The question of -- I capture something of type MyActor
+and the spore forbids capturing type Actor, and MyActor <: Actor
+then what happens.
+
+\subsection{Implementation}
+
+Comparison and relationship with Java8 SAM stuff.
+
+\subsection{Related Work}
+
+Non-academic related work: functions in Rust, 3 different types based on
+different possibilities for environments \cite{RustFunctions}; functions,
+closures, and procedures. Procedures are shippable.
+
+Parallel closures \cite{ParallelClosures}. First known example of closures
+with effectively immutable environment.
+
+CloudHaskell \cite{CloudHaskell}. Introduces a type system that rejects anything
+that is not static. Too strict.
+
+
+\bibliographystyle{abbrv}
+\bibliography{bib}
+
 \end{document}
