@@ -40,10 +40,15 @@ Go.
 %
 \section{Introduction}
 
+We introduce a model for concurrent and distributed computing where the data is stationary and functions are mobile. This is a dual to the actor model, where functionality is stationary, and data is made mobile. 
+
+In theory you can migrate actors, in practice, you cannot. Can we use these insights to find a way to migrate actors cleanly?
 
 \subsection{Motivation}
 
 Distributed programming supposed to be made easier by going functional. But a problem of object-oriented languages with lambdas and functional programming languages alike is that functions can have free variables. Closures that close over some tricky environment. This means that regardless of the paradigm, framework designers can't confidently expose lambdas in APIs to users.
+
+Call on trend towards in-memory distributed computing.
 
 Section on jargon. Lambdas, functions, closures. Introduce a baseline
 vocabulary with respect to environment for duration of paper.
