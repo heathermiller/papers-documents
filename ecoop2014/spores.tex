@@ -44,9 +44,22 @@ We introduce a model for concurrent and distributed computing where the data is 
 
 In theory you can migrate actors, in practice, you cannot. Can we use these insights to find a way to migrate actors cleanly?
 
+\subsection{Problems of actors}
+
+\begin{itemize}
+
+\item Migrating actors is not supported in mainstream actor frameworks and
+languages. For example, neither Akka nor Erlang support migrating actors from
+one node to another.
+
+\item Sending spores as messages to actors comes with the problem of matching
+on the types of the spore which is not supported due to erasure in Scala.
+
+\end{itemize}
+
 We describe a pattern for distributing lambdas in a principled way. We
-implement this pattern in the new spore-agent abstraction which enforces the
-rules of the pattern.
+implement this pattern in a family of spore-agent abstractions which enforce
+the rules of the pattern.
 
 We discuss problems in distributed programming that are simplified using the
 spore-agent abstraction compared to equivalent actor-based solutions.
@@ -57,6 +70,15 @@ efficiently; we show that our spore-agent implementation can outperform state-
 of-the-art actor frameworks on a set of applications where distributing
 lambdas is at the core.
 
+\subsection{Brainstorming}
+
+Should focus on re-usable building blocks. Spores are re-usable by several
+frameworks. What else is re-usable? A composition mechanism?
+
+One thing could be to provide a mechanism to compose spores, but leave it open
+how to execute that on a distributed middleware.
+
+Make it easy to build an execution engine like the one from Spark.
 
 \subsection{Motivation}
 
