@@ -44,6 +44,20 @@ We introduce a model for concurrent and distributed computing where the data is 
 
 In theory you can migrate actors, in practice, you cannot. Can we use these insights to find a way to migrate actors cleanly?
 
+We describe a pattern for distributing lambdas in a principled way. We
+implement this pattern in the new spore-agent abstraction which enforces the
+rules of the pattern.
+
+We discuss problems in distributed programming that are simplified using the
+spore-agent abstraction compared to equivalent actor-based solutions.
+Moreover, we argue that spore-agents are dual to actors.
+
+Finally, we show that this spore-agent abstraction can be implemented
+efficiently; we show that our spore-agent implementation can outperform state-
+of-the-art actor frameworks on a set of applications where distributing
+lambdas is at the core.
+
+
 \subsection{Motivation}
 
 Distributed programming supposed to be made easier by going functional. But a problem of object-oriented languages with lambdas and functional programming languages alike is that functions can have free variables. Closures that close over some tricky environment. This means that regardless of the paradigm, framework designers can't confidently expose lambdas in APIs to users.
@@ -86,7 +100,7 @@ Languages to compare with closures:
 \item C\# (Supports functions, but not closures. Emulates with delegates.)
 \end{itemize}
 
-\subsection{Function-Passing Paradigm}
+\section{Function-Passing Paradigm}
 
 Frameworks this new paradigm would enable. Relationship to NoSQL?
 
@@ -107,11 +121,11 @@ The question of -- I capture something of type MyActor
 and the spore forbids capturing type Actor, and MyActor <: Actor
 then what happens.
 
-\subsection{Implementation}
+\section{Implementation}
 
 Comparison and relationship with Java8 SAM stuff.
 
-\subsection{Use-Cases?}
+\section{Use-Cases?}
 
 We could show in an example-driven (or even paradigm-driven) way how the
 active objects pattern can be implemented on top of spores. And then we can
@@ -129,15 +143,15 @@ Paradigms or patterns built on top of spores:
 \item Distributed pipelines / distributed streams
 \end{itemize}
 
-\subsection{Implementation}
+\section{Implementation}
 
-\subsection{Evaluation}
+\section{Evaluation}
 
 It's difficult to convincingly evaluate a new programming model, upon which a number of new abstractions have not yet been built. Therefore, we evaluate the spore-agent model in the following important ways; (1) we provide a detailed case analysis of a number of distributed applications that can be enabled or greatly facilitated by basing these frameworks on spores, (2) we show a number of important and useful scenarios that the actor model is not able to or is not well-suited to support, and finally (3) we show that in some of these scenarios, the spores-agent model is both more natural and performant.
 
 Can persist them and have remoting in a way that doesn't slow down everything else. Still provides efficient local computation.
 
-\subsection{Related Work}
+\section{Related Work}
 
 Non-academic related work: functions in Rust, 3 different types based on
 different possibilities for environments \cite{RustFunctions}; functions,
