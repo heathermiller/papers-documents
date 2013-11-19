@@ -129,6 +129,14 @@ Paradigms or patterns built on top of spores:
 \item Distributed pipelines / distributed streams
 \end{itemize}
 
+\subsection{Implementation}
+
+\subsection{Evaluation}
+
+It's difficult to convincingly evaluate a new programming model, upon which a number of new abstractions have not yet been built. Therefore, we evaluate the spore-agent model in the following important ways; (1) we provide a detailed case analysis of a number of distributed applications that can be enabled or greatly facilitated by basing these frameworks on spores, (2) we show a number of important and useful scenarios that the actor model is not able to or is not well-suited to support, and finally (3) we show that in some of these scenarios, the spores-agent model is both more natural and performant.
+
+Can persist them and have remoting in a way that doesn't slow down everything else. Still provides efficient local computation.
+
 \subsection{Related Work}
 
 Non-academic related work: functions in Rust, 3 different types based on
@@ -145,6 +153,7 @@ C++ 11 comes with a capture syntax. Though, it's not possible to guarantee that 
 
 Active objects also related. \cite{ActiveObjects}
 
+Clojure comes with the notion of an agent~\cite{ClojureAgents} which is similar to our synchronization mechanism in that in the Clojure model, functions are sent to other agents which manage some sort of mutable, shared state. The spores-agent model focuses on more than managing mutable state. No notion of shippability, fully-focused on multicore single-machine scenario.
 
 \bibliographystyle{abbrv}
 \bibliography{bib}
