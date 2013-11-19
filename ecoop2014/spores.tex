@@ -44,6 +44,20 @@ We introduce a model for concurrent and distributed computing where the data is 
 
 In theory you can migrate actors, in practice, you cannot. Can we use these insights to find a way to migrate actors cleanly?
 
+We describe a pattern for distributing lambdas in a principled way. We
+implement this pattern in the new spore-agent abstraction which enforces the
+rules of the pattern.
+
+We discuss problems in distributed programming that are simplified using the
+spore-agent abstraction compared to equivalent actor-based solutions.
+Moreover, we argue that spore-agents are dual to actors.
+
+Finally, we show that this spore-agent abstraction can be implemented
+efficiently; we show that our spore-agent implementation can outperform state-
+of-the-art actor frameworks on a set of applications where distributing
+lambdas is at the core.
+
+
 \subsection{Motivation}
 
 Distributed programming supposed to be made easier by going functional. But a problem of object-oriented languages with lambdas and functional programming languages alike is that functions can have free variables. Closures that close over some tricky environment. This means that regardless of the paradigm, framework designers can't confidently expose lambdas in APIs to users.
