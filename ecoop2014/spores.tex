@@ -40,6 +40,29 @@ Go.
 %
 \section{Introduction}
 
+Each passing year, we iterate further and further from the single-machine
+model of software development. The traditional view of a program running on a
+single machine, interacting directly with the user is now obsolete. With the
+growing trend towards cloud computing and mobile applications, distributed
+programming has entered the mainstream.
+% From big data to paradigms like software as a service, RESTful blah, the .
+Whether we consider a cluster of commodity machines churning through a massive
+data-parallel job, or a smartphone interacting with a social network, all are
+``distributed'' jobs, and all share the need to interact in typically
+asynchronous, reactive ways with other clients or services, even within the
+same application.
+
+At the same time, the functional programming paradigm has irrefutably gained
+remarkable traction in recent years, as is evidenced by the ongoing trend of
+traditionally imperative languages being extended with functional features,
+such as Java~\cite{JavaLambdas}, C++~\cite{CplusplusLambas}, and \todo{add
+more}, as well as the measurable popularity of functional programming
+massively online open courses (MOOCs)~\cite{ICSEMOOCPaper} and perceived
+importance in empirical studies on software
+developers~\cite{PLAdoption}\todo{check Leo's paper, add others}.
+
+This paper takes a step towards more principled open programming through a new foundation for pickling in object- oriented languages.
+
 We introduce a model for concurrent and distributed computing where the data is stationary and functions are mobile. This is a dual to the actor model, where functionality is stationary, and data is made mobile. 
 
 In theory you can migrate actors, in practice, you cannot. Can we use these insights to find a way to migrate actors cleanly?
@@ -57,12 +80,33 @@ efficiently; we show that our spore-agent implementation can outperform state-
 of-the-art actor frameworks on a set of applications where distributing
 lambdas is at the core.
 
-
-\subsection{Motivation}
-
 Distributed programming supposed to be made easier by going functional. But a problem of object-oriented languages with lambdas and functional programming languages alike is that functions can have free variables. Closures that close over some tricky environment. This means that regardless of the paradigm, framework designers can't confidently expose lambdas in APIs to users.
 
 Call on trend towards in-memory distributed computing.
+
+The design of our framework is guided by the following principles...
+
+In this paper, we present a model and type system for introducing general {\em type constraints}, and demonstrate its applicability 
+
+\subsection{Motivation}
+
+{\bf Motivations:}
+\begin{itemize}
+\item problems with distribution
+\item problems with concurrency
+\end{itemize}
+
+\subsection{Contributions}
+
+\begin{itemize}
+\item we present a general model of \textit{spores}, functions that are guaranteed to be 
+\item sdf
+\end{itemize}
+
+
+This paper makes the following contributions:
+
+\subsection{Jargon?}
 
 Section on jargon. Lambdas, functions, closures. Introduce a baseline
 vocabulary with respect to environment for duration of paper.
@@ -167,7 +211,7 @@ C++ 11 comes with a capture syntax. Though, it's not possible to guarantee that 
 
 Active objects also related. \cite{ActiveObjects}
 
-Clojure comes with the notion of an agent~\cite{ClojureAgents} which is similar to our synchronization mechanism in that in the Clojure model, functions are sent to other agents which manage some sort of mutable, shared state. The spores-agent model focuses on more than managing mutable state. No notion of shippability, fully-focused on multicore single-machine scenario.
+Clojure comes with the notion of an agent~\cite{Clojure} which is similar to our synchronization mechanism in that in the Clojure model, functions are sent to other agents which manage some sort of mutable, shared state. The spores-agent model focuses on more than managing mutable state. No notion of shippability, fully-focused on multicore single-machine scenario.
 
 \bibliographystyle{abbrv}
 \bibliography{bib}
