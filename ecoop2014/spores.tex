@@ -13,7 +13,7 @@
 %
 \mainmatter              % start of the contributions
 %
-\title{Spores: Function-Passing Style}
+\title{Spores: Function-Passing Style\todo{bad title}}
 %
 \titlerunning{Spores: Function-Passing Style}  % abbreviated title (for running head)
 %                                     also used for the TOC unless
@@ -38,28 +38,38 @@ Typesafe, Switzerland}
 Functional programming is regularly touted as the way forward for bringing
 parallel, concurrent, and distributed programming to the mainstream. The
 popularity of the rationale behind this viewpoint (immutable data transformed
-by function application) has even lead to a number of imperative and 
-object-oriented programming languages adopting building blocks such as lambdas 
-(functions)\todo{say something instead about closures}. 
+by function application) has even lead to a number of imperative and  object-
+oriented programming languages adopting building blocks such as lambdas
+(functions)\todo{say something instead about closures}. This paper takes a
+step towards more principled {\em function-passing style}\todo{should probably
+say something like "open programming"}~by introducing a new closure-like
+abstraction and type system that can guarantee closures to be serializable,
+thread-safe, or even have custom user-defined properties, called {\em spores}.
+We present a model and type system for expressing general type constraints and
+apply it to the problem of guaranteeing serializability and thread-safety of
+closures. We implement our approach as a module for Scala, and show the power of these
+guarantees through a detailed case analysis of new distributed and concurrent
+frameworks that this safe foundation for migratable closures enables.
 
 \keywords{functions, closures, distributed programming, concurrent programming, type systems}
 \end{abstract}
 %
 \section{Introduction}
 
-Each passing year, the traditional view of software development as being
-focused on a program running on a single machine, interacting directly with
-the user, becomes more and more obsolete. With the growing trend towards cloud
-computing and mobile applications, distributed programming has entered the
-mainstream.
-Paradigms in software engineering such as software as a service, RESTful
-services, or the rise of multitudes of different models and systems for batch
-or streaming big data processing and interactive analytics, evidence this trend.
-% From big data to paradigms like software as a service, RESTful blah, the .
-Whether we consider a cluster of commodity machines churning through a massive
-data-parallel job, or a smartphone interacting with a social network, all are
-``distributed'' jobs, and all share the need to interact in typically
-asynchronous, reactive ways with other clients or services. \todo{maybe make a nod to open programming?}
+With the growing trend towards cloud computing and mobile applications,
+distributed programming has entered the mainstream. The traditional view of
+software development as being focused on a program running on a single
+machine, interacting directly with the user, has become largely obsolete.
+Popular paradigms in software engineering such as software as a service
+(SaaS), RESTful services, or the rise of multitudes of different models and
+systems for big data processing and interactive analytics, evidence this
+trend.
+% From big data to paradigms like software as a service, RESTful blah, the . 
+Whether we consider a cluster of commodity machines
+churning through a massive data-parallel job, or a smartphone interacting with
+a social network, all are ``distributed'' jobs, and all share the need to
+interact in typically asynchronous, reactive ways with other clients or
+services. \todo{make nod to functional futures, etc?} \todo{maybe make a nod to open programming?}
 
 At the same time, the functional programming paradigm has irrefutably gained
 traction in recent years, as is evidenced by the ongoing trend of
@@ -89,15 +99,17 @@ haven't yet taken off as the languages of choice for distributed and
 concurrent programming in practice. There still exist numerous hurdles at the
 language-level for even these most basic of building blocks of functional
 languages to overcome in order to be reliable and easy to reason about in
-concurrent or distributed environments. For instance, a natural model is that
-of {\em moving functionality to data}\todo{this is a really common idea, cite
-a bunch of stuff that aims for this}. While a popular idea, there exist few
-distributed systems which embody this approach, the most notable of which
-being Spark~\cite{Spark}, a fault-tolerant, in-memory distributed collections
-abstraction.
+concurrent or distributed environments. For instance, a natural model for
+functional languages to support is that of {\em moving functionality to
+data}\todo{this is a really common idea, cite a bunch of stuff that aims for
+this}. While a popular idea, there exist few distributed systems which embody
+this approach, the most notable of which being Spark~\cite{Spark}, a fault-
+tolerant, in-memory distributed collections abstraction.
+
+\todo{talk about issues of serializing lambdas in Java, Scala -- OO languages. Then discuss the problems of functional languages like Haskell too}
 
 This paper takes a step towards more principled {\em function-passing
-style}\todo{should probably say something like "open programming"} by
+style}\todo{should probably say something like "open programming"}~by
 introducing a new closure-like abstraction and type system that can guarantee
 closures to be serializable, thread-safe, or even have user-defined
 properties, called {\em spores}.
