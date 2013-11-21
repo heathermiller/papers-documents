@@ -34,32 +34,48 @@ Typesafe, Switzerland}
 \maketitle              % typeset the title of the contribution
 
 \begin{abstract}
-Go.
-\keywords{computational geometry, graph theory, Hamilton cycles}
+
+Functional programming is regularly touted as the way forward for bringing
+parallel, concurrent, and distributed programming to the mainstream. The
+popularity of the rationale behind this viewpoint (immutable data transformed
+by function application) has even lead to a number of imperative and 
+object-oriented programming languages adopting building blocks such as lambdas 
+(functions)\todo{say something instead about closures}. 
+
+\keywords{functions, closures, distributed programming, concurrent programming, type systems}
 \end{abstract}
 %
 \section{Introduction}
 
-Each passing year, we iterate further and further from the single-machine
-model of software development. The traditional view of a program running on a
-single machine, interacting directly with the user is now obsolete. With the
-growing trend towards cloud computing and mobile applications, distributed
-programming has entered the mainstream.
+Each passing year, the traditional view of software development as being
+focused on a program running on a single machine, interacting directly with
+the user, is quickly becoming obsolete. With the growing trend towards cloud
+computing and mobile applications, distributed programming has entered the
+mainstream.
+Paradigms in software engineering such as software as a service, RESTful
+services, or the rise of multitudes of different models and systems for batch
+or streaming big data processing, evidence this trend.
 % From big data to paradigms like software as a service, RESTful blah, the .
 Whether we consider a cluster of commodity machines churning through a massive
 data-parallel job, or a smartphone interacting with a social network, all are
 ``distributed'' jobs, and all share the need to interact in typically
-asynchronous, reactive ways with other clients or services, even within the
-same application.
+asynchronous, reactive ways with other clients or services. \todo{maybe make a nod to open programming?}
 
 At the same time, the functional programming paradigm has irrefutably gained
 remarkable traction in recent years, as is evidenced by the ongoing trend of
-traditionally imperative languages being extended with functional features,
-such as Java~\cite{JavaLambdas}, C++~\cite{CplusplusLambas}, and \todo{add
-more}, as well as the measurable popularity of functional programming
-massively online open courses (MOOCs)~\cite{ICSEMOOCPaper} and perceived
-importance in empirical studies on software
-developers~\cite{PLAdoption}\todo{check Leo's paper, add others}.
+traditionally object-oriented or imperative languages being extended with
+functional features, such as Java~\cite{JavaLambdas},
+C++~\cite{CplusplusLambas}, and \todo{add more}, as well as the measurable
+popularity of functional programming massively online open courses
+(MOOCs)~\cite{ICSEMOOCPaper} and perceived importance in empirical studies on
+software developers~\cite{PLAdoption}\todo{check Leo's paper, add others}.
+
+One reason for the rise in popularity of functional programming languages and features is the basic philosophy of , and the observation that this mode of reasoning about data in parallel, concurrent, and distributed code.
+
+\todo{cite one or some of the lambda the ultimate papers here?}
+\todo{need to cite a few papers that claim that FP is the way forward for parallel and distributed computing}
+
+
 
 This paper takes a step towards more principled open programming through a new foundation for pickling in object- oriented languages.
 
