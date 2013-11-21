@@ -38,19 +38,19 @@ Typesafe, Switzerland}
 Functional programming is regularly touted as the way forward for bringing
 parallel, concurrent, and distributed programming to the mainstream. The
 popularity of the rationale behind this viewpoint (immutable data transformed
-by function application) has even lead to a number of imperative and  object-
-oriented programming languages adopting building blocks such as lambdas
+by function application) has even lead to a number of imperative and  object-oriented 
+programming languages adopting building blocks such as lambdas
 (functions)\todo{say something instead about closures}. This paper takes a
-step towards more principled {\em function-passing style}\todo{should probably
-say something like "open programming"}~by introducing a new closure-like
-abstraction and type system, called {\em spores}, that can guarantee closures
-to be serializable, thread-safe, or even have custom user-defined properties.
-We present a model and type system for expressing general type constraints and
-apply it to the problem of guaranteeing serializability and thread-safety of
-closures. We implement our approach as a module for Scala, and show the power
-of these guarantees through a detailed case analysis of new distributed and
-concurrent frameworks that this safe foundation for migratable closures
-enables.
+step towards more principled distributed programming with functions we call
+{\em function-passing style}\todo{should probably say something like "open
+programming"}~by introducing a new closure-like abstraction and type system,
+called {\em spores}, that can guarantee closures to be serializable, thread-safe, 
+or even have custom user-defined properties. We present a model and type
+system for expressing general type constraints and apply it to the problem of
+guaranteeing serializability and thread-safety of closures. We implement our
+approach as a module for Scala, and show the power of these guarantees through
+a detailed case analysis of new distributed and concurrent frameworks that
+this safe foundation for migratable closures enables.
 
 \keywords{functions, closures, distributed programming, concurrent programming, type systems}
 \end{abstract}
@@ -97,10 +97,12 @@ and distributed code is more tractable.
 While purported to the way forward for bringing parallel, concurrent, and
 distributed programming to the mainstream, functional programming languages
 haven't yet taken off as the languages of choice for distributed and
-concurrent programming in practice. There still exist numerous hurdles at the
-language-level for even these most basic of building blocks of functional
-languages to overcome in order to be reliable and easy to reason about in
-concurrent or distributed environments. For instance, a natural model for
+concurrent programming in practice. For that, object-oriented languages with functional features such as Scala or Java take the lead. 
+
+For both OO and functional languages, there still exist numerous hurdles at
+the language-level for even these most basic functional building blocks to
+overcome in order to be reliable and easy to reason about in concurrent or
+distributed environments. For instance, a natural model for
 functional languages to support is that of {\em moving functionality to
 data}\todo{this is a really common idea, cite a bunch of stuff that aims for
 this}. While a popular idea, there exist few distributed systems which embody
