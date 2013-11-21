@@ -43,13 +43,14 @@ oriented programming languages adopting building blocks such as lambdas
 (functions)\todo{say something instead about closures}. This paper takes a
 step towards more principled {\em function-passing style}\todo{should probably
 say something like "open programming"}~by introducing a new closure-like
-abstraction and type system that can guarantee closures to be serializable,
-thread-safe, or even have custom user-defined properties, called {\em spores}.
+abstraction and type system, called {\em spores}, that can guarantee closures
+to be serializable, thread-safe, or even have custom user-defined properties.
 We present a model and type system for expressing general type constraints and
 apply it to the problem of guaranteeing serializability and thread-safety of
-closures. We implement our approach as a module for Scala, and show the power of these
-guarantees through a detailed case analysis of new distributed and concurrent
-frameworks that this safe foundation for migratable closures enables.
+closures. We implement our approach as a module for Scala, and show the power
+of these guarantees through a detailed case analysis of new distributed and
+concurrent frameworks that this safe foundation for migratable closures
+enables.
 
 \keywords{functions, closures, distributed programming, concurrent programming, type systems}
 \end{abstract}
