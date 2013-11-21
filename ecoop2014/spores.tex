@@ -38,9 +38,11 @@ Typesafe, Switzerland}
 Functional programming is regularly touted as the way forward for bringing
 parallel, concurrent, and distributed programming to the mainstream. The
 popularity of the rationale behind this viewpoint (immutable data transformed
-by function application) has even lead to a number of imperative and  object-oriented 
+by function application) has even lead to a number of imperative and object-oriented (OO)
 programming languages adopting building blocks such as lambdas
-(functions)\todo{say something instead about closures}. This paper takes a
+(functions)\todo{say something instead about closures}. For both functional 
+and OO languages, however, distributing closures or using them in a concurrent 
+environment remains challenging. This paper takes a
 step towards more principled distributed programming with functions we call
 {\em function-passing style}\todo{should probably say something like "open
 programming"}~by introducing a new closure-like abstraction and type system,
