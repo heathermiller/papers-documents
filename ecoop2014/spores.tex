@@ -49,12 +49,12 @@ object-oriented programming languages adopting building blocks such as lambdas
 
 Each passing year, the traditional view of software development as being
 focused on a program running on a single machine, interacting directly with
-the user, is quickly becoming obsolete. With the growing trend towards cloud
+the user, becomes more and more obsolete. With the growing trend towards cloud
 computing and mobile applications, distributed programming has entered the
 mainstream.
 Paradigms in software engineering such as software as a service, RESTful
 services, or the rise of multitudes of different models and systems for batch
-or streaming big data processing, evidence this trend.
+or streaming big data processing and interactive analytics, evidence this trend.
 % From big data to paradigms like software as a service, RESTful blah, the .
 Whether we consider a cluster of commodity machines churning through a massive
 data-parallel job, or a smartphone interacting with a social network, all are
@@ -62,22 +62,53 @@ data-parallel job, or a smartphone interacting with a social network, all are
 asynchronous, reactive ways with other clients or services. \todo{maybe make a nod to open programming?}
 
 At the same time, the functional programming paradigm has irrefutably gained
-remarkable traction in recent years, as is evidenced by the ongoing trend of
+traction in recent years, as is evidenced by the ongoing trend of
 traditionally object-oriented or imperative languages being extended with
-functional features, such as Java~\cite{JavaLambdas},
-C++~\cite{CplusplusLambas}, and \todo{add more}, as well as the measurable
-popularity of functional programming massively online open courses
-(MOOCs)~\cite{ICSEMOOCPaper} and perceived importance in empirical studies on
-software developers~\cite{PLAdoption}\todo{check Leo's paper, add others}.
+functional features, such as lambdas in Java~\cite{JavaLambdas},
+C++~\cite{CplusplusLambas}, and \todo{add more}, as well as the increase in
+use of functional languages on software repositories~\cite{find-something},
+the perceived importance of functional programming in general empirical
+studies on software developers~\cite{PLAdoption}\todo{check Leo's paper, add
+others}, and the measurable popularity of functional programming massively
+online open courses (MOOCs)~\cite{ICSEMOOC}.
 
-One reason for the rise in popularity of functional programming languages and features is the basic philosophy of , and the observation that this mode of reasoning about data in parallel, concurrent, and distributed code.
+Functions don't concern only functional programming languages anymore.
+
+One reason \todo{make this less strong, or cite something}for the rise in
+popularity of functional programming languages and features is the basic
+philosophy of transforming immutable data via function application, and the
+observation that this mode of reasoning about data in parallel, concurrent,
+and distributed code is more tractable.
 
 \todo{cite one or some of the lambda the ultimate papers here?}
 \todo{need to cite a few papers that claim that FP is the way forward for parallel and distributed computing}
 
+While purported to the way forward for bringing parallel, concurrent, and
+distributed programming to the mainstream, functional programming languages
+haven't yet taken off as the languages of choice for distributed and
+concurrent programming in practice. There still exist numerous hurdles at the
+language-level for even these most basic of building blocks of functional
+languages to overcome in order to be reliable and easy to reason about in
+concurrent or distributed environments. For instance, a natural model is that
+of {\em moving functionality to data}\todo{this is a really common idea, cite
+a bunch of stuff that aims for this}. While a popular idea, there exist few
+distributed systems which embody this approach, the most notable of which
+being Spark~\cite{Spark}, a fault-tolerant, in-memory distributed collections
+abstraction.
 
+This paper takes a step towards more principled {\em function-passing
+style}\todo{should probably say something like "open programming"} by
+introducing a new closure-like abstraction and type system that can guarantee
+closures to be serializable, thread-safe, or even have user-defined
+properties, called {\em spores}.
 
-This paper takes a step towards more principled open programming through a new foundation for pickling in object- oriented languages.
+We first present a and then focus on an implementation of spores in Scala, a
+hybrid object-oriented and functional programming language which faces the
+issues brought by closures on all sides -- the issues encountered in
+functional languages such as Haskell~\cite{CloudHaskell}, as well as issues
+encountered by integrating closures with an object system, inheritance and
+subtyping.
+
 
 We introduce a model for concurrent and distributed computing where the data is stationary and functions are mobile. This is a dual to the actor model, where functionality is stationary, and data is made mobile. 
 
