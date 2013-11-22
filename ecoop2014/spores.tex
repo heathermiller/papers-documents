@@ -154,7 +154,23 @@ Need to talk about related work here.
 
 % In this paper, we present a model and type system for introducing general {\em type constraints}, and demonstrate its applicability 
 
-\subsection{Motivation}
+
+\subsection{Problems of actors}
+
+\begin{itemize}
+
+\item Migrating actors is not supported in mainstream actor frameworks and
+languages. For example, neither Akka nor Erlang support migrating actors from
+one node to another.
+
+\item Sending spores as messages to actors comes with the problem of matching
+on the types of the spore which is not supported due to erasure in Scala.
+
+\end{itemize}
+
+We describe a pattern for distributing lambdas in a principled way. We
+implement this pattern in a family of spore-agent abstractions which enforce
+the rules of the pattern.
 
 {\bf Motivations:}
 \begin{itemize}
@@ -168,6 +184,16 @@ Need to talk about related work here.
 \item we present a general model of \textit{spores}, functions that are guaranteed to be 
 \item sdf
 \end{itemize}
+
+\subsection{Brainstorming}
+
+Should focus on re-usable building blocks. Spores are re-usable by several
+frameworks. What else is re-usable? A composition mechanism?
+
+One thing could be to provide a mechanism to compose spores, but leave it open
+how to execute that on a distributed middleware.
+
+Make it easy to build an execution engine like the one from Spark.
 
 
 This paper makes the following contributions:
@@ -209,6 +235,55 @@ Languages to compare with closures:
 \item ECMAScript
 \item C\# (Supports functions, but not closures. Emulates with delegates.)
 \end{itemize}
+
+\section{Lambda the Ultimate Distributive: The Pattern}
+
+Lambdas provide a simple, principled way of handling the different kinds of
+objects that are fundamental in distributed systems. Some of these objects are
+data that should be processed (like a large collection), some of these objects
+represent services of the runtime environment (e.g., for scheduling or
+communication).
+
+Given the kind of object that is involved in a distributed computation, the
+object has to be handled specially:
+\begin{itemize}
+
+\item (a) an object can be data that must be shipped between nodes to accomplish
+some task;
+
+\item (b) an object can be a runtime service, such as a scheduler, which is not
+shippable, but must be used on each node;
+
+\item (c) an object can be data which is not shippable for some reason, but might
+have to be retrieved on multiple nodes.
+
+\end{itemize}
+
+The idea of ``lambda the ultimate distributive'' is that closures can handle
+all of these kinds of objects in a principled and well-defined way (no
+guessing needed):
+
+\begin{itemize}
+
+\item objects of kind (a) can be safely captured by the closure since they are shippable;
+
+\item objects of kind (b) must be parameters of the closure; on each machine,
+a reference the (local) runtime environment is passed as an argument to the
+closure; (Individual services, like a scheduler, could be fields of a
+wrapping ``environment'' object.)
+
+\item objects of kind (c) must be parameters of the closure; on each machine,
+they have to be retrieved first using an object of kind (b), and then passed
+to the closure as an argument.
+
+\end{itemize}
+
+Using lambdas in this way allows modeling all situations in a distributed
+system in a principled way, without special tricks or hacks.
+
+
+\section{The Spore-Agent Abstraction}
+
 
 \section{Function-Passing Paradigm}
 
