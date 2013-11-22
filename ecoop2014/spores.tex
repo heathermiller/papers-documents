@@ -368,8 +368,20 @@ The type of single-argument spores is defined as follows:
     }
 \end{lstlisting}
 \noindent
+The \verb|Spore| trait extends the \verb|Function1| trait which is defined as
+follows in Scala's standard library:
 
-[explain Function1]
+\begin{lstlisting}
+    trait Function1[-A, +R] extends AnyRef {
+      def apply(v: A): R
+      def andThen[B](g: R => B): A => B
+      def compose[B](g: B => A): B => R
+    }
+\end{lstlisting}
+\noindent
+The above definition expresses the fact that functions are objects with an
+\verb|apply| method; function composition is supported using the
+\verb|andThen| and \verb|compose| methods.
 
 [explain variance annotations]
 
