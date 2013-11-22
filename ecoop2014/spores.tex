@@ -324,7 +324,40 @@ objects (important in particular in languages supporting the uniform access
 principle like Eiffel [check], Smalltalk [check], and Scala).
 
 
-\section{Spores}
+\section{Spores: Closures with Constraints}
+
+We would like to constrain the environment of a spore to express properties
+such as:
+\begin{itemize}
+\item All captured objects must be serializable
+\item All captured objects must be thread-safe
+\end{itemize}
+\noindent
+Such properties restrict the types of objects that a spore is allowed to
+capture. A naive way to achieve this would be to annotate certain types as
+``not-safe-for-capturing''. However, this approach would be too inflexible,
+since some desirable properties are orthogonal to others. For example, a
+\verb|Promise| type~\cite{promise-paper} would be safe for capturing by a
+spore used in a concurrent setting, whereas it would not be safe for capturing
+by a spore that is intended to be serialized.
+
+Thus, rather than permitting or disallowing types to be captured, in our
+approach spores can express properties that the types of captured variables
+are required to have. For example, a spore might require all captured types to
+be thread-safe. Properties can also be composed, enabling spores to require
+their captured types to have multiple properties. For example, in addition to
+thread-safety, a spore may require its captured types to be serializable.
+(Such a spore would be well-suited for computations that should be executed
+concurrently on the same computer or on another computer depending on the
+current work load.)
+
+
+[ideally safety properties of types can be declared retro-actively.]
+
+[how do we motivate other, custom properties?]
+
+
+[motivate why it might be useful for a closure to declare several required properties.]
 
 
 \section{Function-Passing Paradigm}
