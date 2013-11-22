@@ -351,13 +351,65 @@ thread-safety, a spore may require its captured types to be serializable.
 concurrently on the same computer or on another computer depending on the
 current work load.)
 
+\subsection{The \texttt{Spore} trait}
+
+To express type constraints we leverage two features of Scala's type system.
+First, in Scala a function is an object of a type that extends one of the
+predefined function traits. Thus, it is possible to subclass the predefined
+function types. Second, in Scala classes and traits can be refined with value
+and type members. As we will see, type members are a natural way to express
+type constraints.
+
+The type of single-argument spores is defined as follows:
+
+\begin{lstlisting}
+    trait Spore[-A, +R] extends Function1[A, R] {
+      type Capture[T]
+    }
+\end{lstlisting}
+\noindent
+
+[explain Function1]
+
+[explain variance annotations]
+
+[explain how type Capture[T] is used for type constraints]
+
+For example, a spore from \verb|Int| to \verb|String| that requires all
+captured types to be both thread-safe and serializable would have the
+following type:
+\begin{lstlisting}
+    Spore[Int, String] {
+      type Capture[T] = Safe[T] with Pickler[T]
+    }
+\end{lstlisting}
+\noindent
+The \verb|with| keyword is used to express the mix-in composition of multiple
+traits.
 
 [ideally safety properties of types can be declared retro-actively.]
 
 [how do we motivate other, custom properties?]
 
+Type constraints for a newly defined spore can be introduced as follows:
+\begin{lstlisting}
+    spore {
+      val s: String = // ...
+      (p: Int) => {
+        (1 to p).map(x => s).mkString("-")
+      }
+    } with[Pickler]
+\end{lstlisting}
+\noindent
+The above example defines a spore that requires an instance of type
+\verb|Pickler[String]| for its captured type \verb|String|. The type of the
+spore is thus:
 
-[motivate why it might be useful for a closure to declare several required properties.]
+\begin{lstlisting}
+    Spore[Int, String] {
+      type Capture[T] = Pickler[T]
+    }
+\end{lstlisting}
 
 
 \section{Function-Passing Paradigm}
