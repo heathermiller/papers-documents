@@ -8,6 +8,32 @@
 \usepackage{makeidx}  % allows for indexgeneration
 \usepackage{url}
 \usepackage{todonotes}
+\usepackage{listings}
+
+\lstdefinelanguage{Scala}%
+{morekeywords={abstract,case,catch,char,class,%
+    def,else,extends,final,%
+    if,import,%
+    match,module,new,null,object,override,package,private,protected,%
+    public,return,super,this,throw,trait,try,type,val,var,with,implicit,%
+    macro,sealed,%
+  },%
+  sensitive,%
+  morecomment=[l]//,%
+  morecomment=[s]{/*}{*/},%
+  morestring=[b]",%
+  morestring=[b]',%
+  showstringspaces=false%
+}[keywords,comments,strings]%
+
+\lstset{language=Scala,%
+  mathescape=true,%
+  columns=[c]fixed,%
+  basewidth={0.5em, 0.40em},%
+  basicstyle=\tt,%
+  xleftmargin=0.0cm
+}
+
 %
 \begin{document}
 %
@@ -305,6 +331,105 @@ Need to work out structure of this and an appropriate title for this section. Wo
 The question of -- I capture something of type MyActor
 and the spore forbids capturing type Actor, and MyActor <: Actor
 then what happens.
+
+\section{Formalization}\label{sec:formal}
+
+\subsection{Operational Semantics}\label{sec:opsem}
+
+Goals:
+\begin{itemize}
+\item If an expression is type-correct, at runtime all its properties should be true. This is particularly 
+  interesting for spore expressions.
+\item Furthermore, whenever an expression is reduced the result of the reduction should also be type-correct which 
+  makes sure it's static properties are preserved by reduction. (Preservation)
+\item To achieve soundness of the type system, we would also like to show that if an expression in our core 
+  language is type-correct, then the expression can be reduced. (Progress)
+\end{itemize}
+
+Spores are represented dynamically as tuples $(cs, is, fun)$ where cs is a
+sequence of captured variables (the spore header), is is a sequence of type
+class instances, and fun is the spore closure. The only free variables of the
+spore closure are the variables in cs.
+
+Creating spores:
+
+\begin{lstlisting}
+spore[P] {
+  val x_1: T_1 = e_1
+  ...
+  val x_n: T_n = e_n
+  (p: T) => body
+}
+\end{lstlisting}
+
+A spore has properties $P_1, ..., P_m$ for its captured vars (for simplicity,
+above there is only one property P). For now a property can be a type class
+like Pickler or CanCapture.
+
+Type classes could be supported as follows. During type checking, implicit
+values could be looked up in the standard lexical scope but marked with the
+implicit keyword. Type-checking could then rewrite the expression to one which
+has the implicit values passed to the spore constructor.
+
+We would rewrite the above expression to the following ($i_1, ..., i_n$ are type
+class instances):
+
+\begin{lstlisting}
+createSpore[P] {
+  val x_1: T_1 = i_1.capture(e_1)
+  ...
+  val x_n: T_n = i_n.capture(e_n)
+  val is = List(i_1, ..., i_n)  // not sure, if we really need those
+  (p: T) => body
+}
+\end{lstlisting}
+
+We might not have to include lookup of implicit values in the formalization.
+P[T] could simply return the instance of type class P for type T.
+
+We just need to store those type class instances in the dynamic representation
+of spores, so that we have access to them dynamically (since we need to
+evaluate the calls to capture).
+
+\subsubsection{Reduction rules}
+
+Reducing spore creation. Spore creation evaluates the spore header which
+evaluates the captured expressions $e_1, ..., e_n$, and then passes the results
+through the capture methods of the type class instances. The end result is a
+sequence of references that we're going to store in the spore tuple (the cs).
+
+Reducing spore application. An application e1 e2 of a spore e1 to an argument
+e2 can be reduced by first reducing e1 until it's a reference r1. Then, we
+look up the tuple (cs, is, fun) in the heap that reference r1 maps to. Then,
+when e2 has also been reduced to a reference r2, we can replace r1 r2 by fun
+such that all free vars are replaced by cs and the parameter is replaced by
+r2.
+
+\subsubsection{Dynamic representation of spores}
+
+For preservation we then also need to show that $r1$ has the same type as the
+\verb|spore| expression. Basically, we need enough dynamic information, so
+that we can assign the following type to $r1$:
+
+\begin{lstlisting}
+Spore[A, B] {
+  type All = P
+  type Include = Capture[List[Int]]
+  type Exclude = NoCapture[Actor] with NoCapture[Socket]
+}
+\end{lstlisting}
+
+That means in the opsem, instead of the simple tuple $(cs, is, fun)$ we need to
+have a tuple such as
+$([{P} ; {List[Int]} ; {Actor, Socket}] A \Rightarrow B, cs, is, fun)$.
+
+Examples for classes that are thread-safe but not shippable: Future/Promise,
+Scheduler, ExecutorService, SparkContext (TODO: check). So, we might want to
+permit those classes in some spores (those that are not shipped but might be
+shared between threads), but not in other spores (those that are shipped).
+That's why globally disallowing a type from being captured is not a good idea
+and per-spore constraints are better.
+
 
 \section{Implementation}
 
