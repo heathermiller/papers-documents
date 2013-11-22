@@ -262,13 +262,17 @@ Languages to compare with closures:
 \item C\# (Supports functions, but not closures. Emulates with delegates.)
 \end{itemize}
 
-\section{Lambda the Ultimate Distributive: The Pattern}
+\section{Lambda the Ultimate Distributive}
 
 Lambdas provide a simple, principled way of handling the different kinds of
-objects that are fundamental in distributed systems. Some of these objects are
-data that should be processed (like a large collection), some of these objects
-represent services of the runtime environment (e.g., for scheduling or
-communication).
+objects that are fundamental in distributed systems. This section describes a
+pattern that we call ``Lambda the Ultimate Distributive'' for working with
+lambdas in a distributed environment.
+
+In a distributed system, different kinds of objects have to be handled in
+different ways. Some of these objects are data that should be processed (like
+a large collection), some of these objects represent services of the runtime
+environment (e.g., for scheduling or communication).
 
 Given the kind of object that is involved in a distributed computation, the
 object has to be handled specially:
@@ -304,11 +308,23 @@ to the closure as an argument.
 
 \end{itemize}
 
-Using lambdas in this way allows modeling all situations in a distributed
-system in a principled way, without special tricks or hacks.
+Using lambdas in this way allows modeling most situations \todo{make less vague}
+in a distributed system in a principled way, without special tricks or
+hacks. However, correctly using lambdas according to the above pattern
+requires discipline, since properties such as serializability of captured
+objects are typically not enforced by the language or type system.
+
+\subsection{Limitations of simple lambdas}
+
+Here we can point out problems of regular lambdas: accidentally capturing
+references to enclosing objects, accidentally capturing non-serializable
+objects, incorrect use of lambdas in concurrent code (one motivation for
+parallel closures), accidentally accessing unstable members of captured
+objects (important in particular in languages supporting the uniform access
+principle like Eiffel [check], Smalltalk [check], and Scala).
 
 
-\section{The Spore-Agent Abstraction}
+\section{Spores}
 
 
 \section{Function-Passing Paradigm}
