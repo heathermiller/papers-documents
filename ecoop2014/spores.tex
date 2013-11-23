@@ -448,6 +448,36 @@ Spores without constraints have types of the following form:
 
 \subsection{Library-specific constraints}
 
+One important goal of spores is to make the use of closure-based libraries
+safer. This is enabled through subtyping: instead of using regular function
+types, libraries can require the use of subtypes of the \verb|Spore| trait
+introduced above.
+
+For example, a concurrency library could declare certain types as not safe to
+be captured by closures. We can express this using a type class, say,
+\verb|Unsafe[T]|. For each type that should not be captured we introduce a
+type class instance. For example, the following implicit object introduces an
+instance of the \verb|Unsafe| type class for type \verb|Actor|:
+
+\begin{lstlisting}
+    implicit object unsafeActor extends Unsafe[Actor]
+\end{lstlisting}
+\noindent
+To ensure that closures never capture types that are declared in such a way as
+unsafe, the library could use the following type alias in place of the regular
+type for functions of arity one:
+
+\begin{lstlisting}
+    type SafeSpore[A, R] = Spore[A, R] {
+      type NoCapture[T] <: Unsafe[T]
+    }
+\end{lstlisting}
+\noindent
+The \verb|NoCapture| type member of the above \verb|Spore| subtype is refined
+with the {\em upper type bound} \verb|Unsafe[T]|. This ensures that only spore
+types whose \verb|NoCapture| type members mix in \verb|Unsafe| are compatible
+(of course, they could be even more restrictive).
+
 \subsection{Introducing custom constraints}
 
 \subsection{Composing spores}
