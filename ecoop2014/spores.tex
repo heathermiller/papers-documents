@@ -410,7 +410,7 @@ While in principle this could be supported by requiring a property that's not
 satisfied only by those types we wish to exclude from capturing, it would
 require declaring all types that are not excluded, which would lead to a lot
 of boilerplate. Instead, we introduce another type member \verb|NoCapture[T]|
-used to express properties that lead to rejection of a captured type:
+used to express properties that lead to rejection of a captured type:\todo{also discuss subtypes}
 
 \begin{lstlisting}
     trait Spore[-A, +R] extends Function1[A, R] {
@@ -445,6 +445,12 @@ Spores without constraints have types of the following form:
       type NoCapture[T] = NoConstraint[T]
     }
 \end{lstlisting}
+
+\subsection{Library-specific constraints}
+
+\subsection{Introducing custom constraints}
+
+\subsection{Composing spores}
 
 
 Type constraints for a newly defined spore can be introduced as follows:
