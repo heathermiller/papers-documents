@@ -404,9 +404,7 @@ captured types to be serializable would have the following type:
 The type member \verb|Capture[T]| is defined such that for each captured type
 \verb|T| there must exist an instance of type \verb|Pickler[T]| (a ``pickler''
 that can serialize or pickle objects of type \verb|T|). Such instances are
-made available using Scala's {\em implicits} as shown below.
-
-[explain how to require multiple properties]
+made available and looked up using Scala's {\em implicits} as shown below.
 
 Just like requiring all captured types to have a certain property, sometimes
 it's necessary to prevent types with a certain property from being captured.
@@ -424,7 +422,14 @@ used to express properties that lead to rejection of a captured type:
 \end{lstlisting}
 \noindent
 
-[explain how to exclude certain types]
+Spores without constraints have types of the following form:
+\begin{lstlisting}
+    Spore[A, R] {
+      type Capture[T] = NoConstraint[T]
+      type NoCapture[T] = NoConstraint[T]
+    }
+\end{lstlisting}
+
 
 Type constraints for a newly defined spore can be introduced as follows:
 \begin{lstlisting}
@@ -433,9 +438,15 @@ Type constraints for a newly defined spore can be introduced as follows:
       (p: Int) => {
         (1 to p).map(x => s).mkString("-")
       }
-    } with[Pickler]
+    }.with[Pickler]
 \end{lstlisting}
 \noindent
+
+[explain how to require multiple properties]
+
+[explain how to exclude certain types]
+
+
 
 
 The \verb|with| keyword is used to express the mix-in composition of multiple
