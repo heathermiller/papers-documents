@@ -331,6 +331,7 @@ such as:
 \begin{itemize}
 \item All captured objects must be serializable
 \item All captured objects must be thread-safe
+\item Captured objects must not be marked as unsafe for capturing
 \end{itemize}
 \noindent
 Such properties restrict the types of objects that a spore is allowed to
@@ -385,23 +386,45 @@ The above definition expresses the fact that functions are objects with an
 
 [explain variance annotations]
 
-[explain how type Capture[T] is used for type constraints]
+The \verb|Capture[T]| type member of the \verb|Spore| trait is used to express
+requirements of all captured types \verb|T| in the form of ``interfaces'' that
+the captured types \verb|T| have to implement. As we will see below, instead
+of using Java-style interfaces, we use a combination of traits and
+implicits~\cite{Oliveira2010} akin to generalized interfaces in
+JavaGI~\cite{WehrT11} or concepts in C++.
 
 For example, a spore from \verb|Int| to \verb|String| that requires all
-captured types to be both thread-safe and serializable would have the
-following type:
+captured types to be serializable would have the following type:
 \begin{lstlisting}
     Spore[Int, String] {
-      type Capture[T] = Safe[T] with Pickler[T]
+      type Capture[T] = Pickler[T]
     }
 \end{lstlisting}
 \noindent
-The \verb|with| keyword is used to express the mix-in composition of multiple
-traits.
+The type member \verb|Capture[T]| is defined such that for each captured type
+\verb|T| there must exist an instance of type \verb|Pickler[T]| (a ``pickler''
+that can serialize or pickle objects of type \verb|T|). Such instances are
+made available using Scala's {\em implicits} as shown below.
 
-[ideally safety properties of types can be declared retro-actively.]
+[explain how to require multiple properties]
 
-[how do we motivate other, custom properties?]
+Just like requiring all captured types to have a certain property, sometimes
+it's necessary to prevent types with a certain property from being captured.
+While in principle this could be supported by requiring a property that's not
+satisfied only by those types we wish to exclude from capturing, it would
+require declaring all types that are not excluded, which would lead to a lot
+of boilerplate. Instead, we introduce another type member \verb|NoCapture[T]|
+used to express properties that lead to rejection of a captured type:
+
+\begin{lstlisting}
+    trait Spore[-A, +R] extends Function1[A, R] {
+      type Capture[T]
+      type NoCapture[T]
+    }
+\end{lstlisting}
+\noindent
+
+[explain how to exclude certain types]
 
 Type constraints for a newly defined spore can be introduced as follows:
 \begin{lstlisting}
@@ -413,15 +436,15 @@ Type constraints for a newly defined spore can be introduced as follows:
     } with[Pickler]
 \end{lstlisting}
 \noindent
-The above example defines a spore that requires an instance of type
-\verb|Pickler[String]| for its captured type \verb|String|. The type of the
-spore is thus:
 
-\begin{lstlisting}
-    Spore[Int, String] {
-      type Capture[T] = Pickler[T]
-    }
-\end{lstlisting}
+
+The \verb|with| keyword is used to express the mix-in composition of multiple
+traits.
+
+[ideally safety properties of types can be declared retro-actively.]
+
+[how do we motivate other, custom properties?]
+
 
 
 \section{Function-Passing Paradigm}
