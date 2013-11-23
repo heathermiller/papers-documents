@@ -369,7 +369,7 @@ The type of single-argument spores is defined as follows:
     }
 \end{lstlisting}
 \noindent
-The \verb|Spore| trait extends the \verb|Function1| trait which is defined as
+The \verb|Spore| trait extends the \verb|Function1| trait~\todo{variance annotations} which is defined as
 follows in Scala's standard library:
 
 \begin{lstlisting}
@@ -383,8 +383,6 @@ follows in Scala's standard library:
 The above definition expresses the fact that functions are objects with an
 \verb|apply| method; function composition is supported using the
 \verb|andThen| and \verb|compose| methods.
-
-[explain variance annotations]
 
 The \verb|Capture[T]| type member of the \verb|Spore| trait is used to express
 requirements of all captured types \verb|T| in the form of ``interfaces'' that
@@ -421,6 +419,24 @@ used to express properties that lead to rejection of a captured type:
     }
 \end{lstlisting}
 \noindent
+Given this way of introducing constraints it's even possible to require
+captured types to have multiple properties. Since properties are expressed
+using traits, properties can be combined using mix-in composition. For
+example, a spore requiring all captured types to be both serializable and
+thread-safe would look as follows:
+
+\begin{lstlisting}
+    Spore[Int, String] {
+      type Capture[T] = Pickler[T] with ThreadSafe[T]
+    }
+\end{lstlisting}
+\noindent
+The idea behind the property \verb|ThreadSafe| is that thread-safe types could
+provide dummy implementations of the interface \verb|ThreadSafe[T]|. Moreover,
+the \verb|with| keyword is used to create the mix-in composition of
+\verb|Pickler[T]| and \verb|ThreadSafe[T]|. This composition is guaranteed to
+be defined if we require all properties to be direct descendants of
+\verb|AnyRef|, the top type of all reference types in Scala.
 
 Spores without constraints have types of the following form:
 \begin{lstlisting}
@@ -442,15 +458,7 @@ Type constraints for a newly defined spore can be introduced as follows:
 \end{lstlisting}
 \noindent
 
-[explain how to require multiple properties]
-
 [explain how to exclude certain types]
-
-
-
-
-The \verb|with| keyword is used to express the mix-in composition of multiple
-traits.
 
 [ideally safety properties of types can be declared retro-actively.]
 
