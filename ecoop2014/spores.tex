@@ -876,9 +876,13 @@ Paradigms or patterns built on top of spores:
 
 \section{Evaluation}
 
-It's difficult to convincingly evaluate a new programming model, upon which a number of new abstractions have not yet been built. Therefore, we evaluate the spore-agent model in the following important ways; (1) we provide a detailed case analysis of a number of distributed applications that can be enabled or greatly facilitated by basing these frameworks on spores, (2) we show a number of important and useful scenarios that the actor model is not able to or is not well-suited to support, and finally (3) we show that in some of these scenarios, the spores-agent model is both more natural and performant.
-
-Can persist them and have remoting in a way that doesn't slow down everything else. Still provides efficient local computation.
+% program    | LOC | #closures | #converted | LOC changed | #captured vars
+%
+% funsets    |  99 | 8 + (1)   | 8          | 7           | 9
+% forcomp    | 201 | 6 + (2)   | 4          | 4           | 0
+% mandelbrot | 325 | 1         | 1          | 9           | 4
+% barneshut  | 722 | ??        | ??         | ??          | ??
+% pagerank   | ??  | ??        | ??         | ??          | ??
 
 \section{Related Work}
 
