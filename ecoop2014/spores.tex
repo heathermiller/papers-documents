@@ -554,8 +554,6 @@ then what happens.
 
 \section{Formalization}\label{sec:formal}
 
-
-
 \begin{figure*}[ht!]
   \centering
 
@@ -572,9 +570,11 @@ p ::=     (x: T) \Rightarrow t              & \mbox{abstraction}
 \\
 \gap ~|~  x.l                               & \mbox{selection}
 \\
-\gap ~|~  \texttt{spore}~\{~\seq{x : S = t}~; (x: T) \Rightarrow t~\}  & \mbox{spore}
+\gap ~|~  \texttt{spore}~\{~\seq{x : S = p}~; (x: T) \Rightarrow t~\}  & \mbox{spore}
 \\
-\gap ~|~  \texttt{import}~pn~\texttt{in}~t  & \mbox{import}
+\gap ~|~  \texttt{import}~pn~\texttt{in}~t  & \mbox{property import}
+\\
+\gap ~|~  x~\texttt{compose}~y              & \mbox{spore composition}
 \\
 \gap ~|~  t                                 & \mbox{term}
 \\
@@ -584,6 +584,8 @@ T ::=     T \Rightarrow T                   & \mbox{function type} \\
 \gap ~|~  \mathcal{S}                       & \mbox{}
 \\
 \mathcal{S} ::= T \Rightarrow T~\{~\texttt{type}~\mathcal{C} = \seq{T}~;~\seq{pn}~\}   & \mbox{spore type}
+\\
+\gap ~|~  T \Rightarrow T~\{~\texttt{type}~\mathcal{C}~;~\seq{pn}~\}   & \mbox{abstract spore type}
 \\
 P \in pn \rightarrow \mathcal{T} & \mbox {property map}
 \\
@@ -602,7 +604,7 @@ P \in pn \rightarrow \mathcal{T} & \mbox {property map}
   \label{fig:syntax}
 \end{figure*}
 
-We formalize spores in the context of a lambda calculus with records, shown in Figure~\ref{fig:syntax}. The language is in A-normal form~\cite{ANF} which means that all intermediate terms are named. Terms are standard except for the \texttt{spore} and the \texttt{import} terms. A \texttt{spore} term creates a new spore, and an \texttt{import} term imports a property name into the property environment within a lexically-scoped term; the property environment is used whenever a spore is created. This is explained in more detail below in Section~\ref{sec:typing}. The grammar of types is standard except for spore types. Spore types are refinements of function types. They additionally contain a list of captured types and a set of property names.
+We formalize spores in the context of a lambda calculus with records, shown in Figure~\ref{fig:syntax}. The language is in A-normal form~\cite{ANF} which means that all intermediate terms are named. Terms are standard except for the \texttt{spore} and the \texttt{import} terms. A \texttt{spore} term creates a new spore, and an \texttt{import} term imports a property name into the property environment within a lexically-scoped term; the property environment is used whenever a spore is created. This is explained in more detail below in Section~\ref{sec:typing}. The grammar of types is standard except for spore types. Spore types are refinements of function types. They additionally contain a sequence of captured types (which can be left abstract) and a sequence of property names.
 
 \subsection{Subtyping}\label{sec:subtyping}
 
@@ -626,36 +628,48 @@ We formalize spores in the context of a lambda calculus with records, shown in F
 \vspace{0.4cm}
 
 \infrule[\textsc{S-Spore}]
-{ T_2 <: T_1 \andalso R_1 <: R_2 \\
-  \seq{S'} \neq \texttt{Top} \andalso \seq{S} \subseteq \seq{S'} \\
-  \seq{pn'} \subseteq \seq{pn}
+{ T_2 <: T_1 \andalso R_1 <: R_2 \andalso \seq{pn'} \subseteq \seq{pn}
 }
-{ T_1 \Rightarrow R_1~\{~\texttt{type}~\mathcal{C} = \seq{S}~;~\seq{pn}~\} <: \\ T_2 \Rightarrow R_2~\{~\texttt{type}~\mathcal{C} = \seq{S'}~;~\seq{pn'}~\}
+{ T_1 \Rightarrow R_1~\{~\texttt{type}~\mathcal{C} = \seq{S}~;~\seq{pn}~\} <: T_2 \Rightarrow R_2~\{~\texttt{type}~\mathcal{C} = \seq{S}~;~\seq{pn'}~\}
 }
 
 \vspace{0.4cm}
 
-\infrule[\textsc{S-SporeTop}]
-{ T_2 <: T_1 \andalso R_1 <: R_2 \\
-  \seq{pn'} \subseteq \seq{pn}
+\infrule[\textsc{S-SporeAbs}]
+{ T_2 <: T_1 \andalso R_1 <: R_2 \andalso \seq{pn'} \subseteq \seq{pn}
 }
-{ T_1 \Rightarrow R_1~\{~\texttt{type}~\mathcal{C} = \seq{S}~;~\seq{pn}~\} <: \\ T_2 \Rightarrow R_2~\{~\texttt{type}~\mathcal{C} = \texttt{Top}~;~\seq{pn'}~\}
+{ T_1 \Rightarrow R_1~\{~\texttt{type}~\mathcal{C} = \seq{S}~;~\seq{pn}~\} <: T_2 \Rightarrow R_2~\{~\texttt{type}~\mathcal{C}~;~\seq{pn'}~\}
+}
+
+\vspace{0.4cm}
+
+\infrule[\textsc{S-SporeAbsAbs}]
+{ T_2 <: T_1 \andalso R_1 <: R_2 \andalso \seq{pn'} \subseteq \seq{pn}
+}
+{ T_1 \Rightarrow R_1~\{~\texttt{type}~\mathcal{C}~;~\seq{pn}~\} <: T_2 \Rightarrow R_2~\{~\texttt{type}~\mathcal{C}~;~\seq{pn'}~\}
 }
 
 \vspace{0.4cm}
 
 \infrule[\textsc{S-SporeFun}]
-{ T_2 <: T_1 \andalso R_1 <: R_2
+{
 }
-{ T_1 \Rightarrow R_1~\{~\texttt{type}~\mathcal{C} = \seq{S}~;~\seq{pn}~\} <: T_2 \Rightarrow R_2
+{ T_1 \Rightarrow R_1~\{~\texttt{type}~\mathcal{C} = \seq{S}~;~\seq{pn}~\} <: T_1 \Rightarrow R_1
+}
+
+\vspace{0.4cm}
+
+\infrule[\textsc{S-SporeAbsFun}]
+{
+}
+{ T_1 \Rightarrow R_1~\{~\texttt{type}~\mathcal{C}~;~\seq{pn}~\} <: T_1 \Rightarrow R_1
 }
 
   \caption{Subtyping}
   \label{fig:subtyping}
 \end{figure*}
 
-In the spore type we have a possibly-empty sequence of captured types. According to the subtyping rules, a spore with empty captured types is always a subtype as long as its closure types are compatible.
-
+The subtyping rule for spores is analogous to the subtyping rule for regular functions with respect to the argument and result types. Additionally, for two spore types to be in a subtyping relationship either their captured types have to be same or the supertype must have an abstract spore type. Also, it's possible that the subtype provides more properties $\seq{pn}$ than its supertype. The way both the captured type and the properties are modeled corresponds to the subtyping rule for refinement types in Scala.
 
 \subsection{Typing rules}\label{sec:typing}
 
@@ -728,28 +742,28 @@ In the spore type we have a possibly-empty sequence of captured types. According
 \vspace{0.4cm}
 
 \infrule[\textsc{T-Spore}]
-{ \seq{x : S}, x : T_1 ; \Delta \vdash t : T_2
+{ \seq{x : S}, x : T_1 ; \Delta \vdash t : T_2 \\
+  \forall pn \in \Delta.~\seq{S} \subseteq P(pn)
 }
-{ \Gamma ; \Delta \vdash \texttt{spore}~\{~\seq{x : S = t}~; (x: T_1) \Rightarrow t~\} : \\
-  \mathcal{S}~\{~\texttt{type}~\mathcal{C} = \seq{S}~;~\Delta~;~T_1 \Rightarrow T_2~\}
+{ \Gamma ; \Delta \vdash \texttt{spore}~\{~\seq{x : S = p}~; (x: T_1) \Rightarrow t~\} : \\
+  T_1 \Rightarrow T_2~\{~\texttt{type}~\mathcal{C} = \seq{S}~;~\Delta~\}
 }
 
 \vspace{0.4cm}
 
 \infrule[\textsc{T-Comp}]
-{ \Gamma \vdash t_1 : \mathcal{S}~\{~\texttt{type}~\mathcal{C} = \seq{S}~;~\Delta_1~;~T_1 \Rightarrow T_2~\} \\
-  \Gamma \vdash t_2 : \mathcal{S}~\{~\texttt{type}~\mathcal{C} = \seq{R}~;~\Delta_2~;~U_1 \Rightarrow U_2~\} \\
-  U_2 <: T_1 \\
+{ \Gamma \vdash x : T_1 \Rightarrow T_2~\{~\texttt{type}~\mathcal{C} = \seq{S}~;~\Delta_1~\} \\
+  \Gamma \vdash y : U_1 \Rightarrow T_1~\{~\texttt{type}~\mathcal{C} = \seq{R}~;~\Delta_2~\} \\
   \Delta = \{ pn \in \Delta_1 \cup \Delta_2 ~|~ \seq{S} \subseteq P(pn) \land \seq{R} \subseteq P(pn) \}
 }
-{ \Gamma \vdash t_1~\texttt{compose}~t_2 : \mathcal{S}~\{~\texttt{type}~\mathcal{C} = \seq{S}, \seq{R}~;~\Delta~;~U_1 \Rightarrow T_2~\}
+{ \Gamma \vdash x~\texttt{compose}~y : U_1 \Rightarrow T_2~\{~\texttt{type}~\mathcal{C} = \seq{S}, \seq{R}~;~\Delta~\}
 }
 
   \caption{Typing rules}
   \label{fig:typing-rules}
 \end{figure*}
 
-When type-checking we assume the existence of a global mapping from property names to type families, much like a global class table in a core language like FJ~\cite{FJ}.
+When type-checking we assume the existence of a global property mapping $P$ from property names $pn$ to type families $\mathcal{T}$, much like a global class table in a core language like FJ~\cite{FJ}.
 
 Operationally, spore composition is the same as function composition. However, type-wise there is a difference given the type refinements of spores. The compose rule (\textsc{T-Comp}) will always try to return a spore type with stronger properties (if possible); it does that by making use of the captured types and will add a property if indeed all captured types satisfy it. On the other hand, it's always possible to weaken the properties of a spore, by assigning a spore to a variable which has only weaker properties. This is enabled through spore subtyping and subsumption (\textsc{T-Sub}).
 
