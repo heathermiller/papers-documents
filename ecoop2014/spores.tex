@@ -558,25 +558,32 @@ then what happens.
   \centering
 
   $\ba[t]{l@{\hspace{2mm}}l}
-t ::=     \texttt{let}~x = p~\texttt{in}~t  & \mbox{let binding}
+t ::=     x                                 & \mbox{variable}
 \\
-\gap ~|~  x                                 & \mbox{variable}
+\gap ~|~  (x: T) \Rightarrow t              & \mbox{abstraction}
 \\
-p ::=     (x: T) \Rightarrow t              & \mbox{abstraction}
+\gap ~|~  t~t                               & \mbox{application}
 \\
-\gap ~|~  x~y                               & \mbox{application}
+\gap ~|~  \texttt{let}~x = t~\texttt{in}~t  & \mbox{let binding}
 \\
-\gap ~|~  \{ \seq{l = x} \}                 & \mbox{record construction}
+\gap ~|~  \{ \seq{l = t} \}                 & \mbox{record construction}
 \\
-\gap ~|~  x.l                               & \mbox{selection}
+\gap ~|~  t.l                               & \mbox{selection}
 \\
-\gap ~|~  \texttt{spore}~\{~\seq{x : S = p}~; (x: T) \Rightarrow t~\}  & \mbox{spore}
+\gap ~|~  \texttt{spore}~\{~\seq{x : T = t}~; (x: T) \Rightarrow t~\}  & \mbox{spore}
 \\
 \gap ~|~  \texttt{import}~pn~\texttt{in}~t  & \mbox{property import}
 \\
-\gap ~|~  x~\texttt{compose}~y              & \mbox{spore composition}
+\gap ~|~  t~\texttt{compose}~t              & \mbox{spore composition}
 \\
-\gap ~|~  t                                 & \mbox{term}
+ & \\
+v ::=     x                                 & \mbox{variable}
+\\
+\gap ~|~  (x: T) \Rightarrow t              & \mbox{abstraction}
+\\
+\gap ~|~  \{ \seq{l = v} \}                 & \mbox{record value}
+\\
+\gap ~|~  \texttt{spore}^{\seq{pn}}~\{~\seq{x : T = v}~; (x: T) \Rightarrow t~\}  & \mbox{spore value}
 \\
  & \\
 T ::=     T \Rightarrow T                   & \mbox{function type} \\
@@ -767,7 +774,99 @@ When type-checking we assume the existence of a global property mapping $P$ from
 
 Operationally, spore composition is the same as function composition. However, type-wise there is a difference given the type refinements of spores. The compose rule (\textsc{T-Comp}) will always try to return a spore type with stronger properties (if possible); it does that by making use of the captured types and will add a property if indeed all captured types satisfy it. On the other hand, it's always possible to weaken the properties of a spore, by assigning a spore to a variable which has only weaker properties. This is enabled through spore subtyping and subsumption (\textsc{T-Sub}).
 
-\subsection{Operational Semantics}\label{sec:opsem}
+
+How do I distinguish the case where I capture one variable of type Any, and the case where I don't care about the captured variables?
+
+\subsection{Operational semantics}\label{sec:opsem}
+
+
+\begin{figure*}[ht!]
+  \centering
+\infrule[\textsc{E-App1}]
+{ t_1 \rightarrow t'_1
+}
+{ t_1 t_2 \rightarrow t'_1 t_2
+}
+
+\vspace{0.4cm}
+
+\infrule[\textsc{E-App2}]
+{ t_2 \rightarrow t'_2
+}
+{ v_1 t_2 \rightarrow t_1 t_2
+}
+
+\vspace{0.4cm}
+
+\infax[\textsc{E-AppAbs}]
+{ ((x : T) \Rightarrow  t) v \rightarrow [x \mapsto v]t
+}
+
+\vspace{0.4cm}
+
+\infrule[\textsc{E-Let1}]
+{ t_1 \rightarrow t'_1
+}
+{ \texttt{let}~x = t_1~\texttt{in}~t_2 \rightarrow \texttt{let}~x = t'_1~\texttt{in}~t_2
+}
+
+\vspace{0.4cm}
+
+\infax[\textsc{E-Let2}]
+{ \texttt{let}~x = v_1~\texttt{in}~t_2 \rightarrow [x \mapsto v_1]t_2
+}
+
+\vspace{0.4cm}
+
+\infrule[\textsc{E-Rec}]
+{ t_k \rightarrow t'_k
+}
+{ \{ \seq{l = v}, l_k = t_k, \seq{l' = t'} \} \rightarrow \{ \seq{l = v}, l_k = t'_k, \seq{l' = t'} \}
+}
+
+\vspace{0.4cm}
+
+\infrule[\textsc{E-Spore}]
+{ t_k \rightarrow t'_k
+}
+{ \texttt{spore}~\{~\seq{x : T = v}, x_k : T_k = t_k, \seq{x' : T' = t'}~; (x: T) \Rightarrow t~\} \rightarrow \\ \texttt{spore}~\{~\seq{x : T = v}, x_k : T_k = t'_k, \seq{x' : T' = t'}~; (x: T) \Rightarrow t~\}
+}
+
+\vspace{0.4cm}
+
+\infrule[\textsc{E-Sel1}]
+{ t \rightarrow t'
+}
+{ t.l \rightarrow t'.l
+}
+
+\vspace{0.4cm}
+
+\infax[\textsc{E-Sel2}]
+{ \{ \seq{l = v} \}.l_i \rightarrow v_i
+}
+
+\vspace{0.4cm}
+
+\infrule[\textsc{E-Imp}]
+{ 
+}
+{ \texttt{import}~pn~\texttt{in}~t \rightarrow attach(pn, t)
+}
+
+\vspace{0.4cm}
+
+\infax[\textsc{A-Spore}]
+{ \{ \seq{l = v} \}.l_i \rightarrow v_i
+}
+
+\vspace{0.4cm}
+
+\texttt{import}~pn~\texttt{in}~t
+
+  \caption{Operational Semantics}
+  \label{fig:opsem}
+\end{figure*}
 
 Goals:
 \begin{itemize}
