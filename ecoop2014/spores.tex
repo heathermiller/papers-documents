@@ -570,7 +570,7 @@ t ::=     x                                 & \mbox{variable}
 \\
 \gap ~|~  t.l                               & \mbox{selection}
 \\
-\gap ~|~  \texttt{spore}~\{~\seq{x : T = t}~; (x: T) \Rightarrow t~\}  & \mbox{spore}
+\gap ~|~  \texttt{spore}~\{~\seq{x : T = t}~; \seq{pn} ; (x: T) \Rightarrow t~\}  & \mbox{spore}
 \\
 \gap ~|~  \texttt{import}~pn~\texttt{in}~t  & \mbox{property import}
 \\
@@ -583,7 +583,7 @@ v ::=     x                                 & \mbox{variable}
 \\
 \gap ~|~  \{ \seq{l = v} \}                 & \mbox{record value}
 \\
-\gap ~|~  \texttt{spore}^{\seq{pn}}~\{~\seq{x : T = v}~; (x: T) \Rightarrow t~\}  & \mbox{spore value}
+\gap ~|~  \texttt{spore}~\{~\seq{x : T = v}~; \seq{pn} ; (x: T) \Rightarrow t~\}  & \mbox{spore value}
 \\
  & \\
 T ::=     T \Rightarrow T                   & \mbox{function type} \\
@@ -692,9 +692,9 @@ The subtyping rule for spores is analogous to the subtyping rule for regular fun
 \vspace{0.4cm}
 
 \infrule[\textsc{T-Sub}]
-{ \Gamma \vdash p : T'  \quad  T' <: T
+{ \Gamma \vdash t : T'  \quad  T' <: T
 }
-{ \Gamma \vdash p : T
+{ \Gamma \vdash t : T
 }
 
 \vspace{0.4cm}
@@ -717,25 +717,25 @@ The subtyping rule for spores is analogous to the subtyping rule for regular fun
 \vspace{0.4cm}
 
 \infrule[\textsc{T-Let}]
-{ \Gamma \vdash p : T_1 \quad \Gamma, x : T_1 \vdash t : T_2
+{ \Gamma \vdash t_1 : T_1 \quad \Gamma, x : T_1 \vdash t_2 : T_2
 }
-{ \Gamma \vdash \texttt{let}~x = p~\texttt{in}~t : T_2
+{ \Gamma \vdash \texttt{let}~x = t_1~\texttt{in}~t_2 : T_2
 }
 
 \vspace{0.4cm}
 
 \infrule[\textsc{T-Rec}]
-{ \Gamma \vdash \seq{x : T}
+{ \Gamma \vdash \seq{t : T}
 }
-{ \Gamma \vdash \{ \seq{l = x} \} : \{ \seq{l : T} \}
+{ \Gamma \vdash \{ \seq{l = t} \} : \{ \seq{l : T} \}
 }
 
 \vspace{0.4cm}
 
 \infrule[\textsc{T-Sel}]
-{ \Gamma \vdash x : \{ \seq{l : T} \}
+{ \Gamma \vdash t : \{ \seq{l : T} \}
 }
-{ \Gamma \vdash x.l_i : T_i
+{ \Gamma \vdash t.l_i : T_i
 }
 
 \vspace{0.4cm}
@@ -752,18 +752,18 @@ The subtyping rule for spores is analogous to the subtyping rule for regular fun
 { \seq{x : S}, x : T_1 ; \Delta \vdash t : T_2 \\
   \forall pn \in \Delta.~\seq{S} \subseteq P(pn)
 }
-{ \Gamma ; \Delta \vdash \texttt{spore}~\{~\seq{x : S = p}~; (x: T_1) \Rightarrow t~\} : \\
+{ \Gamma ; \Delta \vdash \texttt{spore}~\{~\seq{x : S = t}~; (x: T_1) \Rightarrow t~\} : \\
   T_1 \Rightarrow T_2~\{~\texttt{type}~\mathcal{C} = \seq{S}~;~\Delta~\}
 }
 
 \vspace{0.4cm}
 
 \infrule[\textsc{T-Comp}]
-{ \Gamma \vdash x : T_1 \Rightarrow T_2~\{~\texttt{type}~\mathcal{C} = \seq{S}~;~\Delta_1~\} \\
-  \Gamma \vdash y : U_1 \Rightarrow T_1~\{~\texttt{type}~\mathcal{C} = \seq{R}~;~\Delta_2~\} \\
+{ \Gamma \vdash t_1 : T_1 \Rightarrow T_2~\{~\texttt{type}~\mathcal{C} = \seq{S}~;~\Delta_1~\} \\
+  \Gamma \vdash t_2 : U_1 \Rightarrow T_1~\{~\texttt{type}~\mathcal{C} = \seq{R}~;~\Delta_2~\} \\
   \Delta = \{ pn \in \Delta_1 \cup \Delta_2 ~|~ \seq{S} \subseteq P(pn) \land \seq{R} \subseteq P(pn) \}
 }
-{ \Gamma \vdash x~\texttt{compose}~y : U_1 \Rightarrow T_2~\{~\texttt{type}~\mathcal{C} = \seq{S}, \seq{R}~;~\Delta~\}
+{ \Gamma \vdash t_1~\texttt{compose}~t_2 : U_1 \Rightarrow T_2~\{~\texttt{type}~\mathcal{C} = \seq{S}, \seq{R}~;~\Delta~\}
 }
 
   \caption{Typing rules}
@@ -774,11 +774,10 @@ When type-checking we assume the existence of a global property mapping $P$ from
 
 Operationally, spore composition is the same as function composition. However, type-wise there is a difference given the type refinements of spores. The compose rule (\textsc{T-Comp}) will always try to return a spore type with stronger properties (if possible); it does that by making use of the captured types and will add a property if indeed all captured types satisfy it. On the other hand, it's always possible to weaken the properties of a spore, by assigning a spore to a variable which has only weaker properties. This is enabled through spore subtyping and subsumption (\textsc{T-Sub}).
 
+Note that there is no rule for spore application. The reason is that there is a subtyping relationship between spores and functions. Thus, according to rule (\textsc{T-Sub}) and the subtyping rules in Figure~\ref{fig:subtyping} we can already deduce that a spore has a function type; thus, the regular rule (\textsc{T-App}) applies.
 
-How do I distinguish the case where I capture one variable of type Any, and the case where I don't care about the captured variables?
 
 \subsection{Operational semantics}\label{sec:opsem}
-
 
 \begin{figure*}[ht!]
   \centering
@@ -793,7 +792,7 @@ How do I distinguish the case where I capture one variable of type Any, and the 
 \infrule[\textsc{E-App2}]
 { t_2 \rightarrow t'_2
 }
-{ v_1 t_2 \rightarrow t_1 t_2
+{ v_1 t_2 \rightarrow t_1 t'_2
 }
 
 \vspace{0.4cm}
@@ -834,6 +833,14 @@ How do I distinguish the case where I capture one variable of type Any, and the 
 
 \vspace{0.4cm}
 
+\infrule[\textsc{E-AppSpore}]
+{ \forall pn \in \seq{pn}.~\seq{T} \subseteq P(pn)
+}
+{ \texttt{spore}~\{~\seq{x:T=v};\seq{pn};(x':T)\Rightarrow t~\}v' \rightarrow \seq{[x \mapsto v]}[x' \mapsto v']t
+}
+
+\vspace{0.4cm}
+
 \infrule[\textsc{E-Sel1}]
 { t \rightarrow t'
 }
@@ -848,25 +855,48 @@ How do I distinguish the case where I capture one variable of type Any, and the 
 
 \vspace{0.4cm}
 
-\infrule[\textsc{E-Imp}]
-{ 
+\infax[\textsc{E-Imp}]
+{ \texttt{import}~pn~\texttt{in}~t \rightarrow insert(pn, t)
 }
-{ \texttt{import}~pn~\texttt{in}~t \rightarrow attach(pn, t)
-}
-
-\vspace{0.4cm}
-
-\infax[\textsc{A-Spore}]
-{ \{ \seq{l = v} \}.l_i \rightarrow v_i
-}
-
-\vspace{0.4cm}
-
-\texttt{import}~pn~\texttt{in}~t
 
   \caption{Operational Semantics}
   \label{fig:opsem}
 \end{figure*}
+
+
+\begin{figure*}[ht!]
+  \centering
+
+\infrule[\textsc{H-InsSpore1}]
+{ \forall t_i \in \seq{t}.~insert(pn, t_i) = t'_i \\
+  insert(pn, t) = t'
+}
+{ insert(pn, \texttt{spore}~\{~\seq{x:T=t};\seq{pn};(x':T)\Rightarrow t~\}) = \\ \texttt{spore}~\{~\seq{x:T=t'};\seq{pn}, pn;(x':T)\Rightarrow t'~\}
+}
+
+\vspace{0.4cm}
+
+\infax[\textsc{H-InsSpore2}]
+{ insert(pn, \texttt{spore}~\{~\seq{x:T=v};\seq{pn};(x':T)\Rightarrow t~\}) = \\
+\texttt{spore}~\{~\seq{x:T=v};\seq{pn}, pn, pn;(x':T)\Rightarrow t~\}
+}
+
+\vspace{0.4cm}
+
+\infax[\textsc{H-InsApp}]
+{ insert(pn, t_1~t_2) = insert(pn, t_1)~insert(pn, t_2)
+}
+
+\vspace{0.4cm}
+
+\infax[\textsc{H-InsSel}]
+{ insert(pn, t.l) = insert(pn, t).l
+}
+
+  \caption{Helper functions}
+  \label{fig:helper}
+\end{figure*}
+
 
 Goals:
 \begin{itemize}
