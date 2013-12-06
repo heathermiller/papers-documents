@@ -10,6 +10,31 @@
 \usepackage{todonotes}
 \usepackage{listings}
 
+\usepackage{bcprules}
+
+% Member sequences
+\newcommand{\seq}[1]{\overline{#1}}
+
+% arrays
+\newcommand{\ba}{\begin{array}}
+\newcommand{\ea}{\end{array}}
+\newcommand{\bda}{\[\ba}
+\newcommand{\eda}{\ea\]}
+\newcommand{\ei}{\end{array}}
+\newcommand{\bcases}{\left\{\begin{array}{ll}}
+\newcommand{\ecases}{\end{array}\right.}
+
+% spacing
+\newcommand{\gap}{\quad\quad}
+\newcommand{\biggap}{\quad\quad\quad}
+\newcommand{\nextline}{\\ \\}
+\newcommand{\htabwidth}{0.5cm}
+\newcommand{\tabwidth}{1cm}
+\newcommand{\htab}{\hspace{\htabwidth}}
+\newcommand{\tab}{\hspace{\tabwidth}}
+\newcommand{\linesep}{\ \hrulefill \ \smallskip}
+
+
 \lstdefinelanguage{Scala}%
 {morekeywords={abstract,case,catch,char,class,%
     def,else,extends,final,%
@@ -233,38 +258,38 @@ This paper makes the following contributions:
 Section on jargon. Lambdas, functions, closures. Introduce a baseline
 vocabulary with respect to environment for duration of paper.
 
-\subsection{Functions Across Languages}
+% \subsection{Functions Across Languages}
 
-A survey of the way different languages deal with functions and closures. How
-the environment is kept, scoping, stack frames, etc.
+% A survey of the way different languages deal with functions and closures. How
+% the environment is kept, scoping, stack frames, etc.
 
-Languages to compare with closures:
+% Languages to compare with closures:
 
-\begin{itemize}
-\item Scala
-\item Objective C
-\item Java
-\item VB.net
-\item Python
-\item Ruby
-\item Javascript
-\item Lisp
-\item Perl
-\item Lisp
-\item Racket
-\item Scheme
-\item Clojure
-\item Rust
-\item Go
-\item Dart
-\item Haskell
-\item ML
-\item C++
-\item Lua
-\item Smalltalk
-\item ECMAScript
-\item C\# (Supports functions, but not closures. Emulates with delegates.)
-\end{itemize}
+% \begin{itemize}
+% \item Scala
+% \item Objective C
+% \item Java
+% \item VB.net
+% \item Python
+% \item Ruby
+% \item Javascript
+% \item Lisp
+% \item Perl
+% \item Lisp
+% \item Racket
+% \item Scheme
+% \item Clojure
+% \item Rust
+% \item Go
+% \item Dart
+% \item Haskell
+% \item ML
+% \item C++
+% \item Lua
+% \item Smalltalk
+% \item ECMAScript
+% \item C\# (Supports functions, but not closures. Emulates with delegates.)
+% \end{itemize}
 
 \section{Lambda the Ultimate Distributive}
 
@@ -529,7 +554,349 @@ then what happens.
 
 \section{Formalization}\label{sec:formal}
 
-\subsection{Operational Semantics}\label{sec:opsem}
+\begin{figure*}[ht!]
+  \centering
+
+  $\ba[t]{l@{\hspace{2mm}}l}
+t ::=     x                                 & \mbox{variable}
+\\
+\gap ~|~  (x: T) \Rightarrow t              & \mbox{abstraction}
+\\
+\gap ~|~  t~t                               & \mbox{application}
+\\
+\gap ~|~  \texttt{let}~x = t~\texttt{in}~t  & \mbox{let binding}
+\\
+\gap ~|~  \{ \seq{l = t} \}                 & \mbox{record construction}
+\\
+\gap ~|~  t.l                               & \mbox{selection}
+\\
+\gap ~|~  \texttt{spore}~\{~\seq{x : T = t}~; \seq{pn} ; (x: T) \Rightarrow t~\}  & \mbox{spore}
+\\
+\gap ~|~  \texttt{import}~pn~\texttt{in}~t  & \mbox{property import}
+\\
+\gap ~|~  t~\texttt{compose}~t              & \mbox{spore composition}
+\\
+ & \\
+v ::=     x                                 & \mbox{variable}
+\\
+\gap ~|~  (x: T) \Rightarrow t              & \mbox{abstraction}
+\\
+\gap ~|~  \{ \seq{l = v} \}                 & \mbox{record value}
+\\
+\gap ~|~  \texttt{spore}~\{~\seq{x : T = v}~; \seq{pn} ; (x: T) \Rightarrow t~\}  & \mbox{spore value}
+\\
+ & \\
+T ::=     T \Rightarrow T                   & \mbox{function type} \\
+\gap ~|~  \{ \seq{l : T} \}                 & \mbox{record type}   \\
+\gap ~|~  \mathcal{S}                       & \mbox{}
+\\
+\mathcal{S} ::= T \Rightarrow T~\{~\texttt{type}~\mathcal{C} = \seq{T}~;~\seq{pn}~\}   & \mbox{spore type}
+\\
+\gap ~|~  T \Rightarrow T~\{~\texttt{type}~\mathcal{C}~;~\seq{pn}~\}   & \mbox{abstract spore type}
+\\
+P \in pn \rightarrow \mathcal{T} & \mbox {property map}
+\\
+\mathcal{T} \in \mathcal{P}(T)   & \mbox{type family}
+%::= \epsilon & \mbox{type family} \\
+%\gap ~|~ T, \mathcal{T} & \mbox{non-empty}\\
+\\
+ & \\
+\Gamma ::=  \seq{x : T}          & \mbox{type environment}
+\\
+\Delta ::=  \seq{pn}             & \mbox{property environment}
+\\
+\ea$
+
+  \caption{Core language syntax}
+  \label{fig:syntax}
+\end{figure*}
+
+We formalize spores in the context of a lambda calculus with records, shown in Figure~\ref{fig:syntax}. The language is in A-normal form~\cite{ANF} which means that all intermediate terms are named. Terms are standard except for the \texttt{spore} and the \texttt{import} terms. A \texttt{spore} term creates a new spore, and an \texttt{import} term imports a property name into the property environment within a lexically-scoped term; the property environment is used whenever a spore is created. This is explained in more detail below in Section~\ref{sec:typing}. The grammar of types is standard except for spore types. Spore types are refinements of function types. They additionally contain a sequence of captured types (which can be left abstract) and a sequence of property names.
+
+\subsection{Subtyping}\label{sec:subtyping}
+
+\begin{figure*}[ht!]
+  \centering
+
+\infrule[\textsc{S-Rec}]
+{ \seq{l'} \subseteq \seq{l} \andalso l_i = l'_i \to T_i <: T'_i \land T'_i <: T_i
+}
+{ \{ \seq{l : T} \} <: \{ \seq{l' : T'} \}
+}
+
+\vspace{0.4cm}
+
+\infrule[\textsc{S-Fun}]
+{ T_2 <: T_1 \andalso R_1 <: R_2
+}
+{ T_1 \Rightarrow R_1 <: T_2 \Rightarrow R_2
+}
+
+\vspace{0.4cm}
+
+\infrule[\textsc{S-Spore}]
+{ T_2 <: T_1 \andalso R_1 <: R_2 \andalso \seq{pn'} \subseteq \seq{pn}
+}
+{ T_1 \Rightarrow R_1~\{~\texttt{type}~\mathcal{C} = \seq{S}~;~\seq{pn}~\} <: T_2 \Rightarrow R_2~\{~\texttt{type}~\mathcal{C} = \seq{S}~;~\seq{pn'}~\}
+}
+
+\vspace{0.4cm}
+
+\infrule[\textsc{S-SporeAbs}]
+{ T_2 <: T_1 \andalso R_1 <: R_2 \andalso \seq{pn'} \subseteq \seq{pn}
+}
+{ T_1 \Rightarrow R_1~\{~\texttt{type}~\mathcal{C} = \seq{S}~;~\seq{pn}~\} <: T_2 \Rightarrow R_2~\{~\texttt{type}~\mathcal{C}~;~\seq{pn'}~\}
+}
+
+\vspace{0.4cm}
+
+\infrule[\textsc{S-SporeAbsAbs}]
+{ T_2 <: T_1 \andalso R_1 <: R_2 \andalso \seq{pn'} \subseteq \seq{pn}
+}
+{ T_1 \Rightarrow R_1~\{~\texttt{type}~\mathcal{C}~;~\seq{pn}~\} <: T_2 \Rightarrow R_2~\{~\texttt{type}~\mathcal{C}~;~\seq{pn'}~\}
+}
+
+\vspace{0.4cm}
+
+\infrule[\textsc{S-SporeFun}]
+{
+}
+{ T_1 \Rightarrow R_1~\{~\texttt{type}~\mathcal{C} = \seq{S}~;~\seq{pn}~\} <: T_1 \Rightarrow R_1
+}
+
+\vspace{0.4cm}
+
+\infrule[\textsc{S-SporeAbsFun}]
+{
+}
+{ T_1 \Rightarrow R_1~\{~\texttt{type}~\mathcal{C}~;~\seq{pn}~\} <: T_1 \Rightarrow R_1
+}
+
+  \caption{Subtyping}
+  \label{fig:subtyping}
+\end{figure*}
+
+The subtyping rule for spores is analogous to the subtyping rule for regular functions with respect to the argument and result types. Additionally, for two spore types to be in a subtyping relationship either their captured types have to be same or the supertype must have an abstract spore type. Also, it's possible that the subtype provides more properties $\seq{pn}$ than its supertype. The way both the captured type and the properties are modeled corresponds to the subtyping rule for refinement types in Scala.
+
+\subsection{Typing rules}\label{sec:typing}
+
+\begin{figure*}[ht!]
+  \centering
+
+\infrule[\textsc{T-Var}]
+{ x : T \in \Gamma
+}
+{ \Gamma \vdash x : T
+}
+
+\vspace{0.4cm}
+
+\infrule[\textsc{T-Sub}]
+{ \Gamma \vdash t : T'  \quad  T' <: T
+}
+{ \Gamma \vdash t : T
+}
+
+\vspace{0.4cm}
+
+\infrule[\textsc{T-Abs}]
+{ \Gamma, x : T_1 \vdash t : T_2
+}
+{ \Gamma \vdash ((x: T_1) \Rightarrow t) : (T_1 \Rightarrow T_2)
+}
+
+\vspace{0.4cm}
+
+\infrule[\textsc{T-App}]
+{ \Gamma \vdash t_1 : T_1 \Rightarrow T_2 \quad
+  \Gamma \vdash t_2 : T_1
+}
+{ \Gamma \vdash (t_1~t_2) : T_2
+}
+
+\vspace{0.4cm}
+
+\infrule[\textsc{T-Let}]
+{ \Gamma \vdash t_1 : T_1 \quad \Gamma, x : T_1 \vdash t_2 : T_2
+}
+{ \Gamma \vdash \texttt{let}~x = t_1~\texttt{in}~t_2 : T_2
+}
+
+\vspace{0.4cm}
+
+\infrule[\textsc{T-Rec}]
+{ \Gamma \vdash \seq{t : T}
+}
+{ \Gamma \vdash \{ \seq{l = t} \} : \{ \seq{l : T} \}
+}
+
+\vspace{0.4cm}
+
+\infrule[\textsc{T-Sel}]
+{ \Gamma \vdash t : \{ \seq{l : T} \}
+}
+{ \Gamma \vdash t.l_i : T_i
+}
+
+\vspace{0.4cm}
+
+\infrule[\textsc{T-Import}]
+{ \Gamma ; \Delta, pn \vdash t : T
+}
+{ \Gamma ; \Delta \vdash \texttt{import}~pn~\texttt{in}~t : T
+}
+
+\vspace{0.4cm}
+
+\infrule[\textsc{T-Spore}]
+{ \seq{x : S}, x : T_1 ; \Delta \vdash t : T_2 \\
+  \forall pn \in \Delta.~\seq{S} \subseteq P(pn)
+}
+{ \Gamma ; \Delta \vdash \texttt{spore}~\{~\seq{x : S = t}~; (x: T_1) \Rightarrow t~\} : \\
+  T_1 \Rightarrow T_2~\{~\texttt{type}~\mathcal{C} = \seq{S}~;~\Delta~\}
+}
+
+\vspace{0.4cm}
+
+\infrule[\textsc{T-Comp}]
+{ \Gamma \vdash t_1 : T_1 \Rightarrow T_2~\{~\texttt{type}~\mathcal{C} = \seq{S}~;~\Delta_1~\} \\
+  \Gamma \vdash t_2 : U_1 \Rightarrow T_1~\{~\texttt{type}~\mathcal{C} = \seq{R}~;~\Delta_2~\} \\
+  \Delta = \{ pn \in \Delta_1 \cup \Delta_2 ~|~ \seq{S} \subseteq P(pn) \land \seq{R} \subseteq P(pn) \}
+}
+{ \Gamma \vdash t_1~\texttt{compose}~t_2 : U_1 \Rightarrow T_2~\{~\texttt{type}~\mathcal{C} = \seq{S}, \seq{R}~;~\Delta~\}
+}
+
+  \caption{Typing rules}
+  \label{fig:typing-rules}
+\end{figure*}
+
+When type-checking we assume the existence of a global property mapping $P$ from property names $pn$ to type families $\mathcal{T}$, much like a global class table in a core language like FJ~\cite{FJ}.
+
+Operationally, spore composition is the same as function composition. However, type-wise there is a difference given the type refinements of spores. The compose rule (\textsc{T-Comp}) will always try to return a spore type with stronger properties (if possible); it does that by making use of the captured types and will add a property if indeed all captured types satisfy it. On the other hand, it's always possible to weaken the properties of a spore, by assigning a spore to a variable which has only weaker properties. This is enabled through spore subtyping and subsumption (\textsc{T-Sub}).
+
+Note that there is no rule for spore application. The reason is that there is a subtyping relationship between spores and functions. Thus, according to rule (\textsc{T-Sub}) and the subtyping rules in Figure~\ref{fig:subtyping} we can already deduce that a spore has a function type; thus, the regular rule (\textsc{T-App}) applies.
+
+
+\subsection{Operational semantics}\label{sec:opsem}
+
+\begin{figure*}[ht!]
+  \centering
+\infrule[\textsc{E-App1}]
+{ t_1 \rightarrow t'_1
+}
+{ t_1 t_2 \rightarrow t'_1 t_2
+}
+
+\vspace{0.4cm}
+
+\infrule[\textsc{E-App2}]
+{ t_2 \rightarrow t'_2
+}
+{ v_1 t_2 \rightarrow t_1 t'_2
+}
+
+\vspace{0.4cm}
+
+\infax[\textsc{E-AppAbs}]
+{ ((x : T) \Rightarrow  t) v \rightarrow [x \mapsto v]t
+}
+
+\vspace{0.4cm}
+
+\infrule[\textsc{E-Let1}]
+{ t_1 \rightarrow t'_1
+}
+{ \texttt{let}~x = t_1~\texttt{in}~t_2 \rightarrow \texttt{let}~x = t'_1~\texttt{in}~t_2
+}
+
+\vspace{0.4cm}
+
+\infax[\textsc{E-Let2}]
+{ \texttt{let}~x = v_1~\texttt{in}~t_2 \rightarrow [x \mapsto v_1]t_2
+}
+
+\vspace{0.4cm}
+
+\infrule[\textsc{E-Rec}]
+{ t_k \rightarrow t'_k
+}
+{ \{ \seq{l = v}, l_k = t_k, \seq{l' = t'} \} \rightarrow \{ \seq{l = v}, l_k = t'_k, \seq{l' = t'} \}
+}
+
+\vspace{0.4cm}
+
+\infrule[\textsc{E-Spore}]
+{ t_k \rightarrow t'_k
+}
+{ \texttt{spore}~\{~\seq{x : T = v}, x_k : T_k = t_k, \seq{x' : T' = t'}~; (x: T) \Rightarrow t~\} \rightarrow \\ \texttt{spore}~\{~\seq{x : T = v}, x_k : T_k = t'_k, \seq{x' : T' = t'}~; (x: T) \Rightarrow t~\}
+}
+
+\vspace{0.4cm}
+
+\infrule[\textsc{E-AppSpore}]
+{ \forall pn \in \seq{pn}.~\seq{T} \subseteq P(pn)
+}
+{ \texttt{spore}~\{~\seq{x:T=v};\seq{pn};(x':T)\Rightarrow t~\}v' \rightarrow \seq{[x \mapsto v]}[x' \mapsto v']t
+}
+
+\vspace{0.4cm}
+
+\infrule[\textsc{E-Sel1}]
+{ t \rightarrow t'
+}
+{ t.l \rightarrow t'.l
+}
+
+\vspace{0.4cm}
+
+\infax[\textsc{E-Sel2}]
+{ \{ \seq{l = v} \}.l_i \rightarrow v_i
+}
+
+\vspace{0.4cm}
+
+\infax[\textsc{E-Imp}]
+{ \texttt{import}~pn~\texttt{in}~t \rightarrow insert(pn, t)
+}
+
+  \caption{Operational Semantics}
+  \label{fig:opsem}
+\end{figure*}
+
+
+\begin{figure*}[ht!]
+  \centering
+
+\infrule[\textsc{H-InsSpore1}]
+{ \forall t_i \in \seq{t}.~insert(pn, t_i) = t'_i \\
+  insert(pn, t) = t'
+}
+{ insert(pn, \texttt{spore}~\{~\seq{x:T=t};\seq{pn};(x':T)\Rightarrow t~\}) = \\ \texttt{spore}~\{~\seq{x:T=t'};\seq{pn}, pn;(x':T)\Rightarrow t'~\}
+}
+
+\vspace{0.4cm}
+
+\infax[\textsc{H-InsSpore2}]
+{ insert(pn, \texttt{spore}~\{~\seq{x:T=v};\seq{pn};(x':T)\Rightarrow t~\}) = \\
+\texttt{spore}~\{~\seq{x:T=v};\seq{pn}, pn, pn;(x':T)\Rightarrow t~\}
+}
+
+\vspace{0.4cm}
+
+\infax[\textsc{H-InsApp}]
+{ insert(pn, t_1~t_2) = insert(pn, t_1)~insert(pn, t_2)
+}
+
+\vspace{0.4cm}
+
+\infax[\textsc{H-InsSel}]
+{ insert(pn, t.l) = insert(pn, t).l
+}
+
+  \caption{Helper functions}
+  \label{fig:helper}
+\end{figure*}
+
 
 Goals:
 \begin{itemize}
