@@ -577,9 +577,7 @@ t ::=     x                                 & \mbox{variable}
 \gap ~|~  t~\texttt{compose}~t              & \mbox{spore composition}
 \\
  & \\
-v ::=     x                                 & \mbox{variable}
-\\
-\gap ~|~  (x: T) \Rightarrow t              & \mbox{abstraction}
+v ::=     (x: T) \Rightarrow t              & \mbox{abstraction}
 \\
 \gap ~|~  \{ \seq{l = v} \}                 & \mbox{record value}
 \\
@@ -749,7 +747,8 @@ The subtyping rule for spores is analogous to the subtyping rule for regular fun
 \vspace{0.4cm}
 
 \infrule[\textsc{T-Spore}]
-{ \seq{x : S}, x : T_1 ; \Delta \vdash t : T_2 \\
+{ \forall t_i \in \seq{t}.~\Gamma ; \Delta \vdash t_i : S_i \\
+  \seq{x : S}, x : T_1 ; \Delta \vdash t : T_2 \\
   \forall pn \in \Delta.~\seq{S} \subseteq P(pn)
 }
 { \Gamma ; \Delta \vdash \texttt{spore}~\{~\seq{x : S = t}~; (x: T_1) \Rightarrow t~\} : \\
@@ -776,9 +775,7 @@ Operationally, spore composition is the same as function composition. However, t
 
 Note that there is no rule for spore application. The reason is that there is a subtyping relationship between spores and functions. Thus, according to rule (\textsc{T-Sub}) and the subtyping rules in Figure~\ref{fig:subtyping} we can already deduce that a spore has a function type; thus, the regular rule (\textsc{T-App}) applies.
 
-
 \subsection{Operational semantics}\label{sec:opsem}
-
 \begin{figure*}[ht!]
   \centering
 \infrule[\textsc{E-App1}]
@@ -792,7 +789,7 @@ Note that there is no rule for spore application. The reason is that there is a 
 \infrule[\textsc{E-App2}]
 { t_2 \rightarrow t'_2
 }
-{ v_1 t_2 \rightarrow t_1 t'_2
+{ v_1 t_2 \rightarrow v_1 t'_2
 }
 
 \vspace{0.4cm}
@@ -859,6 +856,30 @@ Note that there is no rule for spore application. The reason is that there is a 
 { \texttt{import}~pn~\texttt{in}~t \rightarrow insert(pn, t)
 }
 
+\vspace{0.4cm}
+
+\infrule[\textsc{E-Comp1}]
+{ t_1 \rightarrow t_1'
+}
+{ t_1~\texttt{compose}~t_2\rightarrow t_1'~\texttt{compose}~t_2
+}
+
+\vspace{0.4cm}
+
+\infrule[\textsc{E-Comp2}]
+{ t_2 \rightarrow t_2'
+}
+{ v_1~\texttt{compose}~t_2\rightarrow v_1~\texttt{compose}~t_2'
+}
+
+\vspace{0.4cm}
+
+\infrule[\textsc{E-Comp3}]
+{ \Delta = \{ p~|~p \in \seq{pn},\seq{qn}.~\seq{T} \subseteq P(p) \land \seq{S} \subseteq P(p)\}
+}
+{ \texttt{spore}~\{~\seq{x:T=v};\seq{pn};(x':T')\Rightarrow t~\}~\texttt{compose}~\texttt{spore}~\{~\seq{y:S=w};\seq{qn};(y':S')\Rightarrow t'~\} \rightarrow \\ \texttt{spore}~\{~\seq{x:T=v}, \seq{y:S=w} ; \Delta ; (y': S') \Rightarrow \texttt{let}~z' = t'~\texttt{in}~[x' \mapsto z']t\}
+}
+
   \caption{Operational Semantics}
   \label{fig:opsem}
 \end{figure*}
@@ -898,6 +919,64 @@ Note that there is no rule for spore application. The reason is that there is a 
 \end{figure*}
 
 
+Q: what is the inversion lemma used for?
+
+\begin{lemma}
+\emph{(Inversion of the typing relation)}
+\label{lem:inversion}
+\begin{enumerate}
+\item If $\Gamma \vdash x : T$ then $x : T \in \Gamma$.
+\item If $\Gamma \vdash t_1 t_2 : R$ then there is some type $T_{11}$
+\end{enumerate}
+\end{lemma}
+
+
+\begin{lemma}
+\emph{(Canonical forms)}
+\label{lem:canonical}
+\begin{enumerate}
+
+\item If $v$ is a value of type $\{ \seq{l : T} \}$, then $v$ is $\{ \seq{l = v} \}$ where $\seq{v}$ is a sequence of values.
+
+\item If $v$ is a value of type $T \Rightarrow R$, then $v$ is either $(x: T) \Rightarrow t$ or \\ $\texttt{spore}~\{~\seq{x : T = v}~; \seq{pn} ; (x: T_1) \Rightarrow t~\}$ where $T <: T_1$ and $\seq{v}$ is a sequence of values.
+
+% \item If $v$ is a value of type $T_1 \Rightarrow R_1~\{~\texttt{type}~\mathcal{C} = \seq{S}~;~\seq{pn}~\}$, then $v$ is \\ $\texttt{spore}~\{~\seq{x : S = v}~; \seq{pn} ; (x: T_1) \Rightarrow t~\}$ where $\seq{v}$ is a sequence of values.
+
+% \item If $v$ is a value of type $T_1 \Rightarrow R_1~\{~\texttt{type}~\mathcal{C}~;~\seq{pn}~\}$, then $v$ is \\ $\texttt{spore}~\{~\seq{x : S = v}~; \seq{pn} ; (x: T_1) \Rightarrow t~\}$ where $\seq{v}$ is a sequence of values.
+
+\end{enumerate}
+\end{lemma}
+\begin{proof}
+According to the grammar in Figure~\ref{fig:syntax}, values in the core language can have three forms: $(x: T) \Rightarrow t$, $\{ \seq{l = v} \}$, and $\texttt{spore}~\{~\seq{x : T = v}~; \seq{pn} ; (x: T) \Rightarrow t~\}$ where $\seq{v}$ is a sequence of values.
+For the first part, according to (\textsc{T-Rec}) and the subtyping rules, $v$ is $\{ \seq{l = v} \}$ where $\seq{v}$ is a sequence of values of types $\seq{T}$.
+For the second part, according to the subtyping rules $v$ can have either type $T_1 \Rightarrow R_1$, $T_1 \Rightarrow R_1~\{~\texttt{type}~\mathcal{C} = \seq{S}~;~\seq{pn}~\}$, or $T_1 \Rightarrow R_1~\{~\texttt{type}~\mathcal{C}~;~\seq{pn}~\}$ where $T <: T_1$ and $R_1 <: R$. If $v$ has type $T_1 \Rightarrow R_1$, then according to the grammar and (\textsc{T-Abs}) $v$ must be $(x: T) \Rightarrow t$. If $v$ has either type $T_1 \Rightarrow R_1~\{~\texttt{type}~\mathcal{C} = \seq{S}~;~\seq{pn}~\}$ or type $T_1 \Rightarrow R_1~\{~\texttt{type}~\mathcal{C}~;~\seq{pn}~\}$, then according to the grammar and (\textsc{T-Spore}) $v$ must be $\texttt{spore}~\{~\seq{x : T = v}~; \seq{pn} ; (x: T_1) \Rightarrow t~\}$ where $\seq{v}$ is a sequence of values.
+% Parts three and four are similar.
+\end{proof}
+
+Q: do we need to do a substitution lemma? Maybe because substitution within a spore is not obvious?
+
+\begin{theorem}
+\emph{(Progress)}
+\label{th:progress}
+Suppose $t$ is a closed, well-typed term (that is, $\vdash t : T$ for some $T$). Then either $t$ is a value or else there is some $t'$ with $t \rightarrow t'$.
+\end{theorem}
+\begin{proof}
+By induction on a derivation of $t : T$. The only two interesting cases are the ones for application (where we might apply a spore to some argument), spores, and spore composition (TODO: verify).
+
+Case \textsc{T-Spore}: $t = \texttt{spore}~\{~\seq{x : S = t}~; (x: T_1) \Rightarrow t~\}$, $\forall t_i \in \seq{t}.~\vdash t_i : S_i$, and $\seq{x : S}, x : T_1 \vdash t : T_2$. By the induction hypothesis, either all $\seq{t}$ are values, in which case $t$ is a value; or there is a term $t_i$ such that $t_i \rightarrow t_i'$ (since $\Gamma ; \Delta \vdash t_i : S_i$) and all $t_j$ where $j < i$ are values $v_j$. Thus, by (\textsc{E-Spore}), there is a $t'$ such that $t \rightarrow t'$.
+
+Case \textsc{T-App}: $t = t_1~t_2$, $\vdash t_1 : T_1 \Rightarrow T_2$, and $\vdash t_2 : T_1$. By the induction hypothesis, either $t_1$ is a value $v_1$, or $t_1 -> t_1'$. In the latter case it follows from (\textsc{E-App1}) that there is a $t'$ such that $t \rightarrow t'$. In the former case, by the induction hypothesis $t_2$ is either a value $v_2$ or $t_2 \rightarrow t_2'$. In the former case by the canonical forms lemma we have that $v_2$ is either $(x: T) \Rightarrow t$ or $\texttt{spore}~\{~\seq{x : T = v}~; \seq{pn} ; (x: T_1) \Rightarrow t~\}$ where $T <: T_1$ and $\seq{v}$ is a sequence of values; thus, either (\textsc{E-AppAbs}) or (\textsc{E-AppSpore}) apply. In the latter case, 
+
+\end{proof}
+
+
+\begin{theorem}
+\emph{(Preservation)}
+\label{th:pres}
+If $\Gamma \vdash t : T$ and $t \rightarrow t'$, then $\Gamma \vdash t' : T$.
+\end{theorem}
+
+
 Goals:
 \begin{itemize}
 \item If an expression is type-correct, at runtime all its properties should be true. This is particularly 
@@ -907,7 +986,7 @@ Goals:
 \item To achieve soundness of the type system, we would also like to show that if an expression in our core 
   language is type-correct, then the expression can be reduced. (Progress)
 \end{itemize}
-
+  
 Spores are represented dynamically as tuples $(cs, is, fun)$ where cs is a
 sequence of captured variables (the spore header), is is a sequence of type
 class instances, and fun is the spore closure. The only free variables of the
