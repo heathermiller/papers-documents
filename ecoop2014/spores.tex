@@ -1127,23 +1127,96 @@ Comparison and relationship with Java8 SAM stuff.
 % barneshut  | 722 | ??        | ??         | ??          | ??
 % pagerank   | ??  | ??        | ??         | ??          | ??
 
-\section{Use-Cases?}
 
-We could show in an example-driven (or even paradigm-driven) way how the
-active objects pattern can be implemented on top of spores. And then we can
-show how spores help enforce certain safety properties that are important for
-that pattern. For example, in the active objects pattern it's important to
-either capture only immutable things, or clone things upon capturing.
+\section{Case Studies}
 
-Paradigms or patterns built on top of spores:
+\subsection{Safer closures for parallel collections}
 
-\begin{itemize}
-\item Distributed collections like Spark
-\item Active objects
-\item Futures
-\item Hot-swapping actors
-\item Distributed pipelines / distributed streams
-\end{itemize}
+Scala's parallel collections provide data-parallel operations for standard collection types like maps and sequences. These data-parallel operations typically take closures as arguments that are applied to all elements of the underlying collection in parallel. Unfortunately, it is easy to create race conditions by capturing mutable objects within such closures, and Scala's type checker does not provide any assistance for avoiding them.
+
+Spores with context bounds allow making the use of parallel collections safer by preventing mutable objects from being captured in closures passed to data-parallel operations. In the following we show how this can be achieved using a custom property for immutable types as well as a wrapper API utilizing spores instead of regular closures.
+
+The first step is to introduce a custom property for immutable types. It consists of a generic trait and an implicit property object:
+
+\begin{verbatim}
+object safe {
+  trait Immutable[T]
+  implicit object immutableProp extends Property[Immutable]
+  ...
+}
+\end{verbatim}
+
+The next step is to mark selected types as immutable by defining an implicit object extending the desired list of types, each type wrapped in the \verb|Immutable| type constructor:
+
+\begin{verbatim}
+object safe {
+  ...
+  import scala.collection.immutable.{Map, Set, Seq}
+  implicit object collections extends Immutable[Map[_, _]] with
+    Immutable[Set[_]] with Immutable[Seq[_]] with ...
+}
+\end{verbatim}
+
+The definitions so far already allow us to create spores that are guaranteed to capture only types \verb|T| for which an implicit of type \verb|Immutable[T]| exists:
+
+\begin{verbatim}
+val myMap: Map[Int, String] = ...
+
+spore {
+  val m = this.myMap  // OK, since there is an implicit of type
+                      // Immutable[Map[_, _]]
+  (x: T) => ...
+}
+\end{verbatim}
+
+To ensure that only spores with the appropriate context bound are passed to higher-order methods such as \verb|map| and \verb|flatMap|, we provide a wrapper for \verb|ParIterable[A]|, the supertype of all parallel collections:
+
+\begin{verbatim}
+class ImmutWrapper[A](pc: ParIterable[A]) {
+  def map[B](s: Spore[A, B])(implicit i: Immutable[s.Captured]):
+      ImmutWrapper[B] =
+    new ImmutWrapper(pc.map(s))
+  def flatMap[B](s: Spore[A, Traversable[B]])
+                (implicit i: Immutable[s.Captured]):
+      ImmutWrapper[B] =
+    new ImmutWrapper(pc.flatMap(s))
+}
+\end{verbatim}
+
+This wrapper is then used as follows:
+
+\begin{verbatim}
+import safe.{immutableProp, collections}
+
+val m: Map[Int, String] = ...
+val pcoll = myColl.par
+val wrapper = new ImmutWrapper(pcoll)
+
+wrapper.map { elem =>
+  if (m.apply(elem)) transform1(elem)  // OK, m is immutable!
+  else transform2(elem)
+}
+\end{verbatim}
+
+In the above example, capturing a mutable object (or, in fact, any object of type \verb|T| that does not have an implicit value of type \verb|Immutable[T]|) would lead to a compile-time error, thus preventing a potential data race.
+
+% \section{Use-Cases?}
+
+% We could show in an example-driven (or even paradigm-driven) way how the
+% active objects pattern can be implemented on top of spores. And then we can
+% show how spores help enforce certain safety properties that are important for
+% that pattern. For example, in the active objects pattern it's important to
+% either capture only immutable things, or clone things upon capturing.
+
+% Paradigms or patterns built on top of spores:
+
+% \begin{itemize}
+% \item Distributed collections like Spark
+% \item Active objects
+% \item Futures
+% \item Hot-swapping actors
+% \item Distributed pipelines / distributed streams
+% \end{itemize}
 
 \section{Related Work}
 
