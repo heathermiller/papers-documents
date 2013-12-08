@@ -9,6 +9,7 @@
 \usepackage{url}
 \usepackage{todonotes}
 \usepackage{listings}
+\usepackage{fontspec}
 
 \usepackage{bcprules}
 
@@ -61,6 +62,9 @@
 
 %
 \begin{document}
+
+\setmonofont[Scale=0.8,BoldFont={Consolas Bold}]{Consolas}
+
 %
 \mainmatter              % start of the contributions
 
@@ -84,7 +88,7 @@
 % - concurrent
 
 \title{Spores: Closures for Reliable Distributed and Concurrent Programming}
-\titlerunning{Spores: Closures for Distributed and Concurrent Programming}  % abbreviated title (for running head)
+\titlerunning{Spores: Closures for Reliable Distributed and Concurrent Programming}  % abbreviated title (for running head)
 %                                     also used for the TOC unless
 %                                     \toctitle is used
 %
