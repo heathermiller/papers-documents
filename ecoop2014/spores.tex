@@ -64,20 +64,23 @@
 %
 \mainmatter              % start of the contributions
 
-Title ideas:
-- Spores: Reliably Distribute Your Closures
-- Towards Function-Passing Style via Reliable 
+% Title ideas:
+% - Spores: Reliably Distribute Your Closures
+% - Towards Function-Passing Style via Reliable 
+% - Spores: Function-Passing Style via Distributable Closures
+% - Spores: Closures for Distributed and Concurrent Programming
+% - Spores: Enabling Function-Passing Style via Distributable Closures
 
-Things to perhaps mention:
-- spores
-- function-passing style
-- safe
-- type-directed
-- distributed 
-- concurrent
+% Things to perhaps mention:
+% - spores
+% - function-passing style
+% - safe
+% - type-directed
+% - distributed 
+% - concurrent
 
-\title{Spores: Function-Passing Style}
-\titlerunning{Spores: Function-Passing Style}  % abbreviated title (for running head)
+\title{Spores: Closures for Distributed and Concurrent Programming}
+\titlerunning{Spores: Closures for Distributed and Concurrent Programming}  % abbreviated title (for running head)
 %                                     also used for the TOC unless
 %                                     \toctitle is used
 %
@@ -264,22 +267,28 @@ Need to talk about related work here.
 \subsection{Contributions}
 
 \begin{itemize}
-\item we present a general model of \textit{spores}, functions that are guaranteed to be 
-\item sdf
+\item a description, general model, and type system of \textit{spores}, functions that are guaranteed to be 
+\item a full soundness proof
+\item a general system for applying type-constraints to arbitrary properties beyond serializability or thread-safety.
+\item an implementation for Scala
+\item a demonstration of the practicality of our approach via a small
+empirical study, as well as a case analysis of new distributed and concurrent
+frameworks that this safe  foundation for migratable closures enables.
+
 \end{itemize}
 
-\subsection{Brainstorming}
+% \subsection{Brainstorming}
 
-Should focus on re-usable building blocks. Spores are re-usable by several
-frameworks. What else is re-usable? A composition mechanism?
+% Should focus on re-usable building blocks. Spores are re-usable by several
+% frameworks. What else is re-usable? A composition mechanism?
 
-One thing could be to provide a mechanism to compose spores, but leave it open
-how to execute that on a distributed middleware.
+% One thing could be to provide a mechanism to compose spores, but leave it open
+% how to execute that on a distributed middleware.
 
-Make it easy to build an execution engine like the one from Spark.
+% Make it easy to build an execution engine like the one from Spark.
 
 
-This paper makes the following contributions:
+% This paper makes the following contributions:
 
 % \subsection{Jargon?}
 
@@ -1151,6 +1160,8 @@ Active objects also related. \cite{ActiveObjects}
 Clojure comes with the notion of an agent~\cite{Clojure} which is similar to our synchronization mechanism in that in the Clojure model, functions are sent to other agents which manage some sort of mutable, shared state. The spores-agent model focuses on more than managing mutable state. No notion of shippability, fully-focused on multicore single-machine scenario.
 
 Java RMI~\cite{JavaRMI}
+
+\section{Conclusion}
 
 \bibliographystyle{abbrv}
 \bibliography{bib}
