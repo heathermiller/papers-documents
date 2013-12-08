@@ -1145,7 +1145,7 @@ object safe {
   ...
 }
 \end{verbatim}
-
+\noindent
 The next step is to mark selected types as immutable by defining an implicit object extending the desired list of types, each type wrapped in the \verb|Immutable| type constructor:
 
 \begin{verbatim}
@@ -1156,33 +1156,19 @@ object safe {
     Immutable[Set[_]] with Immutable[Seq[_]] with ...
 }
 \end{verbatim}
-
-The definitions so far already allow us to create spores that are guaranteed to capture only types \verb|T| for which an implicit of type \verb|Immutable[T]| exists:
-
-\begin{verbatim}
-val myMap: Map[Int, String] = ...
-
-spore {
-  val m = this.myMap  // OK, since there is an implicit of type
-                      // Immutable[Map[_, _]]
-  (x: T) => ...
-}
-\end{verbatim}
-
-To ensure that only spores with the appropriate context bound are passed to higher-order methods such as \verb|map| and \verb|flatMap|, we provide a wrapper for \verb|ParIterable[A]|, the supertype of all parallel collections:
+\noindent
+The definitions so far already allow us to create spores that are guaranteed to capture only types \verb|T| for which an implicit of type \verb|Immutable[T]| exists. To ensure that only spores with the appropriate context bound are passed to higher-order methods such as \verb|map| and \verb|flatMap|, we provide a wrapper for \verb|ParIterable[A]|, the supertype of all parallel collections:
 
 \begin{verbatim}
 class ImmutWrapper[A](pc: ParIterable[A]) {
-  def map[B](s: Spore[A, B])(implicit i: Immutable[s.Captured]):
-      ImmutWrapper[B] =
+  def map[B](s: Spore[A, B])(implicit i: Immutable[s.Captured]) =
     new ImmutWrapper(pc.map(s))
   def flatMap[B](s: Spore[A, Traversable[B]])
-                (implicit i: Immutable[s.Captured]):
-      ImmutWrapper[B] =
+                (implicit i: Immutable[s.Captured]) =
     new ImmutWrapper(pc.flatMap(s))
 }
 \end{verbatim}
-
+\noindent
 This wrapper is then used as follows:
 
 \begin{verbatim}
@@ -1197,7 +1183,7 @@ wrapper.map { elem =>
   else transform2(elem)
 }
 \end{verbatim}
-
+\noindent
 In the above example, capturing a mutable object (or, in fact, any object of type \verb|T| that does not have an implicit value of type \verb|Immutable[T]|) would lead to a compile-time error, thus preventing a potential data race.
 
 % \section{Use-Cases?}
