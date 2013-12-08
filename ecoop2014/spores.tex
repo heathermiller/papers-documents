@@ -63,9 +63,20 @@
 \begin{document}
 %
 \mainmatter              % start of the contributions
-%
-\title{Spores: Function-Passing Style\todo{bad title}}
-%
+
+Title ideas:
+- Spores: Reliably Distribute Your Closures
+- Towards Function-Passing Style via Reliable 
+
+Things to perhaps mention:
+- spores
+- function-passing style
+- safe
+- type-directed
+- distributed 
+- concurrent
+
+\title{Spores: Function-Passing Style}
 \titlerunning{Spores: Function-Passing Style}  % abbreviated title (for running head)
 %                                     also used for the TOC unless
 %                                     \toctitle is used
@@ -270,10 +281,10 @@ Make it easy to build an execution engine like the one from Spark.
 
 This paper makes the following contributions:
 
-\subsection{Jargon?}
+% \subsection{Jargon?}
 
-Section on jargon. Lambdas, functions, closures. Introduce a baseline
-vocabulary with respect to environment for duration of paper.
+% Section on jargon. Lambdas, functions, closures. Introduce a baseline
+% vocabulary with respect to environment for duration of paper.
 
 % \subsection{Functions Across Languages}
 
@@ -548,26 +559,26 @@ Type constraints for a newly defined spore can be introduced as follows:
 
 
 
-\section{Function-Passing Paradigm}
+% \section{Function-Passing Paradigm}
 
-Frameworks this new paradigm would enable. Relationship to NoSQL?
+% Frameworks this new paradigm would enable. Relationship to NoSQL?
 
-\subsection{General Model}
+% \subsection{General Model}
 
-Goal of general model: to take this mess of closures and functions and trouble with environments that pains people across languages and propose an abstraction that gets rid of this confusion.
+% Goal of general model: to take this mess of closures and functions and trouble with environments that pains people across languages and propose an abstraction that gets rid of this confusion.
 
-Include in the general model typing rules that makes this abstraction guaranteeably shippable
-given some baseline simplified formalism.
+% Include in the general model typing rules that makes this abstraction guaranteeably shippable
+% given some baseline simplified formalism.
 
-\subsection{Meat}
+% \subsection{Meat}
 
-Need to work out structure of this and an appropriate title for this section. Would include stuff like type system and type constraints for spores perhaps (or keep that in the general model section?). Composing spores with type constraints. Subtyping and type constraints.
+% Need to work out structure of this and an appropriate title for this section. Would include stuff like type system and type constraints for spores perhaps (or keep that in the general model section?). Composing spores with type constraints. Subtyping and type constraints.
 
-\subsubsection{OO}
+% \subsubsection{OO}
 
-The question of -- I capture something of type MyActor
-and the spore forbids capturing type Actor, and MyActor <: Actor
-then what happens.
+% The question of -- I capture something of type MyActor
+% and the spore forbids capturing type Actor, and MyActor <: Actor
+% then what happens.
 
 \section{Formalization}\label{sec:formal}
 
@@ -1093,6 +1104,16 @@ and per-spore constraints are better.
 
 Comparison and relationship with Java8 SAM stuff.
 
+\section{Evaluation}
+
+% program    | LOC | #closures | #converted | LOC changed | #captured vars
+%
+% funsets    |  99 | 8 + (1)   | 8          | 7           | 9
+% forcomp    | 201 | 6 + (2)   | 4          | 4           | 0
+% mandelbrot | 325 | 1         | 1          | 9           | 4
+% barneshut  | 722 | ??        | ??         | ??          | ??
+% pagerank   | ??  | ??        | ??         | ??          | ??
+
 \section{Use-Cases?}
 
 We could show in an example-driven (or even paradigm-driven) way how the
@@ -1110,18 +1131,6 @@ Paradigms or patterns built on top of spores:
 \item Hot-swapping actors
 \item Distributed pipelines / distributed streams
 \end{itemize}
-
-\section{Implementation}
-
-\section{Evaluation}
-
-% program    | LOC | #closures | #converted | LOC changed | #captured vars
-%
-% funsets    |  99 | 8 + (1)   | 8          | 7           | 9
-% forcomp    | 201 | 6 + (2)   | 4          | 4           | 0
-% mandelbrot | 325 | 1         | 1          | 9           | 4
-% barneshut  | 722 | ??        | ??         | ??          | ??
-% pagerank   | ??  | ??        | ??         | ??          | ??
 
 \section{Related Work}
 
