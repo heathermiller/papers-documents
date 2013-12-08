@@ -70,40 +70,40 @@
 %                                     also used for the TOC unless
 %                                     \toctitle is used
 %
-\author{Heather Miller\inst{1} \and Philipp Haller\inst{2}
-\and Martin Odersky\inst{1}}
+% \author{Heather Miller\inst{1} \and Philipp Haller\inst{2}
+% \and Martin Odersky\inst{1}}
 %
-\authorrunning{Heather Miller et al.} % abbreviated author list (for running head)
+% \authorrunning{Heather Miller et al.} % abbreviated author list (for running head)
 %
 %%%% list of authors for the TOC (use if author list has to be modified)
-\tocauthor{Heather Miller, Philipp Haller, and Martin Odersky}
+% \tocauthor{Heather Miller, Philipp Haller, and Martin Odersky}
 %
-\institute{EPFL, Switzerland\\
-\and
-Typesafe, Switzerland}
+% \institute{EPFL, Switzerland\\
+% \and
+% Typesafe, Switzerland}
 
 \maketitle              % typeset the title of the contribution
 
 \begin{abstract}
 
-Functional programming is regularly touted as the way forward for bringing
+Functional programming (FP) is regularly touted as the way forward for bringing
 parallel, concurrent, and distributed programming to the mainstream. The
 popularity of the rationale behind this viewpoint (immutable data transformed
-by function application) has even lead to a number of imperative and object-oriented (OO)
-programming languages adopting building blocks such as lambdas
-(functions)\todo{say something instead about closures}. For both functional 
-and OO languages, however, distributing closures or using them in a concurrent 
-environment remains challenging. This paper takes a
-step towards more principled distributed and concurrent programming with functions we call
-{\em function-passing style}\todo{should probably say something like "open
-programming"}~by introducing a new closure-like abstraction and type system,
+by function application) has even lead to a number of object-oriented (OO)
+programming languages adopting functional features such as lambdas
+(functions) and thereby function closures. 
+However, despite this established viewpoint of FP as an enabler, reliably 
+distributing function closures over a network, or using them in concurrent 
+environments nonetheless remains a challenge.
+This paper takes a step towards more principled distributed and concurrent 
+programming by introducing a new closure-like abstraction and type system,
 called {\em spores}, that can guarantee closures to be serializable, thread-safe, 
-or even have custom user-defined properties. We present a model and type
-system for expressing general type constraints and apply it to the problem of
-guaranteeing serializability and thread-safety of closures. We implement our
-approach as a module for Scala, and show the power of these guarantees through
-a detailed case analysis of new distributed and concurrent frameworks that
-this safe foundation for migratable closures enables.
+or even have custom user-defined properties. 
+We present a model and type system for expressing general type constraints 
+and apply it to the problem of guaranteeing serializability and thread-safety of 
+closures. We implement our approach as a module for Scala, and show the 
+power of these guarantees through case analysis of new distributed and concurrent 
+frameworks that this safe foundation for migratable closures enables.
 
 \keywords{functions, closures, distributed programming, concurrent programming, type systems}
 \end{abstract}
@@ -172,7 +172,7 @@ This paper takes a step towards more principled {\em function-passing
 style}\todo{should probably say something like "open programming"}~by
 introducing a new closure-like abstraction and type system that can guarantee
 closures to be serializable, thread-safe, or even have user-defined
-properties, called {\em spores}.
+properties, called {\em spores}. Like normal functions, spores are composable
 
 We first present a and then focus on an implementation of spores in Scala, a
 hybrid object-oriented and functional programming language which faces the
@@ -210,28 +210,28 @@ Need to talk about related work here.
 % In this paper, we present a model and type system for introducing general {\em type constraints}, and demonstrate its applicability 
 
 
-\subsection{Problems of actors}
+% \subsection{Problems of actors}
 
-\begin{itemize}
+% \begin{itemize}
 
-\item Migrating actors is not supported in mainstream actor frameworks and
-languages. For example, neither Akka nor Erlang support migrating actors from
-one node to another.
+% \item Migrating actors is not supported in mainstream actor frameworks and
+% languages. For example, neither Akka nor Erlang support migrating actors from
+% one node to another.
 
-\item Sending spores as messages to actors comes with the problem of matching
-on the types of the spore which is not supported due to erasure in Scala.
+% \item Sending spores as messages to actors comes with the problem of matching
+% on the types of the spore which is not supported due to erasure in Scala.
 
-\end{itemize}
+% \end{itemize}
 
-We describe a pattern for distributing lambdas in a principled way. We
-implement this pattern in a family of spore-agent abstractions which enforce
-the rules of the pattern.
+% We describe a pattern for distributing lambdas in a principled way. We
+% implement this pattern in a family of spore-agent abstractions which enforce
+% the rules of the pattern.
 
-{\bf Motivations:}
-\begin{itemize}
-\item problems with distribution
-\item problems with concurrency
-\end{itemize}
+% {\bf Motivations:}
+% \begin{itemize}
+% \item problems with distribution
+% \item problems with concurrency
+% \end{itemize}
 
 \subsection{Contributions}
 
@@ -1123,6 +1123,8 @@ C++ 11 comes with a capture syntax. Though, it's not possible to guarantee that 
 Active objects also related. \cite{ActiveObjects}
 
 Clojure comes with the notion of an agent~\cite{Clojure} which is similar to our synchronization mechanism in that in the Clojure model, functions are sent to other agents which manage some sort of mutable, shared state. The spores-agent model focuses on more than managing mutable state. No notion of shippability, fully-focused on multicore single-machine scenario.
+
+Java RMI~\cite{JavaRMI}
 
 \bibliographystyle{abbrv}
 \bibliography{bib}
