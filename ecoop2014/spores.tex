@@ -63,47 +63,78 @@
 \begin{document}
 %
 \mainmatter              % start of the contributions
-%
-\title{Spores: Function-Passing Style\todo{bad title}}
-%
-\titlerunning{Spores: Function-Passing Style}  % abbreviated title (for running head)
+
+% Title ideas:
+% - Spores: Reliably Distribute Your Closures
+% - Towards Function-Passing Style via Reliable 
+% - Spores: Function-Passing Style via Distributable Closures
+% - Spores: Closures for Distributed and Concurrent Programming
+% - Spores: Enabling Function-Passing Style via Distributable Closures
+
+% Things to perhaps mention:
+% - spores
+% - function-passing style
+% - safe
+% - type-directed
+% - distributed 
+% - concurrent
+
+\title{Spores: Closures for Reliable Distributed and Concurrent Programming}
+\titlerunning{Spores: Closures for Distributed and Concurrent Programming}  % abbreviated title (for running head)
 %                                     also used for the TOC unless
 %                                     \toctitle is used
 %
-\author{Heather Miller\inst{1} \and Philipp Haller\inst{2}
-\and Martin Odersky\inst{1}}
+% \author{Heather Miller\inst{1} \and Philipp Haller\inst{2}
+% \and Martin Odersky\inst{1}}
 %
-\authorrunning{Heather Miller et al.} % abbreviated author list (for running head)
+% \authorrunning{Heather Miller et al.} % abbreviated author list (for running head)
 %
 %%%% list of authors for the TOC (use if author list has to be modified)
-\tocauthor{Heather Miller, Philipp Haller, and Martin Odersky}
+% \tocauthor{Heather Miller, Philipp Haller, and Martin Odersky}
 %
-\institute{EPFL, Switzerland\\
-\and
-Typesafe, Switzerland}
+% \institute{EPFL, Switzerland\\
+% \and
+% Typesafe, Switzerland}
 
 \maketitle              % typeset the title of the contribution
 
 \begin{abstract}
 
-Functional programming is regularly touted as the way forward for bringing
+Functional programming (FP) is regularly touted as the way forward for bringing
 parallel, concurrent, and distributed programming to the mainstream. The
 popularity of the rationale behind this viewpoint (immutable data transformed
-by function application) has even lead to a number of imperative and object-oriented (OO)
-programming languages adopting building blocks such as lambdas
-(functions)\todo{say something instead about closures}. For both functional 
-and OO languages, however, distributing closures or using them in a concurrent 
-environment remains challenging. This paper takes a
-step towards more principled distributed and concurrent programming with functions we call
-{\em function-passing style}\todo{should probably say something like "open
-programming"}~by introducing a new closure-like abstraction and type system,
+by function application) has even lead to a number of object-oriented (OO)
+programming languages adopting functional features such as lambdas
+(functions) and thereby function closures. 
+However, despite this established viewpoint of FP as an enabler, reliably 
+distributing function closures over a network, or using them in concurrent 
+environments nonetheless remains a challenge across FP and OO languages.
+This paper takes a step towards more principled distributed and concurrent 
+programming by introducing a new closure-like abstraction and type system,
 called {\em spores}, that can guarantee closures to be serializable, thread-safe, 
-or even have custom user-defined properties. We present a model and type
-system for expressing general type constraints and apply it to the problem of
-guaranteeing serializability and thread-safety of closures. We implement our
-approach as a module for Scala, and show the power of these guarantees through
-a detailed case analysis of new distributed and concurrent frameworks that
-this safe foundation for migratable closures enables.
+or even have general, custom user-defined properties. 
+We implement our approach for Scala, evaluate its practicality through an 
+small empirical study, and show the power of these guarantees through a 
+case analysis of new distributed and concurrent frameworks that this safe 
+foundation for migratable closures enables.
+
+% == 150-word abstract for the submission page ==
+% Functional programming is regularly touted as the way forward for bringing
+% parallel, concurrent, and distributed programming to the mainstream. The
+% popularity of the rationale behind this viewpoint (immutable data transformed
+% by function application) has even lead to a number of object-oriented
+% programming languages adopting functional features such as lambdas
+% and thereby function closures. 
+% However, despite this established viewpoint of FP as an enabler, reliably 
+% distributing closures over a network, or using them in concurrent 
+% environments nonetheless remains a challenge across FP and OO languages.
+% This paper takes a step towards more principled distributed and concurrent 
+% programming by introducing a new closure-like abstraction and type system,
+% called spores, that can guarantee closures to be serializable, thread-safe, 
+% or even have custom user-defined properties. 
+% We implement our approach for Scala, and show the 
+% power of these guarantees through a case analysis of new distributed/concurrent 
+% frameworks that this safe foundation for migratable closures enables.
 
 \keywords{functions, closures, distributed programming, concurrent programming, type systems}
 \end{abstract}
@@ -172,7 +203,7 @@ This paper takes a step towards more principled {\em function-passing
 style}\todo{should probably say something like "open programming"}~by
 introducing a new closure-like abstraction and type system that can guarantee
 closures to be serializable, thread-safe, or even have user-defined
-properties, called {\em spores}.
+properties, called {\em spores}. Like normal functions, spores are composable
 
 We first present a and then focus on an implementation of spores in Scala, a
 hybrid object-oriented and functional programming language which faces the
@@ -210,53 +241,59 @@ Need to talk about related work here.
 % In this paper, we present a model and type system for introducing general {\em type constraints}, and demonstrate its applicability 
 
 
-\subsection{Problems of actors}
+% \subsection{Problems of actors}
 
-\begin{itemize}
+% \begin{itemize}
 
-\item Migrating actors is not supported in mainstream actor frameworks and
-languages. For example, neither Akka nor Erlang support migrating actors from
-one node to another.
+% \item Migrating actors is not supported in mainstream actor frameworks and
+% languages. For example, neither Akka nor Erlang support migrating actors from
+% one node to another.
 
-\item Sending spores as messages to actors comes with the problem of matching
-on the types of the spore which is not supported due to erasure in Scala.
+% \item Sending spores as messages to actors comes with the problem of matching
+% on the types of the spore which is not supported due to erasure in Scala.
 
-\end{itemize}
+% \end{itemize}
 
-We describe a pattern for distributing lambdas in a principled way. We
-implement this pattern in a family of spore-agent abstractions which enforce
-the rules of the pattern.
+% We describe a pattern for distributing lambdas in a principled way. We
+% implement this pattern in a family of spore-agent abstractions which enforce
+% the rules of the pattern.
 
-{\bf Motivations:}
-\begin{itemize}
-\item problems with distribution
-\item problems with concurrency
-\end{itemize}
+% {\bf Motivations:}
+% \begin{itemize}
+% \item problems with distribution
+% \item problems with concurrency
+% \end{itemize}
 
 \subsection{Contributions}
 
 \begin{itemize}
-\item we present a general model of \textit{spores}, functions that are guaranteed to be 
-\item sdf
+\item a description, general model, and type system of \textit{spores}, functions that are guaranteed to be 
+\item a full soundness proof
+\item a general system for applying type-constraints to arbitrary properties beyond serializability or thread-safety.
+\item an implementation for Scala
+\item a demonstration of the practicality of our approach via a small
+empirical study, as well as a case analysis of new distributed and concurrent
+frameworks that this safe  foundation for migratable closures enables.
+
 \end{itemize}
 
-\subsection{Brainstorming}
+% \subsection{Brainstorming}
 
-Should focus on re-usable building blocks. Spores are re-usable by several
-frameworks. What else is re-usable? A composition mechanism?
+% Should focus on re-usable building blocks. Spores are re-usable by several
+% frameworks. What else is re-usable? A composition mechanism?
 
-One thing could be to provide a mechanism to compose spores, but leave it open
-how to execute that on a distributed middleware.
+% One thing could be to provide a mechanism to compose spores, but leave it open
+% how to execute that on a distributed middleware.
 
-Make it easy to build an execution engine like the one from Spark.
+% Make it easy to build an execution engine like the one from Spark.
 
 
-This paper makes the following contributions:
+% This paper makes the following contributions:
 
-\subsection{Jargon?}
+% \subsection{Jargon?}
 
-Section on jargon. Lambdas, functions, closures. Introduce a baseline
-vocabulary with respect to environment for duration of paper.
+% Section on jargon. Lambdas, functions, closures. Introduce a baseline
+% vocabulary with respect to environment for duration of paper.
 
 % \subsection{Functions Across Languages}
 
@@ -531,26 +568,26 @@ Type constraints for a newly defined spore can be introduced as follows:
 
 
 
-\section{Function-Passing Paradigm}
+% \section{Function-Passing Paradigm}
 
-Frameworks this new paradigm would enable. Relationship to NoSQL?
+% Frameworks this new paradigm would enable. Relationship to NoSQL?
 
-\subsection{General Model}
+% \subsection{General Model}
 
-Goal of general model: to take this mess of closures and functions and trouble with environments that pains people across languages and propose an abstraction that gets rid of this confusion.
+% Goal of general model: to take this mess of closures and functions and trouble with environments that pains people across languages and propose an abstraction that gets rid of this confusion.
 
-Include in the general model typing rules that makes this abstraction guaranteeably shippable
-given some baseline simplified formalism.
+% Include in the general model typing rules that makes this abstraction guaranteeably shippable
+% given some baseline simplified formalism.
 
-\subsection{Meat}
+% \subsection{Meat}
 
-Need to work out structure of this and an appropriate title for this section. Would include stuff like type system and type constraints for spores perhaps (or keep that in the general model section?). Composing spores with type constraints. Subtyping and type constraints.
+% Need to work out structure of this and an appropriate title for this section. Would include stuff like type system and type constraints for spores perhaps (or keep that in the general model section?). Composing spores with type constraints. Subtyping and type constraints.
 
-\subsubsection{OO}
+% \subsubsection{OO}
 
-The question of -- I capture something of type MyActor
-and the spore forbids capturing type Actor, and MyActor <: Actor
-then what happens.
+% The question of -- I capture something of type MyActor
+% and the spore forbids capturing type Actor, and MyActor <: Actor
+% then what happens.
 
 \section{Formalization}\label{sec:formal}
 
@@ -1076,6 +1113,16 @@ and per-spore constraints are better.
 
 Comparison and relationship with Java8 SAM stuff.
 
+\section{Evaluation}
+
+% program    | LOC | #closures | #converted | LOC changed | #captured vars
+%
+% funsets    |  99 | 8 + (1)   | 8          | 7           | 9
+% forcomp    | 201 | 6 + (2)   | 4          | 4           | 0
+% mandelbrot | 325 | 1         | 1          | 9           | 4
+% barneshut  | 722 | ??        | ??         | ??          | ??
+% pagerank   | ??  | ??        | ??         | ??          | ??
+
 \section{Use-Cases?}
 
 We could show in an example-driven (or even paradigm-driven) way how the
@@ -1094,18 +1141,6 @@ Paradigms or patterns built on top of spores:
 \item Distributed pipelines / distributed streams
 \end{itemize}
 
-\section{Implementation}
-
-\section{Evaluation}
-
-% program    | LOC | #closures | #converted | LOC changed | #captured vars
-%
-% funsets    |  99 | 8 + (1)   | 8          | 7           | 9
-% forcomp    | 201 | 6 + (2)   | 4          | 4           | 0
-% mandelbrot | 325 | 1         | 1          | 9           | 4
-% barneshut  | 722 | ??        | ??         | ??          | ??
-% pagerank   | ??  | ??        | ??         | ??          | ??
-
 \section{Related Work}
 
 Non-academic related work: functions in Rust, 3 different types based on
@@ -1123,6 +1158,10 @@ C++ 11 comes with a capture syntax. Though, it's not possible to guarantee that 
 Active objects also related. \cite{ActiveObjects}
 
 Clojure comes with the notion of an agent~\cite{Clojure} which is similar to our synchronization mechanism in that in the Clojure model, functions are sent to other agents which manage some sort of mutable, shared state. The spores-agent model focuses on more than managing mutable state. No notion of shippability, fully-focused on multicore single-machine scenario.
+
+Java RMI~\cite{JavaRMI}
+
+\section{Conclusion}
 
 \bibliographystyle{abbrv}
 \bibliography{bib}
