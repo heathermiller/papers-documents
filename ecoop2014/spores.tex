@@ -1234,3 +1234,1244 @@ Java RMI~\cite{JavaRMI}
 \bibliography{bib}
 
 \end{document}
+=======
+% This is LLNCS.DEM the demonstration file of
+% the LaTeX macro package from Springer-Verlag
+% for Lecture Notes in Computer Science,
+% version 2.4 for LaTeX2e as of 16. April 2010
+%
+\documentclass{llncs}
+%
+\usepackage{makeidx}  % allows for indexgeneration
+\usepackage{url}
+\usepackage{todonotes}
+\usepackage{listings}
+\usepackage{fontspec}
+
+\usepackage{bcprules}
+
+% Member sequences
+\newcommand{\seq}[1]{\overline{#1}}
+
+% arrays
+\newcommand{\ba}{\begin{array}}
+\newcommand{\ea}{\end{array}}
+\newcommand{\bda}{\[\ba}
+\newcommand{\eda}{\ea\]}
+\newcommand{\ei}{\end{array}}
+\newcommand{\bcases}{\left\{\begin{array}{ll}}
+\newcommand{\ecases}{\end{array}\right.}
+
+% spacing
+\newcommand{\gap}{\quad\quad}
+\newcommand{\biggap}{\quad\quad\quad}
+\newcommand{\nextline}{\\ \\}
+\newcommand{\htabwidth}{0.5cm}
+\newcommand{\tabwidth}{1cm}
+\newcommand{\htab}{\hspace{\htabwidth}}
+\newcommand{\tab}{\hspace{\tabwidth}}
+\newcommand{\linesep}{\ \hrulefill \ \smallskip}
+
+
+\lstdefinelanguage{Scala}%
+{morekeywords={abstract,case,catch,char,class,%
+    def,else,extends,final,%
+    if,import,%
+    match,module,new,null,object,override,package,private,protected,%
+    public,return,super,this,throw,trait,try,type,val,var,with,implicit,%
+    macro,sealed,%
+  },%
+  sensitive,%
+  morecomment=[l]//,%
+  morecomment=[s]{/*}{*/},%
+  morestring=[b]",%
+  morestring=[b]',%
+  showstringspaces=false%
+}[keywords,comments,strings]%
+
+\lstset{language=Scala,%
+  mathescape=true,%
+  columns=[c]fixed,%
+  basewidth={0.5em, 0.40em},%
+  basicstyle=\tt,%
+  xleftmargin=0.0cm
+}
+
+%
+\begin{document}
+
+\setmonofont[Scale=0.8,BoldFont={Consolas Bold}]{Consolas}
+
+%
+\mainmatter              % start of the contributions
+
+% Title ideas:
+% - Spores: Reliably Distribute Your Closures
+% - Towards Function-Passing Style via Reliable 
+% - Spores: Function-Passing Style via Distributable Closures
+% - Spores: Closures for Distributed and Concurrent Programming
+% - Spores: Enabling Function-Passing Style via Distributable Closures
+% - Spores: Safe Closures for Distributed and Concurrent Programming
+% - Spores: Closures with Context Bounds for Safe Distributed and Concurrent Programming
+% - Spores: Controlling the Environment of Closures for Safe Distributed and Concurrent Programming
+% - Spores: Closure Environment Constraints for Safe Distributed and Concurrent Programming
+
+% Things to perhaps mention:
+% - spores
+% - function-passing style
+% - safe
+% - type-directed
+% - distributed 
+% - concurrent
+
+\title{Spores: Closures for Reliable Distributed and Concurrent Programming}
+\titlerunning{Spores: Closures for Reliable Distributed and Concurrent Programming}  % abbreviated title (for running head)
+%                                     also used for the TOC unless
+%                                     \toctitle is used
+%
+% \author{Heather Miller\inst{1} \and Philipp Haller\inst{2}
+% \and Martin Odersky\inst{1}}
+%
+% \authorrunning{Heather Miller et al.} % abbreviated author list (for running head)
+%
+%%%% list of authors for the TOC (use if author list has to be modified)
+% \tocauthor{Heather Miller, Philipp Haller, and Martin Odersky}
+%
+% \institute{EPFL, Switzerland\\
+% \and
+% Typesafe, Switzerland}
+
+\maketitle              % typeset the title of the contribution
+
+\begin{abstract}
+
+Functional programming (FP) is regularly touted as the way forward for bringing
+parallel, concurrent, and distributed programming to the mainstream. The
+popularity of the rationale behind this viewpoint (immutable data transformed
+by function application) has even lead to a number of object-oriented (OO)
+programming languages adopting functional features such as lambdas
+(functions) and thereby function closures. 
+However, despite this established viewpoint of FP as an enabler, reliably 
+distributing function closures over a network, or using them in concurrent 
+environments nonetheless remains a challenge across FP and OO languages.
+This paper takes a step towards more principled distributed and concurrent 
+programming by introducing a new closure-like abstraction and type system,
+called {\em spores}, that can guarantee closures to be serializable, thread-safe, 
+or even have general, custom user-defined properties. 
+We implement our approach for Scala, evaluate its practicality through an 
+small empirical study, and show the power of these guarantees through a 
+case analysis of new distributed and concurrent frameworks that this safe 
+foundation for migratable closures enables.
+
+% == 150-word abstract for the submission page ==
+% Functional programming is regularly touted as the way forward for bringing
+% parallel, concurrent, and distributed programming to the mainstream. The
+% popularity of the rationale behind this viewpoint (immutable data transformed
+% by function application) has even lead to a number of object-oriented
+% programming languages adopting functional features such as lambdas
+% and thereby function closures. 
+% However, despite this established viewpoint of FP as an enabler, reliably 
+% distributing closures over a network, or using them in concurrent 
+% environments nonetheless remains a challenge across FP and OO languages.
+% This paper takes a step towards more principled distributed and concurrent 
+% programming by introducing a new closure-like abstraction and type system,
+% called spores, that can guarantee closures to be serializable, thread-safe, 
+% or even have custom user-defined properties. 
+% We implement our approach for Scala, and show the 
+% power of these guarantees through a case analysis of new distributed/concurrent 
+% frameworks that this safe foundation for migratable closures enables.
+
+\keywords{functions, closures, distributed programming, concurrent programming, type systems}
+\end{abstract}
+%
+\section{Introduction}
+
+With the growing trend towards cloud computing and mobile applications,
+distributed programming has entered the mainstream. The traditional view of
+software development as being focused on a program running on a single
+machine, interacting directly with the user, has become largely obsolete.
+Popular paradigms in software engineering such as software as a service
+(SaaS), RESTful services, or the rise of multitudes of different models and
+systems for big data processing and interactive analytics, evidence this
+trend.
+% From big data to paradigms like software as a service, RESTful blah, the . 
+Whether we consider a cluster of commodity machines
+churning through a massive data-parallel job, or a smartphone interacting with
+a social network, all are ``distributed'' jobs, and all share the need to
+interact in typically asynchronous, reactive ways with other clients or
+services. \todo{make nod to functional futures, etc?} \todo{maybe make a nod to open programming?}
+
+At the same time, the functional programming paradigm has irrefutably gained
+traction in recent years, as is evidenced by the ongoing trend of
+traditionally object-oriented or imperative languages being extended with
+functional features, such as lambdas in Java~\cite{JavaLambdas},
+C++~\cite{CplusplusLambas}, and \todo{add more}, as well as the increase in
+use of functional languages on software repositories~\cite{find-something},
+the perceived importance of functional programming in general empirical
+studies on software developers~\cite{PLAdoption}\todo{check Leo's paper, add
+others}, and the measurable popularity of functional programming massively
+online open courses (MOOCs)~\cite{ICSEMOOC}.
+
+Functions don't concern only functional programming languages anymore.
+
+One reason \todo{make this less strong, or cite something}for the rise in
+popularity of functional programming languages and features is the basic
+philosophy of transforming immutable data via function application, and the
+observation that this mode of reasoning about data in parallel, concurrent,
+and distributed code is more tractable.
+
+\todo{cite one or some of the lambda the ultimate papers here?}
+\todo{need to cite a few papers that claim that FP is the way forward for parallel and distributed computing}
+
+While purported to the way forward for bringing parallel, concurrent, and
+distributed programming to the mainstream, functional programming languages
+haven't yet taken off as the languages of choice for distributed and
+concurrent programming in practice. For that, object-oriented languages with functional features such as Scala or Java take the lead. 
+
+Java 8's streaming APIs focus on concurrency, expose functions to the user.
+In Scala we have already gathered experience with these issues and thus we
+believe they will apply to Java 8 as well
+
+For both OO and functional languages, there still exist numerous hurdles at
+the language-level for even these most basic functional building blocks to
+overcome in order to be reliable and easy to reason about in concurrent or
+distributed environments. For instance, a natural model for
+functional languages to support is that of {\em moving functionality to
+data}\todo{this is a really common idea, cite a bunch of stuff that aims for
+this}. While a popular idea, there exist few distributed systems which embody
+this approach, the most notable of which being Spark~\cite{Spark}, a fault-tolerant, 
+in-memory distributed collections abstraction.
+
+\todo{talk about issues of serializing lambdas in Java, Scala -- OO languages. Then discuss the problems of functional languages like Haskell too}
+
+This paper takes a step towards more principled {\em function-passing
+style}\todo{should probably say something like "open programming"}~by
+introducing a new closure-like abstraction and type system that can guarantee
+closures to be serializable, thread-safe, or even have user-defined
+properties, called {\em spores}. Like normal functions, spores are composable
+
+We first present a and then focus on an implementation of spores in Scala, a
+hybrid object-oriented and functional programming language which faces the
+issues brought by closures on all sides -- the issues encountered in
+functional languages such as Haskell~\cite{CloudHaskell}, as well as issues
+encountered by integrating closures with an object system, inheritance and
+subtyping.
+
+Need to talk about related work here.
+
+% == NOTES ==
+% We introduce a model for concurrent and distributed computing where the data is stationary and functions are mobile. This is a dual to the actor model, where functionality is stationary, and data is made mobile. 
+
+% In theory you can migrate actors, in practice, you cannot. Can we use these insights to find a way to migrate actors cleanly?
+
+% We describe a pattern for distributing lambdas in a principled way. We
+% implement this pattern in the new spore-agent abstraction which enforces the
+% rules of the pattern.
+
+% We discuss problems in distributed programming that are simplified using the
+% spore-agent abstraction compared to equivalent actor-based solutions.
+% Moreover, we argue that spore-agents are dual to actors.
+
+% Finally, we show that this spore-agent abstraction can be implemented
+% efficiently; we show that our spore-agent implementation can outperform state-
+% of-the-art actor frameworks on a set of applications where distributing
+% lambdas is at the core.
+
+% Distributed programming supposed to be made easier by going functional. But a problem of object-oriented languages with lambdas and functional programming languages alike is that functions can have free variables. Closures that close over some tricky environment. This means that regardless of the paradigm, framework designers can't confidently expose lambdas in APIs to users.
+
+% Call on trend towards in-memory distributed computing.
+
+% The design of our framework is guided by the following principles...
+
+% In this paper, we present a model and type system for introducing general {\em type constraints}, and demonstrate its applicability 
+
+
+% \subsection{Problems of actors}
+
+% \begin{itemize}
+
+% \item Migrating actors is not supported in mainstream actor frameworks and
+% languages. For example, neither Akka nor Erlang support migrating actors from
+% one node to another.
+
+% \item Sending spores as messages to actors comes with the problem of matching
+% on the types of the spore which is not supported due to erasure in Scala.
+
+% \end{itemize}
+
+% We describe a pattern for distributing lambdas in a principled way. We
+% implement this pattern in a family of spore-agent abstractions which enforce
+% the rules of the pattern.
+
+% {\bf Motivations:}
+% \begin{itemize}
+% \item problems with distribution
+% \item problems with concurrency
+% \end{itemize}
+
+\subsection{Contributions}
+
+\begin{itemize}
+
+\item We introduce a closure-like abstraction, called ``spores'', which avoids typical hazards when using closures in a concurrent or distributed setting through controlled variable capture and user-defined constraints for captured types.
+\item We present a formalization of spores with type constraints and prove soundness of the type system.
+\item We discuss an implementation of spores in and for the full Scala language.
+\item We demonstrate the practicality of our approach using a collection of Scala programs and case studies analyzing the application of spores in a parallel, concurrent, or distributed setting.
+
+\end{itemize}
+
+%\item a description, general model, and type system of \textit{spores}, functions that are guaranteed to be 
+%\item a general system for applying type-constraints to arbitrary properties beyond serializability or thread-safety.
+%\item We demonstrate the practicality of our approach via a small empirical study, as well as a case analysis of new distributed and concurrent frameworks that this safe  foundation for migratable closures enables.
+
+
+% \subsection{Brainstorming}
+
+% Should focus on re-usable building blocks. Spores are re-usable by several
+% frameworks. What else is re-usable? A composition mechanism?
+
+% One thing could be to provide a mechanism to compose spores, but leave it open
+% how to execute that on a distributed middleware.
+
+% Make it easy to build an execution engine like the one from Spark.
+
+
+% This paper makes the following contributions:
+
+% \subsection{Jargon?}
+
+% Section on jargon. Lambdas, functions, closures. Introduce a baseline
+% vocabulary with respect to environment for duration of paper.
+
+% \subsection{Functions Across Languages}
+
+% A survey of the way different languages deal with functions and closures. How
+% the environment is kept, scoping, stack frames, etc.
+
+% Languages to compare with closures:
+
+% \begin{itemize}
+% \item Scala
+% \item Objective C
+% \item Java
+% \item VB.net
+% \item Python
+% \item Ruby
+% \item Javascript
+% \item Lisp
+% \item Perl
+% \item Lisp
+% \item Racket
+% \item Scheme
+% \item Clojure
+% \item Rust
+% \item Go
+% \item Dart
+% \item Haskell
+% \item ML
+% \item C++
+% \item Lua
+% \item Smalltalk
+% \item ECMAScript
+% \item C\# (Supports functions, but not closures. Emulates with delegates.)
+% \end{itemize}
+
+\section{Lambda the Ultimate Distributive}
+
+Lambdas provide a simple, principled way of handling the different kinds of
+objects that are fundamental in distributed systems. This section describes a
+pattern that we call ``Lambda the Ultimate Distributive'' for working with
+lambdas in a distributed environment.
+
+In a distributed system, different kinds of objects have to be handled in
+different ways. Some of these objects are data that should be processed (like
+a large collection), some of these objects represent services of the runtime
+environment (e.g., for scheduling or communication).
+
+Given the kind of object that is involved in a distributed computation, the
+object has to be handled specially:
+\begin{itemize}
+
+\item (a) an object can be data that must be shipped between nodes to accomplish
+some task;
+
+\item (b) an object can be a runtime service, such as a scheduler, which is not
+shippable, but must be used on each node;
+
+\item (c) an object can be data which is not shippable for some reason, but might
+have to be retrieved on multiple nodes.
+
+\end{itemize}
+
+The idea of ``lambda the ultimate distributive'' is that closures can handle
+all of these kinds of objects in a principled and well-defined way (no
+guessing needed):
+
+\begin{itemize}
+
+\item objects of kind (a) can be safely captured by the closure since they are shippable;
+
+\item objects of kind (b) must be parameters of the closure; on each machine,
+a reference the (local) runtime environment is passed as an argument to the
+closure; (Individual services, like a scheduler, could be fields of a
+wrapping ``environment'' object.)
+
+\item objects of kind (c) must be parameters of the closure; on each machine,
+they have to be retrieved first using an object of kind (b), and then passed
+to the closure as an argument.
+
+\end{itemize}
+
+Using lambdas in this way allows modeling most situations \todo{make less vague}
+in a distributed system in a principled way, without special tricks or
+hacks. However, correctly using lambdas according to the above pattern
+requires discipline, since properties such as serializability of captured
+objects are typically not enforced by the language or type system.
+
+\subsection{Limitations of simple lambdas}
+
+Here we can point out problems of regular lambdas: accidentally capturing
+references to enclosing objects, accidentally capturing non-serializable
+objects, incorrect use of lambdas in concurrent code (one motivation for
+parallel closures), accidentally accessing unstable members of captured
+objects (important in particular in languages supporting the uniform access
+principle like Eiffel [check], Smalltalk [check], and Scala).
+
+
+\section{Spores: Closures with Constraints}
+
+We would like to constrain the environment of a spore to express properties
+such as:
+\begin{itemize}
+\item All captured objects must be serializable
+\item All captured objects must be thread-safe
+\item Captured objects must not be marked as unsafe for capturing
+\end{itemize}
+\noindent
+Such properties restrict the types of objects that a spore is allowed to
+capture. A naive way to achieve this would be to annotate certain types as
+``not-safe-for-capturing''. However, this approach would be too inflexible,
+since some desirable properties are orthogonal to others. For example, a
+\verb|Promise| type~\cite{promise-paper} would be safe for capturing by a
+spore used in a concurrent setting, whereas it would not be safe for capturing
+by a spore that is intended to be serialized.
+
+Thus, rather than permitting or disallowing types to be captured, in our
+approach spores can express properties that the types of captured variables
+are required to have. For example, a spore might require all captured types to
+be thread-safe. Properties can also be composed, enabling spores to require
+their captured types to have multiple properties. For example, in addition to
+thread-safety, a spore may require its captured types to be serializable.
+(Such a spore would be well-suited for computations that should be executed
+concurrently on the same computer or on another computer depending on the
+current work load.)
+
+\subsection{The \texttt{Spore} trait}
+
+To express type constraints we leverage two features of Scala's type system.
+First, in Scala a function is an object of a type that extends one of the
+predefined function traits. Thus, it is possible to subclass the predefined
+function types. Second, in Scala classes and traits can be refined with value
+and type members. As we will see, type members are a natural way to express
+type constraints.
+
+The type of single-argument spores is defined as follows:
+
+\begin{lstlisting}
+    trait Spore[-A, +R] extends Function1[A, R] {
+      type Capture[T]
+    }
+\end{lstlisting}
+\noindent
+The \verb|Spore| trait extends the \verb|Function1| trait~\todo{variance annotations} which is defined as
+follows in Scala's standard library:
+
+\begin{lstlisting}
+    trait Function1[-A, +R] extends AnyRef {
+      def apply(v: A): R
+      def andThen[B](g: R => B): A => B
+      def compose[B](g: B => A): B => R
+    }
+\end{lstlisting}
+\noindent
+The above definition expresses the fact that functions are objects with an
+\verb|apply| method; function composition is supported using the
+\verb|andThen| and \verb|compose| methods.
+
+The \verb|Capture[T]| type member of the \verb|Spore| trait is used to express
+requirements of all captured types \verb|T| in the form of ``interfaces'' that
+the captured types \verb|T| have to implement. As we will see below, instead
+of using Java-style interfaces, we use a combination of traits and
+implicits~\cite{Oliveira2010} akin to generalized interfaces in
+JavaGI~\cite{WehrT11} or concepts in C++.
+
+For example, a spore from \verb|Int| to \verb|String| that requires all
+captured types to be serializable would have the following type:
+\begin{lstlisting}
+    Spore[Int, String] {
+      type Capture[T] = Pickler[T]
+    }
+\end{lstlisting}
+\noindent
+The type member \verb|Capture[T]| is defined such that for each captured type
+\verb|T| there must exist an instance of type \verb|Pickler[T]| (a ``pickler''
+that can serialize or pickle objects of type \verb|T|). Such instances are
+made available and looked up using Scala's {\em implicits} as shown below.
+
+Just like requiring all captured types to have a certain property, sometimes
+it's necessary to prevent types with a certain property from being captured.
+While in principle this could be supported by requiring a property that's not
+satisfied only by those types we wish to exclude from capturing, it would
+require declaring all types that are not excluded, which would lead to a lot
+of boilerplate. Instead, we introduce another type member \verb|NoCapture[T]|
+used to express properties that lead to rejection of a captured type:\todo{also discuss subtypes}
+
+\begin{lstlisting}
+    trait Spore[-A, +R] extends Function1[A, R] {
+      type Capture[T]
+      type NoCapture[T]
+    }
+\end{lstlisting}
+\noindent
+Given this way of introducing constraints it's even possible to require
+captured types to have multiple properties. Since properties are expressed
+using traits, properties can be combined using mix-in composition. For
+example, a spore requiring all captured types to be both serializable and
+thread-safe would look as follows:
+
+\begin{lstlisting}
+    Spore[Int, String] {
+      type Capture[T] = Pickler[T] with ThreadSafe[T]
+    }
+\end{lstlisting}
+\noindent
+The idea behind the property \verb|ThreadSafe| is that thread-safe types could
+provide dummy implementations of the interface \verb|ThreadSafe[T]|. Moreover,
+the \verb|with| keyword is used to create the mix-in composition of
+\verb|Pickler[T]| and \verb|ThreadSafe[T]|. This composition is guaranteed to
+be defined if we require all properties to be direct descendants of
+\verb|AnyRef|, the top type of all reference types in Scala.
+
+Spores without constraints have types of the following form:
+\begin{lstlisting}
+    Spore[A, R] {
+      type Capture[T] = NoConstraint[T]
+      type NoCapture[T] = NoConstraint[T]
+    }
+\end{lstlisting}
+
+\subsection{Library-specific constraints}
+
+One important goal of spores is to make the use of closure-based libraries
+safer. This is enabled through subtyping: instead of using regular function
+types, libraries can require the use of subtypes of the \verb|Spore| trait
+introduced above.
+
+For example, a concurrency library could declare certain types as not safe to
+be captured by closures. We can express this using a type class, say,
+\verb|Unsafe[T]|. For each type that should not be captured we introduce a
+type class instance. For example, the following implicit object introduces an
+instance of the \verb|Unsafe| type class for type \verb|Actor|:
+
+\begin{lstlisting}
+    implicit object unsafeActor extends Unsafe[Actor]
+\end{lstlisting}
+\noindent
+To ensure that closures never capture types that are declared in such a way as
+unsafe, the library could use the following type alias in place of the regular
+type for functions of arity one:
+
+\begin{lstlisting}
+    type SafeSpore[A, R] = Spore[A, R] {
+      type NoCapture[T] <: Unsafe[T]
+    }
+\end{lstlisting}
+\noindent
+The \verb|NoCapture| type member of the above \verb|Spore| subtype is refined
+with the {\em upper type bound} \verb|Unsafe[T]|. This ensures that only spore
+types whose \verb|NoCapture| type members mix in \verb|Unsafe| are compatible
+(of course, they could be even more restrictive).
+
+\subsection{Introducing custom constraints}
+
+\subsection{Composing spores}
+
+
+Type constraints for a newly defined spore can be introduced as follows:
+\begin{lstlisting}
+    spore {
+      val s: String = // ...
+      (p: Int) => {
+        (1 to p).map(x => s).mkString("-")
+      }
+    }.with[Pickler]
+\end{lstlisting}
+\noindent
+
+[explain how to exclude certain types]
+
+[ideally safety properties of types can be declared retro-actively.]
+
+[how do we motivate other, custom properties?]
+
+
+
+% \section{Function-Passing Paradigm}
+
+% Frameworks this new paradigm would enable. Relationship to NoSQL?
+
+% \subsection{General Model}
+
+% Goal of general model: to take this mess of closures and functions and trouble with environments that pains people across languages and propose an abstraction that gets rid of this confusion.
+
+% Include in the general model typing rules that makes this abstraction guaranteeably shippable
+% given some baseline simplified formalism.
+
+% \subsection{Meat}
+
+% Need to work out structure of this and an appropriate title for this section. Would include stuff like type system and type constraints for spores perhaps (or keep that in the general model section?). Composing spores with type constraints. Subtyping and type constraints.
+
+% \subsubsection{OO}
+
+% The question of -- I capture something of type MyActor
+% and the spore forbids capturing type Actor, and MyActor <: Actor
+% then what happens.
+
+\section{Formalization}\label{sec:formal}
+
+\begin{figure*}[ht!]
+  \centering
+
+  $\ba[t]{l@{\hspace{2mm}}l}
+t ::=     x                                 & \mbox{variable}
+\\
+\gap ~|~  (x: T) \Rightarrow t              & \mbox{abstraction}
+\\
+\gap ~|~  t~t                               & \mbox{application}
+\\
+\gap ~|~  \texttt{let}~x = t~\texttt{in}~t  & \mbox{let binding}
+\\
+\gap ~|~  \{ \seq{l = t} \}                 & \mbox{record construction}
+\\
+\gap ~|~  t.l                               & \mbox{selection}
+\\
+\gap ~|~  \texttt{spore}~\{~\seq{x : T = t}~; \seq{pn} ; (x: T) \Rightarrow t~\}  & \mbox{spore}
+\\
+\gap ~|~  \texttt{import}~pn~\texttt{in}~t  & \mbox{property import}
+\\
+\gap ~|~  t~\texttt{compose}~t              & \mbox{spore composition}
+\\
+ & \\
+v ::=     (x: T) \Rightarrow t              & \mbox{abstraction}
+\\
+\gap ~|~  \{ \seq{l = v} \}                 & \mbox{record value}
+\\
+\gap ~|~  \texttt{spore}~\{~\seq{x : T = v}~; \seq{pn} ; (x: T) \Rightarrow t~\}  & \mbox{spore value}
+\\
+ & \\
+T ::=     T \Rightarrow T                   & \mbox{function type} \\
+\gap ~|~  \{ \seq{l : T} \}                 & \mbox{record type}   \\
+\gap ~|~  \mathcal{S}                       & \mbox{}
+\\
+\mathcal{S} ::= T \Rightarrow T~\{~\texttt{type}~\mathcal{C} = \seq{T}~;~\seq{pn}~\}   & \mbox{spore type}
+\\
+\gap ~|~  T \Rightarrow T~\{~\texttt{type}~\mathcal{C}~;~\seq{pn}~\}   & \mbox{abstract spore type}
+\\
+P \in pn \rightarrow \mathcal{T} & \mbox {property map}
+\\
+\mathcal{T} \in \mathcal{P}(T)   & \mbox{type family}
+%::= \epsilon & \mbox{type family} \\
+%\gap ~|~ T, \mathcal{T} & \mbox{non-empty}\\
+\\
+ & \\
+\Gamma ::=  \seq{x : T}          & \mbox{type environment}
+\\
+\Delta ::=  \seq{pn}             & \mbox{property environment}
+\\
+\ea$
+
+  \caption{Core language syntax}
+  \label{fig:syntax}
+\end{figure*}
+
+We formalize spores in the context of a lambda calculus with records, shown in Figure~\ref{fig:syntax}. The language is in A-normal form~\cite{ANF} which means that all intermediate terms are named. Terms are standard except for the \texttt{spore} and the \texttt{import} terms. A \texttt{spore} term creates a new spore, and an \texttt{import} term imports a property name into the property environment within a lexically-scoped term; the property environment is used whenever a spore is created. This is explained in more detail below in Section~\ref{sec:typing}. The grammar of types is standard except for spore types. Spore types are refinements of function types. They additionally contain a sequence of captured types (which can be left abstract) and a sequence of property names.
+
+\subsection{Subtyping}\label{sec:subtyping}
+
+\begin{figure*}[ht!]
+  \centering
+
+\infrule[\textsc{S-Rec}]
+{ \seq{l'} \subseteq \seq{l} \andalso l_i = l'_i \to T_i <: T'_i \land T'_i <: T_i
+}
+{ \{ \seq{l : T} \} <: \{ \seq{l' : T'} \}
+}
+
+\vspace{0.4cm}
+
+\infrule[\textsc{S-Fun}]
+{ T_2 <: T_1 \andalso R_1 <: R_2
+}
+{ T_1 \Rightarrow R_1 <: T_2 \Rightarrow R_2
+}
+
+\vspace{0.4cm}
+
+\infrule[\textsc{S-Spore}]
+{ T_2 <: T_1 \andalso R_1 <: R_2 \andalso \seq{pn'} \subseteq \seq{pn}
+}
+{ T_1 \Rightarrow R_1~\{~\texttt{type}~\mathcal{C} = \seq{S}~;~\seq{pn}~\} <: T_2 \Rightarrow R_2~\{~\texttt{type}~\mathcal{C} = \seq{S}~;~\seq{pn'}~\}
+}
+
+\vspace{0.4cm}
+
+\infrule[\textsc{S-SporeAbs}]
+{ T_2 <: T_1 \andalso R_1 <: R_2 \andalso \seq{pn'} \subseteq \seq{pn}
+}
+{ T_1 \Rightarrow R_1~\{~\texttt{type}~\mathcal{C} = \seq{S}~;~\seq{pn}~\} <: T_2 \Rightarrow R_2~\{~\texttt{type}~\mathcal{C}~;~\seq{pn'}~\}
+}
+
+\vspace{0.4cm}
+
+\infrule[\textsc{S-SporeAbsAbs}]
+{ T_2 <: T_1 \andalso R_1 <: R_2 \andalso \seq{pn'} \subseteq \seq{pn}
+}
+{ T_1 \Rightarrow R_1~\{~\texttt{type}~\mathcal{C}~;~\seq{pn}~\} <: T_2 \Rightarrow R_2~\{~\texttt{type}~\mathcal{C}~;~\seq{pn'}~\}
+}
+
+\vspace{0.4cm}
+
+\infrule[\textsc{S-SporeFun}]
+{
+}
+{ T_1 \Rightarrow R_1~\{~\texttt{type}~\mathcal{C} = \seq{S}~;~\seq{pn}~\} <: T_1 \Rightarrow R_1
+}
+
+\vspace{0.4cm}
+
+\infrule[\textsc{S-SporeAbsFun}]
+{
+}
+{ T_1 \Rightarrow R_1~\{~\texttt{type}~\mathcal{C}~;~\seq{pn}~\} <: T_1 \Rightarrow R_1
+}
+
+  \caption{Subtyping}
+  \label{fig:subtyping}
+\end{figure*}
+
+The subtyping rule for spores is analogous to the subtyping rule for regular functions with respect to the argument and result types. Additionally, for two spore types to be in a subtyping relationship either their captured types have to be same or the supertype must have an abstract spore type. Also, it's possible that the subtype provides more properties $\seq{pn}$ than its supertype. The way both the captured type and the properties are modeled corresponds to the subtyping rule for refinement types in Scala.
+
+\subsection{Typing rules}\label{sec:typing}
+
+\begin{figure*}[ht!]
+  \centering
+
+\infrule[\textsc{T-Var}]
+{ x : T \in \Gamma
+}
+{ \Gamma \vdash x : T
+}
+
+\vspace{0.4cm}
+
+\infrule[\textsc{T-Sub}]
+{ \Gamma \vdash t : T'  \quad  T' <: T
+}
+{ \Gamma \vdash t : T
+}
+
+\vspace{0.4cm}
+
+\infrule[\textsc{T-Abs}]
+{ \Gamma, x : T_1 \vdash t : T_2
+}
+{ \Gamma \vdash ((x: T_1) \Rightarrow t) : (T_1 \Rightarrow T_2)
+}
+
+\vspace{0.4cm}
+
+\infrule[\textsc{T-App}]
+{ \Gamma \vdash t_1 : T_1 \Rightarrow T_2 \quad
+  \Gamma \vdash t_2 : T_1
+}
+{ \Gamma \vdash (t_1~t_2) : T_2
+}
+
+\vspace{0.4cm}
+
+\infrule[\textsc{T-Let}]
+{ \Gamma \vdash t_1 : T_1 \quad \Gamma, x : T_1 \vdash t_2 : T_2
+}
+{ \Gamma \vdash \texttt{let}~x = t_1~\texttt{in}~t_2 : T_2
+}
+
+\vspace{0.4cm}
+
+\infrule[\textsc{T-Rec}]
+{ \Gamma \vdash \seq{t : T}
+}
+{ \Gamma \vdash \{ \seq{l = t} \} : \{ \seq{l : T} \}
+}
+
+\vspace{0.4cm}
+
+\infrule[\textsc{T-Sel}]
+{ \Gamma \vdash t : \{ \seq{l : T} \}
+}
+{ \Gamma \vdash t.l_i : T_i
+}
+
+\vspace{0.4cm}
+
+\infrule[\textsc{T-Import}]
+{ \Gamma ; \Delta, pn \vdash t : T
+}
+{ \Gamma ; \Delta \vdash \texttt{import}~pn~\texttt{in}~t : T
+}
+
+\vspace{0.4cm}
+
+\infrule[\textsc{T-Spore}]
+{ \forall t_i \in \seq{t}.~\Gamma ; \Delta \vdash t_i : S_i \\
+  \seq{x : S}, x : T_1 ; \Delta \vdash t : T_2 \\
+  \forall pn \in \Delta.~\seq{S} \subseteq P(pn)
+}
+{ \Gamma ; \Delta \vdash \texttt{spore}~\{~\seq{x : S = t}~; (x: T_1) \Rightarrow t~\} : \\
+  T_1 \Rightarrow T_2~\{~\texttt{type}~\mathcal{C} = \seq{S}~;~\Delta~\}
+}
+
+\vspace{0.4cm}
+
+\infrule[\textsc{T-Comp}]
+{ \Gamma \vdash t_1 : T_1 \Rightarrow T_2~\{~\texttt{type}~\mathcal{C} = \seq{S}~;~\Delta_1~\} \\
+  \Gamma \vdash t_2 : U_1 \Rightarrow T_1~\{~\texttt{type}~\mathcal{C} = \seq{R}~;~\Delta_2~\} \\
+  \Delta = \{ pn \in \Delta_1 \cup \Delta_2 ~|~ \seq{S} \subseteq P(pn) \land \seq{R} \subseteq P(pn) \}
+}
+{ \Gamma \vdash t_1~\texttt{compose}~t_2 : U_1 \Rightarrow T_2~\{~\texttt{type}~\mathcal{C} = \seq{S}, \seq{R}~;~\Delta~\}
+}
+
+  \caption{Typing rules}
+  \label{fig:typing-rules}
+\end{figure*}
+
+When type-checking we assume the existence of a global property mapping $P$ from property names $pn$ to type families $\mathcal{T}$, much like a global class table in a core language like FJ~\cite{FJ}.
+
+Operationally, spore composition is the same as function composition. However, type-wise there is a difference given the type refinements of spores. The compose rule (\textsc{T-Comp}) will always try to return a spore type with stronger properties (if possible); it does that by making use of the captured types and will add a property if indeed all captured types satisfy it. On the other hand, it's always possible to weaken the properties of a spore, by assigning a spore to a variable which has only weaker properties. This is enabled through spore subtyping and subsumption (\textsc{T-Sub}).
+
+Note that there is no rule for spore application. The reason is that there is a subtyping relationship between spores and functions. Thus, according to rule (\textsc{T-Sub}) and the subtyping rules in Figure~\ref{fig:subtyping} we can already deduce that a spore has a function type; thus, the regular rule (\textsc{T-App}) applies.
+
+\subsection{Operational semantics}\label{sec:opsem}
+\begin{figure*}[ht!]
+  \centering
+\infrule[\textsc{E-App1}]
+{ t_1 \rightarrow t'_1
+}
+{ t_1 t_2 \rightarrow t'_1 t_2
+}
+
+\vspace{0.4cm}
+
+\infrule[\textsc{E-App2}]
+{ t_2 \rightarrow t'_2
+}
+{ v_1 t_2 \rightarrow v_1 t'_2
+}
+
+\vspace{0.4cm}
+
+\infax[\textsc{E-AppAbs}]
+{ ((x : T) \Rightarrow  t) v \rightarrow [x \mapsto v]t
+}
+
+\vspace{0.4cm}
+
+\infrule[\textsc{E-Let1}]
+{ t_1 \rightarrow t'_1
+}
+{ \texttt{let}~x = t_1~\texttt{in}~t_2 \rightarrow \texttt{let}~x = t'_1~\texttt{in}~t_2
+}
+
+\vspace{0.4cm}
+
+\infax[\textsc{E-Let2}]
+{ \texttt{let}~x = v_1~\texttt{in}~t_2 \rightarrow [x \mapsto v_1]t_2
+}
+
+\vspace{0.4cm}
+
+\infrule[\textsc{E-Rec}]
+{ t_k \rightarrow t'_k
+}
+{ \{ \seq{l = v}, l_k = t_k, \seq{l' = t'} \} \rightarrow \{ \seq{l = v}, l_k = t'_k, \seq{l' = t'} \}
+}
+
+\vspace{0.4cm}
+
+\infrule[\textsc{E-Spore}]
+{ t_k \rightarrow t'_k
+}
+{ \texttt{spore}~\{~\seq{x : T = v}, x_k : T_k = t_k, \seq{x' : T' = t'}~; (x: T) \Rightarrow t~\} \rightarrow \\ \texttt{spore}~\{~\seq{x : T = v}, x_k : T_k = t'_k, \seq{x' : T' = t'}~; (x: T) \Rightarrow t~\}
+}
+
+\vspace{0.4cm}
+
+\infrule[\textsc{E-AppSpore}]
+{ \forall pn \in \seq{pn}.~\seq{T} \subseteq P(pn)
+}
+{ \texttt{spore}~\{~\seq{x:T=v};\seq{pn};(x':T)\Rightarrow t~\}v' \rightarrow \seq{[x \mapsto v]}[x' \mapsto v']t
+}
+
+\vspace{0.4cm}
+
+\infrule[\textsc{E-Sel1}]
+{ t \rightarrow t'
+}
+{ t.l \rightarrow t'.l
+}
+
+\vspace{0.4cm}
+
+\infax[\textsc{E-Sel2}]
+{ \{ \seq{l = v} \}.l_i \rightarrow v_i
+}
+
+\vspace{0.4cm}
+
+\infax[\textsc{E-Imp}]
+{ \texttt{import}~pn~\texttt{in}~t \rightarrow insert(pn, t)
+}
+
+\vspace{0.4cm}
+
+\infrule[\textsc{E-Comp1}]
+{ t_1 \rightarrow t_1'
+}
+{ t_1~\texttt{compose}~t_2\rightarrow t_1'~\texttt{compose}~t_2
+}
+
+\vspace{0.4cm}
+
+\infrule[\textsc{E-Comp2}]
+{ t_2 \rightarrow t_2'
+}
+{ v_1~\texttt{compose}~t_2\rightarrow v_1~\texttt{compose}~t_2'
+}
+
+\vspace{0.4cm}
+
+\infrule[\textsc{E-Comp3}]
+{ \Delta = \{ p~|~p \in \seq{pn},\seq{qn}.~\seq{T} \subseteq P(p) \land \seq{S} \subseteq P(p)\}
+}
+{ \texttt{spore}~\{~\seq{x:T=v};\seq{pn};(x':T')\Rightarrow t~\}~\texttt{compose}~\texttt{spore}~\{~\seq{y:S=w};\seq{qn};(y':S')\Rightarrow t'~\} \rightarrow \\ \texttt{spore}~\{~\seq{x:T=v}, \seq{y:S=w} ; \Delta ; (y': S') \Rightarrow \texttt{let}~z' = t'~\texttt{in}~[x' \mapsto z']t\}
+}
+
+  \caption{Operational Semantics}
+  \label{fig:opsem}
+\end{figure*}
+
+
+\begin{figure*}[ht!]
+  \centering
+
+\infrule[\textsc{H-InsSpore1}]
+{ \forall t_i \in \seq{t}.~insert(pn, t_i) = t'_i \\
+  insert(pn, t) = t'
+}
+{ insert(pn, \texttt{spore}~\{~\seq{x:T=t};\seq{pn};(x':T)\Rightarrow t~\}) = \\ \texttt{spore}~\{~\seq{x:T=t'};\seq{pn}, pn;(x':T)\Rightarrow t'~\}
+}
+
+\vspace{0.4cm}
+
+\infax[\textsc{H-InsSpore2}]
+{ insert(pn, \texttt{spore}~\{~\seq{x:T=v};\seq{pn};(x':T)\Rightarrow t~\}) = \\
+\texttt{spore}~\{~\seq{x:T=v};\seq{pn}, pn, pn;(x':T)\Rightarrow t~\}
+}
+
+\vspace{0.4cm}
+
+\infax[\textsc{H-InsApp}]
+{ insert(pn, t_1~t_2) = insert(pn, t_1)~insert(pn, t_2)
+}
+
+\vspace{0.4cm}
+
+\infax[\textsc{H-InsSel}]
+{ insert(pn, t.l) = insert(pn, t).l
+}
+
+  \caption{Helper functions}
+  \label{fig:helper}
+\end{figure*}
+
+
+Q: what is the inversion lemma used for?
+
+\begin{lemma}
+\emph{(Inversion of the typing relation)}
+\label{lem:inversion}
+\begin{enumerate}
+\item If $\Gamma \vdash x : T$ then $x : T \in \Gamma$.
+\item If $\Gamma \vdash t_1 t_2 : R$ then there is some type $T_{11}$
+\end{enumerate}
+\end{lemma}
+
+
+\begin{lemma}
+\emph{(Canonical forms)}
+\label{lem:canonical}
+\begin{enumerate}
+
+\item If $v$ is a value of type $\{ \seq{l : T} \}$, then $v$ is $\{ \seq{l = v} \}$ where $\seq{v}$ is a sequence of values.
+
+\item If $v$ is a value of type $T \Rightarrow R$, then $v$ is either $(x: T) \Rightarrow t$ or \\ $\texttt{spore}~\{~\seq{x : T = v}~; \seq{pn} ; (x: T_1) \Rightarrow t~\}$ where $T <: T_1$ and $\seq{v}$ is a sequence of values.
+
+% \item If $v$ is a value of type $T_1 \Rightarrow R_1~\{~\texttt{type}~\mathcal{C} = \seq{S}~;~\seq{pn}~\}$, then $v$ is \\ $\texttt{spore}~\{~\seq{x : S = v}~; \seq{pn} ; (x: T_1) \Rightarrow t~\}$ where $\seq{v}$ is a sequence of values.
+
+% \item If $v$ is a value of type $T_1 \Rightarrow R_1~\{~\texttt{type}~\mathcal{C}~;~\seq{pn}~\}$, then $v$ is \\ $\texttt{spore}~\{~\seq{x : S = v}~; \seq{pn} ; (x: T_1) \Rightarrow t~\}$ where $\seq{v}$ is a sequence of values.
+
+\end{enumerate}
+\end{lemma}
+\begin{proof}
+According to the grammar in Figure~\ref{fig:syntax}, values in the core language can have three forms: $(x: T) \Rightarrow t$, $\{ \seq{l = v} \}$, and $\texttt{spore}~\{~\seq{x : T = v}~; \seq{pn} ; (x: T) \Rightarrow t~\}$ where $\seq{v}$ is a sequence of values.
+For the first part, according to (\textsc{T-Rec}) and the subtyping rules, $v$ is $\{ \seq{l = v} \}$ where $\seq{v}$ is a sequence of values of types $\seq{T}$.
+For the second part, according to the subtyping rules $v$ can have either type $T_1 \Rightarrow R_1$, $T_1 \Rightarrow R_1~\{~\texttt{type}~\mathcal{C} = \seq{S}~;~\seq{pn}~\}$, or $T_1 \Rightarrow R_1~\{~\texttt{type}~\mathcal{C}~;~\seq{pn}~\}$ where $T <: T_1$ and $R_1 <: R$. If $v$ has type $T_1 \Rightarrow R_1$, then according to the grammar and (\textsc{T-Abs}) $v$ must be $(x: T) \Rightarrow t$. If $v$ has either type $T_1 \Rightarrow R_1~\{~\texttt{type}~\mathcal{C} = \seq{S}~;~\seq{pn}~\}$ or type $T_1 \Rightarrow R_1~\{~\texttt{type}~\mathcal{C}~;~\seq{pn}~\}$, then according to the grammar and (\textsc{T-Spore}) $v$ must be $\texttt{spore}~\{~\seq{x : T = v}~; \seq{pn} ; (x: T_1) \Rightarrow t~\}$ where $\seq{v}$ is a sequence of values.
+% Parts three and four are similar.
+\end{proof}
+
+Q: do we need to do a substitution lemma? Maybe because substitution within a spore is not obvious?
+
+\begin{theorem}
+\emph{(Progress)}
+\label{th:progress}
+Suppose $t$ is a closed, well-typed term (that is, $\vdash t : T$ for some $T$). Then either $t$ is a value or else there is some $t'$ with $t \rightarrow t'$.
+\end{theorem}
+\begin{proof}
+By induction on a derivation of $t : T$. The only two interesting cases are the ones for application (where we might apply a spore to some argument), spores, and spore composition (TODO: verify).
+
+Case \textsc{T-Spore}: $t = \texttt{spore}~\{~\seq{x : S = t}~; (x: T_1) \Rightarrow t~\}$, $\forall t_i \in \seq{t}.~\vdash t_i : S_i$, and $\seq{x : S}, x : T_1 \vdash t : T_2$. By the induction hypothesis, either all $\seq{t}$ are values, in which case $t$ is a value; or there is a term $t_i$ such that $t_i \rightarrow t_i'$ (since $\Gamma ; \Delta \vdash t_i : S_i$) and all $t_j$ where $j < i$ are values $v_j$. Thus, by (\textsc{E-Spore}), there is a $t'$ such that $t \rightarrow t'$.
+
+Case \textsc{T-App}: $t = t_1~t_2$, $\vdash t_1 : T_1 \Rightarrow T_2$, and $\vdash t_2 : T_1$. By the induction hypothesis, either $t_1$ is a value $v_1$, or $t_1 -> t_1'$. In the latter case it follows from (\textsc{E-App1}) that there is a $t'$ such that $t \rightarrow t'$. In the former case, by the induction hypothesis $t_2$ is either a value $v_2$ or $t_2 \rightarrow t_2'$. In the former case by the canonical forms lemma we have that $v_2$ is either $(x: T) \Rightarrow t$ or $\texttt{spore}~\{~\seq{x : T = v}~; \seq{pn} ; (x: T_1) \Rightarrow t~\}$ where $T <: T_1$ and $\seq{v}$ is a sequence of values; thus, either (\textsc{E-AppAbs}) or (\textsc{E-AppSpore}) apply. In the latter case, 
+
+\end{proof}
+
+
+\begin{theorem}
+\emph{(Preservation)}
+\label{th:pres}
+If $\Gamma \vdash t : T$ and $t \rightarrow t'$, then $\Gamma \vdash t' : T$.
+\end{theorem}
+
+
+Goals:
+\begin{itemize}
+\item If an expression is type-correct, at runtime all its properties should be true. This is particularly 
+  interesting for spore expressions.
+\item Furthermore, whenever an expression is reduced the result of the reduction should also be type-correct which 
+  makes sure it's static properties are preserved by reduction. (Preservation)
+\item To achieve soundness of the type system, we would also like to show that if an expression in our core 
+  language is type-correct, then the expression can be reduced. (Progress)
+\end{itemize}
+  
+Spores are represented dynamically as tuples $(cs, is, fun)$ where cs is a
+sequence of captured variables (the spore header), is is a sequence of type
+class instances, and fun is the spore closure. The only free variables of the
+spore closure are the variables in cs.
+
+Creating spores:
+
+\begin{lstlisting}
+spore[P] {
+  val x_1: T_1 = e_1
+  ...
+  val x_n: T_n = e_n
+  (p: T) => body
+}
+\end{lstlisting}
+
+A spore has properties $P_1, ..., P_m$ for its captured vars (for simplicity,
+above there is only one property P). For now a property can be a type class
+like Pickler or CanCapture.
+
+Type classes could be supported as follows. During type checking, implicit
+values could be looked up in the standard lexical scope but marked with the
+implicit keyword. Type-checking could then rewrite the expression to one which
+has the implicit values passed to the spore constructor.
+
+We would rewrite the above expression to the following ($i_1, ..., i_n$ are type
+class instances):
+
+\begin{lstlisting}
+createSpore[P] {
+  val x_1: T_1 = i_1.capture(e_1)
+  ...
+  val x_n: T_n = i_n.capture(e_n)
+  val is = List(i_1, ..., i_n)  // not sure, if we really need those
+  (p: T) => body
+}
+\end{lstlisting}
+
+We might not have to include lookup of implicit values in the formalization.
+P[T] could simply return the instance of type class P for type T.
+
+We just need to store those type class instances in the dynamic representation
+of spores, so that we have access to them dynamically (since we need to
+evaluate the calls to capture).
+
+\subsubsection{Reduction rules}
+
+Reducing spore creation. Spore creation evaluates the spore header which
+evaluates the captured expressions $e_1, ..., e_n$, and then passes the results
+through the capture methods of the type class instances. The end result is a
+sequence of references that we're going to store in the spore tuple (the cs).
+
+Reducing spore application. An application e1 e2 of a spore e1 to an argument
+e2 can be reduced by first reducing e1 until it's a reference r1. Then, we
+look up the tuple (cs, is, fun) in the heap that reference r1 maps to. Then,
+when e2 has also been reduced to a reference r2, we can replace r1 r2 by fun
+such that all free vars are replaced by cs and the parameter is replaced by
+r2.
+
+\subsubsection{Dynamic representation of spores}
+
+For preservation we then also need to show that $r1$ has the same type as the
+\verb|spore| expression. Basically, we need enough dynamic information, so
+that we can assign the following type to $r1$:
+
+\begin{lstlisting}
+Spore[A, B] {
+  type All = P
+  type Include = Capture[List[Int]]
+  type Exclude = NoCapture[Actor] with NoCapture[Socket]
+}
+\end{lstlisting}
+
+That means in the opsem, instead of the simple tuple $(cs, is, fun)$ we need to
+have a tuple such as
+$([{P} ; {List[Int]} ; {Actor, Socket}] A \Rightarrow B, cs, is, fun)$.
+
+Examples for classes that are thread-safe but not shippable: Future/Promise,
+Scheduler, ExecutorService, SparkContext (TODO: check). So, we might want to
+permit those classes in some spores (those that are not shipped but might be
+shared between threads), but not in other spores (those that are shipped).
+That's why globally disallowing a type from being captured is not a good idea
+and per-spore constraints are better.
+
+
+\section{Implementation}
+
+Comparison and relationship with Java8 SAM stuff.
+
+\section{Evaluation}
+
+% program    | LOC | #closures | #converted | LOC changed | #captured vars
+%
+% funsets    |  99 | 8 + (1)   | 8          | 7           | 9
+% forcomp    | 201 | 6 + (2)   | 4          | 4           | 0
+% mandelbrot | 325 | 1         | 1          | 9           | 4
+% barneshut  | 722 | ??        | ??         | ??          | ??
+% pagerank   | ??  | ??        | ??         | ??          | ??
+
+
+\section{Case Studies}
+
+\subsection{Safer closures for parallel collections}
+
+Scala's parallel collections~\cite{ProkopecBRO11} provide data-parallel operations for standard collection types like maps and sequences. These data-parallel operations typically take closures as arguments that are applied to all elements of the underlying collection in parallel. Unfortunately, it is easy to create race conditions by capturing mutable objects within such closures, and Scala's type checker does not provide any assistance for avoiding them.
+
+Spores with context bounds allow making the use of parallel collections safer by preventing mutable objects from being captured in closures passed to data-parallel operations. In the following we show how this can be achieved using a custom property for immutable types as well as a wrapper API utilizing spores instead of regular closures.
+
+The first step is to introduce a custom property for immutable types. It consists of a generic trait and an implicit property object:
+
+\begin{verbatim}
+object safe {
+  trait Immutable[T]
+  implicit object immutableProp extends Property[Immutable]
+  ...
+}
+\end{verbatim}
+\noindent
+The next step is to mark selected types as immutable by defining an implicit object extending the desired list of types, each type wrapped in the \verb|Immutable| type constructor:
+
+\begin{verbatim}
+object safe {
+  ...
+  import scala.collection.immutable.{Map, Set, Seq}
+  implicit object collections extends Immutable[Map[_, _]] with
+    Immutable[Set[_]] with Immutable[Seq[_]] with ...
+}
+\end{verbatim}
+\noindent
+The definitions so far already allow us to create spores that are guaranteed to capture only types \verb|T| for which an implicit of type \verb|Immutable[T]| exists. To ensure that only spores with the appropriate context bound are passed to higher-order methods such as \verb|map| and \verb|flatMap|, we provide a wrapper for \verb|ParIterable[A]|, the supertype of all parallel collections:
+
+\begin{verbatim}
+class ImmutWrapper[A](pc: ParIterable[A]) {
+  def map[B](s: Spore[A, B])(implicit i: Immutable[s.Captured]) =
+    new ImmutWrapper(pc.map(s))
+  def flatMap[B](s: Spore[A, Traversable[B]])
+                (implicit i: Immutable[s.Captured]) =
+    new ImmutWrapper(pc.flatMap(s))
+}
+\end{verbatim}
+\noindent
+This wrapper is then used as follows:
+
+\begin{verbatim}
+import safe.{immutableProp, collections}
+
+val m: Map[Int, String] = ...
+val pcoll = myColl.par
+val wrapper = new ImmutWrapper(pcoll)
+
+wrapper.map { elem =>
+  if (m.apply(elem)) transform1(elem)  // OK, m is immutable!
+  else transform2(elem)
+}
+\end{verbatim}
+\noindent
+In the above example, capturing a mutable object (or, in fact, any object of type \verb|T| that does not have an implicit value of type \verb|Immutable[T]|) would lead to a compile-time error, thus preventing a potential data race.
+
+% \section{Use-Cases?}
+
+% We could show in an example-driven (or even paradigm-driven) way how the
+% active objects pattern can be implemented on top of spores. And then we can
+% show how spores help enforce certain safety properties that are important for
+% that pattern. For example, in the active objects pattern it's important to
+% either capture only immutable things, or clone things upon capturing.
+
+% Paradigms or patterns built on top of spores:
+
+% \begin{itemize}
+% \item Distributed collections like Spark
+% \item Active objects
+% \item Futures
+% \item Hot-swapping actors
+% \item Distributed pipelines / distributed streams
+% \end{itemize}
+
+\section{Related Work}
+
+Non-academic related work: functions in Rust, 3 different types based on
+different possibilities for environments \cite{RustFunctions}; functions,
+closures, and procedures. Procedures are shippable.
+
+Parallel closures \cite{ParallelClosures}. First known example of closures
+with effectively immutable environment.
+
+CloudHaskell \cite{CloudHaskell}. Introduces a type system that rejects anything
+that is not static. Too strict.
+
+C++ 11 comes with a capture syntax. Though, it's not possible to guarantee that construction is correct. If you require certain things from the closure, how is it expressed? If a method declares a parameter type which is a closure, the important thing is that in this parameter type, you can specify the requirements about capturing. So it's ensured that whatever's passed as an argument to the method satisfies these requirements. This isn't possible with C++ 11 closures. \cite{Cplusplus11Spec}
+
+Active objects also related. \cite{ActiveObjects}
+
+Clojure comes with the notion of an agent~\cite{Clojure} which is similar to our synchronization mechanism in that in the Clojure model, functions are sent to other agents which manage some sort of mutable, shared state. The spores-agent model focuses on more than managing mutable state. No notion of shippability, fully-focused on multicore single-machine scenario.
+
+Java RMI~\cite{JavaRMI}
+
+\section{Conclusion}
+
+\bibliographystyle{abbrv}
+\bibliography{bib}
+
+\end{document}
+
