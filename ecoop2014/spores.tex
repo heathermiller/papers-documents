@@ -220,11 +220,6 @@ a social network, all are ``distributed'' jobs, and all share the need to
 interact in typically asynchronous, reactive ways with other clients or
 services.
 
-Data-parallelism has long been a big deal for GPU programming, distribution,
-etc.  The central idea behind data parallelism is to distribute data across
-different workers (whether they be threads or nodes in a cluster), and to
-execute a single set of instructions (SIMD) on that data.
-
 Meanwhile, concurrently, functional programming has been undeniably gaining
 traction in recent years, as is evidenced by the ongoing trend of
 traditionally object-oriented or imperative languages being extended with
@@ -235,10 +230,21 @@ developers~\cite{PLAdoption}, and the measurable popularity of functional
 programming massively online open courses (MOOCs)~\cite{ICSEMOOC}.
 
 One reason for the rise in popularity of functional programming languages and
-features is the basic philosophy of transforming immutable data via function
-application, and the observation that this mode of reasoning about data in
-parallel, concurrent, and distributed code is more tractable.\todo{I'd like to cite anything here, even a SO article}
-This trend is evidenced by the rise of functionally-flav, monadic-style collections~\cite{JavaLambdas}, ~\cite{ScalaParColls} ~\cite{FlowPools}
+features within object-oriented communities is the basic philosophy of
+transforming immutable data via function application, and the observation that
+this mode of reasoning about data in parallel, concurrent, and distributed
+code is more tractable.\todo{I'd like to cite anything here, even a SO
+article} {Java 8}'s monadic-style optionally parallel
+collections~\cite{JavaLambdas}, Scala's parallel
+collections~\cite{ScalaParColls} and concurrent dataflow~\cite{FlowPools}
+collections are just some efforts that evidence this trend.
+
+In particular, data parallelism is on the rise...?
+
+Data-parallelism has long been a big deal for GPU programming, distribution,
+etc.  The central idea behind data parallelism is to distribute data across
+different workers (whether they be threads or nodes in a cluster), and to
+execute a single set of instructions (SIMD) on that data.
 
 Data-parallelism -> functional, natural~\cite{Nova}
 FP for parallelism, data-parallel~\cite{Eden, DataParallelHaskell} (Eden is also distributed?)
