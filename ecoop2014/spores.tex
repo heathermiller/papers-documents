@@ -135,6 +135,7 @@
 % - Spores: Closures with Context Bounds for Safe Distributed and Concurrent Programming
 % - Spores: Controlling the Environment of Closures for Safe Distributed and Concurrent Programming
 % - Spores: Closure Environment Constraints for Safe Distributed and Concurrent Programming
+% - Spores: Closures for Reliable Distributed and Concurrent Programming
 
 % Things to perhaps mention:
 % - spores
@@ -144,8 +145,8 @@
 % - distributed 
 % - concurrent
 
-\title{Spores: Closures for Reliable Distributed and Concurrent Programming}
-\titlerunning{Spores: Closures for Reliable Distributed and Concurrent Programming}  % abbreviated title (for running head)
+\title{Towards Lambda the Ultimate Distributive: Safe Closures for Reliable Distributed and Concurrent Programming}
+\titlerunning{Towards Lambda the Ultimate Distributive: Safe Closures for Reliable Distributed and Concurrent Programming}  % abbreviated title (for running head)
 %                                     also used for the TOC unless
 %                                     \toctitle is used
 %
@@ -178,7 +179,7 @@ This paper takes a step towards more principled distributed and concurrent
 programming by introducing a new closure-like abstraction and type system,
 called {\em spores}, that can guarantee closures to be serializable, thread-safe, 
 or even have general, custom user-defined properties. 
-We prove our type system sound implement our approach for Scala, evaluate 
+We prove our type system sound, implement our approach for Scala, evaluate 
 its practicality through an small empirical study, and show the power of these 
 guarantees through a case analysis of new distributed and concurrent 
 frameworks that this safe foundation for migratable closures enables.
@@ -228,10 +229,50 @@ programming in general empirical studies on software
 developers~\cite{PLAdoption}, and the measurable popularity of functional
 programming massively online open courses (MOOCs)~\cite{ICSEMOOC}.
 
-Models like Spark represent a paradigm shift in distributed
-computing. Here, the foundation is to move the functionality to the data.
+Data-parallelism a big deal for GPU programming, distribution, etc. 
+Data-parallelism -> functional, natural~\cite{Nova}
+FP for parallelism, data-parallel~\cite{Eden, DataParallelHaskell} (Eden is also distributed?)
 
-Moreover, pure functions are idempotent; this means that functions running on failing hardware can be restarted elsewhere without the need for distributed transactions or other mechanisms for “undoing” effects.
+that data parallelism is important
+both in a multi-core (non-dist.) and a distributed setting
+in both cases, programming models for wide-spread langs make increasing use of lambdas
+in the multi-core category we have Scala's parcolls and Java 8 streams and DPJ (I think)
+in the dist. setting we have Spark as well as functional wrappers on top of Hadoop
+while data-parallel programming is very effective already in a purely functional setting (data-parallel haskell), it is still difficult in imperative OO langs with functional features
+due to hazards involving closures passed to data-parallel ops
+(they can capture mutable variables or data structures)
+
+where you said that we ship functionality to data in various systems
+and now we are using closures more and more for that
+like, languages are adopting closures and with it come more and more functional APIs
+
+we're moving in a directioxn where we ship closures where (a) data to-be-processed and required services are passed as arguments to closures and (b) data that needs to be shipped is captured and serialized
+% we're moving in a direction where we ship closures where (a) data to-be-processed is passed as arguments to closures
+% and (b) data that needs to be shipped is captured and serialized 
+and  (c) services local to a node are either passed in as additional arguments by the dist. framework, or looked up from within closures
+% (c) services local to a node are looked up from within closures
+that's the pattern of ltu
+for Spark, an example for (c) is the SparkContext
+it's the main entry point to functionality provided by Spark
+but it's not serializable
+every node has its own singleton object
+so, I mean I think we don't have to say much more than that
+
+we could say that even though this characterization of data/services helps structuring dist. systems
+it's still brittle in practice because closures don't provide enough of a safety net
+thus, even though this pattern exists, it's not really used for structuring systems
+it's still brittle in practice because closures don't provide enough of a safety net
+thus, even though this pattern exists, it's not really used for structuring systems
+its main purpose is reducing boilerplate in big data/analytics applications
+
+FP touted to be enabler for parallel programming. Why? 
+Models like Spark~\cite{Spark} and MapReduce~\cite{MapReduce} represent a paradigm shift in distributed
+computing. Here, the foundation is to move the functionality to the data. The
+foundational idea is to keep the data stationary, and to send functions to the
+data.
+
+\begin{fquote}[Jeff Epstein, et al.][Towards Haskell in the Cloud][2011]Moreover, pure functions are idempotent; this means that functions running on failing hardware can be restarted elsewhere without the need for distributed transactions or other mechanisms for “undoing” effects.
+ \end{fquote}
 
 Using types, we can statically prevent much of the headaches that occur in dynamically typed languages when it comes to sending closures over the network.
 
@@ -1229,7 +1270,7 @@ and per-spore constraints are better.
 
 \section{Implementation}
 
-Comparison and relationship with Java8 SAM stuff.
+Comparison and relationship with Java8 SAM stuff. Cite paper {\em Java SAM Typed Closures: A Sound and Complete Type Inference System for Nominal Types} ~\cite{JavaSAM}
 
 \section{Evaluation}
 
@@ -1330,11 +1371,13 @@ with effectively immutable environment.
 CloudHaskell \cite{CloudHaskell}. Introduces a type system that rejects anything
 that is not static. Too strict.
 
-C++ 11 comes with a capture syntax. Though, it's not possible to guarantee that construction is correct. If you require certain things from the closure, how is it expressed? If a method declares a parameter type which is a closure, the important thing is that in this parameter type, you can specify the requirements about capturing. So it's ensured that whatever's passed as an argument to the method satisfies these requirements. This isn't possible with C++ 11 closures. \cite{Cplusplus11Spec}
+Haskell distributed parallel Haskell~\cite{HDPH} extends the serializable closures found in CloudHaskell.
 
-Active objects also related. \cite{ActiveObjects}
+C++ 11 comes with a capture syntax. Though, it's not possible to guarantee that construction is correct. If you require certain things from the closure, how is it expressed? If a method declares a parameter type which is a closure, the important thing is that in this parameter type, you can specify the requirements about capturing. So it's ensured that whatever's passed as an argument to the method satisfies these requirements. This isn't possible with C++ 11 closures. \cite{CplusplusLambas}
 
-Clojure comes with the notion of an agent~\cite{Clojure} which is similar to our synchronization mechanism in that in the Clojure model, functions are sent to other agents which manage some sort of mutable, shared state. The spores-agent model focuses on more than managing mutable state. No notion of shippability, fully-focused on multicore single-machine scenario.
+Active objects also related. \cite{ActiveObjects} (Since no more agents, remove this?)
+
+Clojure comes with the notion of an agent~\cite{Clojure} which is similar to our synchronization mechanism in that in the Clojure model, functions are sent to other agents which manage some sort of mutable, shared state. The spores-agent model focuses on more than managing mutable state. No notion of shippability, fully-focused on multicore single-machine scenario. (Since no more agents, remove this?)
 
 Java RMI~\cite{JavaRMI}
 
@@ -1343,6 +1386,8 @@ Termite Scheme~\cite{Termite} also has serializable closures.
 Distributed Functional Programming in Scheme~\cite{DFPS} also has serializable closures.
 
 Python also can't reliably serialize functions~\cite{PythonPickle}.
+
+Supporting imperative features typically requires complex effect systems~\cite{DPJ}. our paper provides simpler ways to make programming with closures in imperative OO languages safer
 
 \section{Conclusion}
 
