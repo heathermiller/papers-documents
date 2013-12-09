@@ -10,8 +10,66 @@
 \usepackage{todonotes}
 \usepackage{listings}
 \usepackage{fontspec}
-
+% \usepackage{epigraph}
 \usepackage{bcprules}
+
+%%%%********************************************************************
+\usepackage{microtype}
+\usepackage{times}
+\usepackage[utf8]{inputenc}     
+\usepackage[english]{babel}
+\usepackage{graphicx}
+\usepackage{xcolor}
+\usepackage{lipsum}
+%%%%********************************************************************
+% fancy quotes
+\definecolor{quotemark}{gray}{0.7}
+\makeatletter
+\def\fquote{%
+    \@ifnextchar[{\fquote@i}{\fquote@i[]}%]
+           }%
+\def\fquote@i[#1]{%
+    \def\tempa{#1}%
+    \@ifnextchar[{\fquote@ii}{\fquote@ii[]}%]
+                 }%
+\def\fquote@ii[#1]{%
+    \def\tempb{#1}%
+    \@ifnextchar[{\fquote@iii}{\fquote@iii[]}%]
+                      }%
+\def\fquote@iii[#1]{%
+    \def\tempc{#1}%
+    \vspace{1em}%
+    \noindent%
+    \begin{list}{}{%
+         \setlength{\leftmargin}{0.1\textwidth}%
+         \setlength{\rightmargin}{0.1\textwidth}%
+                  }%
+         \item[]%
+         \begin{picture}(0,0)%
+         \put(-15,-5){\makebox(0,0){\scalebox{3}{\textcolor{quotemark}{``}}}}%
+         \end{picture}%
+         \begingroup\itshape}%
+ %%%%********************************************************************
+ \def\endfquote{%
+ \endgroup\par%
+ \makebox[0pt][l]{%
+ \hspace{0.8\textwidth}%
+ \begin{picture}(0,0)(0,0)%
+ \put(15,15){\makebox(0,0){%
+ \scalebox{3}{\color{quotemark}''}}}%
+ \end{picture}}%
+ \ifx\tempa\empty%
+ \else%
+    \ifx\tempc\empty%
+       \hfill\rule{100pt}{0.5pt}\\\mbox{}\hfill\tempa,\ \emph{\tempb}%
+   \else%
+       \hfill\rule{100pt}{0.5pt}\\\mbox{}\hfill\tempa,\ \emph{\tempb},\ \tempc%
+   \fi\fi\par%
+   \vspace{0.5em}%
+ \end{list}%
+ }%
+ \makeatother
+ %%%%********************************************************************
 
 % Member sequences
 \newcommand{\seq}[1]{\overline{#1}}
@@ -34,7 +92,6 @@
 \newcommand{\htab}{\hspace{\htabwidth}}
 \newcommand{\tab}{\hspace{\tabwidth}}
 \newcommand{\linesep}{\ \hrulefill \ \smallskip}
-
 
 \lstdefinelanguage{Scala}%
 {morekeywords={abstract,case,catch,char,class,%
@@ -149,31 +206,42 @@ frameworks that this safe foundation for migratable closures enables.
 %
 \section{Introduction}
 
-With the growing trend towards cloud computing and mobile applications,
-distributed programming has entered the mainstream. The traditional view of
-software development as being focused on a program running on a single
-machine, interacting directly with the user, has become largely obsolete.
-Popular paradigms in software engineering such as software as a service
-(SaaS), RESTful services, or the rise of multitudes of different models and
-systems for big data processing and interactive analytics, evidence this
-trend.
-% From big data to paradigms like software as a service, RESTful blah, the . 
-Whether we consider a cluster of commodity machines
+With the growing trend towards big data, cloud computing and mobile
+applications, distributed programming has entered the mainstream. The
+traditional view of software development as being focused on a program running
+on a single machine, interacting directly with the user, has become largely
+obsolete. Popular paradigms in software engineering such as software as a
+service (SaaS), RESTful services, or the rise of multitudes of different
+models and systems for big data processing and interactive analytics, evidence
+this trend. Whether we consider a cluster of hundreds of commodity machines
 churning through a massive data-parallel job, or a smartphone interacting with
 a social network, all are ``distributed'' jobs, and all share the need to
 interact in typically asynchronous, reactive ways with other clients or
-services. \todo{make nod to functional futures, etc?} \todo{maybe make a nod to open programming?}
+services.
 
 At the same time, the functional programming paradigm has irrefutably gained
 traction in recent years, as is evidenced by the ongoing trend of
 traditionally object-oriented or imperative languages being extended with
-functional features, such as lambdas in {Java 8}~\cite{JavaLambdas},
-C++11~\cite{CplusplusLambas}, and \todo{add more}, as well as the increase in
-use of functional languages on software repositories~\cite{find-something},
-the perceived importance of functional programming in general empirical
-studies on software developers~\cite{PLAdoption}\todo{check Leo's paper, add
-others}, and the measurable popularity of functional programming massively
-online open courses (MOOCs)~\cite{ICSEMOOC}.
+functional features, such as lambdas in {Java 8}~\cite{JavaLambdas} and
+C++11~\cite{CplusplusLambas}, the perceived importance of functional
+programming in general empirical studies on software
+developers~\cite{PLAdoption}, and the measurable popularity of functional
+programming massively online open courses (MOOCs)~\cite{ICSEMOOC}.
+
+Models like Spark represent a paradigm shift in distributed
+computing. Here, the foundation is to move the functionality to the data.
+
+Moreover, pure functions are idempotent; this means that functions running on failing hardware can be restarted elsewhere without the need for distributed transactions or other mechanisms for “undoing” effects.
+
+Using types, we can statically prevent much of the headaches that occur in dynamically typed languages when it comes to sending closures over the network.
+
+\begin{fquote}[Jeff Epstein, et al.][Towards Haskell in the Cloud][2011]In a distributed memory system, the most significant cost, in both energy
+and time, is data movement
+ \end{fquote}
+
+% \epigraph{In a distributed memory system, the most significant cost, in both energy
+% and time, is data movement.}{Simon Peyton Jones}
+% - from the Cloud Haskell Paper
 
 Functions don't concern only functional programming languages anymore.
 
@@ -208,7 +276,7 @@ in-memory distributed collections abstraction.
 \todo{talk about issues of serializing lambdas in Java, Scala -- OO languages. Then discuss the problems of functional languages like Haskell too}
 
 This paper takes a step towards more principled {\em function-passing
-style}\todo{should probably say something like "open programming"}~by
+style}\todo{should probably say something like ``open programming''}~by
 introducing a new closure-like abstraction and type system that can guarantee
 closures to be serializable, thread-safe, or even have user-defined
 properties, called {\em spores}. Like normal functions, spores are composable
@@ -220,7 +288,49 @@ functional languages such as Haskell~\cite{CloudHaskell}, as well as issues
 encountered by integrating closures with an object system, inheritance and
 subtyping.
 
-Need to talk about related work here.
+The design of spores is guided by the following principles:
+\begin{itemize}
+\item {\bf A lightweight design} to be practical for inclusion in the 
+full-featured Scala language. To enable a robust integration with the host
+language, existing type system features are reused instead of extended.
+
+\item {\bf Supporting existing practice}. When using frameworks for distributed
+programming like Spark, closures should follow certain conventions with
+respect to captured variables to avoid hazards. In some cases spores enforce
+such conventions at compile-time, where previously there was no tool support.
+
+\item {\bf Lightweight syntactical footprint}. On the one hand, spores are designed to
+make working with closures safer by making variable capture explicit. On the
+other hand, implicit conversion between regular functions and spores enable
+the use of spores also in closure-heavy code.
+
+\item {\bf Type-based constraints} enable libraries and frameworks to restrict the types
+that are captured by spores. For example, this allows enforcing that certain
+spores only capture immutable objects. Surprisingly, we found that Scala's
+type system let's us express a variety of constraints using existing type-
+systematic features such as type refinements and implicits.
+
+\item {\bf Serialization not baked in}, can focus on and attach other properties
+like thread-safety or mutability.
+
+\item {\bf More reliable/trustworthy APIs for library authors}. Enables library
+authors to confidently release libraries that expose functions in the user-
+facing API without concern of runtime exceptions.
+\end{itemize}
+
+% One reason that this model of distributed computing has not pre- viously been
+% brought to Haskell is that it requires a way of running code on a remote
+% system. Our work provides this, in the form of a novel method for serializing
+% function closures.
+% - Haskell in the Cloud paper
+
+Cloud Haskell~\cite{CloudHaskell} also makes an effort to provide statically-guaranteeable serializable closures. They are limited to serializability, are
+limited to top-level functions, and reject an environment or allow controlled
+capturing, preserialization of the environment.  For us, management of the
+environment is automatic, we don't need to preserialize the env, and our type
+constraints are very different. We provide a solution for imperative OO languages 
+as well. Their stuff is mostly top-level, whereas in Scala, closures usually refer 
+to local objects nested within other objects
 
 % == NOTES ==
 % We introduce a model for concurrent and distributed computing where the data is stationary and functions are mobile. This is a dual to the actor model, where functionality is stationary, and data is made mobile. 
@@ -1227,6 +1337,12 @@ Active objects also related. \cite{ActiveObjects}
 Clojure comes with the notion of an agent~\cite{Clojure} which is similar to our synchronization mechanism in that in the Clojure model, functions are sent to other agents which manage some sort of mutable, shared state. The spores-agent model focuses on more than managing mutable state. No notion of shippability, fully-focused on multicore single-machine scenario.
 
 Java RMI~\cite{JavaRMI}
+
+Termite Scheme~\cite{Termite} also has serializable closures.
+
+Distributed Functional Programming in Scheme~\cite{DFPS} also has serializable closures.
+
+Python also can't reliably serialize functions~\cite{PythonPickle}.
 
 \section{Conclusion}
 
