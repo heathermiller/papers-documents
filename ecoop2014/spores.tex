@@ -369,7 +369,9 @@ through controlled variable capture and constraints for captured types. Using
 type-based constraints, spores allow expressing a variety of ``safe''
 closures, such as guaranteed-serializable closures, closures which capture
 only immutable types, or closures with customizable user-defined type-based
-properties.
+properties. Finally, we argue that by principle of a type-based approach,
+spores have the added benefit of being able to benefit from optimization,
+further safety via type system extensions, and verification opportunities.
 
 The design of spores is guided by the following principles:
 
@@ -833,7 +835,10 @@ This paper makes the following contributions:
 % principle like Eiffel [check], Smalltalk [check], and Scala).
 
 
-\section{Spores: Closures with Constraints}
+\section{Spores}
+
+Spores are a closure-like abstraction which aim to give users . They achieve this by (a) enforcing a
+specific syntactic shape which, and (b) adding a type system.
 
 We would like to constrain the environment of a spore to express properties
 such as:
