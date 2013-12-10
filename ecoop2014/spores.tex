@@ -14,7 +14,7 @@
 
 \usepackage{microtype}
 \usepackage{times}
-\usepackage[utf8]{inputenc}     
+\usepackage[utf8]{inputenc}
 \usepackage[english]{babel}
 \usepackage{graphicx}
 \usepackage{xcolor}
@@ -80,7 +80,7 @@
 \newcommand{\ei}{\end{array}}
 \newcommand{\bcases}{\left\{\begin{array}{ll}}
 \newcommand{\ecases}{\end{array}\right.}
-
+\newcommand{\sporeurl}{URL withheld for the sake of anonymity in review.}
 % spacing
 \newcommand{\gap}{\quad\quad}
 \newcommand{\biggap}{\quad\quad\quad}
@@ -127,7 +127,7 @@
 
 % Title ideas:
 % - Spores: Reliably Distribute Your Closures
-% - Towards Function-Passing Style via Reliable 
+% - Towards Function-Passing Style via Reliable
 % - Spores: Function-Passing Style via Distributable Closures
 % - Spores: Closures for Distributed and Concurrent Programming
 % - Spores: Enabling Function-Passing Style via Distributable Closures
@@ -142,7 +142,7 @@
 % - function-passing style
 % - safe
 % - type-directed
-% - distributed 
+% - distributed
 % - concurrent
 
 \title{Towards Lambda the Ultimate Distributive}
@@ -172,17 +172,17 @@ parallel, concurrent, and distributed programming to the mainstream. The
 popularity of the rationale behind this viewpoint (immutable data transformed
 by function application) has even lead to a number of object-oriented (OO)
 programming languages adopting functional features such as lambdas
-(functions) and thereby function closures. 
-However, despite this established viewpoint of FP as an enabler, reliably 
-distributing function closures over a network, or using them in concurrent 
+(functions) and thereby function closures.
+However, despite this established viewpoint of FP as an enabler, reliably
+distributing function closures over a network, or using them in concurrent
 environments nonetheless remains a challenge across FP and OO languages.
-This paper takes a step towards more principled distributed and concurrent 
+This paper takes a step towards more principled distributed and concurrent
 programming by introducing a new closure-like abstraction and type system,
-called {\em spores}, that can guarantee closures to be serializable, thread-safe, 
-or even have general, custom user-defined properties. 
-We prove our type system sound, implement our approach for Scala, evaluate 
-its practicality through an small empirical study, and show the power of these 
-guarantees through a case analysis of new distributed and concurrent 
+called {\em spores}, that can guarantee closures to be serializable, thread-safe,
+or even have general, custom user-defined properties.
+We prove our type system sound, implement our approach for Scala\footnote{\sporeurl}, evaluate
+its practicality through an small empirical study, and show the power of these
+guarantees through a case analysis of new distributed and concurrent
 frameworks that this safe foundation for migratable closures enables.
 
 % == 150-word abstract for the submission page ==
@@ -191,16 +191,16 @@ frameworks that this safe foundation for migratable closures enables.
 % popularity of the rationale behind this viewpoint (immutable data transformed
 % by function application) has even lead to a number of object-oriented
 % programming languages adopting functional features such as lambdas
-% and thereby function closures. 
-% However, despite this established viewpoint of FP as an enabler, reliably 
-% distributing closures over a network, or using them in concurrent 
+% and thereby function closures.
+% However, despite this established viewpoint of FP as an enabler, reliably
+% distributing closures over a network, or using them in concurrent
 % environments nonetheless remains a challenge across FP and OO languages.
-% This paper takes a step towards more principled distributed and concurrent 
+% This paper takes a step towards more principled distributed and concurrent
 % programming by introducing a new closure-like abstraction and type system,
-% called spores, that can guarantee closures to be serializable, thread-safe, 
-% or even have custom user-defined properties. 
-% We prove our type system sound, implement our approach for Scala, and show the 
-% power of these guarantees through a case analysis of new distributed/concurrent 
+% called spores, that can guarantee closures to be serializable, thread-safe,
+% or even have custom user-defined properties.
+% We prove our type system sound, implement our approach for Scala, and show the
+% power of these guarantees through a case analysis of new distributed/concurrent
 % frameworks that this safe foundation for migratable closures enables.
 
 \keywords{functions, closures, distributed programming, concurrent programming, type systems}
@@ -208,8 +208,8 @@ frameworks that this safe foundation for migratable closures enables.
 %
 \section{Introduction}
 
-With the growing trend towards big data, cloud computing and mobile
-applications, distributed programming has entered the mainstream. The
+With the growing trend towards cloud computing, mobile applications, big data,
+distributed programming has entered the mainstream. The
 traditional view of software development as being focused on a program running
 on a single machine, interacting directly with the user, has become largely
 obsolete. Popular paradigms in software engineering such as software as a
@@ -221,10 +221,10 @@ a social network, all are ``distributed'' jobs, and all share the need to
 interact in typically asynchronous, reactive ways with other clients or
 services.
 
-Meanwhile, concurrently, functional programming has been undeniably gaining
-traction in recent years, as is evidenced by the ongoing trend of
+Meanwhile, at the same time, functional programming has been undeniably
+gaining traction in recent years, as is evidenced by the ongoing trend of
 traditionally object-oriented or imperative languages being extended with
-functional features, such as lambdas in {Java 8}~\cite{JavaLambdas},
+functional features, such as lambdas in \mbox{Java 8}~\cite{JavaLambdas},
 C++11~\cite{CplusplusLambas}, and Visual Basic 9~\cite{Meijer}, the perceived
 importance of functional programming in general empirical studies on software
 developers~\cite{PLAdoption}, and the measurable popularity of functional
@@ -232,38 +232,83 @@ programming massively online open courses (MOOCs)~\cite{ICSEMOOC}.
 
 One reason for the rise in popularity of functional programming languages and
 features within object-oriented communities is the basic philosophy of
-transforming immutable data by applying first-class functions, and the observation that
-this functional style simplifies reasoning about data in parallel, concurrent, and distributed code.
-{Java 8}'s monadic-style optionally parallel
-collections~\cite{JavaLambdas}, Scala's parallel
-collections~\cite{ScalaParColls} and concurrent dataflow~\cite{FlowPools}
-collections, , , are just some efforts that evidence this trend.
+transforming immutable data by applying first-class functions, and the
+observation that this functional style simplifies reasoning about data in
+parallel, concurrent, and distributed code. A popular and well-understood
+example of this style of programming for which many popular frameworks have
+come to fruition is functional data-parallel programming, where the
+fundamental idea is to distribute data across nodes/threads and to perform the
+same task on the different pieces of this distributed data in parallel.
+Examples across functional and object-oriented paradigms include \mbox{Java
+8}'s monadic-style optionally parallel collections~\cite{JavaLambdas}, Scala's
+parallel~\cite{ScalaParColls} and concurrent dataflow~\cite{FlowPools}
+collections, Data Parallel Haskell~\cite{DataParallelHaskell}, Concurrent
+Collections (CnC)~\cite{CnC} Nova~\cite{Nova}, and Haskell's \verb|Par|
+monad~\cite{HaskellPar} to name a few.
 
-Data-parallel programming has been established as a particularly successful and well-understood form of parallel programming across both programming paradigms (both functional and object-oriented proposals exist) and domains (high-performance computing, big data analytics, GPU programming, ...). A ``function-passing'' style of data-parallel programming, based on immutable data and first-class functions, enables more opportunities for optimization, safety, and verification opportunities~\cite{Nova}.
+% Data-parallel programming has been established as a particularly successful
+% and well-understood form of parallel programming across both programming
+% paradigms (both functional and object-oriented proposals exist) and domains
+% (high-performance computing, big data analytics, GPU programming, ...). A
+% ``function-passing'' style of data-parallel programming, based on immutable
+% data and first-class functions, enables more opportunities for optimization,
+% safety, and verification opportunities~\cite{Nova}.
 
-In the context of distributed programming, data-parallel frameworks like Hadoop/MapReduce~\cite{MapReduce} and Spark~\cite{Spark} are designed around functional patterns where closures encapsulating computations are transferred to large-scale persistent datasets. As a result of the ``big data'' revolution, these frameworks have become very popular, making the robust distribution of computations and closures essential.
+In the context of distributed programming, data-parallel frameworks like
+Hadoop or MapReduce~\cite{MapReduce} and Spark~\cite{Spark} are designed
+around functional patterns where closures encapsulating computations are
+transmitted over the network to large-scale persistent datasets stored on
+different nodes in the cluster. As a result of the ``big data'' revolution,
+these frameworks have become very popular, in turn further highlighting the
+need to be able to reliably and safely serialize and transmit closures over
+the network. % making the robust distribution of computations and % closures
+essential.
 
-Frameworks like Spark embody a pattern that we like to call ``Lambda The Ultimate Distributive'' where closures are shipped to the data such that (a) data to-be-processed is passed as arguments, (b) data that needs to be shipped is captured and serialized, and (c) services local to a node are either passed as additional arguments by the framework or looked up. 
+Frameworks like Spark embody a pattern that we like to call ``Lambda The
+Ultimate Distributive'' where closures are shipped to the data such that (a)
+data to-be-processed remotely is passed as arguments, (b) data that needs to
+be shipped with the closure is captured and serialized, and (c) services local
+to a node are either passed as additional arguments by the framework or looked
+up.
 
 % have to be pure or can't have access to mutable things
 
-{\bf However, there's trouble in paradise.}~For both object-oriented and functional languages, there still exist numerous hurdles at the language-level for even these most basic functional building blocks, closures, to overcome in order to be reliable and easy to reason about in a concurrent or distributed setting.
+{\bf However, there's trouble in paradise.}~For both object-oriented and
+functional languages, there still exist numerous hurdles at the language-level
+for even these most basic functional building blocks, closures, to overcome in
+order to be reliable and easy to reason about in a concurrent or distributed
+setting.
 
-In order to distribute closures, one must be able to serialize them -- a goal that remains tricky to reliably achieve not only hard in object-oriented languages but also in pure functional languages like Haskell:
+In order to distribute closures, one must be able to serialize them -- a goal
+that remains tricky to reliably achieve not only hard in object-oriented
+languages but also in pure functional languages like Haskell:
 
 \begin{lstlisting}
   sendFunc :: SendPort (Int -> Int) -> Int -> ProcessM ()
   sendFunc p x = sendChan p (\y -> x + y + 1)
 \end{lstlisting}
 
-In this Haskell example, the function sent on the channel, \verb|(\y -> x+y+1)|, is a
-closure that captures its free variables, in this case \verb|x|. As one might expect,
-to serialize a function value means that one must also serialize its free variables. 
-However, in this case, the types of these free variables are unrelated to the type of the function value, so it is entirely unclear how to serialize them.
+In this Haskell example, the function sent on the channel,
+\verb|(\y -> x + y + 1)|,
+is a closure that captures its free variables, in this case \verb|x|.
+As one might expect, to serialize a function value means that one must also
+serialize its free variables. However, in this case, the types of these free
+variables are unrelated to the type of the function value, so it is entirely
+unclear how to serialize them.
 
-In languages like Java or C\# on the other hand, serialization is solved differently. In languages like these, the runtime environment is designed to be able to serialize any object, reflectively. While this ``universal'' serialization might seem to solve the problem of languages like Haskell that cannot rely on such a mechanism, serializing closures nonetheless remains surprisingly error-prone. For example, attempting to serialize a closure with transitive references to objects that are not marked as serializable will crash at runtime, typically with no compile-time checks whatsoever. The kicker is that it's remarkably easy to accidentally create such a problematic transitive reference, especially in an object-oriented language.
+In languages like Java or C\# on the other hand, serialization is solved
+differently -- the runtime environment is designed to be able to serialize any
+object, reflectively. While this ``universal'' serialization might seem to
+solve the problem of languages like Haskell that cannot rely on such a
+mechanism, serializing closures nonetheless remains surprisingly error-prone.
+For example, attempting to serialize a closure with transitive references to
+objects that are not marked as serializable will crash at runtime, typically
+with no compile-time checks whatsoever. The kicker is that it's remarkably
+easy to accidentally create such a problematic transitive reference,
+especially in an object-oriented language.
 
-For example, consider the following use of a distributed collection in Scala (using Spark):
+For example, consider the following use of a distributed collection in Scala
+with higher-order functions \verb|map| and \verb|reduce| (using Spark):
 
 \begin{lstlisting}
 class MyCoolRddApp {
@@ -276,9 +321,18 @@ class MyCoolRddApp {
 }
 \end{lstlisting}
 
-In this example, the closure \verb|(x => x + shift(x))| is passed to the map method of the distributed collection \verb|rdd| which requires serializing the closure (parts of the data structure reside on different machines). However, calling \verb|shift| inside the closure invokes a method on the enclosing object \verb|this|. Thus, the closure is capturing, and must therefore serialize, \verb|this|. If \verb|Log|, referred to from \verb|this|, is not serializable, this will fail at runtime.
+In this example, the closure \verb|(x => x + shift(x))| is passed to the
+\verb|map| method of the distributed collection \verb|rdd| which requires
+serializing the closure (as, in Spark, parts of the data structure reside on
+different machines). However, calling \verb|shift| inside the closure invokes
+a method on the enclosing object \verb|this|. Thus, the closure is capturing,
+and must therefore serialize, \verb|this|. If \verb|Log|, referred to from
+\verb|this|, is not serializable, this will fail at runtime.
 
-In fact, closures suffer not only from the problems shown in these two examples -- there are yet more hazards that manifest {\em across programming paradigms}. To provide a more complete glimpse:
+In fact, closures suffer not only from the problems shown in these two
+examples; there are numerous more hazards that manifest {\em across
+programming paradigms}. To provide a complete glimpse, closure-related hazards
+related to concurrency and distribution include:
 
 % Unfortunately, besides the above mentioned problems, closures exhibit a variety of additional hazards, across programming paradigms.
 
@@ -286,22 +340,41 @@ In fact, closures suffer not only from the problems shown in these two examples 
 \item free variables that are not serializable;
 \item accidental references to \verb|this| or other enclosing objects that are not serializable;
 \item language-specific compilation schemes, creating implicit references to objects that are not serializable;
-\item transitive references that inadvertently hold on to excessively large object graphs, creating memory leaks; 
+\item transitive references that inadvertently hold on to excessively large object graphs, creating memory leaks;
 \item capturing references to mutable objects, leading to race conditions in a concurrent setting;
 \item unknowingly accessing unstable object members such as method calls, which in a distributed setting can have logically different meanings on different machines;
 \end{itemize}
 
-Given all of these issues, exposing functions in public APIs is a source of headaches for authors of concurrent or distributed frameworks. Users who stumble across any of these issues are put in a position where it's unclear whether or not the encountered issue is a problem on the side of the user or the framework, thus often adversely hitting the perceived reliability of these frameworks and libraries. Furthermore, even internal function-based APIs pose serious software engineering challenges, since small changes can affect the environment captured by a given closure, potentially rendering them suddenly not serializable or adding inadvertent race conditions, thus making refactoring error-prone, and debugging difficult.
+Given all of these issues, exposing functions in public APIs is a source of
+headaches for authors of concurrent or distributed frameworks. Framework users
+who stumble across any of these issues are put in a position where it's
+unclear whether or not the encountered issue is a problem on the side of the
+user or the framework, thus often adversely hitting the perceived reliability
+of these frameworks and libraries. Furthermore, even internally-facing
+function-based APIs pose serious software engineering challenges, since small
+changes to a codebase can affect the environment captured by a given closure,
+potentially rendering them suddenly not serializable or adding inadvertent
+race conditions, thus making refactoring error-prone, and debugging difficult.
 
-We argue that solving these problems in a principled way could lead to more confidence on behalf of library authors in exposing functions in APIs, leading to a potentially wide array of new frameworks, such as for concurrent and distributed functional reactive programming.
+We argue that solving these problems in a principled way could lead to more
+confidence on behalf of library authors in exposing functions in APIs, leading
+to a potentially wide array of new frameworks.
+% , such as for concurrent and
+% distributed functional reactive programming.
 
-This paper takes a step towards more principled {\em function-passing
-style} by introducing a new closure-like abstraction, {\em spores}, which avoids typical hazards when using closures in a concurrent or distributed setting through controlled variable capture and constraints for captured types. Using type-based constraints, spores allow expressing a variety of ``safe'' closures, such as guaranteed-serializable closures, closures which capture only immutable types, or closures with customizable user-defined type-based properties.
+This paper takes a step towards more principled {\em function-passing style}
+by introducing a new closure-like abstraction, {\em spores}, which avoids
+typical hazards when using closures in a concurrent or distributed setting
+through controlled variable capture and constraints for captured types. Using
+type-based constraints, spores allow expressing a variety of ``safe''
+closures, such as guaranteed-serializable closures, closures which capture
+only immutable types, or closures with customizable user-defined type-based
+properties.
 
 The design of spores is guided by the following principles:
 
 \begin{itemize}
-\item {\bf A lightweight design} to be practical for inclusion in the 
+\item {\bf Lightweight Design} to be practical for inclusion in the
 full-featured Scala language. To enable a robust integration with the host
 language, existing type system features are reused instead of extended.
 
@@ -323,7 +396,7 @@ systematic features such as type refinements and implicits.
 
 \item {\bf Custom, user-defined, type-based closure semantics}. Spores should enable customizing the semantics of variable capture based on user-defined types. It should be possible to use existing type-based mechanisms to express a variety of user-defined requirements for captured types.
 
-\item{Composability}. Spores, regardless of their constraints, should be logically and intuitively composable, while preserving their semantic properties.
+\item {\bf Composability}. Spores, regardless of their constraints, should be logically and intuitively composable, while preserving their semantic properties.
 
 \item {\bf More reliable and trustworthy APIs for library authors}. Spores enable library
 authors to confidently release libraries that expose functions in the user-
@@ -333,15 +406,56 @@ facing API without concern of runtime exceptions.
 
 \subsection{Selected Related Work}
 
-Cloud Haskell~\cite{CloudHaskell} provides statically guaranteed-serializable closures by either rejecting environments outright, or by allowing manual capturing requiring the user to explicitly specify and pre-serialize the environment in combination with top-level functions (enforced using a new \verb|Static| type constructor). That is, in Cloud Haskell, to create a serializable closure, one must explicitly pass the serialized environment as a parameter to the function -- this requires users to have to completely reorganize any closure they wish to be made serializable. In contrast, spores do not require users to manually factor out, manage, and serialize their environment; spores require only that {\em what} is captured is specified, not {\em how}. Furthermore, spores are more general than Cloud Haskell's serializable closures -- user-defined type constraints enable spores to express more properties than just serializability, like thread-safety, immutability, or any other user-defined property. In addition, spores allow restricting captured types in a way that's integrated with object-oriented concerns, such as subtyping and open class hierarchies.
+Cloud Haskell~\cite{CloudHaskell} provides statically guaranteed-serializable
+closures by either rejecting environments outright, or by allowing manual
+capturing, requiring the user to explicitly specify and pre-serialize the
+environment in combination with top-level functions (enforced using a new
+\verb|Static| type constructor). That is, in Cloud Haskell, to create a
+serializable closure, one must explicitly pass the serialized environment as a
+parameter to the function -- this requires users to have to completely
+reorganize any closure they wish to be made serializable. In contrast, spores
+do not require users to manually factor out, manage, and serialize their
+environment; spores require only that {\em what} is captured is specified, not
+{\em how}. Furthermore, spores are more general than Cloud Haskell's
+serializable closures -- user-defined type constraints enable spores to
+express more properties than just serializability, like thread-safety,
+immutability, or any other user-defined property. In addition, spores allow
+restricting captured types in a way that's integrated with object-oriented
+concerns, such as subtyping and open class hierarchies.
 
-In industry, a number of languages have adopted or proposed pragmatic solutions to allow control over the environment of closures. 
+In industry, a number of languages have adopted or proposed pragmatic
+solutions to allow control over the environment of closures.
 
-C++11~\cite{CplusplusLambas} has introduced syntactic rules for explicit capture specifications that indicate which variables are captured and how (by reference, or by making a copy). Since the capturing semantics is purely syntactic, a capture specification is only enforced at closure creation time. Thus, when composing two closures, the capture semantics is not preserved. Such capture specifications are not represented at the level of types [but spores are, they can be composed, and have intuitive composition rules]. Furthermore, spores type constraints more general than serialization alone. 
+C++11~\cite{CplusplusLambas} has introduced syntactic rules for explicit
+capture specifications that indicate which variables are captured and how (by
+reference, or by making a copy). Since the capturing semantics is purely
+syntactic, a capture specification is only enforced at closure creation time.
+Thus, when composing two closures, the capture semantics is not preserved.
+Spores, on the other hand, capture such specifications at the level of types,
+enabling composability. Furthermore, spores' type constraints enable more
+general type-directed control over capturing than capture-by-value or
+capture-by-reference alone.
 
-There is a preliminary proposal for closures in the Rust language~\cite{RustFunctions} that allows describing the closed-over variables in the environment using closure bounds requiring captured types to implement certain traits. These closure bounds are limited to a small set of built-in traits to enforce properties like sendability. Spores on the other hand enable user-defined property definition, allowing for greater customizability of closure capturing semantics. Furthermore, the environment of a closure must always be allocated on the stack (although not necessarily the top-most stack frame). Spores, like regular Scala closures, do not have such a restriction.
+There is a preliminary proposal for closures in the Rust
+language~\cite{RustFunctions} that allows describing the closed-over variables
+in the environment using closure bounds, requiring captured types to implement
+certain traits. These closure bounds are limited to a small set of built-in
+traits to enforce properties like sendability. Spores on the other hand enable
+user-defined property definition, allowing for greater customizability of
+closure capturing semantics. Furthermore, in Rust, the environment of a
+closure must always be allocated on the stack (although not necessarily the
+top-most stack frame). Spores, like regular Scala closures, do not have such a
+restriction.
 
-{Java 8}~\cite{JavaLambdas,JavaLambdaTranslation} introduces a limited type of closure -- that is, closures are only permitted to capture variables that are effectively-final. Like with Scala's standard closures, variable capture is implicit which can lead to accidental captures that spores are designed to avoid. Although serializability can be requested at the level of the type system using newly-introduced intersection types, unlike for spores, there is no guarantee about the absence of runtime exceptions. Finally, spores additionally allow specifying type-based constraints for captured variables that are more general than serializability alone.
+{Java 8}~\cite{JavaLambdas,JavaLambdaTranslation} introduces a limited type of
+closure -- that is, closures are only permitted to capture variables that are
+effectively-final. Like with Scala's standard closures, variable capture is
+implicit which can lead to accidental captures that spores are designed to
+avoid. Although serializability can be requested at the level of the type
+system using newly-introduced intersection types in \mbox{Java 8}, there is no
+guarantee about the absence of runtime exceptions as there is for spores.
+Finally, spores additionally allow specifying type-based constraints for
+captured variables that are more general than serializability alone.
 
 We discuss other related work in Section~\ref{sec:related-work}.
 
@@ -350,15 +464,16 @@ We discuss other related work in Section~\ref{sec:related-work}.
 This paper makes the following contributions:
 
 \begin{itemize}
-\item We introduce a closure-like abstraction and type system, called ``spores'', which avoids typical hazards when using closures in a concurrent or distributed setting through controlled variable capture and customizable user-defined constraints for captured types. 
+\item We introduce a closure-like abstraction and type system, called ``spores'', which avoids typical hazards when using closures in a concurrent or distributed setting through controlled variable capture and customizable user-defined constraints for captured types.
 
 \item We introduce an approach for type-based constraints that allow expressing a variety of properties from the literature including, but not limited to, serializability, immutability, and thread-safety.
 
 \item We present a formalization of spores with type constraints and prove soundness of the type system.
 
-\item We discuss an implementation of spores in and for the full Scala language.
+\item We present an implementation of spores in and for the full Scala language\footnote{\sporeurl}.
 
-\item We demonstrate the practicality of our approach using a collection of Scala programs and case studies analyzing the application of spores in a parallel, concurrent, or distributed setting.
+\item We demonstrate the practicality through an small empirical study using a collection of Scala programs, and show the power of these guarantees through a case study of new distributed and concurrent frameworks that this safe foundation for migratable closures enables.
+
 \end{itemize}
 
 % With the growing trend towards big data, cloud computing and mobile
@@ -418,7 +533,7 @@ This paper makes the following contributions:
 
 % we're moving in a directioxn where we ship closures where (a) data to-be-processed and required services are passed as arguments to closures and (b) data that needs to be shipped is captured and serialized
 % % we're moving in a direction where we ship closures where (a) data to-be-processed is passed as arguments to closures
-% % and (b) data that needs to be shipped is captured and serialized 
+% % and (b) data that needs to be shipped is captured and serialized
 % and  (c) services local to a node are either passed in as additional arguments by the dist. framework, or looked up from within closures
 % % (c) services local to a node are looked up from within closures
 % that's the pattern of ltu
@@ -435,7 +550,7 @@ This paper makes the following contributions:
 % thus, even though this pattern exists, it's not really used for structuring systems
 % its main purpose is reducing boilerplate in big data/analytics applications
 
-% FP touted to be enabler for parallel programming. Why? 
+% FP touted to be enabler for parallel programming. Why?
 % Models like Spark~\cite{Spark} and MapReduce~\cite{MapReduce} represent a paradigm shift in distributed
 % computing. Here, the foundation is to move the functionality to the data. The
 % foundational idea is to keep the data stationary, and to send functions to the
@@ -467,7 +582,7 @@ This paper makes the following contributions:
 % While purported to the way forward for bringing parallel, concurrent, and
 % distributed programming to the mainstream, functional programming languages
 % haven't yet taken off as the languages of choice for distributed and
-% concurrent programming in practice. For that, object-oriented languages with functional features such as Scala or Java take the lead. 
+% concurrent programming in practice. For that, object-oriented languages with functional features such as Scala or Java take the lead.
 
 % Java 8's streaming APIs focus on concurrency, expose functions to the user.
 % In Scala we have already gathered experience with these issues and thus we
@@ -480,7 +595,7 @@ This paper makes the following contributions:
 % functional languages to support is that of {\em moving functionality to
 % data}\todo{this is a really common idea, cite a bunch of stuff that aims for
 % this}. While a popular idea, there exist few distributed systems which embody
-% this approach, the most notable of which being Spark~\cite{Spark}, a fault-tolerant, 
+% this approach, the most notable of which being Spark~\cite{Spark}, a fault-tolerant,
 % in-memory distributed collections abstraction.
 
 % \todo{talk about issues of serializing lambdas in Java, Scala -- OO languages. Then discuss the problems of functional languages like Haskell too}
@@ -500,7 +615,7 @@ This paper makes the following contributions:
 
 % The design of spores is guided by the following principles:
 % \begin{itemize}
-% \item {\bf A lightweight design} to be practical for inclusion in the 
+% \item {\bf A lightweight design} to be practical for inclusion in the
 % full-featured Scala language. To enable a robust integration with the host
 % language, existing type system features are reused instead of extended.
 
@@ -538,12 +653,12 @@ This paper makes the following contributions:
 % limited to top-level functions, and reject an environment or allow controlled
 % capturing, preserialization of the environment.  For us, management of the
 % environment is automatic, we don't need to preserialize the env, and our type
-% constraints are very different. We provide a solution for imperative OO languages 
-% as well. Their stuff is mostly top-level, whereas in Scala, closures usually refer 
+% constraints are very different. We provide a solution for imperative OO languages
+% as well. Their stuff is mostly top-level, whereas in Scala, closures usually refer
 % to local objects nested within other objects
 
 % == NOTES ==
-% We introduce a model for concurrent and distributed computing where the data is stationary and functions are mobile. This is a dual to the actor model, where functionality is stationary, and data is made mobile. 
+% We introduce a model for concurrent and distributed computing where the data is stationary and functions are mobile. This is a dual to the actor model, where functionality is stationary, and data is made mobile.
 
 % In theory you can migrate actors, in practice, you cannot. Can we use these insights to find a way to migrate actors cleanly?
 
@@ -566,7 +681,7 @@ This paper makes the following contributions:
 
 % The design of our framework is guided by the following principles...
 
-% In this paper, we present a model and type system for introducing general {\em type constraints}, and demonstrate its applicability 
+% In this paper, we present a model and type system for introducing general {\em type constraints}, and demonstrate its applicability
 
 
 % \subsection{Problems of actors}
@@ -595,7 +710,7 @@ This paper makes the following contributions:
 % \subsection{Contributions}
 
 % \begin{itemize}
-% \item a description, general model, and type system of \textit{spores}, functions that are guaranteed to be 
+% \item a description, general model, and type system of \textit{spores}, functions that are guaranteed to be
 % \item a full soundness proof
 % \item a general system for applying type-constraints to arbitrary properties beyond serializability or thread-safety.
 % \item an implementation for Scala
@@ -656,66 +771,66 @@ This paper makes the following contributions:
 % \item C\# (Supports functions, but not closures. Emulates with delegates.)
 % \end{itemize}
 
-\section{Lambda the Ultimate Distributive}
+% \section{Lambda the Ultimate Distributive}
 
-Lambdas provide a simple, principled way of handling the different kinds of
-objects that are fundamental in distributed systems. This section describes a
-pattern that we call ``Lambda the Ultimate Distributive'' for working with
-lambdas in a distributed environment.
+% Lambdas provide a simple, principled way of handling the different kinds of
+% objects that are fundamental in distributed systems. This section describes a
+% pattern that we call ``Lambda the Ultimate Distributive'' for working with
+% lambdas in a distributed environment.
 
-In a distributed system, different kinds of objects have to be handled in
-different ways. Some of these objects are data that should be processed (like
-a large collection), some of these objects represent services of the runtime
-environment (e.g., for scheduling or communication).
+% In a distributed system, different kinds of objects have to be handled in
+% different ways. Some of these objects are data that should be processed (like
+% a large collection), some of these objects represent services of the runtime
+% environment (e.g., for scheduling or communication).
 
-Given the kind of object that is involved in a distributed computation, the
-object has to be handled specially:
-\begin{itemize}
+% Given the kind of object that is involved in a distributed computation, the
+% object has to be handled specially:
+% \begin{itemize}
 
-\item (a) an object can be data that must be shipped between nodes to accomplish
-some task;
+% \item (a) an object can be data that must be shipped between nodes to accomplish
+% some task;
 
-\item (b) an object can be a runtime service, such as a scheduler, which is not
-shippable, but must be used on each node;
+% \item (b) an object can be a runtime service, such as a scheduler, which is not
+% shippable, but must be used on each node;
 
-\item (c) an object can be data which is not shippable for some reason, but might
-have to be retrieved on multiple nodes.
+% \item (c) an object can be data which is not shippable for some reason, but might
+% have to be retrieved on multiple nodes.
 
-\end{itemize}
+% \end{itemize}
 
-The idea of ``lambda the ultimate distributive'' is that closures can handle
-all of these kinds of objects in a principled and well-defined way (no
-guessing needed):
+% The idea of ``lambda the ultimate distributive'' is that closures can handle
+% all of these kinds of objects in a principled and well-defined way (no
+% guessing needed):
 
-\begin{itemize}
+% \begin{itemize}
 
-\item objects of kind (a) can be safely captured by the closure since they are shippable;
+% \item objects of kind (a) can be safely captured by the closure since they are shippable;
 
-\item objects of kind (b) must be parameters of the closure; on each machine,
-a reference the (local) runtime environment is passed as an argument to the
-closure; (Individual services, like a scheduler, could be fields of a
-wrapping ``environment'' object.)
+% \item objects of kind (b) must be parameters of the closure; on each machine,
+% a reference the (local) runtime environment is passed as an argument to the
+% closure; (Individual services, like a scheduler, could be fields of a
+% wrapping ``environment'' object.)
 
-\item objects of kind (c) must be parameters of the closure; on each machine,
-they have to be retrieved first using an object of kind (b), and then passed
-to the closure as an argument.
+% \item objects of kind (c) must be parameters of the closure; on each machine,
+% they have to be retrieved first using an object of kind (b), and then passed
+% to the closure as an argument.
 
-\end{itemize}
+% \end{itemize}
 
-Using lambdas in this way allows modeling most situations \todo{make less vague}
-in a distributed system in a principled way, without special tricks or
-hacks. However, correctly using lambdas according to the above pattern
-requires discipline, since properties such as serializability of captured
-objects are typically not enforced by the language or type system.
+% Using lambdas in this way allows modeling most situations \todo{make less vague}
+% in a distributed system in a principled way, without special tricks or
+% hacks. However, correctly using lambdas according to the above pattern
+% requires discipline, since properties such as serializability of captured
+% objects are typically not enforced by the language or type system.
 
-\subsection{Limitations of simple lambdas}
+% \subsection{Limitations of simple lambdas}
 
-Here we can point out problems of regular lambdas: accidentally capturing
-references to enclosing objects, accidentally capturing non-serializable
-objects, incorrect use of lambdas in concurrent code (one motivation for
-parallel closures), accidentally accessing unstable members of captured
-objects (important in particular in languages supporting the uniform access
-principle like Eiffel [check], Smalltalk [check], and Scala).
+% Here we can point out problems of regular lambdas: accidentally capturing
+% references to enclosing objects, accidentally capturing non-serializable
+% objects, incorrect use of lambdas in concurrent code (one motivation for
+% parallel closures), accidentally accessing unstable members of captured
+% objects (important in particular in languages supporting the uniform access
+% principle like Eiffel [check], Smalltalk [check], and Scala).
 
 
 \section{Spores: Closures with Constraints}
@@ -1330,7 +1445,7 @@ By induction on a derivation of $t : T$. The only two interesting cases are the 
 
 Case \textsc{T-Spore}: $t = \texttt{spore}~\{~\seq{x : S = t}~; (x: T_1) \Rightarrow t~\}$, $\forall t_i \in \seq{t}.~\vdash t_i : S_i$, and $\seq{x : S}, x : T_1 \vdash t : T_2$. By the induction hypothesis, either all $\seq{t}$ are values, in which case $t$ is a value; or there is a term $t_i$ such that $t_i \rightarrow t_i'$ (since $\Gamma ; \Delta \vdash t_i : S_i$) and all $t_j$ where $j < i$ are values $v_j$. Thus, by (\textsc{E-Spore}), there is a $t'$ such that $t \rightarrow t'$.
 
-Case \textsc{T-App}: $t = t_1~t_2$, $\vdash t_1 : T_1 \Rightarrow T_2$, and $\vdash t_2 : T_1$. By the induction hypothesis, either $t_1$ is a value $v_1$, or $t_1 -> t_1'$. In the latter case it follows from (\textsc{E-App1}) that there is a $t'$ such that $t \rightarrow t'$. In the former case, by the induction hypothesis $t_2$ is either a value $v_2$ or $t_2 \rightarrow t_2'$. In the former case by the canonical forms lemma we have that $v_2$ is either $(x: T) \Rightarrow t$ or $\texttt{spore}~\{~\seq{x : T = v}~; \seq{pn} ; (x: T_1) \Rightarrow t~\}$ where $T <: T_1$ and $\seq{v}$ is a sequence of values; thus, either (\textsc{E-AppAbs}) or (\textsc{E-AppSpore}) apply. In the latter case, 
+Case \textsc{T-App}: $t = t_1~t_2$, $\vdash t_1 : T_1 \Rightarrow T_2$, and $\vdash t_2 : T_1$. By the induction hypothesis, either $t_1$ is a value $v_1$, or $t_1 -> t_1'$. In the latter case it follows from (\textsc{E-App1}) that there is a $t'$ such that $t \rightarrow t'$. In the former case, by the induction hypothesis $t_2$ is either a value $v_2$ or $t_2 \rightarrow t_2'$. In the former case by the canonical forms lemma we have that $v_2$ is either $(x: T) \Rightarrow t$ or $\texttt{spore}~\{~\seq{x : T = v}~; \seq{pn} ; (x: T_1) \Rightarrow t~\}$ where $T <: T_1$ and $\seq{v}$ is a sequence of values; thus, either (\textsc{E-AppAbs}) or (\textsc{E-AppSpore}) apply. In the latter case,
 
 \end{proof}
 
@@ -1344,14 +1459,14 @@ If $\Gamma \vdash t : T$ and $t \rightarrow t'$, then $\Gamma \vdash t' : T$.
 
 Goals:
 \begin{itemize}
-\item If an expression is type-correct, at runtime all its properties should be true. This is particularly 
+\item If an expression is type-correct, at runtime all its properties should be true. This is particularly
   interesting for spore expressions.
-\item Furthermore, whenever an expression is reduced the result of the reduction should also be type-correct which 
+\item Furthermore, whenever an expression is reduced the result of the reduction should also be type-correct which
   makes sure it's static properties are preserved by reduction. (Preservation)
-\item To achieve soundness of the type system, we would also like to show that if an expression in our core 
+\item To achieve soundness of the type system, we would also like to show that if an expression in our core
   language is type-correct, then the expression can be reduced. (Progress)
 \end{itemize}
-  
+
 Spores are represented dynamically as tuples $(cs, is, fun)$ where cs is a
 sequence of captured variables (the spore header), is is a sequence of type
 class instances, and fun is the spore closure. The only free variables of the
@@ -1576,6 +1691,7 @@ In the above example, capturing a mutable object (or, in fact, any object of typ
 % \end{itemize}
 
 \section{Related Work}
+\label{sec:related-work}
 
 Non-academic related work: functions in Rust, 3 different types based on
 different possibilities for environments \cite{RustFunctions}; functions,
