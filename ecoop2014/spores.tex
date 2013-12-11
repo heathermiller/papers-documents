@@ -11,6 +11,7 @@
 \usepackage{listings}
 \usepackage{bcprules}
 \usepackage{fontspec}
+\usepackage{fancyvrb}
 
 \usepackage{microtype}
 \usepackage{times}
@@ -120,6 +121,7 @@
 %
 \begin{document}
 
+\VerbatimFootnotes
 \setmonofont[Scale=0.8,BoldFont={Consolas Bold}]{Consolas}
 
 %
@@ -834,185 +836,527 @@ This paper makes the following contributions:
 % objects (important in particular in languages supporting the uniform access
 % principle like Eiffel [check], Smalltalk [check], and Scala).
 
+
 \section{Spores}
 
-Spores are a closure-like abstraction which aim to give users . They achieve this by (a) enforcing a
-specific syntactic shape which, and (b) adding a type system.
+Spores are a closure-like abstraction which aim to give users [state goals nicely].
+They achieve this by (a) enforcing a specific syntactic shape which, and (b) adding a type system.
+We describe below the syntactic shape of spores, and in Section~\ref{sec:type-constraints} we informally describe the type system.
 
-We would like to constrain the environment of a spore to express properties
-such as:
-\begin{itemize}
-\item All captured objects must be serializable
-\item All captured objects must be thread-safe
-\item Captured objects must not be marked as unsafe for capturing
-\end{itemize}
-\noindent
-Such properties restrict the types of objects that a spore is allowed to
-capture. A naive way to achieve this would be to annotate certain types as
-``not-safe-for-capturing''. However, this approach would be too inflexible,
-since some desirable properties are orthogonal to others. For example, a
-\verb|Promise| type~\cite{promise-paper} would be safe for capturing by a
-spore used in a concurrent setting, whereas it would not be safe for capturing
-by a spore that is intended to be serialized.
+in a later section~\ref{}, we'll describe how to use spores with the type system extension proposed in this paper.
 
-Thus, rather than permitting or disallowing types to be captured, in our
-approach spores can express properties that the types of captured variables
-are required to have. For example, a spore might require all captured types to
-be thread-safe. Properties can also be composed, enabling spores to require
-their captured types to have multiple properties. For example, in addition to
-thread-safety, a spore may require its captured types to be serializable.
-(Such a spore would be well-suited for computations that should be executed
-concurrently on the same computer or on another computer depending on the
-current work load.)
 
-\subsection{The \texttt{Spore} trait}
+A spore is a closure with a specific shape that dictates how the environment of a spore is declared. In general, a spore has the following shape:
+\begin{lstlisting}
+spore {
+  val y1: S1 = <expr1>
+  ...
+  val yn: Sn = <exprn>
+  (x: T) => {
+    // ...
+  }
+}
+\end{lstlisting}
+A spore consists of two parts: the header and the body. The list of value definitions at the beginning is called the spore header. The header is followed by a regular closure, the spore's body. The characteristic property of a spore is that the body of its closure is only allowed to access its parameter, values in the spore header, as well as top-level singleton objects (public, global state). In particular, the spore closure is not allowed to capture variables in the environment. Only an expression on the right-hand side of a value definition in the spore header is allowed to capture variables.
 
-To express type constraints we leverage two features of Scala's type system.
-First, in Scala a function is an object of a type that extends one of the
-predefined function traits. Thus, it is possible to subclass the predefined
-function types. Second, in Scala classes and traits can be refined with value
-and type members. As we will see, type members are a natural way to express
-type constraints.
+By enforcing this shape, the environment of a spore is always declared explicitly in the spore header which avoids accidentally capturing problematic references. Moreover, and that's important for OO languages, it's no longer possible to accidentally capture the \verb|this| reference.
 
-The type of single-argument spores is defined as follows:
+Note that the evaluation semantics of a spore is equivalent to a closure obtained by leaving out the \verb|spore| marker:
 
 \begin{lstlisting}
-    trait Spore[-A, +R] extends Function1[A, R] {
-      type Capture[T]
-    }
+{
+  val y1: S1 = <expr1>
+  ...
+  val yn: Sn = <exprn>
+  (x: T) => {
+    // ...
+  }
+}
 \end{lstlisting}
-\noindent
-The \verb|Spore| trait extends the \verb|Function1| trait~\todo{variance annotations} which is defined as
-follows in Scala's standard library:
+
+In Scala, the above block first initializes all value definitions in order and then evaluates to a closure that captures the introduced local variables y1, ..., yn. The corresponding spore has the exact same evaluation semantics. What's interesting is that this closure shape is already used in production systems such as Spark to avoid problems with accidentally captured \verb|this| references. However, in these systems the above shape is not enforced, whereas with spores it is.
+
+
+\subsubsection{Spore type}
+
+The result type of the \verb|spore| constructor is not a regular function type, but a subtype of one of Scala's function types. This is possible, because in Scala functions are instances of classes that mix in one of the function traits. For example, the trait for functions of arity one looks like this:
+\footnote{For simplicity we omit definitions of the \verb+andThen+ and \verb+compose+ methods in the definition of \verb+Function1+.}
 
 \begin{lstlisting}
-    trait Function1[-A, +R] extends AnyRef {
-      def apply(v: A): R
-      def andThen[B](g: R => B): A => B
-      def compose[B](g: B => A): B => R
+    trait Function1[-A, +B] {
+      def apply(x: A):  B
     }
 \end{lstlisting}
-\noindent
-The above definition expresses the fact that functions are objects with an
-\verb|apply| method; function composition is supported using the
-\verb|andThen| and \verb|compose| methods.
 
-The \verb|Capture[T]| type member of the \verb|Spore| trait is used to express
-requirements of all captured types \verb|T| in the form of ``interfaces'' that
-the captured types \verb|T| have to implement. As we will see below, instead
-of using Java-style interfaces, we use a combination of traits and
-implicits~\cite{Oliveira2010} akin to generalized interfaces in
-JavaGI~\cite{WehrT11} or concepts in C++.
+The \verb|apply| method is abstract; a concrete implementation applies the body of the function that's being defined to the argument \verb|x|. Functions are contravariant in their argument type A, indicated using the ``\verb|-|'' symbol, and covariant in their result type B, indicated using the ``\verb|+|'' symbol.
 
-For example, a spore from \verb|Int| to \verb|String| that requires all
-captured types to be serializable would have the following type:
-\begin{lstlisting}
-    Spore[Int, String] {
-      type Capture[T] = Pickler[T]
-    }
-\end{lstlisting}
-\noindent
-The type member \verb|Capture[T]| is defined such that for each captured type
-\verb|T| there must exist an instance of type \verb|Pickler[T]| (a ``pickler''
-that can serialize or pickle objects of type \verb|T|). Such instances are
-made available and looked up using Scala's {\em implicits} as shown below.
-
-Just like requiring all captured types to have a certain property, sometimes
-it's necessary to prevent types with a certain property from being captured.
-While in principle this could be supported by requiring a property that's not
-satisfied only by those types we wish to exclude from capturing, it would
-require declaring all types that are not excluded, which would lead to a lot
-of boilerplate. Instead, we introduce another type member \verb|NoCapture[T]|
-used to express properties that lead to rejection of a captured type:\todo{also discuss subtypes}
+The type of a spore of arity one is a subtype of \verb|Function1|:
 
 \begin{lstlisting}
-    trait Spore[-A, +R] extends Function1[A, R] {
-      type Capture[T]
-      type NoCapture[T]
+    trait Spore[-A, +B] extends Function1[A, B] {
+      type Captured
+      type Excluded
     }
 \end{lstlisting}
-\noindent
-Given this way of introducing constraints it's even possible to require
-captured types to have multiple properties. Since properties are expressed
-using traits, properties can be combined using mix-in composition. For
-example, a spore requiring all captured types to be both serializable and
-thread-safe would look as follows:
+
+The \verb|Spore| trait has two abstract type members. In a concrete spore the \verb|Captured| type member is defined to be a tuple type with the types of all captured variables. We will talk about the Excluded type member in a later section.
+
+For example, the spore
+
+\begin{lstlisting}
+    spore { val y1: String = expr1; val y2: Int = expr2; (x: Int) => y1+y2+x }
+\end{lstlisting}
+
+would have the refinement type
 
 \begin{lstlisting}
     Spore[Int, String] {
-      type Capture[T] = Pickler[T] with ThreadSafe[T]
-    }
-\end{lstlisting}
-\noindent
-The idea behind the property \verb|ThreadSafe| is that thread-safe types could
-provide dummy implementations of the interface \verb|ThreadSafe[T]|. Moreover,
-the \verb|with| keyword is used to create the mix-in composition of
-\verb|Pickler[T]| and \verb|ThreadSafe[T]|. This composition is guaranteed to
-be defined if we require all properties to be direct descendants of
-\verb|AnyRef|, the top type of all reference types in Scala.
-
-Spores without constraints have types of the following form:
-\begin{lstlisting}
-    Spore[A, R] {
-      type Capture[T] = NoConstraint[T]
-      type NoCapture[T] = NoConstraint[T]
+      type Captured = (String, Int)
     }
 \end{lstlisting}
 
-\subsection{Library-specific constraints}
+(We omit the Excluded type member for simplicity; it is explained in detailed below.)
 
-One important goal of spores is to make the use of closure-based libraries
-safer. This is enabled through subtyping: instead of using regular function
-types, libraries can require the use of subtypes of the \verb|Spore| trait
-introduced above.
-
-For example, a concurrency library could declare certain types as not safe to
-be captured by closures. We can express this using a type class, say,
-\verb|Unsafe[T]|. For each type that should not be captured we introduce a
-type class instance. For example, the following implicit object introduces an
-instance of the \verb|Unsafe| type class for type \verb|Actor|:
+Using the `Spore` trait methods can require argument closures to be spores:
 
 \begin{lstlisting}
-    implicit object unsafeActor extends Unsafe[Actor]
+    def sendOverWire(s: Spore[Int, Int]): Unit = ...
 \end{lstlisting}
-\noindent
-To ensure that closures never capture types that are declared in such a way as
-unsafe, the library could use the following type alias in place of the regular
-type for functions of arity one:
+
+This way, libraries and frameworks can enforce the use of spores instead of plain closures, thereby reducing the risk for common programming errors (see Section~\ref{case studies}). Also note that in the above case, the \verb|Captured| (and \verb|Excluded|) type member is not specified, meaning it is left abstract; this way a spore type is compatible with the above parameter type regardless of which types are captured as long as the parameter and result types match.
+
+
+By representing the environment of spores using refinement types, it is possible to preserve the constraints of spores when they are composed.
+
+For example, assume we are given two spores s1 and s2 with types
 
 \begin{lstlisting}
-    type SafeSpore[A, R] = Spore[A, R] {
-      type NoCapture[T] <: Unsafe[T]
-    }
+    Spore[Int, String] { type Captured = (String, Int) }
 \end{lstlisting}
-\noindent
-The \verb|NoCapture| type member of the above \verb|Spore| subtype is refined
-with the {\em upper type bound} \verb|Unsafe[T]|. This ensures that only spore
-types whose \verb|NoCapture| type members mix in \verb|Unsafe| are compatible
-(of course, they could be even more restrictive).
 
-\subsection{Introducing custom constraints}
+and
 
-\subsection{Composing spores}
-
-
-Type constraints for a newly defined spore can be introduced as follows:
 \begin{lstlisting}
-    spore {
-      val s: String = // ...
-      (p: Int) => {
-        (1 to p).map(x => s).mkString("-")
-      }
-    }.with[Pickler]
+    Spore[String, Int] { type Captured = Nothing }
+\end{lstlisting}
+
+respectively. The fact that the Captured type in the second spore is defined to be \verb|Nothing| means that the spore does not capture anything (\verb|Nothing| is Scala's bottom type). The composition of s1 and s2, written s1 compose s2, would have the refinement type
+
+\begin{lstlisting}
+    Spore[String, String] { type Captured = (String, Int) }
+\end{lstlisting}
+
+Note that the Captured type member of the result spore is equal to the Captured type of s1, since it is guaranteed that the result spore does not capture more than what s1 already captures. As we can see, not only are spores composable, but their also (refinement) types. In Section~\ref{} we discuss the two kinds of type constraints that our system provides, namely, excluded types and context bounds for captured types.
+
+
+\subsection{Basic Usage}
+
+simple spore (concrete example)
+for-comprehensions (example using that guy above)
+composition
+
+\subsection{Advanced Usage and Type Constraints}
+
+two kinds, excluded types which achieve [fill in] and context bounds for captured types which achieve [fill in]
+
+\subsubsection{Excluded Types}
+
+Libraries and frameworks for concurrent and distributed programming, such as Akka and Spark, typically have requirements to avoid capturing certain types in closures that are used together with library-provided objects and methods. For example, when using Akka, one should not capture variables of type `Actor`; in Spark, one should not capture variables of type `SparkContext`.
+
+Such restrictions can be expressed in our system by excluding types from being captured by spores, using refinements of the Spore trait. For example, the following refinement type forbids capturing variables of type Actor:
+
+\begin{lstlisting}
+type SporeNoActor[-A, +B] = Spore[A, B] {
+  type Excluded <: No[Actor]
+}
 \end{lstlisting}
 \noindent
+Note the use of the auxiliary type constructor No: it enables the exclusion of multiple types while supporting desired sub-typing relationships. Its definition is very simple:
 
-[explain how to exclude certain types]
+\begin{lstlisting}
+trait No[-T]
+\end{lstlisting}
+\noindent
+(We explain the "-" annotation on the type parameter below when discussing sub-typing.) For example, exclusion of multiple types can be expressed as follows:
 
-[ideally safety properties of types can be declared retro-actively.]
+\begin{lstlisting}
+type SafeSpore = Spore[Int, String] {
+  type Excluded = No[Actor] with No[Util]
+}
+\end{lstlisting}
 
-[how do we motivate other, custom properties?]
+Given Scala's sub-typing rules for refinement types, a spore refinement excluding a superset of types excluded by an "otherwise type-compatible" spore is a subtype. For example, SafeSpore is a sub type of SporeNoActor[Int, String].
 
+
+\paragraph{Subtyping}
+
+Using some frameworks typically user-defined subclasses are created that extend framework-provided types. However, the extended types are sometimes not safe to be captured. For example, in Akka, user-created closures should not capture variables of type \verb|Actor| and any subtypes thereof. To express such a constraint in our system we define the \verb|No| type constructor to be contravariant in its type parameter; this is the meaning of the "-" annotation in the type declaration \verb|trait No[-T]|.
+
+As a result, the following refinement type is a supertype of type \verb|SporeNoActor[Int, Int]| defined above (we assume \verb|MyActor| is a subclass of \verb|Actor|):
+
+\begin{lstlisting}
+type MySpore = Spore[Int, Int] {
+  type Excluded <: No[MyActor]
+}
+\end{lstlisting}
+\noindent
+It is important that \verb|MySpore| is a supertype and not a subtype of \verb|SporeNoActor[Int, Int]|, since an instance of \verb|MySpore| could capture some other subclass of \verb|Actor| which is not itself a subclass of \verb|MyActor|. Thus, it would not be safe to use an instance of \verb|MySpore| where an instance of \verb|SporeNoActor[Int, Int]| is required. On the other hand, an instance of \verb|SporeNoActor[Int, Int]| is safe to use in place of an instance of \verb|MySpore|, since it is guaranteed not to capture \verb|Actor| or any of its subclasses.
+
+
+\subsubsection{Attaching Properties with Context Bounds}
+
+The fact that for spores a certain shape is enforced is very useful. However, in some situations this is not enough. For example, using closures in a concurrent setting is very error-prone, because of the fact that it's possible to capture mutable objects which leads to race conditions. Thus, closures should only capture immutable objects to avoid interference. However, such constraints cannot be enforced using the spore shape alone (captured objects are stored in constant values in the spore header, but such a constant might still refer to a mutable object).
+
+In this section we introduce a form of type-based constraints called "context bounds" that can be attached to a spore which enforce certain type-based properties for all captured variables of a spore.\footnote{The name ``context bound'' is used in Scala to refer to a particular kind of implicit parameter that is added automatically if a type parameter has declared such a context bound. Our proposal essentially adds context bounds to type members.}
+
+Taking another example, it might be necessary for a spore to require the availability of instances of a certain type class for the types of all its captured variables. A typical example for such a type class is Pickler: types with an instance of the Pickler type class can be pickled using a new pickling framework for Scala [oopsla-pickling]. To be able to pickle a spore, it's necessary that all its captured types have an instance of Pickler.\footnote{A spore can be pickled by pickling its environment and the fully-qualified class name of its corresponding function class.}
+
+Spores allow expressing such a requirement using implicit properties. The idea is that if there is an implicit of type Property[Pickler] in scope at the point where a spore is created, then it is enforced that all captured types in the spore header have an instance of the Pickler type class:
+
+\begin{lstlisting}
+import spores.withPickler
+
+spore {
+  val name: String = <expr1>
+  val age: Int = <expr2>
+  (x: String) => {
+    // ...
+  }
+}
+\end{lstlisting}
+
+While an imported property does not have an impact on how a spore is constructed (besides the property import), it has an impact on the result type of the spore macro. In the above example, the result type would be a refinement of the Spore type:
+
+\begin{lstlisting}
+Spore[String, Int] {
+  type Captured = (String, Int)
+  val captured: Captured
+  implicit val ev0 = implicitly[Pickler[(String, Int)]]
+  (x: String) => {
+    // ...
+  }
+}
+\end{lstlisting}
+
+The refinement type contains a type member Captured which is defined to be a tuple of all the captured types. The values of the actual captured variables are accessible using the captured value member. What's more, the refinement type contains for each type class that's required an implicit value with a type class instance for type Captured.
+
+Such implicit values allow retrieving a type class instance for the captured types of a given spore using Scala's implicitly function as follows:
+
+\begin{lstlisting}
+    val s = spore { ... }
+    implicitly[Pickler[s.Captured]]
+\end{lstlisting}
+
+Note that s.Captured is defined to be the type of the environment of spore s: a tuple with all types of captured variables.
+
+\paragraph{Expressing context bounds at the method level}
+
+Using the above types and implicits it's now possible for a method to require argument spores to have certain context bounds. For example, requiring argument spores to have picklers defined for their captured types can be done as follows:
+
+\begin{lstlisting}
+def m[A, B](s: Spore[A, B])(implicit p: Pickler[s.Captured]) = {
+  // ...
+}
+\end{lstlisting}
+
+
+\subsubsection{Defining Custom Properties}
+
+Properties can be introduced using the Property trait (provided by the spores library):
+
+\begin{lstlisting}
+    trait Property[T]
+\end{lstlisting}
+
+A custom property such as for immutable types can be introduced using a generic trait and an implicit property object that mixes in the above \verb|Property| trait:
+
+\begin{lstlisting}
+object safe {
+  trait Immutable[T]
+  implicit object immutableProp extends Property[Immutable]
+  ...
+}
+\end{lstlisting}
+\noindent
+The next step is to mark selected types as immutable by defining an implicit object extending the desired list of types, each type wrapped in the \verb|Immutable| type constructor:
+
+\begin{lstlisting}
+object safe {
+  ...
+  import scala.collection.immutable.{Map, Set, Seq}
+  implicit object collections extends Immutable[Map[_, _]] with
+    Immutable[Set[_]] with Immutable[Seq[_]] with ...
+}
+\end{lstlisting}
+\noindent
+The above definitions allow us to create spores that are guaranteed to capture only types \verb|T| for which an implicit of type \verb|Immutable[T]| exists.
+
+It's also possible to define compound properties by mixing in multiple traits into an implicit property object:
+
+\begin{verbatim}
+    implicit object myProps extends Property[Pickler] with Property[Immutable]
+\end{verbatim}
+
+By making this compound property available in a scope within which spores are created (for example, using an import), it is enforced that those spores have both the context bound Pickler and the context bound Immutable.
+
+
+\subsubsection{Composition}
+
+Now that we've introduced type constraints in the form of excluded types and context bounds, we present generalized composition rules for the types of spores with such constraints.
+
+To precisely describe the composition rules, we introduce the following notation: the function $Excluded$ returns for a given refinement type the set of types that are excluded; the function $Captured$ returns for a given refinement type the set of type that are captured. Using these two mathematical functions, we can precisely specify how the type members of the resulting spore refinement type are computed. (We use the syntax \verb|.type| to refer to the singleton types of the argument spores and the result, respectively.)
+
+\begin{enumerate}
+
+\item $Captured(res.type) = Captured(s1.type), Captured(s2.type)$
+
+\item $Excluded(res.type) = \{ T \in Excluded(s1.type) \cup Excluded(s2.type) ~|~ T \notin Captured(s1.type) \cup Captured(s2.type) \}$
+
+\end{enumerate}
+
+The first rule expresses the fact that the sequence of captured types of the resulting refinement type is simply the concatenation of the captured types of the argument spores.
+
+The second rule expresses the fact that the set of excluded types of the result refinement type is defined as the set of all types that are excluded by one of the argument spores, but that are not captured by any of the argument spores.
+
+For example, assume two spores s1 and s2 with types
+\begin{lstlisting}
+Spore[Int, String] {
+  type Captured = (Int, Util)
+  type Excluded = No[Actor]
+}
+\end{lstlisting}
+\noindent
+and
+\begin{lstlisting}
+Spore[String, Int] {
+  type Captured = (String, Int)
+  type Excluded = No[Actor] with No[Util]
+}
+\end{lstlisting}
+\noindent
+The result of composing the two spores, \verb|s1 compose s2|, has thus the following result type:
+
+\begin{lstlisting}
+Spore[String, String] {
+  type Captured = (Int, Util, String, Int)
+  type Excluded = No[Actor]
+}
+\end{lstlisting}
+
+\paragraph{Loosening constraints}
+Also should show how to loosen constraints!!
+Constraints can be loosened using the regular type widening rules.
+
+Let's say we have a spore with the following elaborate refinement type:
+\begin{lstlisting}
+Spore[String, Int] {
+  type Captured = (String, Int)
+  type Excluded = No[Actor] with No[Util]
+}
+\end{lstlisting}
+
+Then it's possible to soundly drop constraints by assigning the spore to a variable of a super type such as
+
+\begin{lstlisting}
+Spore[String, Int] {
+  type Captured
+  type Excluded <: No[Actor]
+}
+\end{lstlisting}
+
+\begin{lstlisting}
+def m(s: Spore[String, Int] { type Excluded <: No[Actor] })
+
+s1: Spore[String, Int] {
+  type Captured = (String, Int)
+  type Excluded = No[Actor] with No[Util]
+}
+m(s1)
+\end{lstlisting}
+
+
+
+% =========== BEGINNING OF OLD SPORES SECTION ===========
+% \section{Spores}
+
+% Spores are a closure-like abstraction which aim to give users . They achieve this by (a) enforcing a
+% specific syntactic shape which, and (b) adding a type system.
+
+% We would like to constrain the environment of a spore to express properties
+% such as:
+% \begin{itemize}
+% \item All captured objects must be serializable
+% \item All captured objects must be thread-safe
+% \item Captured objects must not be marked as unsafe for capturing
+% \end{itemize}
+% \noindent
+% Such properties restrict the types of objects that a spore is allowed to
+% capture. A naive way to achieve this would be to annotate certain types as
+% ``not-safe-for-capturing''. However, this approach would be too inflexible,
+% since some desirable properties are orthogonal to others. For example, a
+% \verb|Promise| type~\cite{promise-paper} would be safe for capturing by a
+% spore used in a concurrent setting, whereas it would not be safe for capturing
+% by a spore that is intended to be serialized.
+
+% Thus, rather than permitting or disallowing types to be captured, in our
+% approach spores can express properties that the types of captured variables
+% are required to have. For example, a spore might require all captured types to
+% be thread-safe. Properties can also be composed, enabling spores to require
+% their captured types to have multiple properties. For example, in addition to
+% thread-safety, a spore may require its captured types to be serializable.
+% (Such a spore would be well-suited for computations that should be executed
+% concurrently on the same computer or on another computer depending on the
+% current work load.)
+
+% \subsection{The \texttt{Spore} trait}
+
+% To express type constraints we leverage two features of Scala's type system.
+% First, in Scala a function is an object of a type that extends one of the
+% predefined function traits. Thus, it is possible to subclass the predefined
+% function types. Second, in Scala classes and traits can be refined with value
+% and type members. As we will see, type members are a natural way to express
+% type constraints.
+
+% The type of single-argument spores is defined as follows:
+
+% \begin{lstlisting}
+%     trait Spore[-A, +R] extends Function1[A, R] {
+%       type Capture[T]
+%     }
+% \end{lstlisting}
+% \noindent
+% The \verb|Spore| trait extends the \verb|Function1| trait~\todo{variance annotations} which is defined as
+% follows in Scala's standard library:
+
+% \begin{lstlisting}
+%     trait Function1[-A, +R] extends AnyRef {
+%       def apply(v: A): R
+%       def andThen[B](g: R => B): A => B
+%       def compose[B](g: B => A): B => R
+%     }
+% \end{lstlisting}
+% \noindent
+% The above definition expresses the fact that functions are objects with an
+% \verb|apply| method; function composition is supported using the
+% \verb|andThen| and \verb|compose| methods.
+
+% The \verb|Capture[T]| type member of the \verb|Spore| trait is used to express
+% requirements of all captured types \verb|T| in the form of ``interfaces'' that
+% the captured types \verb|T| have to implement. As we will see below, instead
+% of using Java-style interfaces, we use a combination of traits and
+% implicits~\cite{Oliveira2010} akin to generalized interfaces in
+% JavaGI~\cite{WehrT11} or concepts in C++.
+
+% For example, a spore from \verb|Int| to \verb|String| that requires all
+% captured types to be serializable would have the following type:
+% \begin{lstlisting}
+%     Spore[Int, String] {
+%       type Capture[T] = Pickler[T]
+%     }
+% \end{lstlisting}
+% \noindent
+% The type member \verb|Capture[T]| is defined such that for each captured type
+% \verb|T| there must exist an instance of type \verb|Pickler[T]| (a ``pickler''
+% that can serialize or pickle objects of type \verb|T|). Such instances are
+% made available and looked up using Scala's {\em implicits} as shown below.
+
+% Just like requiring all captured types to have a certain property, sometimes
+% it's necessary to prevent types with a certain property from being captured.
+% While in principle this could be supported by requiring a property that's not
+% satisfied only by those types we wish to exclude from capturing, it would
+% require declaring all types that are not excluded, which would lead to a lot
+% of boilerplate. Instead, we introduce another type member \verb|NoCapture[T]|
+% used to express properties that lead to rejection of a captured type:\todo{also discuss subtypes}
+
+% \begin{lstlisting}
+%     trait Spore[-A, +R] extends Function1[A, R] {
+%       type Capture[T]
+%       type NoCapture[T]
+%     }
+% \end{lstlisting}
+% \noindent
+% Given this way of introducing constraints it's even possible to require
+% captured types to have multiple properties. Since properties are expressed
+% using traits, properties can be combined using mix-in composition. For
+% example, a spore requiring all captured types to be both serializable and
+% thread-safe would look as follows:
+
+% \begin{lstlisting}
+%     Spore[Int, String] {
+%       type Capture[T] = Pickler[T] with ThreadSafe[T]
+%     }
+% \end{lstlisting}
+% \noindent
+% The idea behind the property \verb|ThreadSafe| is that thread-safe types could
+% provide dummy implementations of the interface \verb|ThreadSafe[T]|. Moreover,
+% the \verb|with| keyword is used to create the mix-in composition of
+% \verb|Pickler[T]| and \verb|ThreadSafe[T]|. This composition is guaranteed to
+% be defined if we require all properties to be direct descendants of
+% \verb|AnyRef|, the top type of all reference types in Scala.
+
+% Spores without constraints have types of the following form:
+% \begin{lstlisting}
+%     Spore[A, R] {
+%       type Capture[T] = NoConstraint[T]
+%       type NoCapture[T] = NoConstraint[T]
+%     }
+% \end{lstlisting}
+
+% \subsection{Library-specific constraints}
+
+% One important goal of spores is to make the use of closure-based libraries
+% safer. This is enabled through subtyping: instead of using regular function
+% types, libraries can require the use of subtypes of the \verb|Spore| trait
+% introduced above.
+
+% For example, a concurrency library could declare certain types as not safe to
+% be captured by closures. We can express this using a type class, say,
+% \verb|Unsafe[T]|. For each type that should not be captured we introduce a
+% type class instance. For example, the following implicit object introduces an
+% instance of the \verb|Unsafe| type class for type \verb|Actor|:
+
+% \begin{lstlisting}
+%     implicit object unsafeActor extends Unsafe[Actor]
+% \end{lstlisting}
+% \noindent
+% To ensure that closures never capture types that are declared in such a way as
+% unsafe, the library could use the following type alias in place of the regular
+% type for functions of arity one:
+
+% \begin{lstlisting}
+%     type SafeSpore[A, R] = Spore[A, R] {
+%       type NoCapture[T] <: Unsafe[T]
+%     }
+% \end{lstlisting}
+% \noindent
+% The \verb|NoCapture| type member of the above \verb|Spore| subtype is refined
+% with the {\em upper type bound} \verb|Unsafe[T]|. This ensures that only spore
+% types whose \verb|NoCapture| type members mix in \verb|Unsafe| are compatible
+% (of course, they could be even more restrictive).
+
+% \subsection{Introducing custom constraints}
+
+% \subsection{Composing spores}
+
+
+% Type constraints for a newly defined spore can be introduced as follows:
+% \begin{lstlisting}
+%     spore {
+%       val s: String = // ...
+%       (p: Int) => {
+%         (1 to p).map(x => s).mkString("-")
+%       }
+%     }.with[Pickler]
+% \end{lstlisting}
+% \noindent
+
+% [explain how to exclude certain types]
+
+% [ideally safety properties of types can be declared retro-actively.]
+
+% [how do we motivate other, custom properties?]
+%
+% =========== END OF OLD SPORES SECTION ===========
 
 
 % \section{Function-Passing Paradigm}
