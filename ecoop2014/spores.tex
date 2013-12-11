@@ -2026,21 +2026,21 @@ Rule \textsc{E-Comp3} is the computation rule for spore composition. Besides com
 
 This section presents a soundness proof of the spore type system. The proof is based on a pair of progress and preservation theorems~\cite{WrightF94}. A complete proof of soundness appears in the companion technical report. In addition to standard lemmas, such as Lemma~\ref{lem:substitution} and Lemma~\ref{lem:weak}, we also prove a lemma specific to our type system, namely Lemma~\ref{lem:pres-import}, which ensures types are preserved under property import. Soundness of the type system follows from Theorem~\ref{th:progress} and Theorem~\ref{th:pres}.
 
-\begin{lemma}
-\emph{(Canonical forms)}
-\label{lem:canonical}
-\begin{enumerate}
+% \begin{lemma}
+% \emph{(Canonical forms)}
+% \label{lem:canonical}
+% \begin{enumerate}
 
-\item If $v$ is a value of type $\{ \seq{l : T} \}$, then $v$ is $\{ \seq{l = v} \}$ where $\seq{v}$ is a sequence of values.
+% \item If $v$ is a value of type $\{ \seq{l : T} \}$, then $v$ is $\{ \seq{l = v} \}$ where $\seq{v}$ is a sequence of values.
 
-\item If $v$ is a value of type $T \Rightarrow R$, then $v$ is either $(x: T_1) \Rightarrow t$ or \\ $\texttt{spore}~\{~\seq{y : S = v}~; \seq{pn} ; (x: T_1) \Rightarrow t~\}$ where $T <: T_1$ and $\seq{v}$ is a sequence of values.
+% \item If $v$ is a value of type $T \Rightarrow R$, then $v$ is either $(x: T_1) \Rightarrow t$ or \\ $\texttt{spore}~\{~\seq{y : S = v}~; \seq{pn} ; (x: T_1) \Rightarrow t~\}$ where $T <: T_1$ and $\seq{v}$ is a sequence of values.
 
-\item If $v$ is a value of type $T \Rightarrow R~\{~\texttt{type}~\mathcal{C} = \seq{S}~;~\seq{pn}~\}$, then $v$ is \\ $\texttt{spore}~\{~\seq{y : S = v}~; \seq{pn} ; (x: T_1) \Rightarrow t~\}$ where $T <: T_1$ and $\seq{v}$ is a sequence of values.
+% \item If $v$ is a value of type $T \Rightarrow R~\{~\texttt{type}~\mathcal{C} = \seq{S}~;~\seq{pn}~\}$, then $v$ is \\ $\texttt{spore}~\{~\seq{y : S = v}~; \seq{pn} ; (x: T_1) \Rightarrow t~\}$ where $T <: T_1$ and $\seq{v}$ is a sequence of values.
 
-% \item If $v$ is a value of type $T_1 \Rightarrow R_1~\{~\texttt{type}~\mathcal{C}~;~\seq{pn}~\}$, then $v$ is \\ $\texttt{spore}~\{~\seq{x : S = v}~; \seq{pn} ; (x: T_1) \Rightarrow t~\}$ where $\seq{v}$ is a sequence of values.
+% % \item If $v$ is a value of type $T_1 \Rightarrow R_1~\{~\texttt{type}~\mathcal{C}~;~\seq{pn}~\}$, then $v$ is \\ $\texttt{spore}~\{~\seq{x : S = v}~; \seq{pn} ; (x: T_1) \Rightarrow t~\}$ where $\seq{v}$ is a sequence of values.
 
-\end{enumerate}
-\end{lemma}
+% \end{enumerate}
+% \end{lemma}
 
 
 \begin{theorem}
@@ -2048,6 +2048,7 @@ This section presents a soundness proof of the spore type system. The proof is b
 \label{th:progress}
 Suppose $t$ is a closed, well-typed term (that is, $\vdash t : T$ for some $T$). Then either $t$ is a value or else there is some $t'$ with $t \rightarrow t'$.
 \end{theorem}
+\vspace{-2.5mm}
 \begin{proof}
 By induction on a derivation of $\vdash t : T$. The only three interesting cases are the ones for spore creation, application (where we might apply a spore to some argument), and spore composition.
 \end{proof}
@@ -2058,6 +2059,7 @@ By induction on a derivation of $\vdash t : T$. The only three interesting cases
 \label{lem:pres-import}
 If $\Gamma ; \Delta, pn \vdash t : T$ then $\Gamma ; \Delta \vdash insert(pn, t) : T$
 \end{lemma}
+\vspace{-2.5mm}
 \begin{proof}
 By induction on a derivation of $\Gamma ; \Delta, pn \vdash t : T$.
 \end{proof}
@@ -2068,6 +2070,7 @@ By induction on a derivation of $\Gamma ; \Delta, pn \vdash t : T$.
 \label{lem:substitution}
 If $\Gamma, x : S ; \Delta \vdash t : T$ and $\Gamma ; \Delta \vdash s : S$, then $\Gamma ; \Delta \vdash [x \mapsto s]t : T$
 \end{lemma}
+\vspace{-2.5mm}
 \begin{proof}
 By induction on a derivation of $\Gamma, x : S ; \Delta \vdash t : T$.
 \end{proof}
@@ -2078,6 +2081,7 @@ By induction on a derivation of $\Gamma, x : S ; \Delta \vdash t : T$.
 \label{lem:weak}
 If $\Gamma ; \Delta \vdash t : T$ and $x \notin dom(\Gamma)$, then $\Gamma, x : S ; \Delta \vdash t : T$.
 \end{lemma}
+\vspace{-2.5mm}
 \begin{proof}
 By induction on a derivation of $\Gamma ; \Delta \vdash t : T$.
 \end{proof}
@@ -2088,6 +2092,7 @@ By induction on a derivation of $\Gamma ; \Delta \vdash t : T$.
 \label{th:pres}
 If $\Gamma ; \Delta \vdash t : T$ and $t \rightarrow t'$, then $\Gamma ; \Delta \vdash t' : T$.
 \end{theorem}
+\vspace{-2.5mm}
 \begin{proof}
 By induction on a derivation of $\Gamma ; \Delta \vdash t : T$.
 \end{proof}
@@ -2141,8 +2146,9 @@ Figure~\ref{fig:subtyping-ext} shows how the subtyping rules for spores have to 
 
 \begin{figure*}[ht!]
   \centering
+\begin{mathpar}
 
-\infrule[\textsc{S-ESpore}]
+\inferrule[\textsc{S-ESpore}]
 { T_2 <: T_1 \andalso R_1 <: R_2 \\
   \seq{pn'} \subseteq \seq{pn} \andalso M_1 = M_2 \lor M_2 = \texttt{type}~\mathcal{C} \\
   \forall T' \in \seq{U'}.~\exists T \in \seq{U}.~T' <: T
@@ -2150,12 +2156,11 @@ Figure~\ref{fig:subtyping-ext} shows how the subtyping rules for spores have to 
 { T_1 \Rightarrow R_1~\{~M_1~;~\texttt{type}~\mathcal{E} = \seq{U}~;~\seq{pn}~\} \\ <: T_2 \Rightarrow R_2~\{~M_2~;~\texttt{type}~\mathcal{E} = \seq{U'}~;~\seq{pn'}~\}
 }
 
-\vspace{0.4cm}
-
-\infax[\textsc{S-ESporeFun}]
+\inferrule[\textsc{S-ESporeFun}]
 { T_1 \Rightarrow R_1~\{~M~;~E~;~\seq{pn}~\} <: T_1 \Rightarrow R_1
-}
+}{}
 
+\end{mathpar}
   \caption{Subtyping extensions}
   \label{fig:subtyping-ext}
 \end{figure*}
@@ -2164,8 +2169,9 @@ Figure~\ref{fig:typing-ext} shows the extensions to the typing rules. Rule \text
 
 \begin{figure*}[ht!]
   \centering
+\begin{mathpar}
 
-\infrule[\textsc{T-ESpore}]
+\inferrule[\textsc{T-ESpore}]
 { \forall s_i \in \seq{s}.~\Gamma ; \Delta \vdash s_i : S_i \andalso
   \seq{y : S}, x : T_1 ; \Delta \vdash t_2 : T_2 \\
   \forall pn \in \Delta, \Delta'.~\seq{S} \subseteq P(pn) \andalso
@@ -2175,9 +2181,7 @@ Figure~\ref{fig:typing-ext} shows the extensions to the typing rules. Rule \text
   T_1 \Rightarrow T_2~\{~\texttt{type}~\mathcal{C} = \seq{S}~;~\texttt{type}~\mathcal{E} = \seq{U}~;~\Delta, \Delta'~\}
 }
 
-\vspace{0.4cm}
-
-\infrule[\textsc{T-EComp}]
+\inferrule[\textsc{T-EComp}]
 { \Gamma ; \Delta \vdash t_1 : T_1 \Rightarrow T_2~\{~\texttt{type}~\mathcal{C} = \seq{S}~;~\texttt{type}~\mathcal{E} = \seq{U}~;~\Delta_1~\} \\
   \Gamma ; \Delta \vdash t_2 : U_1 \Rightarrow T_1~\{~\texttt{type}~\mathcal{C} = \seq{R}~;~\texttt{type}~\mathcal{E} = \seq{U'}~;~\Delta_2~\} \\
   \Delta' = \{ pn \in \Delta_1 \cup \Delta_2 ~|~ \seq{S} \subseteq P(pn) \land \seq{R} \subseteq P(pn) \} \\
@@ -2185,6 +2189,8 @@ Figure~\ref{fig:typing-ext} shows the extensions to the typing rules. Rule \text
 }
 { \Gamma ; \Delta \vdash t_1~\texttt{compose}~t_2 : U_1 \Rightarrow T_2~\{~\texttt{type}~\mathcal{C} = \seq{S}, \seq{R}~;~\texttt{type}~\mathcal{E} = \seq{V}~;~\Delta'~\}
 }
+
+\end{mathpar}
 
   \caption{Typing extensions}
   \label{fig:typing-ext}
