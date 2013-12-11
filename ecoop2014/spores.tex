@@ -16,7 +16,6 @@
 
 \usepackage{microtype}
 \usepackage{times}
-\usepackage[utf8]{inputenc}
 \usepackage[english]{babel}
 \usepackage{graphicx}
 \usepackage{xcolor}
@@ -109,17 +108,22 @@
   showstringspaces=false%
 }[keywords,comments,strings]%
 
-\lstset{language=Scala,%
-  mathescape=true,%
-  columns=[c]fixed,%
-  basewidth={0.5em, 0.40em},%
-  basicstyle=\tt,%
-  xleftmargin=0.0cm
-}
+% \lstset{language=Scala,%
+%   mathescape=true,%
+%   columns=[c]fixed,%
+%   numbers=left, numberstyle=\scriptsize\color{gray}\ttfamily,
+%   basewidth={0.5em, 0.40em},%
+%   basicstyle=\tt,%
+%   xleftmargin=0.0cm
+% }
 
 \setmainfont[Ligatures=TeX]{Times}
 
-%
+\lstset{tabsize=2,
+basicstyle=\ttfamily\fontsize{8pt}{1em}\selectfont,
+commentstyle=\itshape\rmfamily,
+numbers=left, numberstyle=\scriptsize\color{gray}\ttfamily, language=scala,moredelim=[il][\sffamily]{?},mathescape=true,showspaces=false,showstringspaces=false,xleftmargin=15pt,escapechar=@, morekeywords=[1]{let,fn,val},deletekeywords={for},classoffset=0,belowskip=\smallskipamount
+}
 \begin{document}
 
 \VerbatimFootnotes
@@ -494,6 +498,8 @@ enable.
 
 \end{itemize}
 
+
+
 % With the growing trend towards big data, cloud computing and mobile
 % applications, distributed programming has entered the mainstream. The
 % traditional view of software development as being focused on a program running
@@ -852,15 +858,29 @@ enable.
 
 
 \section{Spores}
+\label{sec:spores}
 
-Spores are a closure-like abstraction which aim to give users [state goals nicely].
-They achieve this by (a) enforcing a specific syntactic shape which, and (b) adding a type system.
+% Spores are a closure-like abstraction which aim to give users . They achieve this by (a)enforcing a speciﬂc syntactic shape which, and (b) adding a type system.We would like to constrain the environment of a spore to express properties such as:
+
+% Such properties restrict the types of objects that a spore is allowed to capture. Anaiveway to achieve this would be to annotate certain types as ”not-safe-for-capturing‘. How-ever, this approach would be too in‡exible, since some desirable properties are orthog-onal to others. For example, aPromisetype[?] would be safe for capturing by a sporeused in a concurrent setting, whereas it would not be safe for capturing by a spore thatis intended to be serialized.Thus, rather than permitting or disallowing types to be captured, in our approachspores can express properties that the types of captured variables are required to have.For example, a spore might require all captured types to be thread-safe. Properties canalso be composed, enabling spores to require their captured types to have multiple prop-erties. For example, in addition to thread-safety, a spore may require its captured typesto be serializable. (Such a spore would be well-suited for computations that should beexecuted concurrently on the same computer or on another computer depending on thecurrent work load.)
+
+% This SIP outlines an abstraction, called spores, which enables safer use of closures in concurrent and distributed environments. This is achieved by controlling the environment which a spore can capture. Using an assignment-on-capture semantics, certain concurrency bugs due to capturing mutable references can be avoided.
+
+Spores are a closure-like abstraction which aim to give users a principled way
+to manage environments captured by closures. This is achieved by (a) enforcing
+a specific syntactic shape which , and (b) adding a type system.
+
+Like normal functions, spores can be composed.
+
 We describe below the syntactic shape of spores, and in Section~\ref{sec:type-constraints} we informally describe the type system.
 
 in a later section~\ref{}, we'll describe how to use spores with the type system extension proposed in this paper.
 
+\subsection{Spore Syntax}
+\label{sec:spore-syntax}
 
 A spore is a closure with a specific shape that dictates how the environment of a spore is declared. In general, a spore has the following shape:
+
 \begin{lstlisting}
 spore {
   val y1: S1 = <expr1>
@@ -871,6 +891,7 @@ spore {
   }
 }
 \end{lstlisting}
+
 A spore consists of two parts: the header and the body. The list of value definitions at the beginning is called the spore header. The header is followed by a regular closure, the spore's body. The characteristic property of a spore is that the body of its closure is only allowed to access its parameter, values in the spore header, as well as top-level singleton objects (public, global state). In particular, the spore closure is not allowed to capture variables in the environment. Only an expression on the right-hand side of a value definition in the spore header is allowed to capture variables.
 
 By enforcing this shape, the environment of a spore is always declared explicitly in the spore header which avoids accidentally capturing problematic references. Moreover, and that's important for OO languages, it's no longer possible to accidentally capture the \verb|this| reference.
@@ -891,7 +912,7 @@ Note that the evaluation semantics of a spore is equivalent to a closure obtaine
 In Scala, the above block first initializes all value definitions in order and then evaluates to a closure that captures the introduced local variables y1, ..., yn. The corresponding spore has the exact same evaluation semantics. What's interesting is that this closure shape is already used in production systems such as Spark to avoid problems with accidentally captured \verb|this| references. However, in these systems the above shape is not enforced, whereas with spores it is.
 
 
-\subsubsection{Spore type}
+\subsection{Spore type}
 
 The result type of the \verb|spore| constructor is not a regular function type, but a subtype of one of Scala's function types. This is possible, because in Scala functions are instances of classes that mix in one of the function traits. For example, the trait for functions of arity one looks like this:
 \footnote{For simplicity we omit definitions of the \verb+andThen+ and \verb+compose+ methods in the definition of \verb+Function1+.}
@@ -944,19 +965,19 @@ By representing the environment of spores using refinement types, it is possible
 
 For example, assume we are given two spores s1 and s2 with types
 
-\begin{lstlisting}
+\begin{lstlisting}[numbers=none]
     Spore[Int, String] { type Captured = (String, Int) }
 \end{lstlisting}
 
 and
 
-\begin{lstlisting}
+\begin{lstlisting}[numbers=none]
     Spore[String, Int] { type Captured = Nothing }
 \end{lstlisting}
 
 respectively. The fact that the Captured type in the second spore is defined to be \verb|Nothing| means that the spore does not capture anything (\verb|Nothing| is Scala's bottom type). The composition of s1 and s2, written s1 compose s2, would have the refinement type
 
-\begin{lstlisting}
+\begin{lstlisting}[numbers=none]
     Spore[String, String] { type Captured = (String, Int) }
 \end{lstlisting}
 
@@ -1394,9 +1415,13 @@ m(s1)
 % and the spore forbids capturing type Actor, and MyActor <: Actor
 % then what happens.
 
-\section{Formalization}\label{sec:formal}
+\section{Formalization}
 
-\begin{figure*}[ht!]
+% This section presents a formalization of our type system.
+
+\label{sec:formal}
+
+\begin{figure}[ht!]
   \centering
 
   $\ba[t]{l@{\hspace{2mm}}l}
@@ -1449,7 +1474,7 @@ P \in pn \rightarrow \mathcal{T} & \mbox {property map}
 
   \caption{Core language syntax}
   \label{fig:syntax}
-\end{figure*}
+\end{figure}
 
 We formalize spores in the context of a typed lambda calculus with records, shown in Figure~\ref{fig:syntax}. Terms are standard except for the \texttt{spore}, \texttt{import}, and \texttt{compose} terms. A \texttt{spore} term creates a new spore. It contains a list of variable definitions (the spore header), a list of property names, and the spore's closure. A property name refers to a type family (a set of types) that all captured types must belong to.
 
@@ -1955,6 +1980,7 @@ Figure~\ref{fig:opsem-ext} shows the extensions to the operational semantics. Ru
 
 
 \section{Implementation}
+\label{sec:implementation}
 
 We have implemented spores as a macro library for Scala 2.10 and 2.11. Macros are an experimental feature introduced in Scala 2.10 that enable ``macro defs'', methods that take expression trees as arguments and that return an expression tree that is inlined at each invocation site of the macro. Macros are expanded during type checking in a way which enables macros to synthesize their result type during macro expansion, specialized for each site of invocation/expansion.
 
@@ -1976,6 +2002,7 @@ Comparison and relationship with Java8 SAM stuff. Cite paper {\em Java SAM Typed
 
 
 \section{Evaluation}
+\label{sec:evaluation}
 
 % program    | LOC | #closures | #converted | LOC changed | #captured vars
 %
@@ -1987,6 +2014,7 @@ Comparison and relationship with Java8 SAM stuff. Cite paper {\em Java SAM Typed
 
 
 \section{Case Studies}
+\label{sec:case-studies}
 
 \subsection{More Robust Distribution of Closures}
 
@@ -2145,6 +2173,7 @@ Should reference Cloud Types~\cite{CloudTypes}
 Lighter-weight alternative approach to some kind of crazy type and effect system.
 
 \section{Conclusion}
+\label{sec:conclusion}
 
 \bibliographystyle{abbrv}
 \bibliography{bib}
