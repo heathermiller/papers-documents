@@ -1180,15 +1180,29 @@ is Scala's bottom type). The composition of \verb|s1| and \verb|s2|, written
 
 Note that the \verb|Captured| type member of the result spore is equal to the
 \verb|Captured| type of \verb|s1|, since it is guaranteed that the result
-spore does not capture more than what \verb|s1| already captures. As we can
-see, not only are spores composable, but so are their (refinement) types.
+spore does not capture more than what \verb|s1| already captures. Thus, not
+only are spores composable, but so are their (refinement) types.
 
 In Section~\ref{sec:adv-usage-type-constraints}, we'll see two kinds of ``type
 constraints'' which provides more control over spore capturing semantics, and
 thus the spore types, that our system provides, namely, {\em excluded types} and
 {\em context bounds for captured types}. We will see that even with these added type constraints, the spore type is still composable.
 
-\subsubsection{Implicit Conversion}
+\subsubsection{Implicitly Converting Functions to Spores}
+
+The design of spores were guided in part by a desire to make them easy to use,
+and easy to integrate in already closure-heavy code. Spores, as so far
+proposed, introduce a level of verbosity in pursuit of the requirement to
+explicitly define the spore's environment.
+
+Therefore, it is also possible to use function literals as spores if they
+satisfy the spore shape constraints. To support this, an implicit
+conversion\footnote{Implicit conversions can be thought of as methods which can be implicitly invoked based upon their type, and whether or not they are present in implicit scope. Implicit conversions carry the \texttt{implicit} keyword before their declaration.}
+macro\footnote{Macro defs are methods that are transparently loaded by the compiler and executed (or expanded) during compilation. A macro is defined as if it is a normal method, but it is linked using the \texttt{macro} keyword to an additional method that operates on abstract syntax trees.} is provided which converts regular
+functions to spores, but only if the converted function is a literal: only
+then is it possible to enforce the spore shape.
+
+
 \subsubsection{For-Comprehensions}
 
 
@@ -1265,6 +1279,9 @@ The fact that for spores a certain shape is enforced is very useful. However, in
 In this section we introduce a form of type-based constraints called "context bounds" that can be attached to a spore which enforce certain type-based properties for all captured variables of a spore.\footnote{The name ``context bound'' is used in Scala to refer to a particular kind of implicit parameter that is added automatically if a type parameter has declared such a context bound. Our proposal essentially adds context bounds to type members.}
 
 Taking another example, it might be necessary for a spore to require the availability of instances of a certain type class for the types of all its captured variables. A typical example for such a type class is Pickler: types with an instance of the Pickler type class can be pickled using a new pickling framework for Scala [oopsla-pickling]. To be able to pickle a spore, it's necessary that all its captured types have an instance of Pickler.\footnote{A spore can be pickled by pickling its environment and the fully-qualified class name of its corresponding function class.}
+
+because Property[T] allows requiring that all captured types implement the "interface" T
+and then you can continue like in the snippet you showed me about how it's not Java-style interfaces but more like JavaGI and C++...
 
 Spores allow expressing such a requirement using implicit properties. The idea is that if there is an implicit of type Property[Pickler] in scope at the point where a spore is created, then it is enforced that all captured types in the spore header have an instance of the Pickler type class:
 
