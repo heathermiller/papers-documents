@@ -1714,23 +1714,24 @@ P \in pn \rightarrow \mathcal{T} & \mbox {property map}
   \label{fig:syntax}
 \end{figure}
 
-We formalize spores in the context of a typed lambda calculus with records, shown in Figure~\ref{fig:syntax}. Terms are standard except for the \texttt{spore}, \texttt{import}, and \texttt{compose} terms. A \texttt{spore} term creates a new spore. It contains a list of variable definitions (the spore header), a list of property names, and the spore's closure. A property name refers to a type family (a set of types) that all captured types must belong to.
 
-An illustrative example of a property name and its associated type family is a type class: A spore would satisfy such a property if there would be a type class instance for all its captured types.
+We formalize spores in the context of a standard, typed lambda calculus with records. Apart from novel language and type-systematic features, our formal development follows a well-known methodology~\cite{TAPL}. Figure~\ref{fig:syntax} shows the syntax of our core language. Terms are standard except for the \texttt{spore}, \texttt{import}, and \texttt{compose} terms. A \texttt{spore} term creates a new spore. It contains a list of variable definitions (the spore header), a list of property names, and the spore's closure. A property name refers to a type family (a set of types) that all captured types must belong to.
 
-An \texttt{import} term imports a property name into the property environment within a lexically-scoped term; the property environment contains properties that are registered as requirements whenever a spore is created. This is explained in more detail below in Section~\ref{sec:typing}. A \texttt{compose} term is used to compose two spores. The core language provides spore composition as a built-in feature, because type-checking spore composition is markedly different from type-checking regular function composition (see Section~\ref{sec:typing} below).
+An illustrative example of a property name and its associated type family, but in the context of Scala, is a type class: a spore satisfies such a property if there is a type class instance for all its captured types.
 
-The grammar of values is standard except for spore values which require all terms on right-hand sides of definitions in the spore header to be values.
+An \texttt{import} term imports a property name into the property environment within a lexical scope (a term); the property environment contains properties that are registered as requirements whenever a spore is created. This is explained in more detail in Section~\ref{sec:typing}. A \texttt{compose} term is used to compose two spores. The core language provides spore composition as a built-in feature, because type checking spore composition is markedly different from type checking regular function composition (see Section~\ref{sec:typing}).
 
-The grammar of types is standard except for spore types. Spore types are refinements of function types. They additionally contain a (possibly-empty) sequence of captured types which can be left undefined and a sequence of property names.
+The grammar of values is standard except for spore values; in a spore value each term on the right-hand side of a definition in the spore header is a value.
+
+The grammar of types is standard except for spore types. Spore types are refinements of function types. They additionally contain a (possibly-empty) sequence of captured types, which can be left abstract, and a sequence of property names.
 
 \subsection{Subtyping}\label{sec:subtyping}
 
 Figure~\ref{fig:subtyping} shows the subtyping rules. Record (\textsc{S-Rec}) and function (\textsc{S-Fun}) subtyping are standard.
 
-The subtyping rule for spores (\textsc{S-Spore}) is analogous to the subtyping rule for functions with respect to the argument and result types. Additionally, for two spore types to be in a subtyping relationship either their captured types have to be the same ($M_1 = M_2$) or the supertype must be an abstract spore type ($M_2 = \texttt{type}~\mathcal{C}$). The subtype must guarantee at least the properties of its supertype, or a superset thereof. Taken together, this rule expresses the fact that a spore type whose type member $\mathcal{C}$ is not abstract is compatible with an abstract spore type as long as it has a superset of the supertype's properties. This is important for spores used as first-class values: functions operating on spores with arbitrary environments can simply demand an abstract spore type. The way both the captured types and the properties are modeled corresponds to (but simplifies) the subtyping rule for refinement types in Scala (TODO: pointer to section about Scala).
+The subtyping rule for spores (\textsc{S-Spore}) is analogous to the subtyping rule for functions with respect to the argument and result types. Additionally, for two spore types to be in a subtyping relationship either their captured types have to be the same ($M_1 = M_2$) or the supertype must be an abstract spore type ($M_2 = \texttt{type}~\mathcal{C}$). The subtype must guarantee at least the properties of its supertype, or a superset thereof. Taken together, this rule expresses the fact that a spore type whose type member $\mathcal{C}$ is not abstract is compatible with an abstract spore type as long as it has a superset of the supertype's properties. This is important for spores used as first-class values: functions operating on spores with arbitrary environments can simply demand an abstract spore type. The way both the captured types and the properties are modeled corresponds to (but simplifies) the subtyping rule for refinement types in Scala (see Section~\ref{sec:adv-usage-type-constraints}).
 
-Rule (\textsc{S-SporeFun}) expresses the fact that spore types are refinements of function types.
+Rule \textsc{S-SporeFun} expresses the fact that spore types are refinements of their corresponding function types, giving rise to a subtyping relationship.
 
 
 \begin{figure*}[ht!]
@@ -1774,15 +1775,17 @@ Rule (\textsc{S-SporeFun}) expresses the fact that spore types are refinements o
 
 \subsection{Typing rules}\label{sec:typing}
 
-Typing derivations use a judgement of the form $\Gamma ; \Delta \vdash t : T$. Besides the standard variable environment $\Gamma$ we use a property environment $\Delta$ which is a sequence of property names that are "active" while deriving the type $T$ of term $t$. In the typing rules we assume the existence of a global property mapping $P$ from property names $pn$ to type families $\mathcal{T}$. This technique is reminiscent of the way some object-oriented core languages provide a global class table for type-checking. The main difference is that our core language does not include constructs to extend the global property map; such constructs are left out of the core language for simplicity, since the introduction of properties is not essential to our model.
+Typing derivations use a judgement of the form $\Gamma ; \Delta \vdash t : T$. Besides the standard variable environment $\Gamma$ we use a property environment $\Delta$ which is a sequence of property names that are ``active'' while deriving the type $T$ of term $t$. The property environment is reminiscent of the implicit parameter context used in the original work on implicit parameters~\cite{LewisLMS00}; it is an environment for names whose definition sites ``just happen to be far removed from their usages.''
 
-The typing rules are standard except for rules (\textsc{T-Imp}), (\textsc{T-Spore}), and (\textsc{T-Comp}), which are new. Only these three type rules inspect or modify the property environment $\Delta$. Note that there is no rule for spore application, since there is a subtyping relationship between spores and functions (see Section~\ref{sec:subtyping}). Using the subsumption rule (\textsc{T-Sub}) spore application is expressed using the standard rule for function application (\textsc{T-App}).
+In the typing rules we assume the existence of a global property mapping $P$ from property names $pn$ to type families $\mathcal{T}$. This technique is reminiscent of the way some object-oriented core languages provide a global class table for type-checking. The main difference is that our core language does not include constructs to extend the global property map; such constructs are left out of the core language for simplicity, since the creation of properties is not essential to our model.
 
-Rule (\textsc{T-Imp}) imports a property $pn$ into the property environment within the scope defined by term $t$.
+The typing rules are standard except for rules \textsc{T-Imp}, \textsc{T-Spore}, and \textsc{T-Comp}, which are new. Only these three type rules inspect or modify the property environment $\Delta$. Note that there is no rule for spore application, since there is a subtyping relationship between spores and functions (see Section~\ref{sec:subtyping}). Using the subsumption rule \textsc{T-Sub} spore application is expressed using the standard rule for function application (\textsc{T-App}).
 
-Rule (\textsc{T-Spore}) derives a type for a spore term. In the spore, all terms on right-hand sides of variable definitions in the spore header must be well-typed in the same environment $\Gamma ; \Delta$ according to their declared type. The body of the spore's closure, $t_2$, must be well-typed in an environment containing only the variables in the spore header and the closure's parameter, one of the central properties of spores. The last premise requires all captured types to satisfy both the properties in the current property environment, $\Delta$, as well as the properties listes in the spore term, $\Delta'$. Finally, the resulting spore type contains the argument and result types of the spore's closure, the sequence of captured types according to the spore header, and the concatenation of properties $\Delta$ and $\Delta'$. The intuition here is that properties in the environment have been explicitly imported by the user, thus indicating that all spores in the scope of the corresponding import should satisfy them.
+Rule \textsc{T-Imp} imports a property $pn$ into the property environment within the scope defined by term $t$.
 
-Rule (\textsc{T-Comp}) derives a result type for the composition of two spores. It inspects the captured types of both spores ($\seq{S}$ and $\seq{R}$) to ensure that the properties of the resulting spore, $\Delta$, are satisfied by the captured variables of both spores. Otherwise, the argument and result types are analogous to regular function composition. Note that it's always possible to weaken the properties of a spore, by assigning a spore to a variable which has only weaker properties. This is enabled through spore subtyping and subsumption (\textsc{T-Sub}).
+Rule \textsc{T-Spore} derives a type for a spore term. In the spore, all terms on right-hand sides of variable definitions in the spore header must be well-typed in the same environment $\Gamma ; \Delta$ according to their declared type. The body of the spore's closure, $t_2$, must be well-typed in an environment containing only the variables in the spore header and the closure's parameter, one of the central properties of spores. The last premise requires all captured types to satisfy both the properties in the current property environment, $\Delta$, as well as the properties listes in the spore term, $\Delta'$. Finally, the resulting spore type contains the argument and result types of the spore's closure, the sequence of captured types according to the spore header, and the concatenation of properties $\Delta$ and $\Delta'$. The intuition here is that properties in the environment have been explicitly imported by the user, thus indicating that all spores in the scope of the corresponding import should satisfy them.
+
+Rule \textsc{T-Comp} derives a result type for the composition of two spores. It inspects the captured types of both spores ($\seq{S}$ and $\seq{R}$) to ensure that the properties of the resulting spore, $\Delta$, are satisfied by the captured variables of both spores. Otherwise, the argument and result types are analogous to regular function composition. Note that it's always possible to weaken the properties of a spore through spore subtyping and subsumption (\textsc{T-Sub}).
 
 
 \begin{figure*}[ht!]
@@ -1881,9 +1884,9 @@ Rule (\textsc{T-Comp}) derives a result type for the composition of two spores. 
 
 \subsection{Operational semantics}\label{sec:opsem}
 
-Figure~\ref{fig:opsem} shows the evaluation rules of a small-step operational semantics for our core language. The only non-standard rules are (\textsc{E-AppSpore}), (\textsc{E-Spore}), (\textsc{E-Imp}), and (\textsc{E-Comp3}). Rule (\textsc{E-AppSpore}) applies a spore literal to an argument value. The differences to regular function application (\textsc{E-AppAbs}) are (a) that the types in the spore header must satisfy the properties of the spore dynamically, and (b) that the variables in the spore header must be replaced by their values in the body of the spore's closure. Rule (\textsc{E-Spore}) is a simple congruence rule. Rule (\textsc{E-Imp}) is a computation rule that's always enabled. It adds property name $pn$ to all spore terms within the body $t$. The $insert$ helper function is defined in Figure~\ref{fig:helper}.
+Figure~\ref{fig:opsem} shows the evaluation rules of a small-step operational semantics for our core language. The only non-standard rules are \textsc{E-AppSpore}, \textsc{E-Spore}, \textsc{E-Imp}, and \textsc{E-Comp3}. Rule \textsc{E-AppSpore} applies a spore literal to an argument value. The differences to regular function application (\textsc{E-AppAbs}) are (a) that the types in the spore header must satisfy the properties of the spore dynamically, and (b) that the variables in the spore header must be replaced by their values in the body of the spore's closure. Rule \textsc{E-Spore} is a simple congruence rule. Rule \textsc{E-Imp} is a computation rule that is always enabled. It adds property name $pn$ to all spore terms within the body $t$. The $insert$ helper function is defined in Figure~\ref{fig:helper} (we omit rules for \verb|compose| and \verb|let|, since they are analogous to rules \textsc{H-InsApp} and \textsc{H-InsSel}).
 
-Rule (\textsc{E-Comp3}) is the computation rule for spore composition. Besides computing the composition in a way analogous to regular function composition, it defines the spore header of the result spore, as well as its properties. The properties of the result spore are restricted to those that are satisfied by the captured variables of both argument spores.
+Rule \textsc{E-Comp3} is the computation rule for spore composition. Besides computing the composition in a way analogous to regular function composition, it defines the spore header of the result spore, as well as its properties. The properties of the result spore are restricted to those that are satisfied by the captured variables of both argument spores.
 
 
 \begin{figure*}[ht!]
@@ -2012,7 +2015,7 @@ Rule (\textsc{E-Comp3}) is the computation rule for spore composition. Besides c
 
 \inferrule[\textsc{H-InsSpore2}]
 { insert(pn, \texttt{spore}~\{~\seq{x:T=v};\seq{pn};(x':T)\Rightarrow t~\}) = \\
-\texttt{spore}~\{~\seq{x:T=v};\seq{pn}, pn, pn;(x':T)\Rightarrow t~\}
+\texttt{spore}~\{~\seq{x:T=v};\seq{pn}, pn;(x':T)\Rightarrow t~\}
 }{}
 
 % \vspace{0.4cm}
@@ -2036,7 +2039,7 @@ Rule (\textsc{E-Comp3}) is the computation rule for spore composition. Besides c
 
 \subsection{Soundness}\label{sec:soundness}
 
-This section presents a soundness proof of the spore type system. The proof is based on a pair of progress and preservation theorems as is standard. In addition to standard lemmas, such as Lemma~\ref{lem:substitution} and Lemma~\ref{lem:weak}, we also prove a lemma specific to our type system, namely Lemma~\ref{lem:pres-import}, which ensures types are preserved under property import. Soundness of the type system follows from Theorem~\ref{th:progress} and Theorem~\ref{th:pres}.
+This section presents a soundness proof of the spore type system. The proof is based on a pair of progress and preservation theorems~\cite{WrightF94}. A complete proof of soundness appears in the companion technical report. In addition to standard lemmas, such as Lemma~\ref{lem:substitution} and Lemma~\ref{lem:weak}, we also prove a lemma specific to our type system, namely Lemma~\ref{lem:pres-import}, which ensures types are preserved under property import. Soundness of the type system follows from Theorem~\ref{th:progress} and Theorem~\ref{th:pres}.
 
 \begin{lemma}
 \emph{(Canonical forms)}
@@ -2053,9 +2056,6 @@ This section presents a soundness proof of the spore type system. The proof is b
 
 \end{enumerate}
 \end{lemma}
-\begin{proof}
-[snip]
-\end{proof}
 
 
 \begin{theorem}
@@ -2064,7 +2064,7 @@ This section presents a soundness proof of the spore type system. The proof is b
 Suppose $t$ is a closed, well-typed term (that is, $\vdash t : T$ for some $T$). Then either $t$ is a value or else there is some $t'$ with $t \rightarrow t'$.
 \end{theorem}
 \begin{proof}
-By induction on a derivation of $t : T$. The only three interesting cases are the ones for spore creation, application (where we might apply a spore to some argument), and spore composition. [snip]
+By induction on a derivation of $\vdash t : T$. The only three interesting cases are the ones for spore creation, application (where we might apply a spore to some argument), and spore composition.
 \end{proof}
 
 
@@ -2074,7 +2074,7 @@ By induction on a derivation of $t : T$. The only three interesting cases are th
 If $\Gamma ; \Delta, pn \vdash t : T$ then $\Gamma ; \Delta \vdash insert(pn, t) : T$
 \end{lemma}
 \begin{proof}
-By induction on a derivation of $\Gamma ; \Delta, pn \vdash t : T$. [snip]
+By induction on a derivation of $\Gamma ; \Delta, pn \vdash t : T$.
 \end{proof}
 
 
@@ -2104,13 +2104,28 @@ By induction on a derivation of $\Gamma ; \Delta \vdash t : T$.
 If $\Gamma ; \Delta \vdash t : T$ and $t \rightarrow t'$, then $\Gamma ; \Delta \vdash t' : T$.
 \end{theorem}
 \begin{proof}
-By induction on a derivation of $t : T$. [snip]
+By induction on a derivation of $\Gamma ; \Delta \vdash t : T$.
 \end{proof}
+
+
+\subsection{Relation to spores in Scala}
+
+The soundness proof (see Section~\ref{sec:soundness}) of the formal type system guarantees several important properties for well-typed programs which closely correspond to the pragmatic model of spores in Scala:
+
+\begin{enumerate}
+
+\item Application of spores: for each property name $pn$, it is ensured that the dynamic types of all captured variables are contained in the type family $pn$ maps to ($P(pn)$).
+
+\item Dynamically, a spore only accesses its parameter and the variables in its header.
+
+\item The properties computed for a composition of two spores is a safe approximation of the properties that are dynamically required.
+
+\end{enumerate}
 
 
 \subsection{Excluded types}
 
-This section shows how the formal model can be extended with excluded types as described above (see Section~\ref{sec:overview-excluded}). Figure~\ref{fig:syntax-ext} shows the syntax extensions: first, spore terms and values are augmented with a sequence of excluded types; second, spore types and abstract spore types get another member $\texttt{type}~\mathcal{E} = \seq{T}$ specifying the excluded types.
+This section shows how the formal model can be extended with excluded types as described above (see Section~\ref{sec:adv-usage-type-constraints}). Figure~\ref{fig:syntax-ext} shows the syntax extensions: first, spore terms and values are augmented with a sequence of excluded types; second, spore types and abstract spore types get another member $\texttt{type}~\mathcal{E} = \seq{T}$ specifying the excluded types.
 
 \begin{figure*}[ht!]
   \centering
@@ -2137,7 +2152,7 @@ v ::=     ...                               & \mbox{values}
 \end{figure*}
 
 
-Figure~\ref{fig:subtyping-ext} shows how the subtyping rules for spores have to be extended. Rule (\textsc{S-ESpore}) requires that for each excluded type $T'$ in the supertype, there must be an excluded type $T$ in the subtype such that $T' <: T$. This means that by excluding type $T$, subtypes like $T'$ are also prevented from being captured.
+Figure~\ref{fig:subtyping-ext} shows how the subtyping rules for spores have to be extended. Rule \textsc{S-ESpore} requires that for each excluded type $T'$ in the supertype, there must be an excluded type $T$ in the subtype such that $T' <: T$. This means that by excluding type $T$, subtypes like $T'$ are also prevented from being captured.
 
 \begin{figure*}[ht!]
   \centering
@@ -2160,7 +2175,7 @@ Figure~\ref{fig:subtyping-ext} shows how the subtyping rules for spores have to 
   \label{fig:subtyping-ext}
 \end{figure*}
 
-Figure~\ref{fig:typing-ext} shows the extensions to the typing rules. Rule (\textsc{T-ESpore}) additionally requires that none of the captured types $\seq{S}$ is a subtype of one of the types contained in the excluded types $\seq{U}$. The excluded types are recorded in the type of the spore. Rule (\textsc{T-EComp}) computes a new set of excluded types $\seq{V}$ based on both the excluded types and the captured types of $t_1$ and $t_2$. Given that it is possible that one of the spores captures a type that is excluded in the other spore, the type of the result spore excludes only those types that are guaranteed not be captured.
+Figure~\ref{fig:typing-ext} shows the extensions to the typing rules. Rule \textsc{T-ESpore} additionally requires that none of the captured types $\seq{S}$ is a subtype of one of the types contained in the excluded types $\seq{U}$. The excluded types are recorded in the type of the spore. Rule \textsc{T-EComp} computes a new set of excluded types $\seq{V}$ based on both the excluded types and the captured types of $t_1$ and $t_2$. Given that it is possible that one of the spores captures a type that is excluded in the other spore, the type of the result spore excludes only those types that are guaranteed not be captured.
 
 \begin{figure*}[ht!]
   \centering
@@ -2191,7 +2206,7 @@ Figure~\ref{fig:typing-ext} shows the extensions to the typing rules. Rule (\tex
 \end{figure*}
 
 
-Figure~\ref{fig:opsem-ext} shows the extensions to the operational semantics. Rule \\ (\textsc{E-EAppSpore}) additionally requires that none of the captured types $\seq{T}$ are contained in the excluded types $\seq{U}$. Rule (\textsc{E-EComp3}) computes the set of excluded types of the result spore in the same way as in the corresponding type rule (\textsc{T-EComp}).
+Figure~\ref{fig:opsem-ext} shows the extensions to the operational semantics. Rule \\ \textsc{E-EAppSpore} additionally requires that none of the captured types $\seq{T}$ are contained in the excluded types $\seq{U}$. Rule \textsc{E-EComp3} computes the set of excluded types of the result spore in the same way as in the corresponding type rule (\textsc{T-EComp}).
 
 \begin{figure*}[ht!]
   \centering
@@ -2220,13 +2235,13 @@ Figure~\ref{fig:opsem-ext} shows the extensions to the operational semantics. Ru
 \section{Implementation}
 \label{sec:implementation}
 
-We have implemented spores as a macro library for Scala 2.10 and 2.11. Macros are an experimental feature introduced in Scala 2.10 that enable ``macro defs'', methods that take expression trees as arguments and that return an expression tree that is inlined at each invocation site of the macro. Macros are expanded during type checking in a way which enables macros to synthesize their result type during macro expansion, specialized for each site of invocation/expansion.
+We have implemented spores as a macro library for Scala 2.10 and 2.11. Macros are an experimental feature introduced in Scala 2.10 that enable ``macro defs'', methods that take expression trees as arguments and that return an expression tree that is inlined at each invocation site of the macro. Macros are expanded during type checking in a way which enables macros to synthesize their result type during macro expansion, specialized for each expansion site.
 
 The implementation for Scala 2.10 requires in addition a compiler plug-in that provides a backport of the support for Java 8 SAM types (``functional interfaces'') of Scala 2.11. SAM type support extends type inference for user-defined subclasses of Scala's standard function types which enables infering the types of spore parameters.
 
-An expression \verb|spore { val y: S = s; (x: T) => /* body */ }| invokes the \verb|spore| macro which is passed the block \verb|{ val y... }| as an expression tree. A spore without type constraints simply checks that within the body of the spore's closure, only the parameter \verb|x| as well as the variables in the spore header are accessed according to the spore type-checking rules (see Section~\ref{sec:design}). The expression tree returned by the macro creates an instance of a {\em refinement type} of the abstract \verb|Spore| class that implements its \verb|apply| method (which itself is inherited from the corresponding standard Scala function trait) by applying the spore's closure. The \verb|Spore| class also has abstract type members \verb|Captured| and \verb|Excluded|. The \verb|Captured| type member is defined by the generated refinement type to be a tuple type with the types of all captured variables. If there are no type constraints the \verb|Excluded| type member is defined to be \verb|No[Nothing]|.
+An expression \verb|spore { val y: S = s; (x: T) => /* body */ }| invokes the \verb|spore| macro which is passed the block \verb|{ val y... }| as an expression tree. A spore without type constraints simply checks that within the body of the spore's closure, only the parameter \verb|x| as well as the variables in the spore header are accessed according to the spore type-checking rules. The expression tree returned by the macro creates an instance of a {\em refinement type} of the abstract \verb|Spore| class that implements its \verb|apply| method (which itself is inherited from the corresponding standard Scala function trait) by applying the spore's closure. The \verb|Spore| class also has abstract type members \verb|Captured| and \verb|Excluded|. The \verb|Captured| type member is defined by the generated refinement type to be a tuple type with the types of all captured variables. If there are no type constraints the \verb|Excluded| type member is defined to be \verb|No[Nothing]|.
 
-Type constraints are implemented as follows. First, invoking the generic \verb|without| macro passing a type argument \verb|T|, say, augments the generated \verb|Spore| refinement type by effectivly adding the clause \verb|with No[T]| to the definition of its \verb|Excluded| type member. Second, the existence of additional bounds on the captured types is detected by attempting to infer an implicit value of type \verb|Property[_]|. If such an implicit value can be inferred, a sequence of types specifying type bounds is obtained as follows. Basically, the type of the implicit value is matched against the pattern \verb|Property[t1] with ... with Property[tn]| where the \verb|ti| are type variables. For each type \verb|ti| an implicit value member
+Type constraints are implemented as follows. First, invoking the generic \verb|without| macro passing a type argument \verb|T|, say, augments the generated \verb|Spore| refinement type by effectivly adding the clause \verb|with No[T]| to the definition of its \verb|Excluded| type member. Second, the existence of additional bounds on the captured types is detected by attempting to infer an implicit value of type \verb|Property[_]|. If such an implicit value can be inferred, a sequence of types specifying type bounds is obtained as follows. Basically, the type of the implicit value is matched against the pattern \\ \verb|Property[t1] with ... with Property[tn]| where the \verb|ti| are type variables. For each type \verb|ti| an implicit value member
 
 \begin{lstlisting}
     implicit val evi: ti[Captured] = implicitly[ti[Captured]]
@@ -2234,9 +2249,9 @@ Type constraints are implemented as follows. First, invoking the generic \verb|w
 \noindent
 is generated and added to the \verb|Spore| refinement type.
 
-The spores package also provides an implicit conversion from standard Scala functions to spores. This conversion is implemented as a macro whose expansion fails if the argument function is not a literal, since in this case it's impossible for the macro to check the spore shape/capturing constraints.
+We also provide an implicit conversion from standard Scala functions to spores. This conversion is implemented as a macro whose expansion fails if the argument function is not a literal, since in this case it is impossible for the macro to check the spore shape/capturing constraints.
 
-Comparison and relationship with Java8 SAM stuff. Cite paper {\em Java SAM Typed Closures: A Sound and Complete Type Inference System for Nominal Types} ~\cite{JavaSAM}
+% Comparison and relationship with Java8 SAM stuff. Cite paper {\em Java SAM Typed Closures: A Sound and Complete Type Inference System for Nominal Types} ~\cite{JavaSAM}
 
 
 \section{Evaluation}
