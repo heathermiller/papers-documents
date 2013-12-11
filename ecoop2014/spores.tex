@@ -5,6 +5,15 @@
 %
 \documentclass{llncs}
 %
+
+%% Save the class definition of \subparagraph
+\let\llncssubparagraph\subparagraph
+%% Provide a definition to \subparagraph to keep titlesec happy
+\let\subparagraph\paragraph
+%% Load titlesec
+\usepackage[compact]{titlesec}
+%% Revert \subparagraph to the llncs definition
+\let\subparagraph\llncssubparagraph
 \usepackage{makeidx}  % allows for indexgeneration
 \usepackage{url}
 \usepackage{todonotes}
@@ -120,10 +129,14 @@
 \setmainfont[Ligatures=TeX]{Times}
 
 \lstset{tabsize=2,
-basicstyle=\ttfamily\fontsize{8pt}{1em}\selectfont,
+basicstyle=\ttfamily\fontsize{9pt}{1em}\selectfont,
 commentstyle=\itshape\rmfamily,
 numbers=left, numberstyle=\scriptsize\color{gray}\ttfamily, language=scala,moredelim=[il][\sffamily]{?},mathescape=true,showspaces=false,showstringspaces=false,xleftmargin=15pt,escapechar=@, morekeywords=[1]{let,fn,val},deletekeywords={for},classoffset=0,belowskip=\smallskipamount
 }
+
+\setlength{\belowcaptionskip}{-10pt}
+% \titlespacing{\section}{0pt}{\parskip}{-\parskip}
+
 \begin{document}
 
 \VerbatimFootnotes
@@ -250,7 +263,7 @@ Examples across functional and object-oriented paradigms include \mbox{Java
 8}'s monadic-style optionally parallel collections~\cite{JavaLambdas}, Scala's
 parallel~\cite{ScalaParColls} and concurrent dataflow~\cite{FlowPools}
 collections, Data Parallel Haskell~\cite{DataParallelHaskell}, Concurrent
-Collections (CnC)~\cite{CnC} Nova~\cite{Nova}, and Haskell's \verb|Par|
+Collections (CnC)~\cite{CnC}, Nova~\cite{Nova}, and Haskell's \verb|Par|
 monad~\cite{HaskellPar} to name a few.
 
 % Data-parallel programming has been established as a particularly successful
@@ -268,8 +281,10 @@ transmitted over the network to large-scale persistent datasets stored on
 different nodes in the cluster. As a result of the ``big data'' revolution,
 these frameworks have become very popular, in turn further highlighting the
 need to be able to reliably and safely serialize and transmit closures over
-the network. % making the robust distribution of computations and % closures
-essential.
+the network.
+
+% making the robust distribution of computations and % closures
+% essential.
 
 Frameworks like Spark embody a pattern that we like to call ``Lambda The
 Ultimate Distributive'' where closures are shipped to the data such that (a)
@@ -287,7 +302,7 @@ order to be reliable and easy to reason about in a concurrent or distributed
 setting.
 
 In order to distribute closures, one must be able to serialize them -- a goal
-that remains tricky to reliably achieve not only hard in object-oriented
+that remains tricky to reliably achieve not only in object-oriented
 languages but also in pure functional languages like Haskell:
 
 \begin{lstlisting}
@@ -303,7 +318,7 @@ serialize its free variables. However, in this case, the types of these free
 variables are unrelated to the type of the function value, so it is entirely
 unclear how to serialize them.
 
-In languages like Java or C\# on the other hand, serialization is solved
+In object-oriented languages like Java or C\#, serialization is solved
 differently -- the runtime environment is designed to be able to serialize any
 object, reflectively. While this ``universal'' serialization might seem to
 solve the problem of languages like Haskell that cannot rely on such a
@@ -867,36 +882,65 @@ enable.
 % This SIP outlines an abstraction, called spores, which enables safer use of closures in concurrent and distributed environments. This is achieved by controlling the environment which a spore can capture. Using an assignment-on-capture semantics, certain concurrency bugs due to capturing mutable references can be avoided.
 
 Spores are a closure-like abstraction which aim to give users a principled way
-to manage environments captured by closures. This is achieved by (a) enforcing
-a specific syntactic shape which , and (b) adding a type system.
+of controlling the environment which a closure can capture. This is achieved
+by (a) enforcing a specific syntactic shape which dictates how the environment
+of a spore is declared, and (b) providing additional type-checking to ensure
+that types being captured have certain properties.
 
-Like normal functions, spores can be composed.
+% There should be more of an introduction to spores here!
 
-We describe below the syntactic shape of spores, and in Section~\ref{sec:type-constraints} we informally describe the type system.
+% Like normal functions, spores can be composed.
 
-in a later section~\ref{}, we'll describe how to use spores with the type system extension proposed in this paper.
+% Spore properties.
+
+We describe below the syntactic shape of spores, and in
+Section~\ref{sec:spore-type} we describe the \verb|Spore| type.
+In Section~\ref{sec:type-constraints} we informally describe the type
+system, and how to add user-defined type-based {\em properties} to
+customize what types a spore can capture.
+\todo{We should make a list of properties that need to be satisfied for a closure to be guaranteeably serializable or thread-safe. Then, progress through the entire Spores section and show how each aspect of the design achieves that.}
 
 \subsection{Spore Syntax}
 \label{sec:spore-syntax}
 
-A spore is a closure with a specific shape that dictates how the environment of a spore is declared. In general, a spore has the following shape:
+A spore is a closure with a specific shape that dictates how the environment of a spore is declared. In general, a spore has the shape shown in Figure~\ref{fig:spore-shape}.
 
-\begin{lstlisting}
-spore {
-  val y1: S1 = <expr1>
-  ...
-  val yn: Sn = <exprn>
-  (x: T) => {
-    // ...
-  }
-}
-\end{lstlisting}
+\begin{figure}[t!]
+\centering
+\includegraphics[width=7cm]{spore-shape.pdf}
+\vspace{-0.4cm}
+\caption{The syntactic shape of a spore.}
+\label{fig:spore-shape}
+\end{figure}
 
-A spore consists of two parts: the header and the body. The list of value definitions at the beginning is called the spore header. The header is followed by a regular closure, the spore's body. The characteristic property of a spore is that the body of its closure is only allowed to access its parameter, values in the spore header, as well as top-level singleton objects (public, global state). In particular, the spore closure is not allowed to capture variables in the environment. Only an expression on the right-hand side of a value definition in the spore header is allowed to capture variables.
+% \begin{lstlisting}
+% spore {
+%   val y1: S1 = <expr1>
+%   ...
+%   val yn: Sn = <exprn>
+%   (x: T) => {
+%     // ...
+%   }
+% }
+% \end{lstlisting}
 
-By enforcing this shape, the environment of a spore is always declared explicitly in the spore header which avoids accidentally capturing problematic references. Moreover, and that's important for OO languages, it's no longer possible to accidentally capture the \verb|this| reference.
+A spore consists of two parts: the header and the body. The list of value
+definitions at the beginning is called the spore header. The header is
+followed by a regular closure, the spore's body. The characteristic property
+of a spore is that the body of its closure is only allowed to access its
+parameter, values in the spore header, as well as top-level singleton objects
+(public, global state). In particular, the spore closure is not allowed to
+capture variables in the environment. Only an expression on the right-hand
+side of a value definition in the spore header is allowed to capture
+variables.
 
-Note that the evaluation semantics of a spore is equivalent to a closure obtained by leaving out the \verb|spore| marker:
+By enforcing this shape, the environment of a spore is always declared
+explicitly in the spore header which avoids accidentally capturing problematic
+references. Moreover, and that's important for OO languages, it's no longer
+possible to accidentally capture the \verb|this| reference.
+
+Note that the evaluation semantics of a spore is equivalent to a closure
+obtained by leaving out the \verb|spore| marker:
 
 \begin{lstlisting}
 {
@@ -913,6 +957,7 @@ In Scala, the above block first initializes all value definitions in order and t
 
 
 \subsection{Spore type}
+\label{sec:spore-type}
 
 The result type of the \verb|spore| constructor is not a regular function type, but a subtype of one of Scala's function types. This is possible, because in Scala functions are instances of classes that mix in one of the function traits. For example, the trait for functions of arity one looks like this:
 \footnote{For simplicity we omit definitions of the \verb+andThen+ and \verb+compose+ methods in the definition of \verb+Function1+.}
@@ -958,7 +1003,7 @@ Using the `Spore` trait methods can require argument closures to be spores:
     def sendOverWire(s: Spore[Int, Int]): Unit = ...
 \end{lstlisting}
 
-This way, libraries and frameworks can enforce the use of spores instead of plain closures, thereby reducing the risk for common programming errors (see Section~\ref{case studies}). Also note that in the above case, the \verb|Captured| (and \verb|Excluded|) type member is not specified, meaning it is left abstract; this way a spore type is compatible with the above parameter type regardless of which types are captured as long as the parameter and result types match.
+This way, libraries and frameworks can enforce the use of spores instead of plain closures, thereby reducing the risk for common programming errors (see Section~\ref{case-studies}). Also note that in the above case, the \verb|Captured| (and \verb|Excluded|) type member is not specified, meaning it is left abstract; this way a spore type is compatible with the above parameter type regardless of which types are captured as long as the parameter and result types match.
 
 
 By representing the environment of spores using refinement types, it is possible to preserve the constraints of spores when they are composed.
@@ -991,6 +1036,7 @@ for-comprehensions (example using that guy above)
 composition
 
 \subsection{Advanced Usage and Type Constraints}
+\label{sec:type-constraints}
 
 two kinds, excluded types which achieve [fill in] and context bounds for captured types which achieve [fill in]
 
