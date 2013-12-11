@@ -295,10 +295,9 @@ the network.
 
 Frameworks like Spark embody a pattern that we like to call ``Lambda The
 Ultimate Distributive'' where closures are shipped to the data such that (a)
-data to-be-processed remotely is passed as arguments, (b) data that needs to
-be shipped with the closure is captured and serialized, and (c) services local
-to a node are either passed as additional arguments by the framework or looked
-up.
+data to-be-processed as well as services local
+to a node are passed as arguments, and (b) data that needs to
+be shipped with the closure is captured and serialized.
 
 % have to be pure or can't have access to mutable things
 
