@@ -469,15 +469,28 @@ We discuss other related work in Section~\ref{sec:related-work}.
 This paper makes the following contributions:
 
 \begin{itemize}
-\item We introduce a closure-like abstraction and type system, called ``spores'', which avoids typical hazards when using closures in a concurrent or distributed setting through controlled variable capture and customizable user-defined constraints for captured types.
 
-\item We introduce an approach for type-based constraints that allow expressing a variety of properties from the literature including, but not limited to, serializability, immutability, and thread-safety.
+\item We introduce a closure-like abstraction and type system,  called
+``spores'', which avoids typical hazards when using closures in a concurrent
+or distributed setting through controlled variable capture and customizable
+user-defined constraints for captured types.
 
-\item We present a formalization of spores with type constraints and prove soundness of the type system.
+\item We introduce an approach for type-based constraints that allow
+expressing  a variety of properties from the literature including, {\em but
+not limited to}, serializability and thread-safety/immutability. Our approach
+also enables users to define their own arbitrary and customizable constraints.
 
-\item We present an implementation of spores in and for the full Scala language\footnote{\sporeurl}.
+\item We present a formalization of spores with type constraints and  prove
+soundness of the type system.
 
-\item We demonstrate the practicality of spores (a) through an small empirical study using a collection of Scala programs, and (b) show the power of the guarantees spores provide through a case study of new distributed and concurrent frameworks that this safe foundation for migratable closures can enable.
+\item We present an implementation of spores in and for the full Scala
+language\footnote{\sporeurl}.
+
+\item We demonstrate the practicality of spores (a) through an small
+empirical study using a collection of Scala programs, and (b) show the power
+of the guarantees spores provide through a case study of new distributed and
+concurrent frameworks that this safe foundation for migratable closures can
+enable.
 
 \end{itemize}
 
