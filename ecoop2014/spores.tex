@@ -916,7 +916,7 @@ that types being captured have certain properties.
 
 Below, we describe the syntactic shape of spores, and in
 Section~\ref{sec:spore-type} we describe the \verb|Spore| type.
-In Section~\ref{sec:type-constraints} we informally describe the type
+In Section~\ref{sec:sec:adv-usage-type-constraints} we informally describe the type
 system, and how to add user-defined type-based {\em properties} to
 customize what types a spore can capture.
 \todo{Should we make a list of properties that need to be satisfied for a closure to be guaranteeably serializable or thread-safe? Then, progress through the entire Spores section and show how each aspect of the design achieves that.}
@@ -1030,7 +1030,7 @@ is itself a subtype of one of Scala's function types.\footnote{This is possible,
 The type of a spore of arity-1, as well and Scala's arity-1 function type are
 shown in Figure~\ref{fig:spore-type}.
 
-\begin{figure}[h!]
+\begin{figure}[b!]
 \begin{subfigure}{.5\textwidth}
   \centering
   \begin{lstlisting}
@@ -1085,25 +1085,57 @@ using the \verb|+| symbol.
 The \verb|Spore| type is shown in Figure~\ref{fig:spore-arity1}. Like normal
 Scala functions, spores are contravariant in their argument type \verb|A|, and
 covariant in their result type \verb|B|. Additionally, type \verb|Spore| has
-has two abstract type members. In a concrete spore the \verb|Captured| type
+has two abstract type members. In a concrete spore, the \verb|Captured| type
 member is defined to be a tuple type with the types of all captured variables.
-We will talk about the \verb|Excluded| type member in a later section.
+We will introduce the \verb|Excluded| type member later, in Section~\ref{sec:excluded-types}
 
-For example, the spore
+A small example is shown in Figure~\ref{fig:captured-ex}. (We omit the
+\verb|Excluded| type member for simplicity; it is explained in detail
+in Section~\ref{sec:excluded-types}.)
 
-\begin{lstlisting}
-    spore { val y1: String = expr1; val y2: Int = expr2; (x: Int) => y1+y2+x }
-\end{lstlisting}
-
-would have the refinement type
-
-\begin{lstlisting}
+\begin{figure}[t!]
+\begin{subfigure}{.5\textwidth}
+  \centering
+  \begin{lstlisting}
+    spore {
+      val y1: String = expr1;
+      val y2: Int = expr2;
+      (x: Int) => y1 + y2 + x
+    }
+  \end{lstlisting}
+  \caption{A spore which captures a \texttt{String} and an \texttt{Int} in its spore header.}
+  \label{fig:capture-spore}
+\end{subfigure}%
+\begin{subfigure}{.5\textwidth}
+  \centering
+  \begin{lstlisting}
     Spore[Int, String] {
       type Captured = (String, Int)
     }
-\end{lstlisting}
+  \end{lstlisting}
+  \caption{The corresponding spore type.}
+  \label{fig:capture-type}
+\end{subfigure}%
+\vspace{1mm}
+\caption{An example of the \texttt{Captured} type member. \\\textit{Note: we omit the
+\texttt{Excluded} type member for simplicity; we detail it later in Section~\ref{sec:excluded-types}.}}
+\label{fig:captured-ex}
+\end{figure}
 
-(We omit the Excluded type member for simplicity; it is explained in detailed below.)
+
+% For example, the spore
+
+% \begin{lstlisting}
+%     spore { val y1: String = expr1; val y2: Int = expr2; (x: Int) => y1+y2+x }
+% \end{lstlisting}
+
+% would have the refinement type
+
+% \begin{lstlisting}
+%     Spore[Int, String] {
+%       type Captured = (String, Int)
+%     }
+% \end{lstlisting}
 
 Using the `Spore` trait methods can require argument closures to be spores:
 
@@ -1144,11 +1176,12 @@ for-comprehensions (example using that guy above)
 composition
 
 \subsection{Advanced Usage and Type Constraints}
-\label{sec:type-constraints}
+\label{sec:adv-usage-type-constraints}
 
 two kinds, excluded types which achieve [fill in] and context bounds for captured types which achieve [fill in]
 
 \subsubsection{Excluded Types}
+\label{sec:excluded-types}
 
 Libraries and frameworks for concurrent and distributed programming, such as Akka and Spark, typically have requirements to avoid capturing certain types in closures that are used together with library-provided objects and methods. For example, when using Akka, one should not capture variables of type `Actor`; in Spark, one should not capture variables of type `SparkContext`.
 
