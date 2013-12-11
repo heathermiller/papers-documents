@@ -392,15 +392,19 @@ to a potentially wide array of new frameworks.
 % distributed functional reactive programming.
 
 This paper takes a step towards more principled {\em function-passing style}
-by introducing a new closure-like abstraction, {\em spores}, which avoids
-typical hazards when using closures in a concurrent or distributed setting
-through controlled variable capture and constraints for captured types. Using
-type-based constraints, spores allow expressing a variety of ``safe''
-closures, such as guaranteed-serializable closures, closures which capture
-only immutable types, or closures with customizable user-defined type-based
-properties. Finally, we argue that by principle of a type-based approach,
-spores have the added benefit of being able to benefit from optimization,
-further safety via type system extensions, and verification opportunities.
+by introducing a new closure-like abstraction, {\em spores}, which is designed
+to avoid typical hazards of closures. By including type information of
+captured variables in the type of a spore, we enable the expression of type-
+based constraints for captured variables, making spores safer to use in a
+concurrent or distributed setting. We show that this approach can be made
+practical by automatically synthesizing refinement types using macros, and by
+leveraging local type inference. Using type-based constraints, spores allow
+expressing a variety of ``safe'' closures, such as guaranteed-serializable
+closures, closures which capture only immutable types, or closures with
+customizable user-defined type-based properties. Finally, we argue that by
+principle of a type-based approach, spores have the added benefit of being
+able to benefit from optimization, further safety via type system extensions,
+and verification opportunities.
 
 The design of spores is guided by the following principles:
 \vspace{-1.5mm}
