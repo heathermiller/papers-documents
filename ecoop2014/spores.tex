@@ -456,12 +456,12 @@ capturing, requiring the user to explicitly specify and pre-serialize the
 environment in combination with top-level functions (enforced using a new
 \verb|Static| type constructor). That is, in Cloud Haskell, to create a
 serializable closure, one must explicitly pass the serialized environment as a
-parameter to the function -- this requires users to have to completely
-reorganize any closure they wish to be made serializable. In contrast, spores
+parameter to the function -- this requires users to have to refactor closures
+they wish to be made serializable. In contrast, spores
 do not require users to manually factor out, manage, and serialize their
 environment; spores require only that {\em what} is captured is specified, not
 {\em how}. Furthermore, spores are more general than Cloud Haskell's
-serializable closures -- user-defined type constraints enable spores to
+serializable closures; user-defined type constraints enable spores to
 express more properties than just serializability, like thread-safety,
 immutability, or any other user-defined property. In addition, spores allow
 restricting captured types in a way that's integrated with object-oriented
@@ -492,12 +492,12 @@ top-most stack frame). Spores, like regular Scala closures, do not have such a
 restriction.
 
 {Java 8}~\cite{JavaLambdas,JavaLambdaTranslation} introduces a limited type of
-closure -- that is, closures are only permitted to capture variables that are
+closure which is only permitted to capture variables that are
 effectively-final. Like with Scala's standard closures, variable capture is
-implicit which can lead to accidental captures that spores are designed to
+implicit, which can lead to accidental captures that spores are designed to
 avoid. Although serializability can be requested at the level of the type
 system using newly-introduced intersection types in \mbox{Java 8}, there is no
-guarantee about the absence of runtime exceptions as there is for spores.
+guarantee about the absence of runtime exceptions, as there is for spores.
 Finally, spores additionally allow specifying type-based constraints for
 captured variables that are more general than serializability alone.
 
