@@ -1012,6 +1012,17 @@ is.
 \subsection{The \texttt{Spore} Type}
 \label{sec:spore-type}
 
+Like a normal function, the type of a spore contains the parameter type(s) as
+well as the return type. Unlike a normal function, however, the spore type
+additionally contains information about \textit{captured} and
+\textit{excluded} types. This information is represented as (potentially
+abstract) \verb|Captured| and \verb|Excluded| type members of the base
+\verb|Spore| type.
+
+In general, individual spores are represented as {\em refinement types} of the
+base \verb|Spore|, which, to be fully compatible with normal Scala functions,
+is itself a subtype of one of Scala's function types.
+
 The result type of the \verb|spore| constructor is not a regular function type, but a subtype of one of Scala's function types. This is possible, because in Scala functions are instances of classes that mix in one of the function traits. For example, the trait for functions of arity one looks like this:
 \footnote{For simplicity we omit definitions of the \verb+andThen+ and \verb+compose+ methods in the definition of \verb+Function1+.}
 
