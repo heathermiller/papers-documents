@@ -1893,63 +1893,48 @@ Rule \textsc{E-Comp3} is the computation rule for spore composition. Besides com
   \centering
 
 \begin{mathpar}
-\inferrule[\textsc{E-Let1}]
-{ t_1 \rightarrow t'_1
-}
-{ \texttt{let}~x = t_1~\texttt{in}~t_2 \rightarrow \texttt{let}~x = t'_1~\texttt{in}~t_2
-}
+% \inferrule[\textsc{E-Let1}]
+% { t_1 \rightarrow t'_1
+% }
+% { \texttt{let}~x = t_1~\texttt{in}~t_2 \rightarrow \texttt{let}~x = t'_1~\texttt{in}~t_2
+% }
 
-% \vspace{0.4cm}
 
-\inferrule[\textsc{E-Let2}]
-{ \texttt{let}~x = v_1~\texttt{in}~t_2 \rightarrow [x \mapsto v_1]t_2
-}{}
+% \inferrule[\textsc{E-Let2}]
+% { \texttt{let}~x = v_1~\texttt{in}~t_2 \rightarrow [x \mapsto v_1]t_2
+% }{}
 
-% \vspace{0.4cm}
+% \inferrule[\textsc{E-Rec}]
+% { t_k \rightarrow t'_k
+% }
+% { \{ \seq{l = v}, l_k = t_k, \seq{l' = t'} \} \rightarrow \{ \seq{l = v}, l_k = t'_k, \seq{l' = t'} \}
+% }
 
-\inferrule[\textsc{E-Rec}]
-{ t_k \rightarrow t'_k
-}
-{ \{ \seq{l = v}, l_k = t_k, \seq{l' = t'} \} \rightarrow \{ \seq{l = v}, l_k = t'_k, \seq{l' = t'} \}
-}
+% \inferrule[\textsc{E-Sel1}]
+% { t \rightarrow t'
+% }
+% { t.l \rightarrow t'.l
+% }
 
-% \vspace{0.4cm}
+% \inferrule[\textsc{E-Sel2}]
+% { \{ \seq{l = v} \}.l_i \rightarrow v_i
+% }{}
 
-\inferrule[\textsc{E-Sel1}]
-{ t \rightarrow t'
-}
-{ t.l \rightarrow t'.l
-}
+% \inferrule[\textsc{E-App1}]
+% { t_1 \rightarrow t'_1
+% }
+% { t_1 t_2 \rightarrow t'_1 t_2
+% }
 
-% \vspace{0.4cm}
+% \inferrule[\textsc{E-App2}]
+% { t_2 \rightarrow t'_2
+% }
+% { v_1 t_2 \rightarrow v_1 t'_2
+% }
 
-\inferrule[\textsc{E-Sel2}]
-{ \{ \seq{l = v} \}.l_i \rightarrow v_i
-}{}
-
-% \vspace{0.4cm}
-
-\inferrule[\textsc{E-App1}]
-{ t_1 \rightarrow t'_1
-}
-{ t_1 t_2 \rightarrow t'_1 t_2
-}
-
-% \vspace{0.4cm}
-
-\inferrule[\textsc{E-App2}]
-{ t_2 \rightarrow t'_2
-}
-{ v_1 t_2 \rightarrow v_1 t'_2
-}
-
-% \vspace{0.4cm}
-
-\inferrule[\textsc{E-AppAbs}]
-{ ((x : T) \Rightarrow  t) v \rightarrow [x \mapsto v]t
-}{}
-
-% \vspace{0.4cm}
+% \inferrule[\textsc{E-AppAbs}]
+% { ((x : T) \Rightarrow  t) v \rightarrow [x \mapsto v]t
+% }{}
 
 \inferrule[\textsc{E-AppSpore}]
 { \forall pn \in \seq{pn}.~\seq{T} \subseteq P(pn)
