@@ -22,6 +22,9 @@
 \usepackage{fontspec}
 \usepackage{fancyvrb}
 \usepackage{mathpartir}
+\usepackage[labelfont=bf]{caption}
+\usepackage{subcaption}
+\captionsetup{compatibility=false}
 
 \usepackage{microtype}
 \usepackage{times}
@@ -100,6 +103,10 @@
 \newcommand{\htab}{\hspace{\htabwidth}}
 \newcommand{\tab}{\hspace{\tabwidth}}
 \newcommand{\linesep}{\ \hrulefill \ \smallskip}
+
+\newcommand{\ie}{{\em i.e.,~}}
+\newcommand{\eg}{{\em e.g.,~}}
+\newcommand{\etc}{{\em etc}}
 
 \lstdefinelanguage{Scala}%
 {morekeywords={abstract,case,catch,char,class,%
@@ -358,6 +365,7 @@ related to concurrency and distribution include:
 
 % Unfortunately, besides the above mentioned problems, closures exhibit a variety of additional hazards, across programming paradigms.
 
+\vspace{-2mm}
 \begin{itemize}
 \item free variables that are not serializable;
 \item accidental references to \verb|this| or other enclosing objects that are not serializable;
@@ -396,35 +404,47 @@ spores have the added benefit of being able to benefit from optimization,
 further safety via type system extensions, and verification opportunities.
 
 The design of spores is guided by the following principles:
-
+\vspace{-1.5mm}
 \begin{itemize}
-\item {\bf Lightweight Design} to be practical for inclusion in the
-full-featured Scala language. To enable a robust integration with the host
-language, existing type system features are reused instead of extended.
+\item {\bf Type-safety} Spores should be able to express type-based
+properties of captured variables in a statically safe way. Including type
+information of captured variables in the type of a spore creates a number of
+previously impossible opportunities; it facilitates the verification of
+closure-heavy code; it opens up the possibility for IDEs to assist in safe
+closure creation, advanced refactoring, and debugging support; it enables
+compilers to implement safe transformations that can further simplify the use
+of safe closures, and it makes it possible for spores to integrate with type
+class-based frameworks like Scala/pickling~\cite{ScalaPickling}.
 
-\item {\bf Supporting existing practice}. When using frameworks for distributed
-programming like Spark, closures should follow certain conventions with
-respect to captured variables to avoid hazards. Spores enforce
-such conventions at compile-time, where previously there was no tool support.
+\item {\bf Extensibility}. Given types which include information about what  a
+closure captures, libraries and frameworks should be able to restrict the
+types that are captured by spores. Enforcing these {\em type constraints}
+should not be limited to serializability, thread-safety, or other pre-defined
+properties, however; Spores should enable customizing the semantics of
+variable capture based on user-defined types. It should be possible to use
+existing type-based mechanisms to express a variety of user-defined properties
+of captured types.
 
-\item {\bf Lightweight syntactical footprint}. On the one hand, spores are designed to
-make working with closures safer by making variable capture explicit. On the
-other hand, implicit conversion between regular functions and spores enable
-the use of spores also in existing closure-heavy code.
+\item {\bf Ease of Use}. Spores should be lightweight
+to use, and be able to integrate seamlessly with existing practice. It should
+be possible to capitalize on the benefits of precise types while at the same
+time ensuring that working with spores is never too bulky or verbose, thanks
+to the help of automatic type synthesis and inference. At the same time,
+frameworks like Spark, for which the need for controlled capture is central,
+should be able to use spores, meanwhile requiring only minimal changes in
+application code.
 
-\item {\bf Type-based constraints} enable libraries and frameworks to restrict the types
-that are captured by spores. For example, this allows enforcing that certain
-spores only capture immutable objects. Surprisingly, we found that Scala's
-type system let's us express a variety of constraints using existing type-
-systematic features such as type refinements and implicits.
+\item {\bf Practicality} Spores should be practical to use in general, as
+well as be practical for inclusion in the full-featured Scala language. They
+should be practical in a variety of real-world scenarios (for use with Spark,
+Akka, parallel collections, and other closure-heavy code). At the same time,
+to enable a robust integration with the host language, existing type system
+features should be reused instead of extended.
 
-\item {\bf Custom, user-defined, type-based closure semantics}. Spores should enable customizing the semantics of variable capture based on user-defined types. It should be possible to use existing type-based mechanisms to express a variety of user-defined requirements for captured types.
-
-\item {\bf Composability}. Spores, regardless of their constraints, should be logically and intuitively composable, while preserving their semantic properties.
-
-\item {\bf More reliable and trustworthy APIs for library authors}. Spores enable library
-authors to confidently release libraries that expose functions in the user-
-facing API without concern of runtime exceptions.
+\item {\bf Reliability for API Designers}. Spores should enable library
+authors to confidently release libraries that expose functions in user-facing
+APIs without concern of runtime exceptions or other dubious errors falling on
+their users.
 
 \end{itemize}
 
@@ -486,9 +506,7 @@ We discuss other related work in Section~\ref{sec:related-work}.
 \subsection{Contributions}
 
 This paper makes the following contributions:
-
 \begin{itemize}
-
 \item We introduce a closure-like abstraction and type system,  called
 ``spores'', which avoids typical hazards when using closures in a concurrent
 or distributed setting through controlled variable capture and customizable
@@ -505,12 +523,11 @@ soundness of the type system.
 \item We present an implementation of spores in and for the full Scala
 language\footnote{\sporeurl}.
 
-\item We demonstrate the practicality of spores (a) through an small
+\item We (a) demonstrate the practicality of spores through an small
 empirical study using a collection of Scala programs, and (b) show the power
 of the guarantees spores provide through a case study of new distributed and
 concurrent frameworks that this safe foundation for migratable closures can
 enable.
-
 \end{itemize}
 
 
@@ -881,7 +898,7 @@ enable.
 
 % This SIP outlines an abstraction, called spores, which enables safer use of closures in concurrent and distributed environments. This is achieved by controlling the environment which a spore can capture. Using an assignment-on-capture semantics, certain concurrency bugs due to capturing mutable references can be avoided.
 
-Spores are a closure-like abstraction which aim to give users a principled way
+A spore is a closure-like abstraction which aims to give users a principled way
 of controlling the environment which a closure can capture. This is achieved
 by (a) enforcing a specific syntactic shape which dictates how the environment
 of a spore is declared, and (b) providing additional type-checking to ensure
@@ -893,17 +910,25 @@ that types being captured have certain properties.
 
 % Spore properties.
 
-We describe below the syntactic shape of spores, and in
+Below, we describe the syntactic shape of spores, and in
 Section~\ref{sec:spore-type} we describe the \verb|Spore| type.
 In Section~\ref{sec:type-constraints} we informally describe the type
 system, and how to add user-defined type-based {\em properties} to
 customize what types a spore can capture.
-\todo{We should make a list of properties that need to be satisfied for a closure to be guaranteeably serializable or thread-safe. Then, progress through the entire Spores section and show how each aspect of the design achieves that.}
+\todo{Should we make a list of properties that need to be satisfied for a closure to be guaranteeably serializable or thread-safe? Then, progress through the entire Spores section and show how each aspect of the design achieves that.}
 
+\vspace{1mm}
 \subsection{Spore Syntax}
 \label{sec:spore-syntax}
 
-A spore is a closure with a specific shape that dictates how the environment of a spore is declared. In general, a spore has the shape shown in Figure~\ref{fig:spore-shape}.
+A spore is a closure with a specific shape that dictates how the environment
+of a spore is declared. The shape of a spore is shown in Figure~\ref{fig:spore-shape}.
+A spore consists of two parts:
+\vspace{-1.5mm}
+\begin{itemize}
+\item {\bf the spore header}, composed of a list of value definitions.
+\item {\bf the spore body} (sometimes referred to as the ``spore closure''), a regular closure.
+\end{itemize}
 
 \begin{figure}[t!]
 \centering
@@ -913,50 +938,79 @@ A spore is a closure with a specific shape that dictates how the environment of 
 \label{fig:spore-shape}
 \end{figure}
 
-% \begin{lstlisting}
-% spore {
-%   val y1: S1 = <expr1>
-%   ...
-%   val yn: Sn = <exprn>
-%   (x: T) => {
-%     // ...
-%   }
-% }
-% \end{lstlisting}
+\begin{figure}[b!]
+\begin{subfigure}{.5\textwidth}
+  \centering
+  \begin{lstlisting}
+  {
+    val y1: S1 = <expr1>
+    ...
+    val yn: Sn = <exprn>
+    (x: T) => {
+      // ...
+    }
+  }
+  \end{lstlisting}
+  \caption{A closure block.}
+  \label{fig:normal-block}
+\end{subfigure}%
+\begin{subfigure}{.5\textwidth}
+  \centering
+  \begin{lstlisting}
+  spore {
+    val y1: S1 = <expr1>
+    ...
+    val yn: Sn = <exprn>
+    (x: T) => {
+      // ...
+    }
+  }
+  \end{lstlisting}
+  \caption{A spore.}
+  \label{fig:normal-spore-shape}
+\end{subfigure}%
+\vspace{1mm}
+\caption{The evaluation semantics of a spore is equivalent to that of a closure, obtained by simply leaving out the spore marker.}
+\label{fig:evaluation-semantics}
+\end{figure}
 
-A spore consists of two parts: the header and the body. The list of value
-definitions at the beginning is called the spore header. The header is
-followed by a regular closure, the spore's body. The characteristic property
-of a spore is that the body of its closure is only allowed to access its
-parameter, values in the spore header, as well as top-level singleton objects
+% The spore header is composed of a list of value definitions. The
+% The list of value
+% definitions at the beginning is called the spore header. The header is
+% followed by a regular closure, the spore's body.
+
+\vspace{-1.5mm}
+The characteristic property
+of a spore is that the {\em spore body} is only allowed to access its
+parameter, the values in the spore header, as well as top-level singleton objects
 (public, global state). In particular, the spore closure is not allowed to
 capture variables in the environment. Only an expression on the right-hand
 side of a value definition in the spore header is allowed to capture
 variables.
 
 By enforcing this shape, the environment of a spore is always declared
-explicitly in the spore header which avoids accidentally capturing problematic
-references. Moreover, and that's important for OO languages, it's no longer
-possible to accidentally capture the \verb|this| reference.
+explicitly in the spore header, which avoids accidentally capturing
+problematic references -- such as unstable members (\eg method calls), mutable
+fields, etc. Moreover, importantly for object-oriented langauges, it's no
+longer possible to accidentally capture the \verb|this| reference.
+
+\subsubsection{Evaluation Semantics}
 
 Note that the evaluation semantics of a spore is equivalent to a closure
-obtained by leaving out the \verb|spore| marker:
+obtained by leaving out the \verb|spore| marker, shown in
+Figure~\ref{fig:evaluation-semantics}.
 
-\begin{lstlisting}
-{
-  val y1: S1 = <expr1>
-  ...
-  val yn: Sn = <exprn>
-  (x: T) => {
-    // ...
-  }
-}
-\end{lstlisting}
+In Scala, the block shown in Figure~\ref{fig:normal-block} first initializes
+all value definitions in order and then evaluates to a closure that captures
+the introduced local variables \verb|y1, ..., yn|. The corresponding spore,
+shown in Figure~\ref{fig:normal-spore-shape} has the exact same evaluation
+semantics. Interestingly, this closure shape is already used in production
+systems such as Spark in an effort to avoid problems with accidentally
+captured references, such as \verb|this|. However, in systems like Spark, the
+above shape is merely a convention, it's not enforced, whereas with spores it
+is.
 
-In Scala, the above block first initializes all value definitions in order and then evaluates to a closure that captures the introduced local variables y1, ..., yn. The corresponding spore has the exact same evaluation semantics. What's interesting is that this closure shape is already used in production systems such as Spark to avoid problems with accidentally captured \verb|this| references. However, in these systems the above shape is not enforced, whereas with spores it is.
-
-
-\subsection{Spore type}
+\subsection{The \texttt{Spore} Type}
 \label{sec:spore-type}
 
 The result type of the \verb|spore| constructor is not a regular function type, but a subtype of one of Scala's function types. This is possible, because in Scala functions are instances of classes that mix in one of the function traits. For example, the trait for functions of arity one looks like this:
@@ -1187,6 +1241,7 @@ Now that we've introduced type constraints in the form of excluded types and con
 
 To precisely describe the composition rules, we introduce the following notation: the function $Excluded$ returns for a given refinement type the set of types that are excluded; the function $Captured$ returns for a given refinement type the set of type that are captured. Using these two mathematical functions, we can precisely specify how the type members of the resulting spore refinement type are computed. (We use the syntax \verb|.type| to refer to the singleton types of the argument spores and the result, respectively.)
 
+\vspace{-5mm}
 \begin{enumerate}
 
 \item $Captured(res.type) = Captured(s1.type), Captured(s2.type)$
