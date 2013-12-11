@@ -916,7 +916,7 @@ that types being captured have certain properties.
 
 Below, we describe the syntactic shape of spores, and in
 Section~\ref{sec:spore-type} we describe the \verb|Spore| type.
-In Section~\ref{sec:sec:adv-usage-type-constraints} we informally describe the type
+In Section~\ref{sec:adv-usage-type-constraints} we informally describe the type
 system, and how to add user-defined type-based {\em properties} to
 customize what types a spore can capture.
 \todo{Should we make a list of properties that need to be satisfied for a closure to be guaranteeably serializable or thread-safe? Then, progress through the entire Spores section and show how each aspect of the design achieves that.}
@@ -1014,8 +1014,10 @@ captured references, such as \verb|this|. However, in systems like Spark, the
 above shape is merely a convention, it's not enforced, whereas with spores it
 is.
 
+\vspace{2mm}
 \subsection{The \texttt{Spore} Type}
 \label{sec:spore-type}
+\vspace{1mm}
 
 Like a normal function, the type of the \verb|spore| constructor contains the
 spore closure's parameter type(s) as well as its return type. Unlike a normal function,
@@ -1089,22 +1091,34 @@ has two abstract type members. In a concrete spore, the \verb|Captured| type
 member is defined to be a tuple type with the types of all captured variables.
 We will introduce the \verb|Excluded| type member later, in Section~\ref{sec:excluded-types}
 
-A small example is shown in Figure~\ref{fig:captured-ex}. (We omit the
-\verb|Excluded| type member for simplicity; it is explained in detail
-in Section~\ref{sec:excluded-types}.)
+\vspace{2mm}
+\subsection{Basic Usage}
+\label{sec:basic-usage}
+\vspace{1mm}
+
+% simple spore (concrete example)
+% for-comprehensions (example using that guy above)
+% composition
+
+\subsubsection{Definition}
+
+A spore can be defined as shown in Figure~\ref{fig:captured-spore}, with its
+corresponding type shown in Figure~\ref{fig:captured-type}. As can be seen,
+the types of the environment listed in the spore header are captured and
+represented by the \verb|Captured| type member in the spore's type.
 
 \begin{figure}[t!]
 \begin{subfigure}{.5\textwidth}
   \centering
   \begin{lstlisting}
-    spore {
+    val s = spore {
       val y1: String = expr1;
       val y2: Int = expr2;
       (x: Int) => y1 + y2 + x
     }
   \end{lstlisting}
-  \caption{A spore which captures a \texttt{String} and an \texttt{Int} in its spore header.}
-  \label{fig:capture-spore}
+  \caption{A spore \texttt{s} which captures a \texttt{String} and an \texttt{Int} in its spore header.}
+  \label{fig:captured-spore}
 \end{subfigure}%
 \begin{subfigure}{.5\textwidth}
   \centering
@@ -1113,14 +1127,69 @@ in Section~\ref{sec:excluded-types}.)
       type Captured = (String, Int)
     }
   \end{lstlisting}
-  \caption{The corresponding spore type.}
-  \label{fig:capture-type}
+  \caption{\texttt{s}'s corresponding type.}
+  \label{fig:captured-type}
 \end{subfigure}%
 \vspace{1mm}
 \caption{An example of the \texttt{Captured} type member. \\\textit{Note: we omit the
 \texttt{Excluded} type member for simplicity; we detail it later in Section~\ref{sec:excluded-types}.}}
 \label{fig:captured-ex}
 \end{figure}
+
+\subsubsection{Using Spores in APIs}
+
+Spores can also be used in method definitions, for example, a method \verb|sendOverWire| can require arguments to be spores:
+
+\begin{lstlisting}[numbers=none]
+    def sendOverWire(s: Spore[Int, Int]): Unit = ...
+\end{lstlisting}
+
+Note that in this example, the \verb|Captured| (and \verb|Excluded|) type
+member is not specified, meaning it is left abstract. In this case, so long as
+the spore's parameter and result types match, a spore type is always
+compatible, regardless of which types are captured.
+
+Using spores in this way enables libraries and frameworks to enforce the use
+of spores instead of plain closures, thereby reducing the risk for common
+programming errors (see Section~\ref{sec:case-studies} for detailed case
+studies), even in this very simple form. In later sections, we will see more
+advanced ways in which library authors can control the capturing semantics of
+a spore.
+
+\subsubsection{Composition}
+
+Like normal functions, spores can be composed. By representing the environment
+of spores using refinement types, it is possible to preserve the captured type
+information (and later, constraints) of spores when they are composed.
+
+For example, assume we are given two spores \verb|s1| and \verb|s2| with types:
+
+\begin{lstlisting}[numbers=none]
+    s1: Spore[Int, String] { type Captured = (String, Int) }
+    s2: Spore[String, Int] { type Captured = Nothing }
+\end{lstlisting}
+
+The fact that the \verb|Captured| type in \verb|s2| is defined to be
+\verb|Nothing| means that the spore does not capture anything (\verb|Nothing|
+is Scala's bottom type). The composition of \verb|s1| and \verb|s2|, written
+\verb|s1 compose s2|, would therefore have the following refinement type:
+
+\begin{lstlisting}[numbers=none]
+    Spore[String, String] { type Captured = (String, Int) }
+\end{lstlisting}
+
+Note that the \verb|Captured| type member of the result spore is equal to the
+\verb|Captured| type of \verb|s1|, since it is guaranteed that the result
+spore does not capture more than what \verb|s1| already captures. As we can
+see, not only are spores composable, but so are their (refinement) types.
+
+In Section~\ref{sec:adv-usage-type-constraints}, we'll see two kinds of ``type
+constraints'' which provides more control over spore capturing semantics, and
+thus the spore types, that our system provides, namely, {\em excluded types} and
+{\em context bounds for captured types}. We will see that even with these added type constraints, the spore type is still composable.
+
+\subsubsection{Implicit Conversion}
+\subsubsection{For-Comprehensions}
 
 
 % For example, the spore
@@ -1137,46 +1206,10 @@ in Section~\ref{sec:excluded-types}.)
 %     }
 % \end{lstlisting}
 
-Using the `Spore` trait methods can require argument closures to be spores:
-
-\begin{lstlisting}
-    def sendOverWire(s: Spore[Int, Int]): Unit = ...
-\end{lstlisting}
-
-This way, libraries and frameworks can enforce the use of spores instead of plain closures, thereby reducing the risk for common programming errors (see Section~\ref{case-studies}). Also note that in the above case, the \verb|Captured| (and \verb|Excluded|) type member is not specified, meaning it is left abstract; this way a spore type is compatible with the above parameter type regardless of which types are captured as long as the parameter and result types match.
-
-
-By representing the environment of spores using refinement types, it is possible to preserve the constraints of spores when they are composed.
-
-For example, assume we are given two spores s1 and s2 with types
-
-\begin{lstlisting}[numbers=none]
-    Spore[Int, String] { type Captured = (String, Int) }
-\end{lstlisting}
-
-and
-
-\begin{lstlisting}[numbers=none]
-    Spore[String, Int] { type Captured = Nothing }
-\end{lstlisting}
-
-respectively. The fact that the Captured type in the second spore is defined to be \verb|Nothing| means that the spore does not capture anything (\verb|Nothing| is Scala's bottom type). The composition of s1 and s2, written s1 compose s2, would have the refinement type
-
-\begin{lstlisting}[numbers=none]
-    Spore[String, String] { type Captured = (String, Int) }
-\end{lstlisting}
-
-Note that the Captured type member of the result spore is equal to the Captured type of s1, since it is guaranteed that the result spore does not capture more than what s1 already captures. As we can see, not only are spores composable, but their also (refinement) types. In Section~\ref{} we discuss the two kinds of type constraints that our system provides, namely, excluded types and context bounds for captured types.
-
-
-\subsection{Basic Usage}
-
-simple spore (concrete example)
-for-comprehensions (example using that guy above)
-composition
-
+\vspace{2mm}
 \subsection{Advanced Usage and Type Constraints}
 \label{sec:adv-usage-type-constraints}
+\vspace{1mm}
 
 two kinds, excluded types which achieve [fill in] and context bounds for captured types which achieve [fill in]
 
