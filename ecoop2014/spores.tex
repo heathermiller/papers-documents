@@ -2481,24 +2481,26 @@ In the above example, capturing a mutable object (or, in fact, any object of typ
 \section{Other Related Work}
 \label{sec:related-work}
 
-Parallel closures~\cite{ParallelClosures} are a variation of closures that make data in the environment available using read-only references using a type system for reference immutability. This enables parallel execution without the possibility of data races. Spores are not limited to immutable environments, and do not require a type system extension.
+Parallel closures~\cite{ParallelClosures} are a variation of closures that make data in the environment available using read-only references using a type system for reference immutability. This enables parallel execution without the possibility of data races. Spores are not limited to immutable environments, and do not require a type system extension. River Trail~\cite{HerhutHSS13} provides a concurrency model for JavaScript, similar to parallel closures; however, capturing variables in closures in currently not supported.
 
 HdpH~\cite{HDPH} generalizes Cloud Haskell's closures in several aspects: first, closures can be transformed without eliminating them. Second, unnecessary serialization is avoided, e.g., when applying a closure immediately after creation. Otherwise, the discussion of Cloud Haskell in Section~\ref{sec:sel-rel-work} also applies to HdpH.
 
+Delimited continuations represent a way to serialize behavior in Scala, but don't resolve any of the problems of normal Scala closures when it comes to accidental capture, as spores do~\cite{DelimitedContinuations}.
+
 Termite Scheme~\cite{Termite} is a Scheme dialect for distributed programming based on an Erlang-style concurrency model. Closures and continuations are always serializable, since references to non-serializable objects (like open files or physical devices) are automatically wrapped in processes that are serialized as their process ID. In contrast, with spores there is no such automatic wrapping. Unlike closures in Termite Scheme, spores are statically-typed, supporting type-based constraints. Distributed Functional Programming in Scheme~\cite{DFPS} also provides serializable closures in a dynamically-typed setting.
 
-Java RMI~\cite{JavaRMI}
+Python's standard serialization module, \verb|pickle|, does not support serializing closures. Dill~\cite{dill} extends Python's \verb|pickle| module, adding support for functions and closures. Constraints are not supported.
 
-Python also can't reliably serialize functions~\cite{PythonPickle}.
 
-Supporting imperative features typically requires complex effect systems~\cite{DPJ}. our paper provides simpler ways to make programming with closures in imperative OO languages safer
-Lighter-weight alternative approach to some kind of crazy type and effect system.
+% Java RMI~\cite{JavaRMI}
 
-Should reference Cloud Types~\cite{CloudTypes}
 
-Delimited continuations represent a way serialize behavior, but don't resolve
-any of the problems of normal Scala closures when it comes to accidental
-capture, as spores do~\cite{DelimitedContinuations}.
+% Supporting imperative features typically requires complex effect systems~\cite{DPJ}. our paper provides simpler ways to make programming with closures in imperative OO languages safer
+% Lighter-weight alternative approach to some kind of crazy type and effect system.
+
+% Should reference Cloud Types~\cite{CloudTypes}
+
+
 
 \section{Conclusion}
 \label{sec:conclusion}
