@@ -2358,19 +2358,19 @@ We also provide an implicit conversion from standard Scala functions to spores. 
 %
 % funsets        |  99 | 8         | 8          | 7           | 9
 % forcomp        | 201 | 6         | 4          | 4           | 0
-% mandelbrot     | 325 | 1         | 1          | 9           | 4
+% mandelbrot     | 325 | 1         | 1          | 9           | 6
 % barneshut      | 722 | 7         | 7          | 8           | 1
 % spark pagerank |  64 | 5         | 5          | 8           | 0
 % spark kmeans   |  92 | 5         | 4          | 9           | 2
 
+% total          |1503 | 32        | 29         | 45          | 18
+
 % pagerank   | ??  | ??        | ??         | ??          | ??
 
-In this section we evaluate the practicality of using spores as an alternative to normal closures in Scala by measuring the number of changes required to convert existing programs that crucially rely on closures to use spores.
-
-We analyze a number of real Scala programs, taken from three categories:
+In this section we evaluate the practicality of using spores as an alternative to normal closures in Scala by measuring the number of changes required to convert existing programs that crucially rely on closures to use spores. We analyze a number of real Scala programs, taken from three categories:
 \begin{enumerate}
 
-\item General, closure-heavy code, taken from the exercises of the popular MOOC on FP in Scala; the goal of analyzing this code is to get an approximation of the worst-case effort required when consistently using spores instead of closures, in a mostly-functional code base.
+\item General, closure-heavy code, taken from the exercises of the popular MOOC on Functional Programming Principles in Scala; the goal of analyzing this code is to get an approximation of the worst-case effort required when consistently using spores instead of closures, in a mostly-functional code base.
 
 \item Parallel applications based on Scala's parallel collections. These examples evaluate the practicality of introducing spores into a parallel code base to increase its robustness.
 
@@ -2378,11 +2378,9 @@ We analyze a number of real Scala programs, taken from three categories:
 
 \end{enumerate}
 
-\paragraph{Methodology} For each program, we obtained (a) the number of closures in the program that are candidates for conversion, (b) the number of closures that could be converted to spoes, (c) the changed LOC, and (d) the number of captured variables.
+\paragraph{Methodology} For each program, we obtained (a) the number of closures in the program that are candidates for conversion, (b) the number of closures that could be converted to spores, (c) the changed/added number of LOC, and (d) the number of captured variables. It is important to note that during the conversion it was not possible to rely on an implicit conversion of functions to spores, since all expected types remained normal function types in all cases; thus, the reported numbers are worse than they would be for APIs using spores.
 
-\paragraph{Results}
-
-Figure~\ref{fig:spore-eval} 
+\paragraph{Results} The results are shown in Figure~\ref{fig:spore-eval}. Out of 32 closures 29 could be converted to spores with little effort. One closure failed to infer its parameter type when expressed as a spore. Two other closures could not be converted due to implementation restrictions of our current prototype. On average, per converted closure 1.4 LOC had to be changed. This number is dominated by two factors: the inability to use the implicit conversion from normal functions to spores, and one particularly complex closure in ``mandelbrot'' that required changing 9 LOC. In our programs, the number of captured variables is on average 0.56.
 
 
 \section{Case Studies}
