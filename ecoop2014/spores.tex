@@ -1311,6 +1311,9 @@ type MySpore = Spore[Int, Int] {
 \noindent
 It is important that \verb|MySpore| is a supertype and not a subtype of \verb|SporeNoActor[Int, Int]|, since an instance of \verb|MySpore| could capture some other subclass of \verb|Actor| which is not itself a subclass of \verb|MyActor|. Thus, it would not be safe to use an instance of \verb|MySpore| where an instance of \verb|SporeNoActor[Int, Int]| is required. On the other hand, an instance of \verb|SporeNoActor[Int, Int]| is safe to use in place of an instance of \verb|MySpore|, since it is guaranteed not to capture \verb|Actor| or any of its subclasses.
 
+\paragraph{\bf Reducing Boilerplate}
+
+
 
 \subsubsection{Context Bounds for Captured Types}
 \label{sec:context-bounds}
@@ -1811,9 +1814,10 @@ Rule \textsc{S-SporeFun} expresses the fact that spore types are refinements of 
 { T_1 \Rightarrow R_1~\{~M~;~\seq{pn}~\} <: T_1 \Rightarrow R_1
 }{}
 \end{mathpar}
-
+  \vspace{-5mm}
   \caption{Subtyping}
   \label{fig:subtyping}
+  \vspace{-1mm}
 \end{figure*}
 
 
