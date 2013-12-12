@@ -1263,12 +1263,7 @@ different applications and sets of types.
 \subsubsection{Excluded Types}
 \label{sec:excluded-types}
 
-Libraries and frameworks for concurrent and distributed programming, such as
-Akka and Spark, typically have requirements to avoid capturing certain types
-in closures that are used together with library-provided objects and methods.
-For example, when using Akka, one should not capture variables of type
-\verb|Actor|; in Spark, one should not capture variables of type
-\verb|SparkContext|.
+Libraries and frameworks for concurrent and distributed programming, such as Akka~\cite{Akka} and Spark, typically have requirements to avoid capturing certain types in closures that are used together with library-provided objects and methods. For example, when using Akka, one should not capture variables of type \verb|Actor|; in Spark, one should not capture variables of type \verb|SparkContext|.
 
 Such restrictions can be expressed in our system by excluding types from being
 captured by spores, using refinements of the \verb|Spore| type presented in
