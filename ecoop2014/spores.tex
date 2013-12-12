@@ -352,23 +352,25 @@ potentially rendering it suddenly not serializable or adding inadvertent
 race conditions, thus making refactoring error-prone, and debugging difficult.
 
 We argue that solving these problems in a principled way could lead to more
-confidence on behalf of library authors in exposing functions in APIs, leading
-to a potentially wide array of new frameworks.
+confidence on behalf of library authors in exposing functions in APIs, thus
+leading to a potentially wide array of new frameworks.
 % , such as for concurrent and
 % distributed functional reactive programming.
 
 This paper takes a step towards more principled {\em function-passing style}
-by introducing a new closure-like abstraction, {\em spores}, which is designed
-to avoid typical hazards of closures. By including type information of
-captured variables in the type of a spore, we enable the expression of type-based constraints for captured variables, making spores safer to use in a
-concurrent or distributed setting. We show that this approach can be made
-practical by automatically synthesizing refinement types using macros, and by
-leveraging local type inference. Using type-based constraints, spores allow
-expressing a variety of ``safe'' closures, such as guaranteed-serializable
-closures, closures which capture only immutable types, or closures with
-custom, user-defined type-based properties. Finally, we argue that by
-principle of a type-based approach, spores can potentially benefit from optimization, further safety via type system extensions,
-and verification opportunities.
+by introducing a type-based foundation for closures, called {\em spores}.
+Spores are a closure-like abstraction and type system which is designed to
+avoid typical hazards of closures. By including type information of captured
+variables in the type of a spore, we enable the expression of type-based
+constraints for captured variables, making spores safer to use in a concurrent
+or distributed setting. We show that this approach can be made practical by
+automatically synthesizing refinement types using macros, and by leveraging
+local type inference. Using type-based constraints, spores allow expressing a
+variety of ``safe'' closures, such as guaranteed-serializable closures,
+closures which capture only immutable types, or closures with custom, user-
+defined type-based properties. Finally, we argue that by principle of a type-
+based approach, spores can potentially benefit from optimization, further
+safety via type system extensions, and verification opportunities.
 
 The design of spores is guided by the following principles:
 % \vspace{-1.5mm}
@@ -864,11 +866,32 @@ of the guarantees spores provide through case studies using parallel and distrib
 
 % This SIP outlines an abstraction, called spores, which enables safer use of closures in concurrent and distributed environments. This is achieved by controlling the environment which a spore can capture. Using an assignment-on-capture semantics, certain concurrency bugs due to capturing mutable references can be avoided.
 
-A spore is a closure-like abstraction which aims to give users a principled way
-of controlling the environment which a closure can capture. This is achieved
-by (a) enforcing a specific syntactic shape which dictates how the environment
-of a spore is declared, and (b) providing additional type-checking to ensure
-that types being captured have certain properties.
+Spores are a closure-like abstraction and type system which aims to give users
+a principled way of controlling the environment which a closure can capture.
+This is achieved by (a) enforcing a specific syntactic shape which dictates
+how the environment of a spore is declared, and (b) providing additional type-checking
+to ensure that types being captured have certain properties.
+
+A crucial insight of spores is that, by including type information of captured
+variables in the type of a spore, type-based constraints for captured
+variables can be composed and checked, making spores safer to use in a
+concurrent, distributed, or in an arbitrary setting where closures must be
+controlled.
+
+% This paper takes a step towards more principled {\em function-passing style}
+% by introducing a type-based foundation for closures, called {\em spores}.
+% Spores are a closure-like abstraction and type system which is designed to
+% avoid typical hazards of closures. By including type information of captured
+% variables in the type of a spore, we enable the expression of type-based
+% constraints for captured variables, making spores safer to use in a concurrent
+% or distributed setting. We show that this approach can be made practical by
+% automatically synthesizing refinement types using macros, and by leveraging
+% local type inference. Using type-based constraints, spores allow expressing a
+% variety of ``safe'' closures, such as guaranteed-serializable closures,
+% closures which capture only immutable types, or closures with custom, user-
+% defined type-based properties. Finally, we argue that by principle of a type-
+% based approach, spores can potentially benefit from optimization, further
+% safety via type system extensions, and verification opportunities.
 
 % There should be more of an introduction to spores here!
 
@@ -879,7 +902,7 @@ that types being captured have certain properties.
 Below, we describe the syntactic shape of spores, and in
 Section~\ref{sec:spore-type} we describe the \verb|Spore| type.
 In Section~\ref{sec:adv-usage-type-constraints} we informally describe the type
-system, and how to add user-defined type-based {\em properties} to
+system, and how to add user-defined type-based constraints to
 customize what types a spore can capture.
 % \todo{Should we make a list of properties that need to be satisfied for a closure to be guaranteeably serializable or thread-safe? Then, progress through the entire Spores section and show how each aspect of the design achieves that.}
 
