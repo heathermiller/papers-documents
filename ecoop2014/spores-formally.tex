@@ -1,0 +1,726 @@
+\documentclass[a4paper,twoside]{article}
+\usepackage[utf8]{inputenc}
+
+\usepackage{bcprules}
+\usepackage{prooftree}
+\usepackage{amsthm}
+\usepackage{mathpartir}
+
+% Member sequences
+\newcommand{\seq}[1]{\overline{#1}}
+
+% arrays
+\newcommand{\ba}{\begin{array}}
+\newcommand{\ea}{\end{array}}
+\newcommand{\bda}{\[\ba}
+\newcommand{\eda}{\ea\]}
+\newcommand{\ei}{\end{array}}
+\newcommand{\bcases}{\left\{\begin{array}{ll}}
+\newcommand{\ecases}{\end{array}\right.}
+
+% spacing
+\newcommand{\gap}{\quad\quad}
+\newcommand{\biggap}{\quad\quad\quad}
+\newcommand{\nextline}{\\ \\}
+\newcommand{\htabwidth}{0.5cm}
+\newcommand{\tabwidth}{1cm}
+\newcommand{\htab}{\hspace{\htabwidth}}
+\newcommand{\tab}{\hspace{\tabwidth}}
+\newcommand{\linesep}{\ \hrulefill \ \smallskip}
+
+\newtheorem{theorem}{Theorem}[section]
+\newtheorem{lemma}[theorem]{Lemma}
+\newtheorem{proposition}[theorem]{Proposition}
+\newtheorem{corollary}[theorem]{Corollary}
+
+\newenvironment{definition}[1][Definition]{\begin{trivlist}
+\item[\hskip \labelsep {\bfseries #1}]}{\end{trivlist}}
+\newenvironment{example}[1][Example]{\begin{trivlist}
+\item[\hskip \labelsep {\bfseries #1}]}{\end{trivlist}}
+\newenvironment{remark}[1][Remark]{\begin{trivlist}
+\item[\hskip \labelsep {\bfseries #1}]}{\end{trivlist}}
+
+\title{Spores, Formally}
+\author{Heather Miller and Philipp Haller}
+\date{December 2013}
+
+\usepackage{natbib}
+\usepackage{graphicx}
+
+\begin{document}
+\maketitle
+% This section presents a formalization of our type system.
+
+\section{Overview}
+
+Spores are designed to avoid problems of closures. This is done using two mechanisms: the spore shape and context bounds for the spore's environment.
+
+A spore is a closure with a specific shape that dictates how the environment of a spore is declared. In general, a spore has the following shape:
+
+\begin{verbatim}
+spore {
+  val y1: S1 = <expr1>
+  ...
+  val yn: Sn = <exprn>
+  (x: T) => {
+    // ...
+  }
+}
+\end{verbatim}
+
+A spore consists of two parts: the header and the body. The list of value definitions at the beginning is called the spore header. The header is followed by a regular closure, the spore's body. The characteristic property of a spore is that the body of its closure is only allowed to access its parameter, values in the spore header, as well as top-level singleton objects (public, global state). In particular, the spore closure is not allowed to capture variables in the environment. Only an expression on the right-hand side of a value definition in the spore header is allowed to capture variables.
+
+By enforcing this shape, the environment of a spore is always declared explicitly in the spore header which avoids accidentally capturing problematic references. Moreover, and that's important for OO languages, it's no longer possible to accidentally capture the "this" reference.
+
+Note that the evaluation semantics of a spore is equivalent to a closure obtained by leaving out the "spore" marker:
+
+\begin{verbatim}
+{
+  val y1: S1 = <expr1>
+  ...
+  val yn: Sn = <exprn>
+  (x: T) => {
+    // ...
+  }
+}
+\end{verbatim}
+
+In Scala, the above block first initializes all value definitions in order and then evaluates to a closure that captures the introduced local variables \verb|y1|, ..., \verb|yn|. The corresponding spore has the exact same evaluation semantics. What's interesting is that this closure shape is already used in production systems such as Spark to avoid problems with accidentally captured "this" references. However, in these systems the above shape is not enforced, whereas with spores it is.
+
+The result type of the "spore" constructor is not a regular function type, but a subtype of one of Scala's function types. This is possible, because in Scala functions are instances of classes that mix in one of the function traits. For example, the trait for functions of arity one looks like this:\footnote{For simplicity we omit definitions of the `andThen` and `compose` methods in the definition of `Function1`.}
+
+\begin{verbatim}
+    trait Function1[-A, +B] {
+      def apply(x: A):  B
+    }
+\end{verbatim}
+\noindent
+The \verb|apply| method is abstract; a concrete implementation applies the body of the function that's being defined to the argument \verb|x|. Functions are contravariant in their argument type A, indicated using the "-" symbol, and covariant in their result type B, indicated using the "+" symbol.
+
+The type of a spore of arity one is a subtype of \verb|Function1|:
+
+\begin{verbatim}
+    trait Spore[-A, +B] extends Function1[A, B]
+\end{verbatim}
+\noindent
+Using the \verb|Spore| trait methods can require argument closures to be spores:
+
+\begin{verbatim}
+    def sendOverWire(s: Spore[Int, Int]): Unit = ...
+\end{verbatim}
+\noindent
+This way, libraries and frameworks can enforce the use of spores instead of plain closures, thereby reducing the risk for common programming errors.
+
+\subsection{Context bounds}
+
+The fact that for spores a certain shape is enforced is very useful. However, in some situations this is not enough. For example, using closures in a concurrent setting is very error-prone, because of the fact that it's possible to capture mutable objects which leads to race conditions. Thus, closures should only capture immutable objects to avoid interference. However, such constraints cannot be enforced using the spore shape alone (captured objects are stored in constant values in the spore header, but such a constant might still refer to a mutable object).
+
+In this section we introduce a form of type-based constraints called "context bounds" that can be attached to a spore which enforce certain type-based properties for all captured variables of a spore.
+
+Taking another example, it might be necessary for a spore to require the availability of instances of a certain type class for the types of all its captured variables. A typical example for such a type class is Pickler: types with an instance of the Pickler type class can be pickled using a new pickling framework for Scala. To be able to pickle a spore, it's necessary that all its captured types have an instance of Pickler.\footnote{A spore can be pickled by pickling its environment and the fully-qualified class name of its corresponding function class.}
+
+Spores allow expressing such a requirement using implicit properties. The idea is that if there is an implicit of type Property[Pickler] in scope at the point where a spore is created, then it is enforced that all captured types in the spore header have an instance of the Pickler type class:
+
+\begin{verbatim}
+import spores.withPickler
+
+spore {
+  val name: String = <expr1>
+  val age: Int = <expr2>
+  (x: String) => {
+    // ...
+  }
+}
+\end{verbatim}
+
+While an imported property does not have an impact on how a spore is constructed (besides the property import), it has an impact on the result type of the spore macro. In the above example, the result type would be a refinement of the Spore type:
+
+\begin{verbatim}
+Spore[String, Int] {
+  type Captured = (String, Int)
+  val captured: Captured
+  implicit val p$1 = implicitly[Pickler[(String, Int)]]
+  (x: String) => {
+    // ...
+  }
+}
+\end{verbatim}
+
+The refinement type contains a type member Captured which is defined to be a tuple of all the captured types. The values of the actual captured variables are accessible using the captured value member. What's more, the refinement type contains for each type class that's required an implicit value with a type class instance for type Captured.
+
+Such implicit values allow retrieving a type class instance for the captured types of a given spore using Scala's implicitly function as follows:
+
+\begin{verbatim}
+    val s = spore { ... }
+
+    implicitly[Pickler[s.Captured]]
+\end{verbatim}
+
+Note that s.Captured is defined to be the type of the environment of spore s: a tuple with all types of captured variables.
+
+\pagebreak
+
+\section{Formalization}
+
+\label{sec:formal}
+
+\begin{figure}[ht!]
+  \centering
+
+  $\ba[t]{l@{\hspace{2mm}}l}
+t ::=     x                                 & \mbox{variable}
+\\
+\gap ~|~  (x: T) \Rightarrow t              & \mbox{abstraction}
+\\
+\gap ~|~  t~t                               & \mbox{application}
+\\
+\gap ~|~  \texttt{let}~x = t~\texttt{in}~t  & \mbox{let binding}
+\\
+\gap ~|~  \{ \seq{l = t} \}                 & \mbox{record construction}
+\\
+\gap ~|~  t.l                               & \mbox{selection}
+\\
+\gap ~|~  \texttt{spore}~\{~\seq{x : T = t}~; \seq{pn} ; (x: T) \Rightarrow t~\}  & \mbox{spore}
+\\
+\gap ~|~  \texttt{import}~pn~\texttt{in}~t  & \mbox{property import}
+\\
+\gap ~|~  t~\texttt{compose}~t              & \mbox{spore composition}
+\\
+ & \\
+v ::=     (x: T) \Rightarrow t              & \mbox{abstraction}
+\\
+\gap ~|~  \{ \seq{l = v} \}                 & \mbox{record value}
+\\
+\gap ~|~  \texttt{spore}~\{~\seq{x : T = v}~; \seq{pn} ; (x: T) \Rightarrow t~\}  & \mbox{spore value}
+\\
+ & \\
+T ::=     T \Rightarrow T                   & \mbox{function type} \\
+\gap ~|~  \{ \seq{l : T} \}                 & \mbox{record type}   \\
+\gap ~|~  \mathcal{S}                       & \mbox{}
+\\
+\mathcal{S} ::= T \Rightarrow T~\{~\texttt{type}~\mathcal{C} = \seq{T}~;~\seq{pn}~\}   & \mbox{spore type}
+\\
+\gap ~|~  T \Rightarrow T~\{~\texttt{type}~\mathcal{C}~;~\seq{pn}~\}   & \mbox{abstract spore type}
+\\
+P \in pn \rightarrow \mathcal{T} & \mbox {property map}
+\\
+\mathcal{T} \in \mathcal{P}(T)   & \mbox{type family}
+%::= \epsilon & \mbox{type family} \\
+%\gap ~|~ T, \mathcal{T} & \mbox{non-empty}\\
+\\
+ & \\
+\Gamma ::=  \seq{x : T}          & \mbox{type environment}
+\\
+\Delta ::=  \seq{pn}             & \mbox{property environment}
+\\
+\ea$
+
+  \caption{Core language syntax}
+  \label{fig:syntax}
+\end{figure}
+
+
+We formalize spores in the context of a standard, typed lambda calculus with records. Apart from novel language and type-systematic features, our formal development follows a well-known methodology~\cite{TAPL}. Figure~\ref{fig:syntax} shows the syntax of our core language. Terms are standard except for the \texttt{spore}, \texttt{import}, and \texttt{compose} terms. A \texttt{spore} term creates a new spore. It contains a list of variable definitions (the spore header), a list of property names, and the spore's closure. A property name refers to a type family (a set of types) that all captured types must belong to.
+
+An illustrative example of a property name and its associated type family, but in the context of Scala, is a type class: a spore satisfies such a property if there is a type class instance for all its captured types.
+
+An \texttt{import} term imports a property name into the property environment
+within a lexical scope (a term); the property environment contains properties
+that are registered as requirements whenever a spore is created. This is
+explained in more detail in Section~\ref{sec:typing}. A \texttt{compose} term
+is used to compose two spores. The core language provides spore composition as
+a built-in feature, because type checking spore composition is markedly
+different from type checking regular function composition (see
+Section~\ref{sec:typing}).
+
+The grammar of values is standard except for spore values; in a spore value each term on the right-hand side of a definition in the spore header is a value.
+
+The grammar of types is standard except for spore types. Spore types are refinements of function types. They additionally contain a (possibly-empty) sequence of captured types, which can be left abstract, and a sequence of property names.
+
+\subsection{Subtyping}\label{sec:subtyping}
+
+Figure~\ref{fig:subtyping} shows the subtyping rules. Record (\textsc{S-Rec}) and function (\textsc{S-Fun}) subtyping are standard.
+
+The subtyping rule for spores (\textsc{S-Spore}) is analogous to the subtyping rule for functions with respect to the argument and result types. Additionally, for two spore types to be in a subtyping relationship either their captured types have to be the same ($M_1 = M_2$) or the supertype must be an abstract spore type ($M_2 = \texttt{type}~\mathcal{C}$). The subtype must guarantee at least the properties of its supertype, or a superset thereof. Taken together, this rule expresses the fact that a spore type whose type member $\mathcal{C}$ is not abstract is compatible with an abstract spore type as long as it has a superset of the supertype's properties. This is important for spores used as first-class values: functions operating on spores with arbitrary environments can simply demand an abstract spore type. The way both the captured types and the properties are modeled corresponds to (but simplifies) the subtyping rule for refinement types in Scala (see Section~\ref{sec:adv-usage-type-constraints}).
+
+Rule \textsc{S-SporeFun} expresses the fact that spore types are refinements of their corresponding function types, giving rise to a subtyping relationship.
+
+
+\begin{figure*}[ht!]
+  \centering
+
+\begin{mathpar}
+\inferrule[\textsc{S-Rec}]
+{ \seq{l'} \subseteq \seq{l} \andalso l_i = l'_i \to T_i <: T'_i \land T'_i <: T_i
+}
+{ \{ \seq{l : T} \} <: \{ \seq{l' : T'} \}
+}
+
+\inferrule[\textsc{S-Fun}]
+{ T_2 <: T_1 \andalso R_1 <: R_2
+}
+{ T_1 \Rightarrow R_1 <: T_2 \Rightarrow R_2
+}
+
+\inferrule[\textsc{S-Spore}]
+{ T_2 <: T_1 \andalso R_1 <: R_2 \\
+  \seq{pn'} \subseteq \seq{pn} \andalso M_1 = M_2 \lor M_2 = \texttt{type}~\mathcal{C}
+}
+{ T_1 \Rightarrow R_1~\{~M_1~;~\seq{pn}~\} <: T_2 \Rightarrow R_2~\{~M_2~;~\seq{pn'}~\}
+}
+
+\inferrule[\textsc{S-SporeFun}]
+{ T_1 \Rightarrow R_1~\{~M~;~\seq{pn}~\} <: T_1 \Rightarrow R_1
+}{}
+\end{mathpar}
+  \caption{Subtyping}
+  \label{fig:subtyping}
+\end{figure*}
+
+
+\subsection{Typing rules}\label{sec:typing}
+
+\begin{figure*}[ht!]
+  \centering
+
+\begin{mathpar}
+\inferrule[\textsc{T-Var}]
+{ x : T \in \Gamma
+}
+{ \Gamma ; \Delta \vdash x : T
+}
+
+\inferrule[\textsc{T-Sub}]
+{ \Gamma ; \Delta \vdash t : T'  \quad  T' <: T
+}
+{ \Gamma ; \Delta \vdash t : T
+}
+
+\inferrule[\textsc{T-Abs}]
+{ \Gamma, x : T_1 ; \Delta \vdash t : T_2
+}
+{ \Gamma ; \Delta \vdash (x: T_1) \Rightarrow t : T_1 \Rightarrow T_2
+}
+
+\inferrule[\textsc{T-App}]
+{ \Gamma ; \Delta \vdash t_1 : T_1 \Rightarrow T_2 \quad
+  \Gamma ; \Delta \vdash t_2 : T_1
+}
+{ \Gamma ; \Delta \vdash (t_1~t_2) : T_2
+}
+
+\inferrule[\textsc{T-Let}]
+{ \Gamma ; \Delta \vdash t_1 : T_1 \quad \Gamma, x : T_1 ; \Delta \vdash t_2 : T_2
+}
+{ \Gamma ; \Delta \vdash \texttt{let}~x = t_1~\texttt{in}~t_2 : T_2
+}
+
+\inferrule[\textsc{T-Rec}]
+{ \Gamma ; \Delta \vdash \seq{t : T}
+}
+{ \Gamma ; \Delta \vdash \{ \seq{l = t} \} : \{ \seq{l : T} \}
+}
+
+\inferrule[\textsc{T-Sel}]
+{ \Gamma ; \Delta \vdash t : \{ \seq{l : T} \}
+}
+{ \Gamma ; \Delta \vdash t.l_i : T_i
+}
+
+\inferrule[\textsc{T-Imp}]
+{ \Gamma ; \Delta, pn \vdash t : T
+}
+{ \Gamma ; \Delta \vdash \texttt{import}~pn~\texttt{in}~t : T
+}
+
+\inferrule[\textsc{T-Spore}]
+{ \forall s_i \in \seq{s}.~\Gamma ; \Delta \vdash s_i : S_i \andalso
+  \seq{y : S}, x : T_1 ; \Delta \vdash t_2 : T_2 \\
+  \forall pn \in \Delta, \Delta'.~\seq{S} \subseteq P(pn)
+}
+{ \Gamma ; \Delta \vdash \texttt{spore}~\{~\seq{y : S = s}~; \Delta'; (x: T_1) \Rightarrow t_2~\} : \\
+  T_1 \Rightarrow T_2~\{~\texttt{type}~\mathcal{C} = \seq{S}~;~\Delta, \Delta'~\}
+}
+
+\inferrule[\textsc{T-Comp}]
+{ \Gamma ; \Delta \vdash t_1 : T_1 \Rightarrow T_2~\{~\texttt{type}~\mathcal{C} = \seq{S}~;~\Delta_1~\} \\
+  \Gamma ; \Delta \vdash t_2 : U_1 \Rightarrow T_1~\{~\texttt{type}~\mathcal{C} = \seq{R}~;~\Delta_2~\} \\
+  \Delta' = \{ pn \in \Delta_1 \cup \Delta_2 ~|~ \seq{S} \subseteq P(pn) \land \seq{R} \subseteq P(pn) \}
+}
+{ \Gamma ; \Delta \vdash t_1~\texttt{compose}~t_2 : U_1 \Rightarrow T_2~\{~\texttt{type}~\mathcal{C} = \seq{S}, \seq{R}~;~\Delta'~\}
+}
+
+\end{mathpar}
+  \caption{Typing rules}
+  \label{fig:typing-rules}
+\end{figure*}
+
+Typing derivations use a judgement of the form $\Gamma ; \Delta \vdash t : T$. Besides the standard variable environment $\Gamma$ we use a property environment $\Delta$ which is a sequence of property names that are ``active'' while deriving the type $T$ of term $t$. The property environment is reminiscent of the implicit parameter context used in the original work on implicit parameters~\cite{LewisLMS00}; it is an environment for names whose definition sites ``just happen to be far removed from their usages.''
+
+In the typing rules we assume the existence of a global property mapping $P$ from property names $pn$ to type families $\mathcal{T}$. This technique is reminiscent of the way some object-oriented core languages provide a global class table for type-checking. The main difference is that our core language does not include constructs to extend the global property map; such constructs are left out of the core language for simplicity, since the creation of properties is not essential to our model.
+
+The typing rules are standard except for rules \textsc{T-Imp}, \textsc{T-Spore}, and \textsc{T-Comp}, which are new. Only these three type rules inspect or modify the property environment $\Delta$. Note that there is no rule for spore application, since there is a subtyping relationship between spores and functions (see Section~\ref{sec:subtyping}). Using the subsumption rule \textsc{T-Sub} spore application is expressed using the standard rule for function application (\textsc{T-App}).
+
+Rule \textsc{T-Imp} imports a property $pn$ into the property environment within the scope defined by term $t$.
+
+Rule \textsc{T-Spore} derives a type for a spore term. In the spore, all terms on right-hand sides of variable definitions in the spore header must be well-typed in the same environment $\Gamma ; \Delta$ according to their declared type. The body of the spore's closure, $t_2$, must be well-typed in an environment containing only the variables in the spore header and the closure's parameter, one of the central properties of spores. The last premise requires all captured types to satisfy both the properties in the current property environment, $\Delta$, as well as the properties listes in the spore term, $\Delta'$. Finally, the resulting spore type contains the argument and result types of the spore's closure, the sequence of captured types according to the spore header, and the concatenation of properties $\Delta$ and $\Delta'$. The intuition here is that properties in the environment have been explicitly imported by the user, thus indicating that all spores in the scope of the corresponding import should satisfy them.
+
+Rule \textsc{T-Comp} derives a result type for the composition of two spores. It inspects the captured types of both spores ($\seq{S}$ and $\seq{R}$) to ensure that the properties of the resulting spore, $\Delta$, are satisfied by the captured variables of both spores. Otherwise, the argument and result types are analogous to regular function composition. Note that it's always possible to weaken the properties of a spore through spore subtyping and subsumption (\textsc{T-Sub}).
+
+\subsection{Operational semantics}\label{sec:opsem}
+
+\begin{figure*}[t!]
+  \centering
+\begin{mathpar}
+\inferrule[\textsc{E-Let1}]
+{ t_1 \rightarrow t'_1
+}
+{ \texttt{let}~x = t_1~\texttt{in}~t_2 \rightarrow \texttt{let}~x = t'_1~\texttt{in}~t_2
+}
+
+
+\inferrule[\textsc{E-Let2}]
+{ \texttt{let}~x = v_1~\texttt{in}~t_2 \rightarrow [x \mapsto v_1]t_2
+}{}
+
+\inferrule[\textsc{E-Rec}]
+{ t_k \rightarrow t'_k
+}
+{ \{ \seq{l = v}, l_k = t_k, \seq{l' = t'} \} \rightarrow \{ \seq{l = v}, l_k = t'_k, \seq{l' = t'} \}
+}
+
+\inferrule[\textsc{E-Sel1}]
+{ t \rightarrow t'
+}
+{ t.l \rightarrow t'.l
+}
+
+\inferrule[\textsc{E-Sel2}]
+{ \{ \seq{l = v} \}.l_i \rightarrow v_i
+}{}
+
+\inferrule[\textsc{E-App1}]
+{ t_1 \rightarrow t'_1
+}
+{ t_1 t_2 \rightarrow t'_1 t_2
+}
+
+\inferrule[\textsc{E-App2}]
+{ t_2 \rightarrow t'_2
+}
+{ v_1 t_2 \rightarrow v_1 t'_2
+}
+
+\inferrule[\textsc{E-AppAbs}]
+{ ((x : T) \Rightarrow  t) v \rightarrow [x \mapsto v]t
+}{}
+
+\inferrule[\textsc{E-AppSpore}]
+{ \forall pn \in \seq{pn}.~\seq{T} \subseteq P(pn)
+}
+{ \texttt{spore}~\{~\seq{x:T=v};\seq{pn};(x':T)\Rightarrow t~\}v' \rightarrow \seq{[x \mapsto v]}[x' \mapsto v']t
+}
+
+\inferrule[\textsc{E-Spore}]
+{ t_k \rightarrow t'_k
+}
+{ \texttt{spore}~\{~\seq{x : T = v}, x_k : T_k = t_k, \seq{x' : T' = t'}~; (x: T) \Rightarrow t~\} \rightarrow \\ \texttt{spore}~\{~\seq{x : T = v}, x_k : T_k = t'_k, \seq{x' : T' = t'}~; (x: T) \Rightarrow t~\}
+}
+
+\inferrule[\textsc{E-Imp}]
+{ \texttt{import}~pn~\texttt{in}~t \rightarrow insert(pn, t)
+}{}
+
+\inferrule[\textsc{E-Comp1}]
+{ t_1 \rightarrow t_1'
+}
+{ t_1~\texttt{compose}~t_2\rightarrow t_1'~\texttt{compose}~t_2
+}
+
+\inferrule[\textsc{E-Comp2}]
+{ t_2 \rightarrow t_2'
+}
+{ v_1~\texttt{compose}~t_2\rightarrow v_1~\texttt{compose}~t_2'
+}
+
+\inferrule[\textsc{E-Comp3}]
+{ \Delta = \{ p~|~p \in \seq{pn},\seq{qn}.~\seq{T} \subseteq P(p) \land \seq{S} \subseteq P(p)\}
+}
+{ \texttt{spore}~\{~\seq{x:T=v};\seq{pn};(x':T')\Rightarrow t~\}~\texttt{compose}~\texttt{spore}~\{~\seq{y:S=w};\seq{qn};(y':S')\Rightarrow t'~\} \rightarrow \\ \texttt{spore}~\{~\seq{x:T=v}, \seq{y:S=w} ; \Delta ; (y': S') \Rightarrow \texttt{let}~z' = t'~\texttt{in}~[x' \mapsto z']t\}
+}
+\end{mathpar}
+  \caption[Operational Semantics]{Operational Semantics\footnotemark}
+  \label{fig:opsem}
+\end{figure*}
+
+Figure~\ref{fig:opsem} shows the evaluation rules of a small-step operational semantics for our core language. The only non-standard rules are \textsc{E-AppSpore}, \textsc{E-Spore}, \textsc{E-Imp}, and \textsc{E-Comp3}. Rule \textsc{E-AppSpore} applies a spore literal to an argument value. The differences to regular function application (\textsc{E-AppAbs}) are (a) that the types in the spore header must satisfy the properties of the spore dynamically, and (b) that the variables in the spore header must be replaced by their values in the body of the spore's closure. Rule \textsc{E-Spore} is a simple congruence rule. Rule \textsc{E-Imp} is a computation rule that is always enabled. It adds property name $pn$ to all spore terms within the body $t$. The $insert$ helper function is defined in Figure~\ref{fig:helper} (we omit rules for \verb|compose| and \verb|let|, since they are analogous to rules \textsc{H-InsApp} and \textsc{H-InsSel}).
+
+Rule \textsc{E-Comp3} is the computation rule for spore composition. Besides computing the composition in a way analogous to regular function composition, it defines the spore header of the result spore, as well as its properties. The properties of the result spore are restricted to those that are satisfied by the captured variables of both argument spores.
+
+\footnotetext{For the sake of brevity, here we omit the standard evaluation rules. The complete set of evaluation rules can be found in the accompanying technical report~\cite{SporesFormally}}
+
+\begin{figure*}[ht!]
+  \centering
+\begin{mathpar}
+
+\inferrule[\textsc{H-InsSpore1}]
+{ \forall t_i \in \seq{t}.~insert(pn, t_i) = t'_i \\
+  insert(pn, t) = t'
+}
+{ insert(pn, \texttt{spore}~\{~\seq{x:T=t};\seq{pn};(x':T)\Rightarrow t~\}) = \\ \texttt{spore}~\{~\seq{x:T=t'};\seq{pn}, pn;(x':T)\Rightarrow t'~\}
+}
+
+\inferrule[\textsc{H-InsSpore2}]
+{ insert(pn, \texttt{spore}~\{~\seq{x:T=v};\seq{pn};(x':T)\Rightarrow t~\}) = \\
+\texttt{spore}~\{~\seq{x:T=v};\seq{pn}, pn;(x':T)\Rightarrow t~\}
+}{}
+
+\inferrule[\textsc{H-InsApp}]
+{ insert(pn, t_1~t_2) = insert(pn, t_1)~insert(pn, t_2)
+}{}
+
+\inferrule[\textsc{H-InsSel}]
+{ insert(pn, t.l) = insert(pn, t).l
+}{}
+
+\end{mathpar}
+  \caption{Helper function $insert$}
+  \label{fig:helper}
+\end{figure*}
+
+\subsection{Soundness}\label{sec:soundness}
+
+This section presents a soundness proof of the spore type system. The proof is based on a pair of progress and preservation theorems~\cite{WrightF94}. A complete proof of soundness appears in the companion technical report~\cite{SporesFormally}. In addition to standard lemmas, such as Lemma~\ref{lem:substitution} and Lemma~\ref{lem:weak}, we also prove a lemma specific to our type system, namely Lemma~\ref{lem:pres-import}, which ensures types are preserved under property import. Soundness of the type system follows from Theorem~\ref{th:progress} and Theorem~\ref{th:pres}.
+
+\begin{lemma}
+\emph{(Canonical forms)}
+\label{lem:canonical}
+\begin{enumerate}
+
+\item If $v$ is a value of type $\{ \seq{l : T} \}$, then $v$ is $\{ \seq{l = v} \}$ where $\seq{v}$ is a sequence of values.
+
+\item If $v$ is a value of type $T \Rightarrow R$, then $v$ is either $(x: T_1) \Rightarrow t$ or \\ $\texttt{spore}~\{~\seq{y : S = v}~; \seq{pn} ; (x: T_1) \Rightarrow t~\}$ where $T <: T_1$ and $\seq{v}$ is a sequence of values.
+
+\item If $v$ is a value of type $T \Rightarrow R~\{~\texttt{type}~\mathcal{C} = \seq{S}~;~\seq{pn}~\}$, then $v$ is \\ $\texttt{spore}~\{~\seq{y : S = v}~; \seq{pn} ; (x: T_1) \Rightarrow t~\}$ where $T <: T_1$ and $\seq{v}$ is a sequence of values.
+
+% \item If $v$ is a value of type $T_1 \Rightarrow R_1~\{~\texttt{type}~\mathcal{C}~;~\seq{pn}~\}$, then $v$ is \\ $\texttt{spore}~\{~\seq{x : S = v}~; \seq{pn} ; (x: T_1) \Rightarrow t~\}$ where $\seq{v}$ is a sequence of values.
+
+\end{enumerate}
+\end{lemma}
+
+
+\begin{theorem}
+\emph{(Progress)}
+\label{th:progress}
+Suppose $t$ is a closed, well-typed term (that is, $\vdash t : T$ for some $T$). Then either $t$ is a value or else there is some $t'$ with $t \rightarrow t'$.
+\end{theorem}
+\begin{proof}
+By induction on a derivation of $t : T$. The only three interesting cases are the ones for spore creation, application (where we might apply a spore to some argument), and spore composition.
+
+Case \textsc{T-Spore}: $t = \texttt{spore}~\{~\seq{x : S = t}~; \Delta'; (x: T_1) \Rightarrow t_2~\}$, $\forall t_i \in \seq{t}.~\vdash t_i : S_i$, and $\seq{x : S}, x : T_1 \vdash t_2 : T_2$. By the induction hypothesis, either all $\seq{t}$ are values, in which case $t$ is a value; or there is a term $t_i$ such that $t_i \rightarrow t_i'$ (since $\vdash t_i : S_i$). Thus, by (\textsc{E-Spore}), $t \rightarrow t'$ for some term $t'$.
+
+Case \textsc{T-App}: $t = t_1~t_2$ and $\vdash t_1 : T_1 \Rightarrow T_2$ and $\vdash t_2 : T_1$. By the induction hypothesis, either $t_1$ is a value $v_1$, or $t_1 \rightarrow t_1'$. In the latter case it follows from (\textsc{E-App1}) that $t \rightarrow t'$ for some $t'$. In the former case, by the induction hypothesis $t_2$ is either a value $v_2$ or $t_2 \rightarrow t_2'$. In the former case by the canonical forms lemma we have that $v_2$ is either $(x: T_1) \Rightarrow t$ or $\texttt{spore}~\{~\seq{x : T = v}~; \seq{pn} ; (x: T_1) \Rightarrow t~\}$ where $T <: T_1$ and $\seq{v}$ is a sequence of values; thus, either (\textsc{E-AppAbs}) or (\textsc{E-AppSpore}) apply. In the latter case, the result follows from (\textsc{E-App2}).
+
+Case \textsc{T-Comp}: $t = t_1~\texttt{compose}~t_2$ and $\vdash t_1 : T_1 \Rightarrow T_2~\{~\texttt{type}~\mathcal{C} = \seq{S}~;~\Delta_1~\}$ and $\vdash t_2 : U_1 \Rightarrow T_1~\{~\texttt{type}~\mathcal{C} = \seq{R}~;~\Delta_2~\}$. If either $t_1$ or $t_2$ is not a value, the result follows from the induction hypothesis and (\textsc{E-Comp1}) or (\textsc{E-Comp2}). If $t_1$ is a value $v_1$ and $t_2$ is a value $v_2$, then by the canonical forms lemma, $v_1 = \texttt{spore}~\{~\seq{y : S = v}~; \Delta_1; (x: T_1) \Rightarrow s_1~\}$ and $v_2 = \texttt{spore}~\{~\seq{z : R = w}~; \Delta_2; (u: U_1) \Rightarrow s_2~\}$. Thus, by (\textsc{E-Comp3}), $t \rightarrow t'$ for some $t'$.
+
+\end{proof}
+
+
+\begin{lemma}
+\emph{(Preservation of types under import)}
+\label{lem:pres-import}
+If $\Gamma ; \Delta, pn \vdash t : T$ then $\Gamma ; \Delta \vdash insert(pn, t) : T$
+\end{lemma}
+\begin{proof}
+By induction on a derivation of $t : T$. The only three interesting cases are the ones for spore creation, application (where we might apply a spore to some argument), and spore composition.
+
+Case \textsc{T-Spore}: $t = \texttt{spore}~\{~\seq{x : S = t}~; \Delta'; (x: T_1) \Rightarrow t_2~\}$, $\forall t_i \in \seq{t}.~\vdash t_i : S_i$, and $\seq{x : S}, x : T_1 \vdash t_2 : T_2$. By the induction hypothesis, either all $\seq{t}$ are values, in which case $t$ is a value; or there is a term $t_i$ such that $t_i \rightarrow t_i'$ (since $\vdash t_i : S_i$). Thus, by (\textsc{E-Spore}), $t \rightarrow t'$ for some term $t'$.
+
+Case \textsc{T-App}: $t = t_1~t_2$ and $\vdash t_1 : T_1 \Rightarrow T_2$ and $\vdash t_2 : T_1$. By the induction hypothesis, either $t_1$ is a value $v_1$, or $t_1 \rightarrow t_1'$. In the latter case it follows from (\textsc{E-App1}) that $t \rightarrow t'$ for some $t'$. In the former case, by the induction hypothesis $t_2$ is either a value $v_2$ or $t_2 \rightarrow t_2'$. In the former case by the canonical forms lemma we have that $v_2$ is either $(x: T_1) \Rightarrow t$ or $\texttt{spore}~\{~\seq{x : T = v}~; \seq{pn} ; (x: T_1) \Rightarrow t~\}$ where $T <: T_1$ and $\seq{v}$ is a sequence of values; thus, either (\textsc{E-AppAbs}) or (\textsc{E-AppSpore}) apply. In the latter case, the result follows from (\textsc{E-App2}).
+
+Case \textsc{T-Comp}: $t = t_1~\texttt{compose}~t_2$ and $\vdash t_1 : T_1 \Rightarrow T_2~\{~\texttt{type}~\mathcal{C} = \seq{S}~;~\Delta_1~\}$ and $\vdash t_2 : U_1 \Rightarrow T_1~\{~\texttt{type}~\mathcal{C} = \seq{R}~;~\Delta_2~\}$. If either $t_1$ or $t_2$ is not a value, the result follows from the induction hypothesis and (\textsc{E-Comp1}) or (\textsc{E-Comp2}). If $t_1$ is a value $v_1$ and $t_2$ is a value $v_2$, then by the canonical forms lemma, $v_1 = \texttt{spore}~\{~\seq{y : S = v}~; \Delta_1; (x: T_1) \Rightarrow s_1~\}$ and $v_2 = \texttt{spore}~\{~\seq{z : R = w}~; \Delta_2; (u: U_1) \Rightarrow s_2~\}$. Thus, by (\textsc{E-Comp3}), $t \rightarrow t'$ for some $t'$.
+
+\end{proof}
+
+
+\begin{lemma}
+\emph{(Preservation of types under substitution)}
+\label{lem:substitution}
+If $\Gamma, x : S ; \Delta \vdash t : T$ and $\Gamma ; \Delta \vdash s : S$, then $\Gamma ; \Delta \vdash [x \mapsto s]t : T$
+\end{lemma}
+\begin{proof}
+By induction on a derivation of $\Gamma, x : S ; \Delta \vdash t : T$.
+\end{proof}
+
+
+\begin{lemma}
+\emph{(Weakening)}
+\label{lem:weak}
+If $\Gamma ; \Delta \vdash t : T$ and $x \notin dom(\Gamma)$, then $\Gamma, x : S ; \Delta \vdash t : T$.
+\end{lemma}
+\begin{proof}
+By induction on a derivation of $\Gamma ; \Delta \vdash t : T$.
+\end{proof}
+
+
+\begin{theorem}
+\emph{(Preservation)}
+\label{th:pres}
+If $\Gamma ; \Delta \vdash t : T$ and $t \rightarrow t'$, then $\Gamma ; \Delta \vdash t' : T$.
+\end{theorem}
+\begin{proof}
+By induction on a derivation of $t : T$.
+
+\begin{itemize}
+
+\item Case \textsc{T-Sel}: $t = s.l_i$ and $\Gamma ; \Delta \vdash s : \{\seq{l : S}\}$. Since $t \rightarrow t'$ we have either by (\textsc{E-Sel1}) $s \rightarrow s'$ and $t' = s'.l_i$, or we have by (\textsc{E-Sel2}) $s = \{\seq{l = v}\}$ and $t' = v_i$. In the former case, by the induction hypothesis, $\Gamma ; \Delta \vdash s' : \{\seq{l : S}\}$ and thus by (\textsc{T-Sel}), $\Gamma ; \Delta \vdash s'.l_i : S_i$. In the latter case, by (\textsc{T-Rec}), $\Gamma ; \Delta \vdash v_i : S_i$.
+
+\item Case \textsc{T-Imp}: $t = \texttt{import}~pn~\texttt{in}~s$ and $\Gamma ; \Delta, pn \vdash s : T$. Since $t \rightarrow t'$, we have by (\textsc{E-Imp}) $t' = insert(pn, s)$. By Lemma~\ref{lem:pres-import}, $\Gamma ; \Delta \vdash insert(pn, s) : T$.
+
+\item Case \textsc{T-App}: $t = s_1~s_2$ and $T = S_2$. By (\textsc{T-App}), $\Gamma ; \Delta \vdash s_1 : S_1 \Rightarrow S_2$ and $\Gamma ; \Delta \vdash s_2 : S_1$. Since $t \rightarrow t'$, either (\textsc{E-App1}), (\textsc{E-App2}), (\textsc{E-AppAbs}), or (\textsc{E-AppSpore}) applies. If (\textsc{E-App1}) applies, then $s_1 \rightarrow s_1'$ and $t' = s_1'~s_2$. By the induction hypothesis, $\Gamma ; \Delta \vdash s_1' : S_1 \Rightarrow S_2$. By (\textsc{T-App}), $\Gamma ; \Delta \vdash t' : S_2$. The case where (\textsc{E-App2}) applies is similar. If (\textsc{E-AppAbs}) applies, then $s_1 = (x : S_1) \Rightarrow t_2$ and $s_2 = v$ and $t' = [x \mapsto v]t_2$. By (\textsc{T-Abs}), $\Gamma, x:S_1 ; \Delta \vdash t_2 : S_2$. By (\textsc{T-App}), $\Gamma ; \Delta \vdash v : S_1$. By Lemma~\ref{lem:substitution}, $\Gamma ; \Delta \vdash [x \mapsto v]t_2 : S_2$.
+
+If (\textsc{E-AppSpore}) applies, then $s_1 = \texttt{spore}~\{~\seq{x : T = v}~; \seq{pn}; (y: S_1) \Rightarrow t_2~\}$ and $s_2 = v'$ and $\forall pn \in \seq{pn}.~\seq{S} \subseteq P(pn)$ and $t' = \seq{[x \mapsto v]}[y \mapsto v']t_2$. By (\textsc{T-Spore}), $\seq{x:T}, y:S_1 ; \Delta \vdash t_2 : S_2$. By (\textsc{T-App}), $\Gamma ; \Delta \vdash v' : S_1$. By Lemma~\ref{lem:weak}, $\Gamma, \seq{x:T}, y:S_1 ; \Delta \vdash t_2 : S_2$. By Lemma~\ref{lem:weak}, $\Gamma, \seq{x:T} ; \Delta \vdash v' : S_1$. By Lemma~\ref{lem:substitution}, $\Gamma, \seq{x:T} ; \Delta \vdash [y \mapsto v']t_2 : S_2$. By (\textsc{T-Spore}), we also have $\forall v_i \in \seq{v}.~\Gamma ; \Delta \vdash v_i : T_i$. By Lemma~\ref{lem:substitution}, $\Gamma ; \Delta \vdash \seq{[x \mapsto v]}[y \mapsto v']t_2 : S_2$.
+
+\item Case \textsc{T-Spore}: $t = \texttt{spore}~\{~\seq{y : S = s}~; \Delta'; (x: T_1) \Rightarrow t_2~\}$ and $T = T_1 \Rightarrow T_2~\{~\texttt{type}~\mathcal{C} = \seq{S}~;~\Delta, \Delta'~\}$. By (\textsc{T-Spore}), $\forall s_i \in \seq{s}.~\Gamma ; \Delta \vdash s_i : S_i$ and $\seq{y : S}, x : T_1 ; \Delta \vdash t_2 : T_2$ and $\forall pn \in \Delta, \Delta'.~\seq{S} \subseteq P(pn)$. Since $t \rightarrow t'$, rule (\textsc{E-Spore}) must apply, and thus $s_i \rightarrow s_i'$ for some $s_i$. By the induction hypothesis, $\Gamma ; \Delta \vdash s_i' : S_i$. Thus, by (\textsc{T-Spore}), $\Gamma ; \Delta \vdash t' : T$.
+
+\item Case \textsc{T-Comp}: $t = s_1~\texttt{compose}~s_2$ and $T = T_1 \Rightarrow T_2~\{~\texttt{type}~\mathcal{C} = \seq{S}, \seq{R}~;~\Delta_3~\}$. By (\textsc{T-Comp}), $\Gamma \vdash s_1 : U_1 \Rightarrow T_2~\{~\texttt{type}~\mathcal{C} = \seq{S}~;~\Delta_1~\}$ and $\Gamma \vdash s_2 : T_1 \Rightarrow U_1~\{~\texttt{type}~\mathcal{C} = \seq{R}~;~\Delta_2~\}$ and $\Delta_3 = \{ pn \in \Delta_1 \cup \Delta_2 ~|~ \seq{S} \subseteq P(pn) \land \seq{R} \subseteq P(pn) \}$. Since $t \rightarrow t'$, either (\textsc{E-Comp1}), (\textsc{E-Comp2}), or (\textsc{E-Comp3}) applies.
+
+If (\textsc{E-Comp1}) applies, then $s_1 \rightarrow s_1'$, and by (\textsc{T-Comp}), $\Gamma ; \Delta \vdash s_1 : U_1 \Rightarrow T_2~\{~\texttt{type}~\mathcal{C} = \seq{S}~;~\Delta_1~\}$, and $t' = s_1'~\texttt{compose}~s_2$. By the induction hypothesis, $\Gamma ; \Delta \vdash s_1' : U_1 \Rightarrow T_2\{~\texttt{type}~\mathcal{C} = \seq{S}~;~\Delta_1~\}$. By (\textsc{T-Comp}), we know that $\Gamma ; \Delta \vdash s_2 : T_1 \Rightarrow U_1~\{~\texttt{type}~\mathcal{C} = \seq{R}~;~\Delta_2~\}$ and $\Delta_3 = \{ pn \in \Delta_1 \cup \Delta_2 ~|~ \seq{S} \subseteq P(pn) \land \seq{R} \subseteq P(pn) \}$. By (\textsc{T-Comp}), $\Gamma ; \Delta \vdash t' : T$.
+
+If (\textsc{E-Comp2}) applies, then $s_2 \rightarrow s_2'$, and by (\textsc{T-Comp}), $\Gamma ; \Delta \vdash s_2 : T_1 \Rightarrow U_1~\{~\texttt{type}~\mathcal{C} = \seq{R}~;~\Delta_2~\}$, and $t' = v_1~\texttt{compose}~s_2'$. By the induction hypothesis, $\Gamma ; \Delta \vdash s_2' : T_1 \Rightarrow U_1~\{~\texttt{type}~\mathcal{C} = \seq{R}~;~\Delta_2~\}$. Since (\textsc{E-Comp2}) applies, $s_1 = v_1$, so by (\textsc{T-Comp}), we know that $\Gamma ; \Delta \vdash v_1 : U_1 \Rightarrow T_2~\{~\texttt{type}~\mathcal{C} = \seq{S}~;~\Delta_1~\}$ and $\Delta_3 = \{ pn \in \Delta_1 \cup \Delta_2 ~|~ \seq{S} \subseteq P(pn) \land \seq{R} \subseteq P(pn) \}$. By (\textsc{T-Comp}), $\Gamma ; \Delta \vdash t' : T$.
+
+If (\textsc{E-Comp3}) applies, then $s_1 = \texttt{spore}~\{~\seq{x:S=v}; \Delta_1; (y: U_1) \Rightarrow t_2~\}$ and $s_2 = \texttt{spore}~\{~\seq{y:R=w}; \Delta_2; (z: T_1) \Rightarrow u_1~\}$ and $\Delta_3 = \{ p~|~p \in \Delta_1,\Delta_2.~\seq{S} \subseteq P(p) \land \seq{R} \subseteq P(p)\}$. By (\textsc{E-Comp3}), \\ $t' = \texttt{spore}~\{~\seq{x:S=v}, \seq{y:R=w} ; \Delta_3 ; (z: T_1) \Rightarrow \texttt{let}~x = u_1~\texttt{in}~[y \mapsto x]t_2\}$.
+
+First, we show that $\forall v_i \in \seq{v}.~\Gamma ; \Delta \vdash v_i : S_i$ and $\forall w_i \in \seq{w}.~\Gamma ; \Delta \vdash w_i : R_i$. This follows from the fact that $s_1$ and $s_2$ are well-typed spores and (\textsc{T-Spore}).
+
+Second, we show that $\seq{x:S}, \seq{y:R}, z:T_1 ; \Delta \vdash \texttt{let}~x = u_1~\texttt{in}~[y \mapsto x]t_2 : T_2$. By (\textsc{T-Let}), we need to show that $\seq{x:S}, \seq{y:R}, z:T_1 ; \Delta \vdash u_1 : U_1$ and $\seq{x:S}, \seq{y:R}, z:T_1, x:U_1 ; \Delta \vdash [y \mapsto x]t_2 : T_2$. The former follows from (\textsc{T-Spore}) and Lemma~\ref{lem:weak}. To prove the latter: given that $s_1$ is well-typed, by (\textsc{T-Spore}) we have that $\seq{x:S}, y:U_1 \vdash t_2 : T_2$. By Lemma~\ref{lem:weak}, $\seq{x:S}, y:U_1, x:U_1 \vdash t_2 : T_2$. By Lemma~\ref{lem:substitution}, $\seq{x:S}, x:U_1 \vdash [y \mapsto x]t_2 : T_2$. By Lemma~\ref{lem:weak}, $\seq{x:S}, \seq{y:R}, z:T_1, x:U_1 ; \Delta \vdash [y \mapsto x]t_2 : T_2$.
+
+Third, we show that $\forall pn \in \Delta, \Delta_3.~\seq{S} \subseteq P(pn) \land \seq{R} \subseteq P(pn)$. Since $s_1$ is well-typed, we have $\forall pn \in \Delta, \Delta_1.~\seq{S} \subseteq P(pn)$. Since $s_2$ is well-typed, we have $\forall pn \in \Delta, \Delta_2.~\seq{R} \subseteq P(pn)$. Moreover, we have that $\Delta_3 = \{ p~|~p \in \Delta_1,\Delta_2.~\seq{S} \subseteq P(p) \land \seq{R} \subseteq P(p)\}$. Thus, $\forall pn \in \Delta, \Delta_3.~\seq{S} \subseteq P(pn) \land \seq{R} \subseteq P(pn)$.
+
+By (\textsc{T-Spore}) it follows from the previous three subgoals that $\Gamma ; \Delta \vdash t' : T$.
+
+\end{itemize}
+\end{proof}
+
+
+\subsection{Relation to spores in Scala}
+
+The soundness proof (see Section~\ref{sec:soundness}) of the formal type system guarantees several important properties for well-typed programs which closely correspond to the pragmatic model of spores in Scala:
+
+\begin{enumerate}
+
+\item Application of spores: for each property name $pn$, it is ensured that the dynamic types of all captured variables are contained in the type family $pn$ maps to ($P(pn)$).
+
+\item Dynamically, a spore only accesses its parameter and the variables in its header.
+
+\item The properties computed for a composition of two spores is a safe approximation of the properties that are dynamically required.
+
+\end{enumerate}
+
+
+\subsection{Excluded types}
+
+This section shows how the formal model can be extended with excluded types as described above (see Section~\ref{sec:adv-usage-type-constraints}). Figure~\ref{fig:syntax-ext} shows the syntax extensions: first, spore terms and values are augmented with a sequence of excluded types; second, spore types and abstract spore types get another member $\texttt{type}~\mathcal{E} = \seq{T}$ specifying the excluded types.
+
+\begin{figure*}[ht!]
+  \centering
+
+  $\ba[t]{l@{\hspace{2mm}}l}
+t ::=     ...                               & \mbox{terms}
+\\
+\gap ~|~  \texttt{spore}~\{~\seq{x : T = t}~; \seq{T}; \seq{pn} ; (x: T) \Rightarrow t~\}  & \mbox{spore}
+\\
+ & \\
+v ::=     ...                               & \mbox{values}
+\\
+\gap ~|~  \texttt{spore}~\{~\seq{x : T = v}~; \seq{T}; \seq{pn} ; (x: T) \Rightarrow t~\}  & \mbox{spore value}
+\\
+ & \\
+\mathcal{S} ::= T \Rightarrow T~\{~\texttt{type}~\mathcal{C} = \seq{T}~;~\texttt{type}~\mathcal{E} = \seq{T}~;~\seq{pn}~\}   & \mbox{spore type}
+\\
+\gap ~|~  T \Rightarrow T~\{~\texttt{type}~\mathcal{C}~;~\texttt{type}~\mathcal{E} = \seq{T}~;~\seq{pn}~\}   & \mbox{abstract spore type}
+\\
+\ea$
+
+  \caption{Core language syntax extensions}
+  \label{fig:syntax-ext}
+\end{figure*}
+
+Figure~\ref{fig:subtyping-ext} shows how the subtyping rules for spores have to be extended. Rule \textsc{S-ESpore} requires that for each excluded type $T'$ in the supertype, there must be an excluded type $T$ in the subtype such that $T' <: T$. This means that by excluding type $T$, subtypes like $T'$ are also prevented from being captured.
+
+\begin{figure*}[ht!]
+  \centering
+\begin{mathpar}
+
+\inferrule[\textsc{S-ESpore}]
+{ T_2 <: T_1 \andalso R_1 <: R_2 \\
+  \seq{pn'} \subseteq \seq{pn} \andalso M_1 = M_2 \lor M_2 = \texttt{type}~\mathcal{C} \\
+  \forall T' \in \seq{U'}.~\exists T \in \seq{U}.~T' <: T
+}
+{ T_1 \Rightarrow R_1~\{~M_1~;~\texttt{type}~\mathcal{E} = \seq{U}~;~\seq{pn}~\} \\ <: T_2 \Rightarrow R_2~\{~M_2~;~\texttt{type}~\mathcal{E} = \seq{U'}~;~\seq{pn'}~\}
+}
+
+\inferrule[\textsc{S-ESporeFun}]
+{ T_1 \Rightarrow R_1~\{~M~;~E~;~\seq{pn}~\} <: T_1 \Rightarrow R_1
+}{}
+
+\end{mathpar}
+  \caption{Subtyping extensions}
+  \label{fig:subtyping-ext}
+\end{figure*}
+
+Figure~\ref{fig:typing-ext} shows the extensions to the typing rules. Rule \textsc{T-ESpore} additionally requires that none of the captured types $\seq{S}$ is a subtype of one of the types contained in the excluded types $\seq{U}$. The excluded types are recorded in the type of the spore. Rule \textsc{T-EComp} computes a new set of excluded types $\seq{V}$ based on both the excluded types and the captured types of $t_1$ and $t_2$. Given that it is possible that one of the spores captures a type that is excluded in the other spore, the type of the result spore excludes only those types that are guaranteed not be captured.
+
+\begin{figure*}[ht!]
+  \centering
+\begin{mathpar}
+
+\inferrule[\textsc{T-ESpore}]
+{ \forall s_i \in \seq{s}.~\Gamma ; \Delta \vdash s_i : S_i \andalso
+  \seq{y : S}, x : T_1 ; \Delta \vdash t_2 : T_2 \\
+  \forall pn \in \Delta, \Delta'.~\seq{S} \subseteq P(pn) \andalso
+  \forall S_i \in \seq{S}.~\forall U_j \in \seq{U}.~\lnot(S_i <: U_j)
+}
+{ \Gamma ; \Delta \vdash \texttt{spore}~\{~\seq{y : S = s}~; \seq{U}; \Delta'; (x: T_1) \Rightarrow t_2~\} : \\
+  T_1 \Rightarrow T_2~\{~\texttt{type}~\mathcal{C} = \seq{S}~;~\texttt{type}~\mathcal{E} = \seq{U}~;~\Delta, \Delta'~\}
+}
+
+\inferrule[\textsc{T-EComp}]
+{ \Gamma ; \Delta \vdash t_1 : T_1 \Rightarrow T_2~\{~\texttt{type}~\mathcal{C} = \seq{S}~;~\texttt{type}~\mathcal{E} = \seq{U}~;~\Delta_1~\} \\
+  \Gamma ; \Delta \vdash t_2 : U_1 \Rightarrow T_1~\{~\texttt{type}~\mathcal{C} = \seq{R}~;~\texttt{type}~\mathcal{E} = \seq{U'}~;~\Delta_2~\} \\
+  \Delta' = \{ pn \in \Delta_1 \cup \Delta_2 ~|~ \seq{S} \subseteq P(pn) \land \seq{R} \subseteq P(pn) \} \\
+  \seq{V} = (\seq{U} \setminus \seq{R}) \cup (\seq{U'} \setminus \seq{S})
+}
+{ \Gamma ; \Delta \vdash t_1~\texttt{compose}~t_2 : U_1 \Rightarrow T_2~\{~\texttt{type}~\mathcal{C} = \seq{S}, \seq{R}~;~\texttt{type}~\mathcal{E} = \seq{V}~;~\Delta'~\}
+}
+
+\end{mathpar}
+  \caption{Typing extensions}
+  \label{fig:typing-ext}
+\end{figure*}
+
+Figure~\ref{fig:opsem-ext} shows the extensions to the operational semantics. Rule \\ \textsc{E-EAppSpore} additionally requires that none of the captured types $\seq{T}$ are contained in the excluded types $\seq{U}$. Rule \textsc{E-EComp3} computes the set of excluded types of the result spore in the same way as in the corresponding type rule (\textsc{T-EComp}).
+
+\begin{figure*}[ht!]
+  \centering
+\begin{mathpar}
+
+\inferrule[\textsc{E-EAppSpore}]
+{ \forall pn \in \seq{pn}.~\seq{T} \subseteq P(pn) \andalso
+  \forall T_i \in \seq{T}.~T_i \notin \seq{U}
+}
+{ \texttt{spore}~\{~\seq{x:T=v}~;~\seq{U}~;~\seq{pn}~;~(x':T) \Rightarrow t~\}~v' \rightarrow \\ \seq{[x \mapsto v]}[x' \mapsto v']t
+}
+
+\inferrule[\textsc{E-EComp3}]
+{ \Delta = \{ p~|~p \in \seq{pn},\seq{qn}.~\seq{T} \subseteq P(p) \land \seq{S} \subseteq P(p)\} \\
+  \seq{V} = (\seq{U} \setminus \seq{S}) \cup (\seq{U'} \setminus \seq{T})
+}
+{ \texttt{spore}~\{~\seq{x:T=v}~;~\seq{U}~;~\seq{pn}~;~(x':T') \Rightarrow t~\}~\texttt{compose} \\ \texttt{spore}~\{~\seq{y:S=w}~;~\seq{U'}~;~\seq{qn}~;~(y':S') \Rightarrow t'~\} \rightarrow \\ \texttt{spore}~\{~\seq{x:T=v}, \seq{y:S=w}~;~\seq{V}~;~\Delta~; \\ (y': S') \Rightarrow \texttt{let}~z' = t'~\texttt{in}~[x' \mapsto z']t~\}
+}
+\end{mathpar}
+  \caption{Operational semantics extensions}
+  \label{fig:opsem-ext}
+\end{figure*}
+
+\end{document}
