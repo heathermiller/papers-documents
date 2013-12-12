@@ -446,7 +446,7 @@ their users.
 
 \end{itemize}
 
-\subsection{Selected Related Work}
+\subsection{Selected Related Work}\label{sec:sel-rel-work}
 
 Cloud Haskell~\cite{CloudHaskell} provides statically guaranteed-serializable
 closures by either rejecting environments outright, or by allowing manual
@@ -2407,18 +2407,11 @@ In the above example, capturing a mutable object (or, in fact, any object of typ
 
 Parallel closures~\cite{ParallelClosures} are a variation of closures that make data in the environment available using read-only references using a type system for reference immutability. This enables parallel execution without the possibility of data races. Spores are not limited to immutable environments, and do not require a type system extension.
 
+HdpH~\cite{HDPH} generalizes Cloud Haskell's closures in several aspects: first, closures can be transformed without eliminating them. Second, unnecessary serialization is avoided, e.g., when applying a closure immediately after creation. Otherwise, the discussion of Cloud Haskell in Section~\ref{sec:sel-rel-work} also applies to HdpH.
 
 Non-academic related work: functions in Rust, 3 different types based on
 different possibilities for environments \cite{RustFunctions}; functions,
 closures, and procedures. Procedures are shippable.
-
-Parallel closures \cite{ParallelClosures}. First known example of closures
-with effectively immutable environment.
-
-CloudHaskell \cite{CloudHaskell}. Introduces a type system that rejects anything
-that is not static. Too strict.
-
-Haskell distributed parallel Haskell~\cite{HDPH} extends the serializable closures found in CloudHaskell.
 
 C++ 11 comes with a capture syntax. Though, it's not possible to guarantee that construction is correct. If you require certain things from the closure, how is it expressed? If a method declares a parameter type which is a closure, the important thing is that in this parameter type, you can specify the requirements about capturing. So it's ensured that whatever's passed as an argument to the method satisfies these requirements. This isn't possible with C++ 11 closures. \cite{CplusplusLambas}
 
