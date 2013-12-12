@@ -2409,6 +2409,8 @@ Parallel closures~\cite{ParallelClosures} are a variation of closures that make 
 
 HdpH~\cite{HDPH} generalizes Cloud Haskell's closures in several aspects: first, closures can be transformed without eliminating them. Second, unnecessary serialization is avoided, e.g., when applying a closure immediately after creation. Otherwise, the discussion of Cloud Haskell in Section~\ref{sec:sel-rel-work} also applies to HdpH.
 
+Termite Scheme~\cite{Termite} is a Scheme dialect for distributed programming based on an Erlang-style concurrency model. Closures and continuations are always serializable, since references to non-serializable objects (like open files or physical devices) are automatically wrapped in processes that are serialized as their process ID. In contrast, with spores there is no such automatic wrapping; moreover, spores are designed for static typing and to express user-defined type-based constraints, which don't exist in Termite Scheme.
+
 Non-academic related work: functions in Rust, 3 different types based on
 different possibilities for environments \cite{RustFunctions}; functions,
 closures, and procedures. Procedures are shippable.
