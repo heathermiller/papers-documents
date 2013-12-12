@@ -26,6 +26,12 @@
 \usepackage{subcaption}
 \captionsetup{compatibility=false}
 \usepackage[bottom]{footmisc}
+\usepackage{longtable}
+\usepackage{booktabs}
+% \usepackage{pdflscape}
+\usepackage{colortbl}%
+  \newcommand{\myrowcolour}{\rowcolor[gray]{0.925}}
+\usepackage{wasysym}
 
 \usepackage{microtype}
 \usepackage{times}
@@ -1859,7 +1865,7 @@ P \in pn \rightarrow \mathcal{T} & \mbox {property map}
 
   \caption{Core language syntax}
   \label{fig:syntax}
-  \vspace{-5mm}
+  % \vspace{-5mm}
 \end{figure}
 
 
@@ -2409,6 +2415,8 @@ We also provide an implicit conversion from standard Scala functions to spores. 
 \section{Evaluation}
 \label{sec:evaluation}
 
+
+
 % program        | LOC | #closures | #converted | LOC changed | #captured vars
 %
 % funsets        |  99 | 8         | 8          | 7           | 9
@@ -2421,6 +2429,50 @@ We also provide an implicit conversion from standard Scala functions to spores. 
 % total          |1503 | 32        | 29         | 45          | 18
 
 % pagerank   | ??  | ??        | ??         | ??          | ??
+
+% \begin{figure*}
+% % \onecolumn
+% % \setlength\LTleft{10pt}            % default: \parindent
+% % \setlength\LTright{10pt}           % default: \fill
+% \begin{longtable}{l c@{}c c@{}c c@{}c c@{}c c@{}c }
+% \toprule%
+
+% {\bfseries Program} && {\bfseries LOC} && {\bfseries \#closures} && {\bfseries \#converted} && {\bfseries LOC changed} && {\bfseries \#captured vars} \\
+
+% \cmidrule(l){0-1} \cmidrule(l){2-3} \cmidrule(l){4-5} \cmidrule(l){6-7} \cmidrule(l){8-9} \cmidrule(l){10-11} %\cmidrule(l){12-13}
+
+% % \endhead
+
+
+% funsets && 99 && 8 && 8 && 7 && 9 \\
+
+% \myrowcolour%
+% forcomp && 201 && 6 && 4 && 4 && 0 \\
+
+% mandelbrot && 325 && 1 && 1 && 9 && 6 \\
+
+% \myrowcolour%
+% barneshut && 722 && 7 && 7 && 8 && 1 \\
+
+% spark pagerank && 64 && 5 && 5 && 8 && 0 \\
+
+% \myrowcolour%
+% spark kmeans && 92 && 5 && 4 && 9 && 2 \\
+
+% \bottomrule
+
+% \end{longtable}
+% \caption{Comparison to related approaches}
+% % \twocolumn
+% \end{figure*}
+
+\begin{figure}[t!]
+\centering
+\includegraphics[width=\textwidth]{evaluation.pdf}
+\caption{Evaluation of the practicality of using spores as an alternative to normal closures in Scala.}
+\label{fig:spore-eval}
+\vspace{-5mm}
+\end{figure}
 
 In this section we evaluate the practicality of using spores as an alternative to normal closures in Scala by measuring the number of changes required to convert existing programs that crucially rely on closures to use spores. We analyze a number of real Scala programs, taken from three categories:
 \begin{enumerate}
