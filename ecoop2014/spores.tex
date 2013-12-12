@@ -26,6 +26,7 @@
 \usepackage{subcaption}
 \captionsetup{compatibility=false}
 \usepackage[bottom]{footmisc}
+\usepackage{times}
 
 \usepackage{microtype}
 \usepackage{times}
@@ -134,7 +135,11 @@
 %   xleftmargin=0.0cm
 % }
 
-\setmainfont[Ligatures=TeX]{Times New Roman}
+\setmainfont[
+  Ligatures=TeX,
+  SmallCapsFont={TeX Gyre Termes},
+  SmallCapsFeatures={Letters=SmallCaps},
+]{Times New Roman}
 
 \lstset{tabsize=2,
 basicstyle=\ttfamily\fontsize{9pt}{1em}\selectfont,
@@ -148,8 +153,8 @@ numbers=left, numberstyle=\scriptsize\color{gray}\ttfamily, language=scala,mored
 \begin{document}
 
 % \fontspec[
-%  SmallCapsFont=Garamond,
-%  SmallCapsFeatures={Letters=SmallCaps},
+%   SmallCapsFont={TeX Gyre Termes},
+%   SmallCapsFeatures={Letters=SmallCaps},
 % ]{Times New Roman}
 \VerbatimFootnotes
 \setmonofont[Scale=0.8,BoldFont={Consolas Bold}]{Consolas}
@@ -1215,8 +1220,10 @@ Scala compiler, because de-sugaring the for-comprehension happens before
 implicit conversions are inserted.} (Scala's version of Haskell's do-
 notation). In Scala, for-comprehensions are desugared to invocations of the
 higher-order \verb|map|, \verb|flatMap|, and \verb|filter|
-methods, each of which take normal functions as arguments.\footnote{Lazy filtering is supported using the additional
-\verb|withFilter| method}
+methods, each of which take normal functions as arguments.
+
+% \footnote{Lazy filtering is supported using the additional
+% \verb|withFilter| method}
 
 % The Scala specification contains the following rewrite rule:
 
@@ -1837,19 +1844,6 @@ Rule \textsc{S-SporeFun} expresses the fact that spore types are refinements of 
 
 \subsection{Typing rules}\label{sec:typing}
 
-Typing derivations use a judgement of the form $\Gamma ; \Delta \vdash t : T$. Besides the standard variable environment $\Gamma$ we use a property environment $\Delta$ which is a sequence of property names that are ``active'' while deriving the type $T$ of term $t$. The property environment is reminiscent of the implicit parameter context used in the original work on implicit parameters~\cite{LewisLMS00}; it is an environment for names whose definition sites ``just happen to be far removed from their usages.''
-
-In the typing rules we assume the existence of a global property mapping $P$ from property names $pn$ to type families $\mathcal{T}$. This technique is reminiscent of the way some object-oriented core languages provide a global class table for type-checking. The main difference is that our core language does not include constructs to extend the global property map; such constructs are left out of the core language for simplicity, since the creation of properties is not essential to our model.
-
-The typing rules are standard except for rules \textsc{T-Imp}, \textsc{T-Spore}, and \textsc{T-Comp}, which are new. Only these three type rules inspect or modify the property environment $\Delta$. Note that there is no rule for spore application, since there is a subtyping relationship between spores and functions (see Section~\ref{sec:subtyping}). Using the subsumption rule \textsc{T-Sub} spore application is expressed using the standard rule for function application (\textsc{T-App}).
-
-Rule \textsc{T-Imp} imports a property $pn$ into the property environment within the scope defined by term $t$.
-
-Rule \textsc{T-Spore} derives a type for a spore term. In the spore, all terms on right-hand sides of variable definitions in the spore header must be well-typed in the same environment $\Gamma ; \Delta$ according to their declared type. The body of the spore's closure, $t_2$, must be well-typed in an environment containing only the variables in the spore header and the closure's parameter, one of the central properties of spores. The last premise requires all captured types to satisfy both the properties in the current property environment, $\Delta$, as well as the properties listes in the spore term, $\Delta'$. Finally, the resulting spore type contains the argument and result types of the spore's closure, the sequence of captured types according to the spore header, and the concatenation of properties $\Delta$ and $\Delta'$. The intuition here is that properties in the environment have been explicitly imported by the user, thus indicating that all spores in the scope of the corresponding import should satisfy them.
-
-Rule \textsc{T-Comp} derives a result type for the composition of two spores. It inspects the captured types of both spores ($\seq{S}$ and $\seq{R}$) to ensure that the properties of the resulting spore, $\Delta$, are satisfied by the captured variables of both spores. Otherwise, the argument and result types are analogous to regular function composition. Note that it's always possible to weaken the properties of a spore through spore subtyping and subsumption (\textsc{T-Sub}).
-
-
 \begin{figure*}[ht!]
   \centering
 
@@ -1943,6 +1937,17 @@ Rule \textsc{T-Comp} derives a result type for the composition of two spores. It
   \label{fig:typing-rules}
 \end{figure*}
 
+Typing derivations use a judgement of the form $\Gamma ; \Delta \vdash t : T$. Besides the standard variable environment $\Gamma$ we use a property environment $\Delta$ which is a sequence of property names that are ``active'' while deriving the type $T$ of term $t$. The property environment is reminiscent of the implicit parameter context used in the original work on implicit parameters~\cite{LewisLMS00}; it is an environment for names whose definition sites ``just happen to be far removed from their usages.''
+
+In the typing rules we assume the existence of a global property mapping $P$ from property names $pn$ to type families $\mathcal{T}$. This technique is reminiscent of the way some object-oriented core languages provide a global class table for type-checking. The main difference is that our core language does not include constructs to extend the global property map; such constructs are left out of the core language for simplicity, since the creation of properties is not essential to our model.
+
+The typing rules are standard except for rules \textsc{T-Imp}, \textsc{T-Spore}, and \textsc{T-Comp}, which are new. Only these three type rules inspect or modify the property environment $\Delta$. Note that there is no rule for spore application, since there is a subtyping relationship between spores and functions (see Section~\ref{sec:subtyping}). Using the subsumption rule \textsc{T-Sub} spore application is expressed using the standard rule for function application (\textsc{T-App}).
+
+Rule \textsc{T-Imp} imports a property $pn$ into the property environment within the scope defined by term $t$.
+
+Rule \textsc{T-Spore} derives a type for a spore term. In the spore, all terms on right-hand sides of variable definitions in the spore header must be well-typed in the same environment $\Gamma ; \Delta$ according to their declared type. The body of the spore's closure, $t_2$, must be well-typed in an environment containing only the variables in the spore header and the closure's parameter, one of the central properties of spores. The last premise requires all captured types to satisfy both the properties in the current property environment, $\Delta$, as well as the properties listes in the spore term, $\Delta'$. Finally, the resulting spore type contains the argument and result types of the spore's closure, the sequence of captured types according to the spore header, and the concatenation of properties $\Delta$ and $\Delta'$. The intuition here is that properties in the environment have been explicitly imported by the user, thus indicating that all spores in the scope of the corresponding import should satisfy them.
+
+Rule \textsc{T-Comp} derives a result type for the composition of two spores. It inspects the captured types of both spores ($\seq{S}$ and $\seq{R}$) to ensure that the properties of the resulting spore, $\Delta$, are satisfied by the captured variables of both spores. Otherwise, the argument and result types are analogous to regular function composition. Note that it's always possible to weaken the properties of a spore through spore subtyping and subsumption (\textsc{T-Sub}).
 
 \subsection{Operational semantics}\label{sec:opsem}
 
