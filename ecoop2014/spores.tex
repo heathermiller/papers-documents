@@ -26,6 +26,12 @@
 \usepackage{subcaption}
 \captionsetup{compatibility=false}
 \usepackage[bottom]{footmisc}
+\usepackage{longtable}
+\usepackage{booktabs}
+% \usepackage{pdflscape}
+\usepackage{colortbl}%
+  \newcommand{\myrowcolour}{\rowcolor[gray]{0.925}}
+\usepackage{wasysym}
 
 \usepackage{microtype}
 \usepackage{times}
@@ -1426,13 +1432,17 @@ def m[A, B](s: Spore[A, B])(implicit p: Pickler[s.Captured]) = {
 
 \subsubsection{Defining Custom Properties}
 
-Properties can be introduced using the Property trait (provided by the spores library):
+Properties can be introduced using the \verb|Property| trait (provided by the
+spores library):
 
-\begin{lstlisting}
-    trait Property[T]
+\begin{lstlisting}[numbers=none]
+    trait Property[C[_]]
 \end{lstlisting}
 
-A custom property such as for immutable types can be introduced using a generic trait and an implicit property object that mixes in the above \verb|Property| trait:
+As a running example, we will be defining a custom  property for
+immutable types. A custom property can be introduced using a generic trait,
+and an implicit ``property'' object that mixes in the above \verb|Property|
+trait:
 
 \begin{lstlisting}
 object safe {
@@ -1452,25 +1462,40 @@ object safe {
     Immutable[Set[_]] with Immutable[Seq[_]] with ...
 }
 \end{lstlisting}
+
 \noindent
-The above definitions allow us to create spores that are guaranteed to capture only types \verb|T| for which an implicit of type \verb|Immutable[T]| exists.
+The above definitions allow us to create spores that are guaranteed to capture
+only types \verb|T| for which an implicit of type \verb|Immutable[T]| exists.
 
-It's also possible to define compound properties by mixing in multiple traits into an implicit property object:
+It's also possible to define compound properties by mixing in multiple traits
+into an implicit property object:
 
-\begin{verbatim}
+\begin{lstlisting}[numbers=none]
     implicit object myProps extends Property[Pickler] with Property[Immutable]
-\end{verbatim}
+\end{lstlisting}
 
-By making this compound property available in a scope within which spores are created (for example, using an import), it is enforced that those spores have both the context bound Pickler and the context bound Immutable.
+By making this compound property available in a scope within which spores are
+created (for example, using an \verb|import|), it is enforced that those
+spores have both the context bound \verb|Pickler| and the context bound
+\verb|Immutable|.
 
 
 \subsubsection{Composition}
 
-Now that we've introduced type constraints in the form of excluded types and context bounds, we present generalized composition rules for the types of spores with such constraints.
+Now that we've introduced type constraints in the form of excluded types and
+context bounds, we present generalized composition rules for the types of
+spores with such constraints.
 
-To precisely describe the composition rules, we introduce the following notation: the function $Excluded$ returns for a given refinement type the set of types that are excluded; the function $Captured$ returns for a given refinement type the set of type that are captured. Using these two mathematical functions, we can precisely specify how the type members of the resulting spore refinement type are computed. (We use the syntax \verb|.type| to refer to the singleton types of the argument spores and the result, respectively.)
+To precisely describe the composition rules, we introduce the following
+notation: the function $Excluded$ returns, for a given refinement type, the
+set of types that are excluded; the function $Captured$ returns, for a given
+refinement type, the set of types that are captured. Using these two
+mathematical functions, we can precisely specify how the type members of the
+resulting spore refinement type are computed. (We use the syntax \verb|.type|
+to refer to the singleton types of the argument spores and the result,
+respectively.)
 
-\vspace{-5mm}
+% \vspace{-5mm}
 \begin{enumerate}
 
 \item $Captured(res.type) = Captured(s1.type), Captured(s2.type)$
@@ -1483,23 +1508,53 @@ The first rule expresses the fact that the sequence of captured types of the res
 
 The second rule expresses the fact that the set of excluded types of the result refinement type is defined as the set of all types that are excluded by one of the argument spores, but that are not captured by any of the argument spores.
 
-For example, assume two spores s1 and s2 with types
-\begin{lstlisting}
-Spore[Int, String] {
-  type Captured = (Int, Util)
-  type Excluded = No[Actor]
-}
-\end{lstlisting}
+For example, assume two spores \verb|s1| and \verb|s2| with types:
+
+\begin{figure}[h!]
+\vspace{0.5mm}
+\begin{subfigure}{.5\textwidth}
+  \centering
+  \begin{lstlisting}
+    Spore[Int, String] {
+      type Captured = (Int, Util)
+      type Excluded = No[Actor]
+    }
+  \end{lstlisting}
+  \vspace{-4mm}
+  \caption{Type of spore \texttt{s1}.}
+\end{subfigure}%
+\begin{subfigure}{.5\textwidth}
+  \centering
+  \begin{lstlisting}
+    Spore[String, Int] {
+      type Captured = (String, Int)
+      type Excluded = No[Actor] with No[Util]
+    }
+  \end{lstlisting}
+  \vspace{-4mm}
+  \caption{Type of spore \texttt{s2}.}
+\end{subfigure}%
+\label{fig:spore-composition}
+\vspace{0.5mm}
+\end{figure}
+
+% \begin{lstlisting}
+% Spore[Int, String] {
+%   type Captured = (Int, Util)
+%   type Excluded = No[Actor]
+% }
+% \end{lstlisting}
+% \noindent
+% and
+% \begin{lstlisting}
+% Spore[String, Int] {
+%   type Captured = (String, Int)
+%   type Excluded = No[Actor] with No[Util]
+% }
+% \end{lstlisting}
+
 \noindent
-and
-\begin{lstlisting}
-Spore[String, Int] {
-  type Captured = (String, Int)
-  type Excluded = No[Actor] with No[Util]
-}
-\end{lstlisting}
-\noindent
-The result of composing the two spores, \verb|s1 compose s2|, has thus the following result type:
+The result of composing the two spores, \verb|s1 compose s2|, thus has the following type:
 
 \begin{lstlisting}
 Spore[String, String] {
@@ -1508,11 +1563,15 @@ Spore[String, String] {
 }
 \end{lstlisting}
 
-\paragraph{Loosening constraints}
-Also should show how to loosen constraints!!
-Constraints can be loosened using the regular type widening rules.
+\paragraph{\textbf{Loosening constraints}}
 
-Let's say we have a spore with the following elaborate refinement type:
+Given that type constraints compose, it's evident that as spores compose, type
+constraints can monotonically increase in number. Thus, it's important to note
+that it's also possible to soundly loosen constraints using the regular type
+widening rules.
+
+Let's say we have a spore with the following (too elaborate) refinement type:
+
 \begin{lstlisting}
 Spore[String, Int] {
   type Captured = (String, Int)
@@ -1520,7 +1579,9 @@ Spore[String, Int] {
 }
 \end{lstlisting}
 
-Then it's possible to soundly drop constraints by assigning the spore to a variable of a super type such as
+\noindent
+Then we can soundly drop constraints by assigning the spore to a variable of a
+supertype:
 
 \begin{lstlisting}
 Spore[String, Int] {
@@ -1804,7 +1865,7 @@ P \in pn \rightarrow \mathcal{T} & \mbox {property map}
 
   \caption{Core language syntax}
   \label{fig:syntax}
-  \vspace{-5mm}
+  % \vspace{-5mm}
 \end{figure}
 
 
@@ -2354,6 +2415,8 @@ We also provide an implicit conversion from standard Scala functions to spores. 
 \section{Evaluation}
 \label{sec:evaluation}
 
+
+
 % program        | LOC | #closures | #converted | LOC changed | #captured vars
 %
 % funsets        |  99 | 8         | 8          | 7           | 9
@@ -2367,6 +2430,50 @@ We also provide an implicit conversion from standard Scala functions to spores. 
 
 % pagerank   | ??  | ??        | ??         | ??          | ??
 
+% \begin{figure*}
+% % \onecolumn
+% % \setlength\LTleft{10pt}            % default: \parindent
+% % \setlength\LTright{10pt}           % default: \fill
+% \begin{longtable}{l c@{}c c@{}c c@{}c c@{}c c@{}c }
+% \toprule%
+
+% {\bfseries Program} && {\bfseries LOC} && {\bfseries \#closures} && {\bfseries \#converted} && {\bfseries LOC changed} && {\bfseries \#captured vars} \\
+
+% \cmidrule(l){0-1} \cmidrule(l){2-3} \cmidrule(l){4-5} \cmidrule(l){6-7} \cmidrule(l){8-9} \cmidrule(l){10-11} %\cmidrule(l){12-13}
+
+% % \endhead
+
+
+% funsets && 99 && 8 && 8 && 7 && 9 \\
+
+% \myrowcolour%
+% forcomp && 201 && 6 && 4 && 4 && 0 \\
+
+% mandelbrot && 325 && 1 && 1 && 9 && 6 \\
+
+% \myrowcolour%
+% barneshut && 722 && 7 && 7 && 8 && 1 \\
+
+% spark pagerank && 64 && 5 && 5 && 8 && 0 \\
+
+% \myrowcolour%
+% spark kmeans && 92 && 5 && 4 && 9 && 2 \\
+
+% \bottomrule
+
+% \end{longtable}
+% \caption{Comparison to related approaches}
+% % \twocolumn
+% \end{figure*}
+
+\begin{figure}[t!]
+\centering
+\includegraphics[width=\textwidth]{evaluation.pdf}
+\caption{Evaluation of the practicality of using spores as an alternative to normal closures in Scala.}
+\label{fig:spore-eval}
+\vspace{-5mm}
+\end{figure}
+
 In this section we evaluate the practicality of using spores as an alternative to normal closures in Scala by measuring the number of changes required to convert existing programs that crucially rely on closures to use spores. We analyze a number of real Scala programs, taken from three categories:
 \begin{enumerate}
 
@@ -2378,7 +2485,7 @@ In this section we evaluate the practicality of using spores as an alternative t
 
 \end{enumerate}
 
-\paragraph{Methodology} For each program, we obtained (a) the number of closures in the program that are candidates for conversion, (b) the number of closures that could be converted to spores, (c) the changed/added number of LOC, and (d) the number of captured variables. It is important to note that during the conversion it was not possible to rely on an implicit conversion of functions to spores, since all expected types remained normal function types in all cases; thus, the reported numbers are worse than they would be for APIs using spores.
+\paragraph{Methodology} For each program, we obtained (a) the number of closures in the program that are candidates for conversion, (b) the number of closures that could be converted to spores, (c) the changed/added number of LOC, and (d) the number of captured variables. It is important to note that during the conversion it was not possible to rely on an implicit conversion of functions to spores, since the expected types of all library methods that were invoked by the evaluated applications remained normal function types (\ie they were not converted to spore types); thus, the reported numbers are worse than they would be for APIs using spores.
 
 \paragraph{Results} The results are shown in Figure~\ref{fig:spore-eval}. Out of 32 closures 29 could be converted to spores with little effort. One closure failed to infer its parameter type when expressed as a spore. Two other closures could not be converted due to implementation restrictions of our current prototype. On average, per converted closure 1.4 LOC had to be changed. This number is dominated by two factors: the inability to use the implicit conversion from normal functions to spores, and one particularly complex closure in ``mandelbrot'' that required changing 9 LOC. In our programs, the number of captured variables is on average 0.56. These results suggest that programs using closures in non-trivial ways can typically be converted to using spores with relatively little effort, even if the used APIs do not use spore types.
 
