@@ -2413,23 +2413,9 @@ Parallel closures~\cite{ParallelClosures} are a variation of closures that make 
 
 HdpH~\cite{HDPH} generalizes Cloud Haskell's closures in several aspects: first, closures can be transformed without eliminating them. Second, unnecessary serialization is avoided, e.g., when applying a closure immediately after creation. Otherwise, the discussion of Cloud Haskell in Section~\ref{sec:sel-rel-work} also applies to HdpH.
 
-Termite Scheme~\cite{Termite} is a Scheme dialect for distributed programming based on an Erlang-style concurrency model. Closures and continuations are always serializable, since references to non-serializable objects (like open files or physical devices) are automatically wrapped in processes that are serialized as their process ID. In contrast, with spores there is no such automatic wrapping; moreover, spores are designed for static typing and to express user-defined type-based constraints, which don't exist in Termite Scheme.
-
-Non-academic related work: functions in Rust, 3 different types based on
-different possibilities for environments \cite{RustFunctions}; functions,
-closures, and procedures. Procedures are shippable.
-
-C++ 11 comes with a capture syntax. Though, it's not possible to guarantee that construction is correct. If you require certain things from the closure, how is it expressed? If a method declares a parameter type which is a closure, the important thing is that in this parameter type, you can specify the requirements about capturing. So it's ensured that whatever's passed as an argument to the method satisfies these requirements. This isn't possible with C++ 11 closures. \cite{CplusplusLambas}
-
-Active objects also related. \cite{ActiveObjects} (Since no more agents, remove this?)
-
-Clojure comes with the notion of an agent~\cite{Clojure} which is similar to our synchronization mechanism in that in the Clojure model, functions are sent to other agents which manage some sort of mutable, shared state. The spores-agent model focuses on more than managing mutable state. No notion of shippability, fully-focused on multicore single-machine scenario. (Since no more agents, remove this?)
+Termite Scheme~\cite{Termite} is a Scheme dialect for distributed programming based on an Erlang-style concurrency model. Closures and continuations are always serializable, since references to non-serializable objects (like open files or physical devices) are automatically wrapped in processes that are serialized as their process ID. In contrast, with spores there is no such automatic wrapping. Unlike closures in Termite Scheme, spores are statically-typed, supporting type-based constraints. Distributed Functional Programming in Scheme~\cite{DFPS} also provides serializable closures in a dynamically-typed setting.
 
 Java RMI~\cite{JavaRMI}
-
-Termite Scheme~\cite{Termite} also has serializable closures.
-
-Distributed Functional Programming in Scheme~\cite{DFPS} also has serializable closures.
 
 Python also can't reliably serialize functions~\cite{PythonPickle}.
 
