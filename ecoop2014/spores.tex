@@ -2033,14 +2033,9 @@ Rule \textsc{T-Comp} derives a result type for the composition of two spores. It
 
 \subsection{Operational semantics}\label{sec:opsem}
 
-Figure~\ref{fig:opsem} shows the evaluation rules of a small-step operational semantics for our core language. The only non-standard rules are \textsc{E-AppSpore}, \textsc{E-Spore}, \textsc{E-Imp}, and \textsc{E-Comp3}. Rule \textsc{E-AppSpore} applies a spore literal to an argument value. The differences to regular function application (\textsc{E-AppAbs}) are (a) that the types in the spore header must satisfy the properties of the spore dynamically, and (b) that the variables in the spore header must be replaced by their values in the body of the spore's closure. Rule \textsc{E-Spore} is a simple congruence rule. Rule \textsc{E-Imp} is a computation rule that is always enabled. It adds property name $pn$ to all spore terms within the body $t$. The $insert$ helper function is defined in Figure~\ref{fig:helper} (we omit rules for \verb|compose| and \verb|let|, since they are analogous to rules \textsc{H-InsApp} and \textsc{H-InsSel}).
-
-Rule \textsc{E-Comp3} is the computation rule for spore composition. Besides computing the composition in a way analogous to regular function composition, it defines the spore header of the result spore, as well as its properties. The properties of the result spore are restricted to those that are satisfied by the captured variables of both argument spores.
-
-\vspace{-2mm}
-\begin{figure*}[ht!]
+\begin{figure*}[t!]
   \centering
-
+\vspace{-10mm}
 \begin{mathpar}
 % \inferrule[\textsc{E-Let1}]
 % { t_1 \rightarrow t'_1
@@ -2129,15 +2124,21 @@ Rule \textsc{E-Comp3} is the computation rule for spore composition. Besides com
 { \texttt{spore}~\{~\seq{x:T=v};\seq{pn};(x':T')\Rightarrow t~\}~\texttt{compose}~\texttt{spore}~\{~\seq{y:S=w};\seq{qn};(y':S')\Rightarrow t'~\} \rightarrow \\ \texttt{spore}~\{~\seq{x:T=v}, \seq{y:S=w} ; \Delta ; (y': S') \Rightarrow \texttt{let}~z' = t'~\texttt{in}~[x' \mapsto z']t\}
 }
 \end{mathpar}
-  \vspace{-2mm}
+  \vspace{-4mm}
   \caption[Operational Semantics]{Operational Semantics\footnotemark}
   \label{fig:opsem}
+  \vspace{-5mm}
 \end{figure*}
+
+Figure~\ref{fig:opsem} shows the evaluation rules of a small-step operational semantics for our core language. The only non-standard rules are \textsc{E-AppSpore}, \textsc{E-Spore}, \textsc{E-Imp}, and \textsc{E-Comp3}. Rule \textsc{E-AppSpore} applies a spore literal to an argument value. The differences to regular function application (\textsc{E-AppAbs}) are (a) that the types in the spore header must satisfy the properties of the spore dynamically, and (b) that the variables in the spore header must be replaced by their values in the body of the spore's closure. Rule \textsc{E-Spore} is a simple congruence rule. Rule \textsc{E-Imp} is a computation rule that is always enabled. It adds property name $pn$ to all spore terms within the body $t$. The $insert$ helper function is defined in Figure~\ref{fig:helper} (we omit rules for \verb|compose| and \verb|let|, since they are analogous to rules \textsc{H-InsApp} and \textsc{H-InsSel}).
+
+Rule \textsc{E-Comp3} is the computation rule for spore composition. Besides computing the composition in a way analogous to regular function composition, it defines the spore header of the result spore, as well as its properties. The properties of the result spore are restricted to those that are satisfied by the captured variables of both argument spores.
 
 \footnotetext{For the sake of brevity, here we omit the standard evaluation rules. The complete set of evaluation rules can be found in the accompanying technical report~\cite{SporesFormally}}
 
 \begin{figure*}[ht!]
   \centering
+  \vspace{-10mm}
 \begin{mathpar}
 
 \inferrule[\textsc{H-InsSpore1}]
@@ -2168,9 +2169,8 @@ Rule \textsc{E-Comp3} is the computation rule for spore composition. Besides com
   \vspace{-0.6cm}
   \caption{Helper function $insert$}
   \label{fig:helper}
+  \vspace{-5mm}
 \end{figure*}
-
-\vspace{-5mm}
 
 \subsection{Soundness}\label{sec:soundness}
 
@@ -2290,13 +2290,13 @@ v ::=     ...                               & \mbox{values}
 
   \caption{Core language syntax extensions}
   \label{fig:syntax-ext}
+  \vspace{-5mm}
 \end{figure*}
-\vspace{2mm}
 
 Figure~\ref{fig:subtyping-ext} shows how the subtyping rules for spores have to be extended. Rule \textsc{S-ESpore} requires that for each excluded type $T'$ in the supertype, there must be an excluded type $T$ in the subtype such that $T' <: T$. This means that by excluding type $T$, subtypes like $T'$ are also prevented from being captured.
 
 
-\vspace{2mm}
+% \vspace{2mm}
 \begin{figure*}[ht!]
   \centering
 \begin{mathpar}
@@ -2464,6 +2464,17 @@ We also provide an implicit conversion from standard Scala functions to spores. 
 % % \twocolumn
 % \end{figure*}
 
+In this section we evaluate the practicality of using spores as an alternative to normal closures in Scala by measuring the number of changes required to convert existing programs that crucially rely on closures to use spores. We analyze a number of real Scala programs, taken from three categories:
+\begin{enumerate}
+\vspace{-1mm}
+\item General, closure-heavy code, taken from the exercises of the popular MOOC on Functional Programming Principles in Scala; the goal of analyzing this code is to get an approximation of the worst-case effort required when consistently using spores instead of closures, in a mostly-functional code base.
+
+\item Parallel applications based on Scala's parallel collections. These examples evaluate the practicality of introducing spores into a parallel code base to increase its robustness.
+
+\item Distributed applications based on the Apache Spark cluster computing framework. In this case, we evaluate the practicality of using spores in Spark applications to make sure closures are guaranteed to be serializable.
+\vspace{-2mm}
+\end{enumerate}
+
 \begin{figure}[t!]
 \centering
 \includegraphics[width=\textwidth]{evaluation.pdf}
@@ -2472,20 +2483,9 @@ We also provide an implicit conversion from standard Scala functions to spores. 
 \vspace{-5mm}
 \end{figure}
 
-In this section we evaluate the practicality of using spores as an alternative to normal closures in Scala by measuring the number of changes required to convert existing programs that crucially rely on closures to use spores. We analyze a number of real Scala programs, taken from three categories:
-\begin{enumerate}
+\paragraph{\textbf{Methodology}} For each program, we obtained (a) the number of closures in the program that are candidates for conversion, (b) the number of closures that could be converted to spores, (c) the changed/added number of LOC, and (d) the number of captured variables. It is important to note that during the conversion it was not possible to rely on an implicit conversion of functions to spores, since the expected types of all library methods that were invoked by the evaluated applications remained normal function types (\ie they were not converted to spore types); thus, the reported numbers are worse than they would be for APIs using spores.
 
-\item General, closure-heavy code, taken from the exercises of the popular MOOC on Functional Programming Principles in Scala; the goal of analyzing this code is to get an approximation of the worst-case effort required when consistently using spores instead of closures, in a mostly-functional code base.
-
-\item Parallel applications based on Scala's parallel collections. These examples evaluate the practicality of introducing spores into a parallel code base to increase its robustness.
-
-\item Distributed applications based on the Apache Spark cluster computing framework. In this case, we evaluate the practicality of using spores in Spark applications to make sure closures are guaranteed to be serializable.
-
-\end{enumerate}
-
-\paragraph{Methodology} For each program, we obtained (a) the number of closures in the program that are candidates for conversion, (b) the number of closures that could be converted to spores, (c) the changed/added number of LOC, and (d) the number of captured variables. It is important to note that during the conversion it was not possible to rely on an implicit conversion of functions to spores, since the expected types of all library methods that were invoked by the evaluated applications remained normal function types (\ie they were not converted to spore types); thus, the reported numbers are worse than they would be for APIs using spores.
-
-\paragraph{Results} The results are shown in Figure~\ref{fig:spore-eval}. Out of 32 closures 29 could be converted to spores with little effort. One closure failed to infer its parameter type when expressed as a spore. Two other closures could not be converted due to implementation restrictions of our current prototype. On average, per converted closure 1.4 LOC had to be changed. This number is dominated by two factors: the inability to use the implicit conversion from normal functions to spores, and one particularly complex closure in ``mandelbrot'' that required changing 9 LOC. In our programs, the number of captured variables is on average 0.56. These results suggest that programs using closures in non-trivial ways can typically be converted to using spores with relatively little effort, even if the used APIs do not use spore types.
+\paragraph{\textbf{Results}} The results are shown in Figure~\ref{fig:spore-eval}. Out of 32 closures 29 could be converted to spores with little effort. One closure failed to infer its parameter type when expressed as a spore. Two other closures could not be converted due to implementation restrictions of our current prototype. On average, per converted closure 1.4 LOC had to be changed. This number is dominated by two factors: the inability to use the implicit conversion from normal functions to spores, and one particularly complex closure in ``mandelbrot'' that required changing 9 LOC. In our programs, the number of captured variables is on average 0.56. These results suggest that programs using closures in non-trivial ways can typically be converted to using spores with relatively little effort, even if the used APIs do not use spore types.
 
 
 \section{Case Studies}
