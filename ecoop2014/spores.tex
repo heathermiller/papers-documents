@@ -95,7 +95,7 @@
 \lstset{tabsize=2,
 basicstyle=\ttfamily\fontsize{9pt}{1em}\selectfont,
 commentstyle=\itshape\rmfamily,
-numbers=left, numberstyle=\scriptsize\color{gray}\ttfamily, language=scala,moredelim=[il][\sffamily]{?},mathescape=true,showspaces=false,showstringspaces=false,xleftmargin=15pt,escapechar=@, morekeywords=[1]{let,fn,val},deletekeywords={for},classoffset=0,belowskip=\smallskipamount
+numbers=left, numberstyle=\scriptsize\color{gray}\ttfamily, language=scala,moredelim=[il][\sffamily]{?},mathescape=false,showspaces=false,showstringspaces=false,xleftmargin=15pt,escapechar=@, morekeywords=[1]{let,fn,val},deletekeywords={for},classoffset=0,belowskip=\smallskipamount
 }
 
 % \setlength{\belowcaptionskip}{-5pt}
@@ -1353,9 +1353,9 @@ automatically if a type parameter has declared such a context bound. Our
 proposal essentially adds context bounds to type members.}
 
 Taking another example, it might be necessary for a spore to require the
-availability of instances of a certain typeclass for the types of all of its
+availability of instances of a certain type class for the types of all of its
 captured variables. A typical example for such a type class is \verb|Pickler|:
-types with an instance of the \verb|Pickler| typeclass can be pickled using a
+types with an instance of the \verb|Pickler| type class can be pickled using a
 new type-based pickling framework for Scala~\cite{ScalaPickling}. To be able
 to pickle a spore, it's necessary that all its captured types have an instance
 of Pickler.\footnote{A spore can be pickled by pickling its environment and
@@ -1364,7 +1364,13 @@ the fully-qualified class name of its corresponding function class.}
 % because Property[T] allows requiring that all captured types implement the "interface" T
 % and then you can continue like in the snippet you showed me about how it's not Java-style interfaces but more like JavaGI and C++...
 
-Spores allow expressing such a requirement using implicit properties. The idea is that if there is an implicit of type Property[Pickler] in scope at the point where a spore is created, then it is enforced that all captured types in the spore header have an instance of the Pickler type class:
+Spores allow expressing such a requirement using a notion of implicit {\em
+properties}. The idea is that if there is an implicit value
+\footnote{An implicit value is a value in \textit{implicit scope} that's statically selected based on its type.}
+of type \verb|Property[Pickler]| in scope at the
+point where a spore is created, then it is enforced that all captured types in
+the spore header have an instance of the \verb|Pickler| type class
+% \footnote{A type class is a combination of a generic trait and a set of implicit values that provide type-specialized implementations of that trait. It's an alternative for providing implementations of generic interfaces and a way to automatically dispatch to them.}:
 
 \begin{lstlisting}
 import spores.withPickler
@@ -1378,33 +1384,38 @@ spore {
 }
 \end{lstlisting}
 
-While an imported property does not have an impact on how a spore is constructed (besides the property import), it has an impact on the result type of the spore macro. In the above example, the result type would be a refinement of the Spore type:
+While an imported property does not have an impact on how a spore is
+constructed (besides the property import), it has an impact on the result type
+of the spore macro. In the above example, the result type would be a
+refinement of the \verb|Spore| type:\footnote{In the code example, \texttt{implicitly[T]} returns the uniquely-defined implicit value of \texttt{T} which is in scope at the invocation site.}
+
 
 \begin{lstlisting}
 Spore[String, Int] {
   type Captured = (String, Int)
-  val captured: Captured
-  implicit val ev0 = implicitly[Pickler[(String, Int)]]
-  (x: String) => {
-    // ...
-  }
+  implicit val ev$0 = implicitly[Pickler[Captured]]
 }
 \end{lstlisting}
 
-The refinement type contains a type member Captured which is defined to be a tuple of all the captured types. The values of the actual captured variables are accessible using the captured value member. What's more, the refinement type contains for each type class that's required an implicit value with a type class instance for type Captured.
+For each property that's imported, the resulting spore refinement type
+contains an implicit value with the corresponding type class instance for type
+\verb|Captured|.
 
-Such implicit values allow retrieving a type class instance for the captured types of a given spore using Scala's implicitly function as follows:
+% Such implicit values allow retrieving a type class instance for the captured types of a given spore using Scala's implicitly function as follows:
 
-\begin{lstlisting}
-    val s = spore { ... }
-    implicitly[Pickler[s.Captured]]
-\end{lstlisting}
+% \begin{lstlisting}
+%     val s = spore { ... }
+%     implicitly[Pickler[s.Captured]]
+% \end{lstlisting}
 
-Note that s.Captured is defined to be the type of the environment of spore s: a tuple with all types of captured variables.
+% Note that s.Captured is defined to be the type of the environment of spore s: a tuple with all types of captured variables.
 
-\paragraph{Expressing context bounds at the method level}
+\paragraph{\textbf{\textit{Expressing context bounds in APIs}}}
 
-Using the above types and implicits it's now possible for a method to require argument spores to have certain context bounds. For example, requiring argument spores to have picklers defined for their captured types can be done as follows:
+Using the above types and implicits, it's also possible for a method
+to require argument spores to have certain context bounds. For example,
+requiring argument spores to have picklers defined for their captured types
+can be achieved as follows:
 
 \begin{lstlisting}
 def m[A, B](s: Spore[A, B])(implicit p: Pickler[s.Captured]) = {
