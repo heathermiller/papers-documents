@@ -1426,13 +1426,17 @@ def m[A, B](s: Spore[A, B])(implicit p: Pickler[s.Captured]) = {
 
 \subsubsection{Defining Custom Properties}
 
-Properties can be introduced using the \verb|Property| trait (provided by the spores library):
+Properties can be introduced using the \verb|Property| trait (provided by the
+spores library):
 
 \begin{lstlisting}[numbers=none]
-    trait Property[T]
+    trait Property[C[_]]
 \end{lstlisting}
 
-A custom property such as for immutable types can be introduced using a generic trait and an implicit property object that mixes in the above \verb|Property| trait:
+As a running example, we will be defining a custom  property for
+immutable types. A custom property can be introduced using a generic trait,
+and an implicit ``property'' object that mixes in the above \verb|Property|
+trait:
 
 \begin{lstlisting}
 object safe {
@@ -1452,16 +1456,22 @@ object safe {
     Immutable[Set[_]] with Immutable[Seq[_]] with ...
 }
 \end{lstlisting}
+
 \noindent
-The above definitions allow us to create spores that are guaranteed to capture only types \verb|T| for which an implicit of type \verb|Immutable[T]| exists.
+The above definitions allow us to create spores that are guaranteed to capture
+only types \verb|T| for which an implicit of type \verb|Immutable[T]| exists.
 
-It's also possible to define compound properties by mixing in multiple traits into an implicit property object:
+It's also possible to define compound properties by mixing in multiple traits
+into an implicit property object:
 
-\begin{verbatim}
+\begin{lstlisting}[numbers=none]
     implicit object myProps extends Property[Pickler] with Property[Immutable]
-\end{verbatim}
+\end{lstlisting}
 
-By making this compound property available in a scope within which spores are created (for example, using an import), it is enforced that those spores have both the context bound Pickler and the context bound Immutable.
+By making this compound property available in a scope within which spores are
+created (for example, using an \verb|import|), it is enforced that those
+spores have both the context bound \verb|Pickler| and the context bound
+\verb|Immutable|.
 
 
 \subsubsection{Composition}
@@ -2378,7 +2388,7 @@ In this section we evaluate the practicality of using spores as an alternative t
 
 \end{enumerate}
 
-\paragraph{Methodology} For each program, we obtained (a) the number of closures in the program that are candidates for conversion, (b) the number of closures that could be converted to spores, (c) the changed/added number of LOC, and (d) the number of captured variables. It is important to note that during the conversion it was not possible to rely on an implicit conversion of functions to spores, since all expected types remained normal function types in all cases; thus, the reported numbers are worse than they would be for APIs using spores.
+\paragraph{Methodology} For each program, we obtained (a) the number of closures in the program that are candidates for conversion, (b) the number of closures that could be converted to spores, (c) the changed/added number of LOC, and (d) the number of captured variables. It is important to note that during the conversion it was not possible to rely on an implicit conversion of functions to spores, since the expected types of all library methods that were invoked by the evaluated applications remained normal function types (\ie they were not converted to spore types); thus, the reported numbers are worse than they would be for APIs using spores.
 
 \paragraph{Results} The results are shown in Figure~\ref{fig:spore-eval}. Out of 32 closures 29 could be converted to spores with little effort. One closure failed to infer its parameter type when expressed as a spore. Two other closures could not be converted due to implementation restrictions of our current prototype. On average, per converted closure 1.4 LOC had to be changed. This number is dominated by two factors: the inability to use the implicit conversion from normal functions to spores, and one particularly complex closure in ``mandelbrot'' that required changing 9 LOC. In our programs, the number of captured variables is on average 0.56.
 
