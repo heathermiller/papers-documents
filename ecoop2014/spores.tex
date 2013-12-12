@@ -1104,7 +1104,7 @@ Spores can also be used in method definitions, for example, a method \verb|sendO
     def sendOverWire(s: Spore[Int, Int]): Unit = ...
 \end{lstlisting}
 
-Note that in this example, the \verb|Captured| (and \verb|Excluded|) type
+\noindent Note that in this example, the \verb|Captured| (and \verb|Excluded|) type
 member is not specified, meaning it is left abstract. In this case, so long as
 the spore's parameter and result types match, a spore type is always
 compatible, regardless of which types are captured.
@@ -1129,7 +1129,7 @@ For example, assume we are given two spores \verb|s1| and \verb|s2| with types:
     s2: Spore[String, Int] { type Captured = Nothing }
 \end{lstlisting}
 
-The fact that the \verb|Captured| type in \verb|s2| is defined to be
+\noindent The fact that the \verb|Captured| type in \verb|s2| is defined to be
 \verb|Nothing| means that the spore does not capture anything (\verb|Nothing|
 is Scala's bottom type). The composition of \verb|s1| and \verb|s2|, written
 \verb|s1 compose s2|, would therefore have the following refinement type:
@@ -1206,14 +1206,14 @@ This enables the use of spores in for-comprehensions, since it's possible to wri
     for (a <- gen1; b <- capture(gen2)) yield capture(a) + b
 \end{lstlisting}
 
-Note that superfluous \verb|capture| expressions are not harmful. Thus, it is
+\noindent Note that superfluous \verb|capture| expressions are not harmful. Thus, it is
 legal to write:
 
 \begin{lstlisting}[numbers=none]
     for (a <- capture(gen1); b <- capture(gen2)) yield capture(a) + capture(b)
 \end{lstlisting}
 
-This allows the use of \verb|capture| in a way that does not require users to
+\noindent This allows the use of \verb|capture| in a way that does not require users to
 know how for-comprehensions are desugared. In Section~\ref{sec:case-studies}
 we show how capture and the implicit conversion of functions to spores enables
 the use of for-comprehensions in the context of distributed programming with
@@ -1240,7 +1240,19 @@ spores.
 \label{sec:adv-usage-type-constraints}
 \vspace{1mm}
 
-two kinds, excluded types which achieve [fill in] and context bounds for captured types which achieve [fill in]
+In this section, we describe two different kinds of ``type constraints'' which
+enable more fine-grained control over closure capture semantics; excluded
+types which prevent certain types from being captured and context bounds for
+captured types which enforce certain type-based properties for all captured
+variables of a spore. Importantly, all of these different kinds of constraints
+compose, as we will see in later subsections.
+
+% \todo{because these things are recorded in the type, they compose! That means that excluded types cannot be forgotten upon composition -- instead the resulting spore excludes the composition of the excluded types from the composed spores.}
+
+Throughout this paper, we use as a motivating example hazards that arise in
+concurrent or distributed settings. However, note that the system of type
+constraints described henceforth is general, and can be applied to very
+different applications and sets of types.
 
 \subsubsection{Excluded Types}
 \label{sec:excluded-types}
@@ -1252,7 +1264,10 @@ For example, when using Akka, one should not capture variables of type
 \verb|Actor|; in Spark, one should not capture variables of type
 \verb|SparkContext|.
 
-Such restrictions can be expressed in our system by excluding types from being captured by spores, using refinements of the Spore trait. For example, the following refinement type forbids capturing variables of type Actor:
+Such restrictions can be expressed in our system by excluding types from being
+captured by spores, using refinements of the \verb|Spore| type presented in
+Section~\ref{sec:spore-type}. For example, the following refinement type
+forbids capturing variables of type \verb|Actor|:
 
 \begin{lstlisting}
 type SporeNoActor[-A, +B] = Spore[A, B] {
@@ -1260,13 +1275,16 @@ type SporeNoActor[-A, +B] = Spore[A, B] {
 }
 \end{lstlisting}
 \noindent
-Note the use of the auxiliary type constructor No: it enables the exclusion of multiple types while supporting desired sub-typing relationships. Its definition is very simple:
+Note the use of the auxiliary type constructor \verb|No|: it enables the exclusion of multiple types while supporting desired sub-typing relationships. Its definition is very simple:
 
 \begin{lstlisting}
 trait No[-T]
 \end{lstlisting}
 \noindent
-(We explain the "-" annotation on the type parameter below when discussing sub-typing.) For example, exclusion of multiple types can be expressed as follows:
+
+% (We explain the "-" annotation on the type parameter below when discussing sub-typing.)
+
+For example, exclusion of multiple types can be expressed as follows:
 
 \begin{lstlisting}
 type SafeSpore = Spore[Int, String] {
@@ -1274,12 +1292,14 @@ type SafeSpore = Spore[Int, String] {
 }
 \end{lstlisting}
 
-Given Scala's sub-typing rules for refinement types, a spore refinement excluding a superset of types excluded by an "otherwise type-compatible" spore is a subtype. For example, SafeSpore is a sub type of SporeNoActor[Int, String].
+Given Scala's sub-typing rules for refinement types, a spore refinement
+excluding a superset of types excluded by an ``otherwise type-compatible''
+spore is a subtype. For example, \verb|SafeSpore| is a sub type of
+\verb|SporeNoActor[Int, String]|.
 
+\paragraph{\bf Subtyping}
 
-\paragraph{Subtyping}
-
-Using some frameworks typically user-defined subclasses are created that extend framework-provided types. However, the extended types are sometimes not safe to be captured. For example, in Akka, user-created closures should not capture variables of type \verb|Actor| and any subtypes thereof. To express such a constraint in our system we define the \verb|No| type constructor to be contravariant in its type parameter; this is the meaning of the "-" annotation in the type declaration \verb|trait No[-T]|.
+Using some frameworks typically user-defined subclasses are created that extend framework-provided types. However, the extended types are sometimes not safe to be captured. For example, in Akka, user-created closures should not capture variables of type \verb|Actor| and any subtypes thereof. To express such a constraint in our system we define the \verb|No| type constructor to be contravariant in its type parameter; this is the meaning of the \verb|-| annotation in the type declaration \verb|trait No[-T]|.
 
 As a result, the following refinement type is a supertype of type \verb|SporeNoActor[Int, Int]| defined above (we assume \verb|MyActor| is a subclass of \verb|Actor|):
 
@@ -1291,8 +1311,13 @@ type MySpore = Spore[Int, Int] {
 \noindent
 It is important that \verb|MySpore| is a supertype and not a subtype of \verb|SporeNoActor[Int, Int]|, since an instance of \verb|MySpore| could capture some other subclass of \verb|Actor| which is not itself a subclass of \verb|MyActor|. Thus, it would not be safe to use an instance of \verb|MySpore| where an instance of \verb|SporeNoActor[Int, Int]| is required. On the other hand, an instance of \verb|SporeNoActor[Int, Int]| is safe to use in place of an instance of \verb|MySpore|, since it is guaranteed not to capture \verb|Actor| or any of its subclasses.
 
+\paragraph{\bf Reducing Boilerplate}
 
-\subsubsection{Attaching Properties with Context Bounds}
+
+
+\subsubsection{Context Bounds for Captured Types}
+\label{sec:context-bounds}
+% \subsubsection{Attaching Properties with Context Bounds}
 
 The fact that for spores a certain shape is enforced is very useful. However, in some situations this is not enough. For example, using closures in a concurrent setting is very error-prone, because of the fact that it's possible to capture mutable objects which leads to race conditions. Thus, closures should only capture immutable objects to avoid interference. However, such constraints cannot be enforced using the spore shape alone (captured objects are stored in constant values in the spore header, but such a constant might still refer to a mutable object).
 
@@ -1789,9 +1814,10 @@ Rule \textsc{S-SporeFun} expresses the fact that spore types are refinements of 
 { T_1 \Rightarrow R_1~\{~M~;~\seq{pn}~\} <: T_1 \Rightarrow R_1
 }{}
 \end{mathpar}
-
+  \vspace{-5mm}
   \caption{Subtyping}
   \label{fig:subtyping}
+  \vspace{-1mm}
 \end{figure*}
 
 
@@ -1909,7 +1935,7 @@ Figure~\ref{fig:opsem} shows the evaluation rules of a small-step operational se
 
 Rule \textsc{E-Comp3} is the computation rule for spore composition. Besides computing the composition in a way analogous to regular function composition, it defines the spore header of the result spore, as well as its properties. The properties of the result spore are restricted to those that are satisfied by the captured variables of both argument spores.
 
-
+\vspace{-2mm}
 \begin{figure*}[ht!]
   \centering
 
@@ -2002,10 +2028,11 @@ Rule \textsc{E-Comp3} is the computation rule for spore composition. Besides com
 }
 \end{mathpar}
   \vspace{-2mm}
-  \caption{Operational Semantics}
+  \caption[Operational Semantics]{Operational Semantics\footnotemark}
   \label{fig:opsem}
 \end{figure*}
 
+\footnotetext{For the sake of brevity, here we omit the standard evaluation rules. The complete set of evaluation rules can be found in the accompanying tech report~\cite{SporesFormally}}
 
 \begin{figure*}[ht!]
   \centering
@@ -2041,11 +2068,11 @@ Rule \textsc{E-Comp3} is the computation rule for spore composition. Besides com
   \label{fig:helper}
 \end{figure*}
 
-% \vspace{-5mm}
+\vspace{-5mm}
 
 \subsection{Soundness}\label{sec:soundness}
 
-This section presents a soundness proof of the spore type system. The proof is based on a pair of progress and preservation theorems~\cite{WrightF94}. A complete proof of soundness appears in the companion technical report. In addition to standard lemmas, such as Lemma~\ref{lem:substitution} and Lemma~\ref{lem:weak}, we also prove a lemma specific to our type system, namely Lemma~\ref{lem:pres-import}, which ensures types are preserved under property import. Soundness of the type system follows from Theorem~\ref{th:progress} and Theorem~\ref{th:pres}.
+This section presents a soundness proof of the spore type system. The proof is based on a pair of progress and preservation theorems~\cite{WrightF94}. A complete proof of soundness appears in the companion technical report~\cite{SporesFormally}. In addition to standard lemmas, such as Lemma~\ref{lem:substitution} and Lemma~\ref{lem:weak}, we also prove a lemma specific to our type system, namely Lemma~\ref{lem:pres-import}, which ensures types are preserved under property import. Soundness of the type system follows from Theorem~\ref{th:progress} and Theorem~\ref{th:pres}.
 
 % \begin{lemma}
 % \emph{(Canonical forms)}
@@ -2068,6 +2095,7 @@ This section presents a soundness proof of the spore type system. The proof is b
 \emph{(Progress)}
 \label{th:progress}
 Suppose $t$ is a closed, well-typed term (that is, $\vdash t : T$ for some $T$). Then either $t$ is a value or else there is some $t'$ with $t \rightarrow t'$.
+\vspace{-2.5mm}
 \end{theorem}
 \begin{proof}
 By induction on a derivation of $\vdash t : T$. The only three interesting cases are the ones for spore creation, application (where we might apply a spore to some argument), and spore composition.
@@ -2078,6 +2106,7 @@ By induction on a derivation of $\vdash t : T$. The only three interesting cases
 \emph{(Preservation of types under import)}
 \label{lem:pres-import}
 If $\Gamma ; \Delta, pn \vdash t : T$ then $\Gamma ; \Delta \vdash insert(pn, t) : T$
+\vspace{-2.5mm}
 \end{lemma}
 \begin{proof}
 By induction on a derivation of $\Gamma ; \Delta, pn \vdash t : T$.
@@ -2088,6 +2117,7 @@ By induction on a derivation of $\Gamma ; \Delta, pn \vdash t : T$.
 \emph{(Preservation of types under substitution)}
 \label{lem:substitution}
 If $\Gamma, x : S ; \Delta \vdash t : T$ and $\Gamma ; \Delta \vdash s : S$, then $\Gamma ; \Delta \vdash [x \mapsto s]t : T$
+\vspace{-2.5mm}
 \end{lemma}
 \begin{proof}
 By induction on a derivation of $\Gamma, x : S ; \Delta \vdash t : T$.
@@ -2098,6 +2128,7 @@ By induction on a derivation of $\Gamma, x : S ; \Delta \vdash t : T$.
 \emph{(Weakening)}
 \label{lem:weak}
 If $\Gamma ; \Delta \vdash t : T$ and $x \notin dom(\Gamma)$, then $\Gamma, x : S ; \Delta \vdash t : T$.
+\vspace{-2.5mm}
 \end{lemma}
 \begin{proof}
 By induction on a derivation of $\Gamma ; \Delta \vdash t : T$.
@@ -2108,6 +2139,7 @@ By induction on a derivation of $\Gamma ; \Delta \vdash t : T$.
 \emph{(Preservation)}
 \label{th:pres}
 If $\Gamma ; \Delta \vdash t : T$ and $t \rightarrow t'$, then $\Gamma ; \Delta \vdash t' : T$.
+\vspace{-2.5mm}
 \end{theorem}
 \begin{proof}
 By induction on a derivation of $\Gamma ; \Delta \vdash t : T$.
