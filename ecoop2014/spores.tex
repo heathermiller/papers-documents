@@ -1311,8 +1311,29 @@ type MySpore = Spore[Int, Int] {
 \noindent
 It is important that \verb|MySpore| is a supertype and not a subtype of \verb|SporeNoActor[Int, Int]|, since an instance of \verb|MySpore| could capture some other subclass of \verb|Actor| which is not itself a subclass of \verb|MyActor|. Thus, it would not be safe to use an instance of \verb|MySpore| where an instance of \verb|SporeNoActor[Int, Int]| is required. On the other hand, an instance of \verb|SporeNoActor[Int, Int]| is safe to use in place of an instance of \verb|MySpore|, since it is guaranteed not to capture \verb|Actor| or any of its subclasses.
 
-\paragraph{\bf Reducing Boilerplate}
+\paragraph{\bf Reducing \texttt{Excluded} Boilerplate}
 
+Given that the design of spores was guided in part by a desire to make them
+easy to use, and easy to integrate in already closure-heavy code with minimal
+changes, one might observe that the \verb|Spore| type with \verb|Excluded|
+types introduces considerable verbosity. This is easily solved in practice by
+the addition of a macro \verb|without[T]| which takes a type parameter
+\verb|T| and rewrites the spore type to take into consideration the excluded
+type \verb|T|. Thus, in the case of the \verb|SafeSpore| example, the same spore
+refinement type can easily be synthesized inline in the definition of a spore value:
+
+\begin{lstlisting}
+val safeSpore = spore {
+  val a = ...
+  val b = ...
+  (x: T) => { ... }
+}.without[Actor].without[Util]
+\end{lstlisting}
+
+
+ Spores, as so far
+proposed, introduce considerable verbosity in pursuit of the requirement to
+explicitly define the spore's environment.
 
 
 \subsubsection{Context Bounds for Captured Types}
@@ -2425,10 +2446,13 @@ Java RMI~\cite{JavaRMI}
 Python also can't reliably serialize functions~\cite{PythonPickle}.
 
 Supporting imperative features typically requires complex effect systems~\cite{DPJ}. our paper provides simpler ways to make programming with closures in imperative OO languages safer
+Lighter-weight alternative approach to some kind of crazy type and effect system.
 
 Should reference Cloud Types~\cite{CloudTypes}
 
-Lighter-weight alternative approach to some kind of crazy type and effect system.
+Delimited continuations represent a way serialize behavior, but don't resolve
+any of the problems of normal Scala closures when it comes to accidental
+capture, as spores do~\cite{DelimitedContinuations}.
 
 \section{Conclusion}
 \label{sec:conclusion}
