@@ -232,8 +232,7 @@ same task on the different pieces of this distributed data in parallel.
 Examples across functional and object-oriented paradigms include \mbox{Java
 8}'s monadic-style optionally parallel collections~\cite{JavaLambdas}, Scala's
 parallel~\cite{ScalaParColls} and concurrent dataflow~\cite{FlowPools}
-collections, Data Parallel Haskell~\cite{DataParallelHaskell}, Concurrent
-Collections (CnC)~\cite{CnC}, Nova~\cite{Nova}, and Haskell's \verb|Par|
+collections, Data Parallel Haskell~\cite{DataParallelHaskell}, CnC~\cite{CnC}, Nova~\cite{Nova}, and Haskell's \verb|Par|
 monad~\cite{HaskellPar} to name a few.
 
 % Data-parallel programming has been established as a particularly successful
@@ -246,9 +245,8 @@ monad~\cite{HaskellPar} to name a few.
 
 In the context of distributed programming, data-parallel frameworks like
 Hadoop or MapReduce~\cite{MapReduce} and Spark~\cite{Spark} are designed
-around functional patterns where closures encapsulating computations are
-transmitted over the network to large-scale persistent datasets stored on
-different nodes in the cluster. As a result of the ``big data'' revolution,
+around functional patterns where closures are
+transmitted across cluster nodes to large-scale persistent datasets. As a result of the ``big data'' revolution,
 these frameworks have become very popular, in turn further highlighting the
 need to be able to reliably and safely serialize and transmit closures over
 the network.
@@ -278,14 +276,8 @@ languages but also in pure functional languages like Haskell:
   sendFunc :: SendPort (Int -> Int) -> Int -> ProcessM ()
   sendFunc p x = sendChan p (\y -> x + y + 1)
 \end{lstlisting}
-
-In this Haskell example, the function sent on the channel,
-\verb|(\y -> x + y + 1)|,
-is a closure that captures its free variables, in this case \verb|x|.
-As one might expect, to serialize a function value means that one must also
-serialize its free variables. However, in this case, the types of these free
-variables are unrelated to the type of the function value, so it is entirely
-unclear how to serialize them.
+\noindent
+In this example, in function \verb|sendFunc| we are sending the lambda \verb|(\y -> x + y + 1)| on channel \verb|p|. The lambda captures variable \verb|x|, a parameter of \verb|sendFunc|. Serializing the lambda requires serializing also its captured variables. However, when looking up a serializer for the lambda, only the type of the lambda is taken into account; however, it doesn't tell us anything about the types of its captured variables, which makes it impossible in Haskell to look up serializers for them.
 
 In object-oriented languages like Java or C\#, serialization is solved
 differently -- the runtime environment is designed to be able to serialize any
@@ -334,7 +326,7 @@ related to concurrency and distribution include:
 \item language-specific compilation schemes, creating implicit references to objects that are not serializable;
 \item transitive references that inadvertently hold on to excessively large object graphs, creating memory leaks;
 \item capturing references to mutable objects, leading to race conditions in a concurrent setting;
-\item unknowingly accessing unstable object members such as method calls, which in a distributed setting can have logically different meanings on different machines;
+\item unknowingly accessing unstable object members such as method calls, which in a distributed setting can have logically different meanings on different machines.
 \end{itemize}
 
 Given all of these issues, exposing functions in public APIs is a source of
@@ -342,10 +334,10 @@ headaches for authors of concurrent or distributed frameworks. Framework users
 who stumble across any of these issues are put in a position where it's
 unclear whether or not the encountered issue is a problem on the side of the
 user or the framework, thus often adversely hitting the perceived reliability
-of these frameworks and libraries. Furthermore, even internally-facing
+of these frameworks and libraries. Furthermore, even internal
 function-based APIs pose serious software engineering challenges, since small
 changes to a codebase can affect the environment captured by a given closure,
-potentially rendering them suddenly not serializable or adding inadvertent
+potentially rendering it suddenly not serializable or adding inadvertent
 race conditions, thus making refactoring error-prone, and debugging difficult.
 
 We argue that solving these problems in a principled way could lead to more
@@ -357,16 +349,14 @@ to a potentially wide array of new frameworks.
 This paper takes a step towards more principled {\em function-passing style}
 by introducing a new closure-like abstraction, {\em spores}, which is designed
 to avoid typical hazards of closures. By including type information of
-captured variables in the type of a spore, we enable the expression of type-
-based constraints for captured variables, making spores safer to use in a
+captured variables in the type of a spore, we enable the expression of type-based constraints for captured variables, making spores safer to use in a
 concurrent or distributed setting. We show that this approach can be made
 practical by automatically synthesizing refinement types using macros, and by
 leveraging local type inference. Using type-based constraints, spores allow
 expressing a variety of ``safe'' closures, such as guaranteed-serializable
 closures, closures which capture only immutable types, or closures with
-customizable user-defined type-based properties. Finally, we argue that by
-principle of a type-based approach, spores have the added benefit of being
-able to benefit from optimization, further safety via type system extensions,
+custom, user-defined type-based properties. Finally, we argue that by
+principle of a type-based approach, spores can potentially benefit from optimization, further safety via type system extensions,
 and verification opportunities.
 
 The design of spores is guided by the following principles:
@@ -414,7 +404,7 @@ their users.
 
 \end{itemize}
 
-\subsection{Selected Related Work}
+\subsection{Selected Related Work}\label{sec:sel-rel-work}
 
 Cloud Haskell~\cite{CloudHaskell} provides statically guaranteed-serializable
 closures by either rejecting environments outright, or by allowing manual
@@ -492,9 +482,7 @@ language\footnote{\sporeurl}.
 
 \item We (a) demonstrate the practicality of spores through an small
 empirical study using a collection of Scala programs, and (b) show the power
-of the guarantees spores provide through a case study of new distributed and
-concurrent frameworks that this safe foundation for migratable closures can
-enable.
+of the guarantees spores provide through case studies using parallel and distributed frameworks.
 \end{itemize}
 
 
@@ -2391,20 +2379,18 @@ In the above example, capturing a mutable object (or, in fact, any object of typ
 % \item Distributed pipelines / distributed streams
 % \end{itemize}
 
-\section{Related Work}
+\section{Other Related Work}
 \label{sec:related-work}
+
+Parallel closures~\cite{ParallelClosures} are a variation of closures that make data in the environment available using read-only references using a type system for reference immutability. This enables parallel execution without the possibility of data races. Spores are not limited to immutable environments, and do not require a type system extension.
+
+HdpH~\cite{HDPH} generalizes Cloud Haskell's closures in several aspects: first, closures can be transformed without eliminating them. Second, unnecessary serialization is avoided, e.g., when applying a closure immediately after creation. Otherwise, the discussion of Cloud Haskell in Section~\ref{sec:sel-rel-work} also applies to HdpH.
+
+Termite Scheme~\cite{Termite} is a Scheme dialect for distributed programming based on an Erlang-style concurrency model. Closures and continuations are always serializable, since references to non-serializable objects (like open files or physical devices) are automatically wrapped in processes that are serialized as their process ID. In contrast, with spores there is no such automatic wrapping; moreover, spores are designed for static typing and to express user-defined type-based constraints, which don't exist in Termite Scheme.
 
 Non-academic related work: functions in Rust, 3 different types based on
 different possibilities for environments \cite{RustFunctions}; functions,
 closures, and procedures. Procedures are shippable.
-
-Parallel closures \cite{ParallelClosures}. First known example of closures
-with effectively immutable environment.
-
-CloudHaskell \cite{CloudHaskell}. Introduces a type system that rejects anything
-that is not static. Too strict.
-
-Haskell distributed parallel Haskell~\cite{HDPH} extends the serializable closures found in CloudHaskell.
 
 C++ 11 comes with a capture syntax. Though, it's not possible to guarantee that construction is correct. If you require certain things from the closure, how is it expressed? If a method declares a parameter type which is a closure, the important thing is that in this parameter type, you can specify the requirements about capturing. So it's ensured that whatever's passed as an argument to the method satisfies these requirements. This isn't possible with C++ 11 closures. \cite{CplusplusLambas}
 
