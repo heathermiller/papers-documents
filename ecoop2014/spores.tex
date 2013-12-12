@@ -1277,14 +1277,14 @@ type SporeNoActor[-A, +B] = Spore[A, B] {
 \noindent
 Note the use of the auxiliary type constructor \verb|No|: it enables the exclusion of multiple types while supporting desired sub-typing relationships. Its definition is very simple:
 
-\begin{lstlisting}
+\begin{lstlisting}[numbers=none]
 trait No[-T]
 \end{lstlisting}
 \noindent
 
 % (We explain the "-" annotation on the type parameter below when discussing sub-typing.)
 
-For example, exclusion of multiple types can be expressed as follows:
+\noindent For example, exclusion of multiple types can be expressed as follows:
 
 \begin{lstlisting}
 type SafeSpore = Spore[Int, String] {
@@ -1297,7 +1297,7 @@ excluding a superset of types excluded by an ``otherwise type-compatible''
 spore is a subtype. For example, \verb|SafeSpore| is a sub type of
 \verb|SporeNoActor[Int, String]|.
 
-\paragraph{\bf Subtyping}
+\paragraph{\textbf{\textit{Subtyping}}}
 
 Using some frameworks typically user-defined subclasses are created that extend framework-provided types. However, the extended types are sometimes not safe to be captured. For example, in Akka, user-created closures should not capture variables of type \verb|Actor| and any subtypes thereof. To express such a constraint in our system we define the \verb|No| type constructor to be contravariant in its type parameter; this is the meaning of the \verb|-| annotation in the type declaration \verb|trait No[-T]|.
 
@@ -1311,7 +1311,7 @@ type MySpore = Spore[Int, Int] {
 \noindent
 It is important that \verb|MySpore| is a supertype and not a subtype of \verb|SporeNoActor[Int, Int]|, since an instance of \verb|MySpore| could capture some other subclass of \verb|Actor| which is not itself a subclass of \verb|MyActor|. Thus, it would not be safe to use an instance of \verb|MySpore| where an instance of \verb|SporeNoActor[Int, Int]| is required. On the other hand, an instance of \verb|SporeNoActor[Int, Int]| is safe to use in place of an instance of \verb|MySpore|, since it is guaranteed not to capture \verb|Actor| or any of its subclasses.
 
-\paragraph{\bf Reducing \texttt{Excluded} Boilerplate}
+\paragraph{\textbf{\textit{Reducing \texttt{Excluded} Boilerplate}}}
 
 Given that the design of spores was guided in part by a desire to make them
 easy to use, and easy to integrate in already closure-heavy code with minimal
@@ -1334,14 +1334,35 @@ val safeSpore = spore {
 \label{sec:context-bounds}
 % \subsubsection{Attaching Properties with Context Bounds}
 
-The fact that for spores a certain shape is enforced is very useful. However, in some situations this is not enough. For example, using closures in a concurrent setting is very error-prone, because of the fact that it's possible to capture mutable objects which leads to race conditions. Thus, closures should only capture immutable objects to avoid interference. However, such constraints cannot be enforced using the spore shape alone (captured objects are stored in constant values in the spore header, but such a constant might still refer to a mutable object).
+The fact that for spores a certain shape is enforced is very useful. However,
+in some situations this is not enough. For example, a common source of race
+conditions in data-parallel frameworks like Scala's parallel collections
+manifests itself when users unwittingly capture mutable objects (\eg an
+instance of \verb|scala.collection.mutable.HashMap| from the Scala standard
+library). Thus, a user might want to enforce that closures only capture
+immutable objects, so as to avoid interference. However, such constraints
+cannot be enforced using the spore shape alone (captured objects are stored in
+constant values in the spore header, but such a constant might still refer to
+a mutable object).
 
-In this section we introduce a form of type-based constraints called "context bounds" that can be attached to a spore which enforce certain type-based properties for all captured variables of a spore.\footnote{The name ``context bound'' is used in Scala to refer to a particular kind of implicit parameter that is added automatically if a type parameter has declared such a context bound. Our proposal essentially adds context bounds to type members.}
+In this section, we introduce a form of type-based constraints called
+``context bounds'' which enforce certain type-based properties for all
+captured variables of that spore.\footnote{The name ``context bound'' is used
+in Scala to refer to a particular kind of implicit parameter that is added
+automatically if a type parameter has declared such a context bound. Our
+proposal essentially adds context bounds to type members.}
 
-Taking another example, it might be necessary for a spore to require the availability of instances of a certain type class for the types of all its captured variables. A typical example for such a type class is Pickler: types with an instance of the Pickler type class can be pickled using a new pickling framework for Scala [oopsla-pickling]. To be able to pickle a spore, it's necessary that all its captured types have an instance of Pickler.\footnote{A spore can be pickled by pickling its environment and the fully-qualified class name of its corresponding function class.}
+Taking another example, it might be necessary for a spore to require the
+availability of instances of a certain typeclass for the types of all of its
+captured variables. A typical example for such a type class is \verb|Pickler|:
+types with an instance of the \verb|Pickler| typeclass can be pickled using a
+new type-based pickling framework for Scala~\cite{ScalaPickling}. To be able
+to pickle a spore, it's necessary that all its captured types have an instance
+of Pickler.\footnote{A spore can be pickled by pickling its environment and
+the fully-qualified class name of its corresponding function class.}
 
-because Property[T] allows requiring that all captured types implement the "interface" T
-and then you can continue like in the snippet you showed me about how it's not Java-style interfaces but more like JavaGI and C++...
+% because Property[T] allows requiring that all captured types implement the "interface" T
+% and then you can continue like in the snippet you showed me about how it's not Java-style interfaces but more like JavaGI and C++...
 
 Spores allow expressing such a requirement using implicit properties. The idea is that if there is an implicit of type Property[Pickler] in scope at the point where a spore is created, then it is enforced that all captured types in the spore header have an instance of the Pickler type class:
 
