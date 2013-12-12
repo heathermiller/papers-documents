@@ -1476,11 +1476,20 @@ spores have both the context bound \verb|Pickler| and the context bound
 
 \subsubsection{Composition}
 
-Now that we've introduced type constraints in the form of excluded types and context bounds, we present generalized composition rules for the types of spores with such constraints.
+Now that we've introduced type constraints in the form of excluded types and
+context bounds, we present generalized composition rules for the types of
+spores with such constraints.
 
-To precisely describe the composition rules, we introduce the following notation: the function $Excluded$ returns for a given refinement type the set of types that are excluded; the function $Captured$ returns for a given refinement type the set of type that are captured. Using these two mathematical functions, we can precisely specify how the type members of the resulting spore refinement type are computed. (We use the syntax \verb|.type| to refer to the singleton types of the argument spores and the result, respectively.)
+To precisely describe the composition rules, we introduce the following
+notation: the function $Excluded$ returns, for a given refinement type, the
+set of types that are excluded; the function $Captured$ returns, for a given
+refinement type, the set of types that are captured. Using these two
+mathematical functions, we can precisely specify how the type members of the
+resulting spore refinement type are computed. (We use the syntax \verb|.type|
+to refer to the singleton types of the argument spores and the result,
+respectively.)
 
-\vspace{-5mm}
+% \vspace{-5mm}
 \begin{enumerate}
 
 \item $Captured(res.type) = Captured(s1.type), Captured(s2.type)$
@@ -1493,23 +1502,53 @@ The first rule expresses the fact that the sequence of captured types of the res
 
 The second rule expresses the fact that the set of excluded types of the result refinement type is defined as the set of all types that are excluded by one of the argument spores, but that are not captured by any of the argument spores.
 
-For example, assume two spores s1 and s2 with types
-\begin{lstlisting}
-Spore[Int, String] {
-  type Captured = (Int, Util)
-  type Excluded = No[Actor]
-}
-\end{lstlisting}
+For example, assume two spores \verb|s1| and \verb|s2| with types:
+
+\begin{figure}[h!]
+\vspace{0.5mm}
+\begin{subfigure}{.5\textwidth}
+  \centering
+  \begin{lstlisting}
+    Spore[Int, String] {
+      type Captured = (Int, Util)
+      type Excluded = No[Actor]
+    }
+  \end{lstlisting}
+  \vspace{-4mm}
+  \caption{Type of spore \texttt{s1}.}
+\end{subfigure}%
+\begin{subfigure}{.5\textwidth}
+  \centering
+  \begin{lstlisting}
+    Spore[String, Int] {
+      type Captured = (String, Int)
+      type Excluded = No[Actor] with No[Util]
+    }
+  \end{lstlisting}
+  \vspace{-4mm}
+  \caption{Type of spore \texttt{s2}.}
+\end{subfigure}%
+\label{fig:spore-composition}
+\vspace{0.5mm}
+\end{figure}
+
+% \begin{lstlisting}
+% Spore[Int, String] {
+%   type Captured = (Int, Util)
+%   type Excluded = No[Actor]
+% }
+% \end{lstlisting}
+% \noindent
+% and
+% \begin{lstlisting}
+% Spore[String, Int] {
+%   type Captured = (String, Int)
+%   type Excluded = No[Actor] with No[Util]
+% }
+% \end{lstlisting}
+
 \noindent
-and
-\begin{lstlisting}
-Spore[String, Int] {
-  type Captured = (String, Int)
-  type Excluded = No[Actor] with No[Util]
-}
-\end{lstlisting}
-\noindent
-The result of composing the two spores, \verb|s1 compose s2|, has thus the following result type:
+The result of composing the two spores, \verb|s1 compose s2|, thus has the following type:
 
 \begin{lstlisting}
 Spore[String, String] {
@@ -1518,11 +1557,15 @@ Spore[String, String] {
 }
 \end{lstlisting}
 
-\paragraph{Loosening constraints}
-Also should show how to loosen constraints!!
-Constraints can be loosened using the regular type widening rules.
+\paragraph{\textbf{Loosening constraints}}
 
-Let's say we have a spore with the following elaborate refinement type:
+Given that type constraints compose, it's evident that as spores compose, type
+constraints can monotonically increase in number. Thus, it's important to note
+that it's also possible to soundly loosen constraints using the regular type
+widening rules.
+
+Let's say we have a spore with the following (too elaborate) refinement type:
+
 \begin{lstlisting}
 Spore[String, Int] {
   type Captured = (String, Int)
@@ -1530,7 +1573,9 @@ Spore[String, Int] {
 }
 \end{lstlisting}
 
-Then it's possible to soundly drop constraints by assigning the spore to a variable of a super type such as
+\noindent
+Then we can soundly drop constraints by assigning the spore to a variable of a
+supertype:
 
 \begin{lstlisting}
 Spore[String, Int] {
