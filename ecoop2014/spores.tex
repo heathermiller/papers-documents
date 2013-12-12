@@ -274,8 +274,7 @@ same task on the different pieces of this distributed data in parallel.
 Examples across functional and object-oriented paradigms include \mbox{Java
 8}'s monadic-style optionally parallel collections~\cite{JavaLambdas}, Scala's
 parallel~\cite{ScalaParColls} and concurrent dataflow~\cite{FlowPools}
-collections, Data Parallel Haskell~\cite{DataParallelHaskell}, Concurrent
-Collections (CnC)~\cite{CnC}, Nova~\cite{Nova}, and Haskell's \verb|Par|
+collections, Data Parallel Haskell~\cite{DataParallelHaskell}, CnC~\cite{CnC}, Nova~\cite{Nova}, and Haskell's \verb|Par|
 monad~\cite{HaskellPar} to name a few.
 
 % Data-parallel programming has been established as a particularly successful
@@ -2403,8 +2402,11 @@ In the above example, capturing a mutable object (or, in fact, any object of typ
 % \item Distributed pipelines / distributed streams
 % \end{itemize}
 
-\section{Related Work}
+\section{Other Related Work}
 \label{sec:related-work}
+
+Parallel closures~\cite{ParallelClosures} are a variation of closures that make data in the environment available using read-only references using a type system for reference immutability. This enables parallel execution without the possibility of data races. Spores are not limited to immutable environments, and do not require a type system extension.
+
 
 Non-academic related work: functions in Rust, 3 different types based on
 different possibilities for environments \cite{RustFunctions}; functions,
