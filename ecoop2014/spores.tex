@@ -2473,7 +2473,7 @@ We also provide an implicit conversion from standard Scala functions to spores. 
 \begin{figure}[t!]
 \centering
 \includegraphics[width=\textwidth]{evaluation.pdf}
-\caption{Evaluation of the practicality of using spores as an alternative to normal closures in Scala.}
+\caption{Evaluating the practicality of using spores in place of normal closures}
 \label{fig:spore-eval}
 \vspace{-5mm}
 \end{figure}
@@ -2596,7 +2596,7 @@ Parallel closures~\cite{ParallelClosures} are a variation of closures that make 
 
 HdpH~\cite{HDPH} generalizes Cloud Haskell's closures in several aspects: first, closures can be transformed without eliminating them. Second, unnecessary serialization is avoided, e.g., when applying a closure immediately after creation. Otherwise, the discussion of Cloud Haskell in Section~\ref{sec:sel-rel-work} also applies to HdpH.
 
-Delimited continuations represent a way to serialize behavior in Scala, but don't resolve any of the problems of normal Scala closures when it comes to accidental capture, as spores do~\cite{DelimitedContinuations}.
+Delimited continuations~\cite{DelimitedContinuations} represent a way to serialize behavior in Scala, but don't resolve any of the problems of normal Scala closures when it comes to accidental capture, as spores do.
 
 Termite Scheme~\cite{Termite} is a Scheme dialect for distributed programming based on an Erlang-style concurrency model. Closures and continuations are always serializable, since references to non-serializable objects (like open files or physical devices) are automatically wrapped in processes that are serialized as their process ID. In contrast, with spores there is no such automatic wrapping. Unlike closures in Termite Scheme, spores are statically-typed, supporting type-based constraints. Distributed Functional Programming in Scheme~\cite{DFPS} also provides serializable closures in a dynamically-typed setting.
 
