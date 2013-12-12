@@ -374,7 +374,7 @@ based approach, spores can potentially benefit from optimization, further
 safety via type system extensions, and verification opportunities.
 
 The design of spores is guided by the following principles:
-% \vspace{-1.5mm}
+
 \begin{itemize}
 \item {\bf Type-safety} Spores should be able to express type-based
 properties of captured variables in a statically safe way. Including type
@@ -876,7 +876,7 @@ to ensure that types being captured have certain properties.
 A crucial insight of spores is that, by including type information of captured
 variables in the type of a spore, type-based constraints for captured
 variables can be composed and checked, making spores safer to use in a
-concurrent, distributed, or in an arbitrary setting where closures must be
+concurrent, distributed, or in an arbitrary settings where closures must be
 controlled.
 
 % This paper takes a step towards more principled {\em function-passing style}
@@ -1408,9 +1408,7 @@ import spores.withPickler
 spore {
   val name: String = <expr1>
   val age: Int = <expr2>
-  (x: String) => {
-    // ...
-  }
+  (x: String) => { ...}
 }
 \end{lstlisting}
 
@@ -2062,7 +2060,7 @@ Rule \textsc{T-Comp} derives a result type for the composition of two spores. It
 
 \begin{figure*}[t!]
   \centering
-\vspace{-10mm}
+\vspace{-14mm}
 \begin{mathpar}
 % \inferrule[\textsc{E-Let1}]
 % { t_1 \rightarrow t'_1
@@ -2154,7 +2152,7 @@ Rule \textsc{T-Comp} derives a result type for the composition of two spores. It
   \vspace{-4mm}
   \caption[Operational Semantics]{Operational Semantics\footnotemark}
   \label{fig:opsem}
-  \vspace{-5mm}
+  \vspace{-7mm}
 \end{figure*}
 
 Figure~\ref{fig:opsem} shows the evaluation rules of a small-step operational semantics for our core language. The only non-standard rules are \textsc{E-AppSpore}, \textsc{E-Spore}, \textsc{E-Imp}, and \textsc{E-Comp3}. Rule \textsc{E-AppSpore} applies a spore literal to an argument value. The differences to regular function application (\textsc{E-AppAbs}) are (a) that the types in the spore header must satisfy the properties of the spore dynamically, and (b) that the variables in the spore header must be replaced by their values in the body of the spore's closure. Rule \textsc{E-Spore} is a simple congruence rule. Rule \textsc{E-Imp} is a computation rule that is always enabled. It adds property name $pn$ to all spore terms within the body $t$. The $insert$ helper function is defined in Figure~\ref{fig:helper} (we omit rules for \verb|compose| and \verb|let|, since they are analogous to rules \textsc{H-InsApp} and \textsc{H-InsSel}).
@@ -2165,7 +2163,7 @@ Rule \textsc{E-Comp3} is the computation rule for spore composition. Besides com
 
 \begin{figure*}[ht!]
   \centering
-  \vspace{-10mm}
+  \vspace{-1mm}
 \begin{mathpar}
 
 \inferrule[\textsc{H-InsSpore1}]
@@ -2194,6 +2192,7 @@ Rule \textsc{E-Comp3} is the computation rule for spore composition. Besides com
 
 \end{mathpar}
   \vspace{-0.6cm}
+  \vspace{-2.5mm}
   \caption{Helper function $insert$}
   \label{fig:helper}
   \vspace{-5mm}
@@ -2344,8 +2343,9 @@ Figure~\ref{fig:subtyping-ext} shows how the subtyping rules for spores have to 
   \vspace{-6mm}
   \caption{Subtyping extensions}
   \label{fig:subtyping-ext}
+  \vspace{-2mm}
 \end{figure*}
-\vspace{2mm}
+% \vspace{2mm}
 
 Figure~\ref{fig:typing-ext} shows the extensions to the typing rules. Rule \textsc{T-ESpore} additionally requires that none of the captured types $\seq{S}$ is a subtype of one of the types contained in the excluded types $\seq{U}$. The excluded types are recorded in the type of the spore. Rule \textsc{T-EComp} computes a new set of excluded types $\seq{V}$ based on both the excluded types and the captured types of $t_1$ and $t_2$. Given that it is possible that one of the spores captures a type that is excluded in the other spore, the type of the result spore excludes only those types that are guaranteed not be captured.
 
@@ -2377,9 +2377,9 @@ Figure~\ref{fig:typing-ext} shows the extensions to the typing rules. Rule \text
   \vspace{-4mm}
   \caption{Typing extensions}
   \label{fig:typing-ext}
-  \vspace{-5mm}
+  % \vspace{-5mm}
 \end{figure*}
-% \vspace{2mm}
+\vspace{2mm}
 
 Figure~\ref{fig:opsem-ext} shows the extensions to the operational semantics. Rule \\ \textsc{E-EAppSpore} additionally requires that none of the captured types $\seq{T}$ are contained in the excluded types $\seq{U}$. Rule \textsc{E-EComp3} computes the set of excluded types of the result spore in the same way as in the corresponding type rule (\textsc{T-EComp}).
 
@@ -2643,10 +2643,8 @@ an implementation of our approach in Scala.
 A key takeaway of our approach is that including type information of captured
 variables in the type of the spore enables a number of previously impossible
 opportunities, including but not limited to controlled capture in concurrent,
-distributed, and other arbitrary scenarios; it additionally facilitates
-verification of closure-heavy code, enables optimization opportunities, IDE
-support and compiler transformations that can further simplify the use of safe
-closures.
+distributed, and other arbitrary scenarios where closures must be
+controlled.
 
 Finally, we demonstrate the practicality of our approach through a small
 empirical study, and show that converting non-trivial
