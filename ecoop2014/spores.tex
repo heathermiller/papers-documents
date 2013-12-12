@@ -2365,6 +2365,25 @@ We also provide an implicit conversion from standard Scala functions to spores. 
 
 % pagerank   | ??  | ??        | ??         | ??          | ??
 
+In this section we evaluate the practicality of using spores as an alternative to normal closures in Scala by measuring the number of changes required to convert existing programs that crucially rely on closures to use spores.
+
+We analyze a number of real Scala programs, taken from three categories:
+\begin{enumerate}
+
+\item General, closure-heavy code, taken from the exercises of the popular MOOC on FP in Scala; the goal of analyzing this code is to get an approximation of the worst-case effort required when consistently using spores instead of closures, in a mostly-functional code base.
+
+\item Parallel applications based on Scala's parallel collections. These examples evaluate the practicality of introducing spores into a parallel code base to increase its robustness.
+
+\item Distributed applications based on the Apache Spark cluster computing framework. In this case, we evaluate the practicality of using spores in Spark applications to make sure closures are guaranteed to be serializable.
+
+\end{enumerate}
+
+\paragraph{Methodology} For each program, we obtained (a) the number of closures in the program that are candidates for conversion, (b) the number of closures that could be converted to spoes, (c) the changed LOC, and (d) the number of captured variables.
+
+\paragraph{Results}
+
+Figure~\ref{fig:spore-eval} 
+
 
 \section{Case Studies}
 \label{sec:case-studies}
