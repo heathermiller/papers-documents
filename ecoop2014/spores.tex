@@ -2068,7 +2068,7 @@ Rule \textsc{E-Comp3} is the computation rule for spore composition. Besides com
   \label{fig:helper}
 \end{figure*}
 
-% \vspace{-5mm}
+\vspace{-5mm}
 
 \subsection{Soundness}\label{sec:soundness}
 
@@ -2095,6 +2095,7 @@ This section presents a soundness proof of the spore type system. The proof is b
 \emph{(Progress)}
 \label{th:progress}
 Suppose $t$ is a closed, well-typed term (that is, $\vdash t : T$ for some $T$). Then either $t$ is a value or else there is some $t'$ with $t \rightarrow t'$.
+\vspace{-2.5mm}
 \end{theorem}
 \begin{proof}
 By induction on a derivation of $\vdash t : T$. The only three interesting cases are the ones for spore creation, application (where we might apply a spore to some argument), and spore composition.
@@ -2105,6 +2106,7 @@ By induction on a derivation of $\vdash t : T$. The only three interesting cases
 \emph{(Preservation of types under import)}
 \label{lem:pres-import}
 If $\Gamma ; \Delta, pn \vdash t : T$ then $\Gamma ; \Delta \vdash insert(pn, t) : T$
+\vspace{-2.5mm}
 \end{lemma}
 \begin{proof}
 By induction on a derivation of $\Gamma ; \Delta, pn \vdash t : T$.
@@ -2115,6 +2117,7 @@ By induction on a derivation of $\Gamma ; \Delta, pn \vdash t : T$.
 \emph{(Preservation of types under substitution)}
 \label{lem:substitution}
 If $\Gamma, x : S ; \Delta \vdash t : T$ and $\Gamma ; \Delta \vdash s : S$, then $\Gamma ; \Delta \vdash [x \mapsto s]t : T$
+\vspace{-2.5mm}
 \end{lemma}
 \begin{proof}
 By induction on a derivation of $\Gamma, x : S ; \Delta \vdash t : T$.
@@ -2125,6 +2128,7 @@ By induction on a derivation of $\Gamma, x : S ; \Delta \vdash t : T$.
 \emph{(Weakening)}
 \label{lem:weak}
 If $\Gamma ; \Delta \vdash t : T$ and $x \notin dom(\Gamma)$, then $\Gamma, x : S ; \Delta \vdash t : T$.
+\vspace{-2.5mm}
 \end{lemma}
 \begin{proof}
 By induction on a derivation of $\Gamma ; \Delta \vdash t : T$.
@@ -2135,6 +2139,7 @@ By induction on a derivation of $\Gamma ; \Delta \vdash t : T$.
 \emph{(Preservation)}
 \label{th:pres}
 If $\Gamma ; \Delta \vdash t : T$ and $t \rightarrow t'$, then $\Gamma ; \Delta \vdash t' : T$.
+\vspace{-2.5mm}
 \end{theorem}
 \begin{proof}
 By induction on a derivation of $\Gamma ; \Delta \vdash t : T$.
