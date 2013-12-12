@@ -191,18 +191,19 @@ frameworks that this safe foundation for migratable closures facilitates.
 % parallel, concurrent, and distributed programming to the mainstream. The
 % popularity of the rationale behind this viewpoint (immutable data transformed
 % by function application) has even lead to a number of object-oriented
-% programming languages adopting functional features such as lambdas
-% and thereby function closures.
-% However, despite this established viewpoint of FP as an enabler, reliably
-% distributing closures over a network, or using them in concurrent
-% environments nonetheless remains a challenge across FP and OO languages.
-% This paper takes a step towards more principled distributed and concurrent
-% programming by introducing a new closure-like abstraction and type system,
-% called spores, that can guarantee closures to be serializable, thread-safe,
-% or even have custom user-defined properties.
-% We prove our type system sound, implement our approach for Scala, and show the
-% power of these guarantees through a case analysis of real-world distributed/concurrent
-% frameworks that this safe foundation for migratable closures facilitates.
+% programming languages adopting functional features such as lambdas and thereby
+% function closures. However, despite this established viewpoint of FP as an
+% enabler, reliably distributing closures over a network, or using them in
+% concurrent environments nonetheless remains a challenge across FP and OO
+% languages. This paper takes a step towards more principled distributed and
+% concurrent programming by introducing a new closure-like abstraction and type
+% system, called spores, that can guarantee closures to be serializable, thread-
+% safe, or even have custom user-defined properties. Crucially, our system is
+% based on the principle of encoding type information corresponding to captured
+% variables in the type of a spore. We prove our type system sound, implement
+% our approach for Scala, and show the power of these guarantees through a case
+% analysis of real-world distributed/concurrent frameworks that this safe
+% foundation for migratable closures facilitates.
 
 \keywords{closures, functions, distributed programming, concurrent programming, type systems}
 \end{abstract}
@@ -494,7 +495,7 @@ soundness of the type system.
 language\footnote{\sporeurl}.
 
 \item We (a) demonstrate the practicality of spores through an small
-empirical study using a collection of Scala programs, and (b) show the power
+empirical study using a collection of real-world Scala programs, and (b) show the power
 of the guarantees spores provide through case studies using parallel and distributed frameworks.
 \end{itemize}
 
@@ -2648,8 +2649,7 @@ support and compiler transformations that can further simplify the use of safe
 closures.
 
 Finally, we demonstrate the practicality of our approach through a small
-empirical study, and show that even without automatic conversions, inference
-and synthesis (that is, at their highest verbosity), converting non-trivial
+empirical study, and show that converting non-trivial
 programs to use spores requires relatively little effort. We also illustrate
 the benefits of spores with and without type constraints in several real-world
 case studies.
