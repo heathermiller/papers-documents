@@ -199,7 +199,7 @@ frameworks that this safe foundation for migratable closures enables.
 % power of these guarantees through a case analysis of new distributed/concurrent
 % frameworks that this safe foundation for migratable closures enables.
 
-\keywords{functions, closures, distributed programming, concurrent programming, type systems}
+\keywords{closures, functions, distributed programming, concurrent programming, type systems}
 \end{abstract}
 %
 \section{Introduction}
@@ -1491,7 +1491,7 @@ notation: the function $Excluded$ returns, for a given refinement type, the
 set of types that are excluded; the function $Captured$ returns, for a given
 refinement type, the set of types that are captured. Using these two
 mathematical functions, we can precisely specify how the type members of the
-resulting spore refinement type are computed. (We use the syntax \verb|.type|
+resulting spore refinement type are computed. (We use the syntax $.type$
 to refer to the singleton types of the argument spores and the result,
 respectively.)
 
@@ -2401,7 +2401,7 @@ An expression \verb|spore { val y: S = s; (x: T) => /* body */ }| invokes the \v
 
 Type constraints are implemented as follows. First, invoking the generic \verb|without| macro passing a type argument \verb|T|, say, augments the generated \verb|Spore| refinement type by effectivly adding the clause \verb|with No[T]| to the definition of its \verb|Excluded| type member. Second, the existence of additional bounds on the captured types is detected by attempting to infer an implicit value of type \verb|Property[_]|. If such an implicit value can be inferred, a sequence of types specifying type bounds is obtained as follows. Basically, the type of the implicit value is matched against the pattern \\ \verb|Property[t1] with ... with Property[tn]| where the \verb|ti| are type variables. For each type \verb|ti| an implicit value member
 
-\begin{lstlisting}
+\begin{lstlisting}[numbers=none]
     implicit val evi: ti[Captured] = implicitly[ti[Captured]]
 \end{lstlisting}
 \noindent
