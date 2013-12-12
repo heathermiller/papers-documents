@@ -2528,7 +2528,7 @@ The \verb|GenericOp| class provides a method \verb|doOp| which performs a compou
 
 \subsubsection{Applying Spores}
 
-Using Spores the above conventions can be enforced by the compiler, avoiding unexpected runtime exceptions. It is sufficient to turn \verb|mapFun| and \verb|reduceFun| into spores:
+Using spores, the above conventions can be enforced by the compiler, avoiding unexpected runtime exceptions. It is sufficient to turn \verb|mapFun| and \verb|reduceFun| into spores:
 
 \begin{lstlisting}
 val mapFun: Spore[Session, (List[String], GenericOpAggregator)] =
