@@ -2495,7 +2495,7 @@ In this section we evaluate the practicality of using spores as an alternative t
 
 Frameworks like MapReduce~\cite{MapReduce} and Apache Spark~\cite{Spark} are designed for processing large datasets in a cluster. The programming models of these frameworks rely on distributing functions used for well-known map/reduce computation patterns.
 
-In Spark, these patterns are directly expressed in Scala using the standard higher-order functions \verb|map| and \verb|reduce| applied to an abstraction for distributed collections called ``resilient distributed dataset'' (RDD). However, to avoid unexpected runtime exceptions due to unserializable closures when passing closures to RDDs programmers, must adopt conventions that are subtle and unchecked by the Scala compiler.
+In Spark, these patterns are directly expressed in Scala using the standard higher-order functions \verb|map| and \verb|reduce| applied to an abstraction for distributed collections called ``resilient distributed dataset'' (RDD). However, to avoid unexpected runtime exceptions due to unserializable closures when passing closures to RDDs, programmers must adopt conventions that are subtle and unchecked by the Scala compiler.
 
 The following example shows a typical pattern extracted from a code base used in production:
 
@@ -2605,6 +2605,54 @@ Termite Scheme~\cite{Termite} is a Scheme dialect for distributed programming ba
 
 \section{Conclusion}
 \label{sec:conclusion}
+
+We've presented a type-based foundation for closures, called spores, designed
+to avoid various hazards that arise particularly in concurrent or distributed
+settings. We have presented a flexible type system for spores which enables
+composability of differently-constrained spores as well as custom user-defined
+type constraints. We formalize and present a full soundness proof, as well as
+an implementation of our approach in Scala.
+
+A key takeaway of our approach is that including type information of captured
+variables in the type of the spore enables a number of previously impossible
+opportunities, including but not limited to controlled capture in concurrent,
+distributed, and other arbitrary scenarios; it additionally facilitates
+verification of closure-heavy code, enables optimization opportunities, IDE
+support and compiler transformations that can further simplify the use of safe
+closures.
+
+Finally, we demonstrate the practicality of our approach through a small
+empirical study, and show that even without automatic conversions, inference
+and synthesis (that is, at their highest verbosity), converting non-trivial
+programs to use spores requires relatively little effort. We also illustrate
+the benefits of spores with and without type constraints in several real-world
+case studies.
+
+
+
+% through examples and case studies, we have shown the
+
+% A key takeaway is that it enables a bunch of goodies for distributed and concurrent programming.
+% But it also.
+
+% key ideas are this.
+% proven soundness.
+
+% We've demonstrated its practicality through a small empirical study, using spores even without all of the automatic conversions isn't that intrusive for all of the safety it offers.
+% We've illustrated the benefits of the safety guarantees of spores for several real-world use-cases. (custom type constraints)
+% validated many design principles through evaluation and case studies
+% Play up this everything being in the spore type point, and what enables in the intro and abstract.
+
+% Spores should be able to express type-based
+% properties of captured variables in a statically safe way. Including type
+% information of captured variables in the type of a spore creates a number of
+% previously impossible opportunities; it facilitates the verification of
+% closure-heavy code; it opens up the possibility for IDEs to assist in safe
+% closure creation, advanced refactoring, and debugging support; it enables
+% compilers to implement safe transformations that can further simplify the use
+% of safe closures, and it makes it possible for spores to integrate with type
+% class-based frameworks like Scala/pickling~\cite{ScalaPickling}.
+
 
 \bibliographystyle{abbrv}
 \bibliography{bib}
