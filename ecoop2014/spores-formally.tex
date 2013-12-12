@@ -507,6 +507,16 @@ This section presents a soundness proof of the spore type system. The proof is b
 
 \end{enumerate}
 \end{lemma}
+\begin{proof}
+According to the grammar in Figure~\ref{fig:syntax}, values in the core language can have three forms: $(x: T) \Rightarrow t$, $\{ \seq{l = v} \}$, and $\texttt{spore}~\{~\seq{x : T = v}~; \seq{pn} ; (x: T) \Rightarrow t~\}$ where $\seq{v}$ is a sequence of values.
+
+For the first part, according to (\textsc{T-Rec}) and the subtyping rules, $v$ is $\{ \seq{l = v} \}$ where $\seq{v}$ is a sequence of values of types $\seq{T}$.
+
+For the second part, according to the subtyping rules $v$ can have either type $T_1 \Rightarrow R_1$, $T_1 \Rightarrow R_1~\{~\texttt{type}~\mathcal{C} = \seq{S}~;~\seq{pn}~\}$, or $T_1 \Rightarrow R_1~\{~\texttt{type}~\mathcal{C}~;~\seq{pn}~\}$ where $T <: T_1$ and $R_1 <: R$. If $v$ has type $T_1 \Rightarrow R_1$, then according to the grammar and (\textsc{T-Abs}) $v$ must be $(x: T) \Rightarrow t$. If $v$ has either type $T_1 \Rightarrow R_1~\{~\texttt{type}~\mathcal{C} = \seq{S}~;~\seq{pn}~\}$ or type $T_1 \Rightarrow R_1~\{~\texttt{type}~\mathcal{C}~;~\seq{pn}~\}$, then according to the grammar and (\textsc{T-Spore}) $v$ must be $\texttt{spore}~\{~\seq{x : T = v}~; \seq{pn} ; (x: T_1) \Rightarrow t~\}$ where $\seq{v}$ is a sequence of values.
+
+Part three is similar.
+% Parts three and four are similar.
+\end{proof}
 
 
 \begin{theorem}
