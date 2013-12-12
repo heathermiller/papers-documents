@@ -2264,7 +2264,7 @@ We also provide an implicit conversion from standard Scala functions to spores. 
 
 Frameworks like MapReduce~\cite{MapReduce} and Apache Spark~\cite{Spark} are designed for processing large datasets in a cluster. The programming models of these frameworks rely on distributing functions used for well-known map/reduce computation patterns.
 
-In Spark, these patterns are directly expressed in Scala using the standard higher-order functions map and reduce applied to an abstraction for distributed collections called ``resilient distributed dataset'' (RDD). However, to avoid unexpected runtime exceptions due to unserializable closures, when passing closures to RDDs programmers must adopt conventions that are subtle and unchecked by the Scala compiler.
+In Spark, these patterns are directly expressed in Scala using the standard higher-order functions \verb|map| and \verb|reduce| applied to an abstraction for distributed collections called ``resilient distributed dataset'' (RDD). However, to avoid unexpected runtime exceptions due to unserializable closures when passing closures to RDDs programmers, must adopt conventions that are subtle and unchecked by the Scala compiler.
 
 The following example shows a typical pattern extracted from a code base used in production:
 
@@ -2279,87 +2279,58 @@ class GenericOp(sc: SparkContext, mapping: Map[String, String]) {
       (keyList, new GenericOpAggregator(s, localMapping))
     }
 
-    val reduceFun: (GenericOpAggregator, GenericOpAggregator) => GenericOpAggregator =
-      { (a, b) => a.merge(b) }
+    val reduceFun: (GenericOpAggregator, GenericOpAggregator) =>
+      GenericOpAggregator = { (a, b) => a.merge(b) }
 
     cachedSessions.map(mapFun).reduceByKey(reduceFun).collectAsMap
   }
 }
 \end{lstlisting}
 \noindent
-The \verb|GenericOp| class provides a method \verb|doOp| which performs a compound operation on the RDD \verb|cachedSessions|. \verb|GenericOp| has a parameter of type \verb|SparkContext|, the main entry point for functionality provided by Spark, and a parameter of type \verb|Map[String, String]| used within \verb|doOp|. The main computation of \verb|doOp| is the last expression of its body: a chain of invocations of \verb|map|, \verb|reduceByKey|, and \verb|collectAsMap|. To ensure that the argument closures of \verb|map| and \verb|reduceByKey| are serializable, the code follows two conventions: first, instead of defining \verb|mapFun| and \verb|reduceFun| as methods of class \verb|GenericOp|, they are defined using lambdas stored in local variables. Second, instead of using the mapping parameter directly, it is first copied into a local variable \verb|localMapping|. The reason for the first convention is that in Scala converting a method to a function implicitly captures a reference to the enclosing object. However, \verb|GenericOp| is not serializable, since it refers to a \verb|SparkContext| which is not serializable. The reason for the second convention is that using mapping directly, would result in \verb|mapFun| capturing the \verb|this| reference to be able to access the \verb|mapping| field.
+The \verb|GenericOp| class provides a method \verb|doOp| which performs a compound operation on the RDD \verb|cachedSessions|. \verb|GenericOp| has a parameter of type \verb|SparkContext|, the main entry point for functionality provided by Spark, and a parameter of type \verb|Map[String, String]| used within \verb|doOp|. The main computation of \verb|doOp| is the last expression of its body: a chain of invocations of \verb|map|, \verb|reduceByKey|, and \verb|collectAsMap|. To ensure that the argument closures of \verb|map| and \verb|reduceByKey| are serializable, the code follows two conventions: first, instead of defining \verb|mapFun| and \verb|reduceFun| as methods of class \verb|GenericOp|, they are defined using lambdas stored in local variables. Second, instead of using the \verb|mapping| parameter directly, it is first copied into a local variable \verb|localMapping|. The reason for the first convention is that in Scala converting a method to a function implicitly captures a reference to the enclosing object. However, \verb|GenericOp| is not serializable, since it refers to a \verb|SparkContext| which is not serializable. The reason for the second convention is that using \verb|mapping| directly, would result in \verb|mapFun| capturing the \verb|this| reference to be able to access it.
 
-\subsubsection{Applying spores}
+\subsubsection{Applying Spores}
 
 Using Spores the above conventions can be enforced by the compiler, avoiding unexpected runtime exceptions. It is sufficient to turn \verb|mapFun| and \verb|reduceFun| into spores:
 
 \begin{lstlisting}
-val mapFun: Spore[Session, (List[String], GenericOpAggregator)] = spore {
-  val localMapping = mapping
-  (s: Session) =>
-    (keyList, new GenericOpAggregator(s, localMapping))
-}
+val mapFun: Spore[Session, (List[String], GenericOpAggregator)] =
+  spore { val localMapping = mapping
+    (s: Session) => (keyList, new GenericOpAggregator(s, localMapping)) }
 
-val reduceFun: Spore[(GenericOpAggregator, GenericOpAggregator), GenericOpAggregator] =
+val reduceFun: Spore[(GenericOpAggregator, GenericOpAggregator),
+                      GenericOpAggregator] =
   spore { (a, b) => a.merge(b) }
 \end{lstlisting}
 \noindent
-The spore shape enforces the use of \verb|localMapping| (which is moved from the method body into \verb|mapFun|). Furthermore, there is no possibility of accidentally capturing a reference to the enclosing object in any other way.
+The spore shape enforces the use of \verb|localMapping| (moved from the method body into \verb|mapFun|). Furthermore, there is no more possibility of accidentally capturing a reference to the enclosing object.
 
 
-\subsection{Safer closures for parallel collections}
+\subsection{Safer Closures for Parallel Collections}
 
 Scala's parallel collections provide data-parallel operations for standard collection types like maps and sequences. These data-parallel operations typically take closures as arguments that are applied to all elements of the underlying collection in parallel. Unfortunately, it is easy to create race conditions by capturing mutable objects within such closures, and Scala's type checker does not provide any assistance for avoiding them.
 
-Spores with context bounds allow making the use of parallel collections safer by preventing mutable objects from being captured in closures passed to data-parallel operations. In the following we show how this can be achieved using a custom property for immutable types as well as a wrapper API utilizing spores instead of regular closures.
+Spores with context bounds allow making the use of parallel collections safer by preventing mutable objects from being captured in closures passed to data-parallel operations. In the following we show how this can be achieved using the custom property for immutable types shown in Section~\ref{sec:adv-usage-type-constraints} as well as a wrapper API utilizing spores instead of regular closures.
 
-The first step is to introduce a custom property for immutable types. It consists of a generic trait and an implicit property object:
+To ensure that only spores with context bound \verb|Immutable| are passed to data-parallel, higher-order methods such as \verb|map|, we provide a wrapper for \verb|ParIterable[A]|, the supertype of all parallel collections:
 
-\begin{verbatim}
-object safe {
-  trait Immutable[T]
-  implicit object immutableProp extends Property[Immutable]
-  ...
-}
-\end{verbatim}
-\noindent
-The next step is to mark selected types as immutable by defining an implicit object extending the desired list of types, each type wrapped in the \verb|Immutable| type constructor:
-
-\begin{verbatim}
-object safe {
-  ...
-  import scala.collection.immutable.{Map, Set, Seq}
-  implicit object collections extends Immutable[Map[_, _]] with
-    Immutable[Set[_]] with Immutable[Seq[_]] with ...
-}
-\end{verbatim}
-\noindent
-The definitions so far already allow us to create spores that are guaranteed to capture only types \verb|T| for which an implicit of type \verb|Immutable[T]| exists. To ensure that only spores with the appropriate context bound are passed to higher-order methods such as \verb|map| and \verb|flatMap|, we provide a wrapper for \verb|ParIterable[A]|, the supertype of all parallel collections:
-
-\begin{verbatim}
-class ImmutWrapper[A](pc: ParIterable[A]) {
+\begin{lstlisting}
+class ImmutWrapper[A](parcoll: ParIterable[A]) {
   def map[B](s: Spore[A, B])(implicit i: Immutable[s.Captured]) =
-    new ImmutWrapper(pc.map(s))
-  def flatMap[B](s: Spore[A, Traversable[B]])
-                (implicit i: Immutable[s.Captured]) =
-    new ImmutWrapper(pc.flatMap(s))
+    new ImmutWrapper(parcoll.map(s))
 }
-\end{verbatim}
+\end{lstlisting}
 \noindent
-This wrapper is then used as follows:
+Thanks to the implicit parameter, an invocation of \verb|map| only type-checks if an implicit of type \verb|Immutable[s.Captured]| is in scope; this is the case, if there is an implicit value of type \verb|Immutable[T]| in scope for each captured type \verb|T| of spore \verb|s|. This wrapper is then used as follows (assuming an \verb|import safe.{immutableProp, collections}|):
 
-\begin{verbatim}
-import safe.{immutableProp, collections}
-
+\begin{lstlisting}
 val m: Map[Int, String] = ...
 val pcoll = myColl.par
-val wrapper = new ImmutWrapper(pcoll)
-
-wrapper.map { elem =>
+(new ImmutWrapper(pcoll)).map { elem =>
   if (m.apply(elem)) transform1(elem)  // OK, m is immutable!
   else transform2(elem)
 }
-\end{verbatim}
+\end{lstlisting}
 \noindent
 In the above example, capturing a mutable object (or, in fact, any object of type \verb|T| that does not have an implicit value of type \verb|Immutable[T]|) would lead to a compile-time error, thus preventing a potential data race.
 
