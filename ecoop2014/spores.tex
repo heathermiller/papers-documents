@@ -178,11 +178,13 @@ environments nonetheless remains a challenge across FP and OO languages.
 This paper takes a step towards more principled distributed and concurrent
 programming by introducing a new closure-like abstraction and type system,
 called {\em spores}, that can guarantee closures to be serializable, thread-safe,
-or even have general, custom user-defined properties.
+or even have general, custom user-defined properties. Crucially, our system is
+based on the principle of encoding type information corresponding to captured
+variables in the type of a spore.
 We prove our type system sound, implement our approach for Scala\footnote{\sporeurl}, evaluate
 its practicality through an small empirical study, and show the power of these
-guarantees through a case analysis of new distributed and concurrent
-frameworks that this safe foundation for migratable closures enables.
+guarantees through a case analysis of real-world distributed and concurrent
+frameworks that this safe foundation for migratable closures facilitates.
 
 % == 150-word abstract for the submission page ==
 % Functional programming is regularly touted as the way forward for bringing
@@ -199,8 +201,8 @@ frameworks that this safe foundation for migratable closures enables.
 % called spores, that can guarantee closures to be serializable, thread-safe,
 % or even have custom user-defined properties.
 % We prove our type system sound, implement our approach for Scala, and show the
-% power of these guarantees through a case analysis of new distributed/concurrent
-% frameworks that this safe foundation for migratable closures enables.
+% power of these guarantees through a case analysis of real-world distributed/concurrent
+% frameworks that this safe foundation for migratable closures facilitates.
 
 \keywords{closures, functions, distributed programming, concurrent programming, type systems}
 \end{abstract}
