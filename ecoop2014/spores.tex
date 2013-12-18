@@ -368,9 +368,9 @@ or distributed setting. We show that this approach can be made practical by
 automatically synthesizing refinement types using macros, and by leveraging
 local type inference. Using type-based constraints, spores allow expressing a
 variety of ``safe'' closures, such as guaranteed-serializable closures,
-closures which capture only immutable types, or closures with custom, user-
-defined type-based properties. Finally, we argue that by principle of a type-
-based approach, spores can potentially benefit from optimization, further
+closures which capture only immutable types, or closures with custom, user-defined
+type-based properties. Finally, we argue that by principle of a type-based
+approach, spores can potentially benefit from optimization, further
 safety via type system extensions, and verification opportunities.
 
 The design of spores is guided by the following principles:
@@ -390,7 +390,7 @@ class-based frameworks like Scala/pickling~\cite{ScalaPickling}.
 closure captures, libraries and frameworks should be able to restrict the
 types that are captured by spores. Enforcing these {\em type constraints}
 should not be limited to serializability, thread-safety, or other pre-defined
-properties, however; Spores should enable customizing the semantics of
+properties, however; spores should enable customizing the semantics of
 variable capture based on user-defined types. It should be possible to use
 existing type-based mechanisms to express a variety of user-defined properties
 of captured types.
