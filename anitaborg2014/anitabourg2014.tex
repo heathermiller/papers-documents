@@ -79,7 +79,7 @@ of this country, and to high school and undergraduate education here. For
 these reasons, I'll be answering questions such as ``what cultural factors in
 your country influence fewer women to select technical degrees?'' from the
 perspective of the US, as it is the only country I have deep intuition and
-experiences with.}
+experience with.}
 
 \section*{\textbf{Essay 1:} Student Speech: Oh The Cool Places Computer Science Can Take You}
 
@@ -127,39 +127,79 @@ and is used by companies like Twitter, Foursquare, and The Guardian to solve
 rich and interesting problems in distributed computing.
 
 My PhD research concentrates on making Scala a language that facilitates
- distributed systems. We try to achieve that by using Scala's
-\textit{type system} to (1) lessen the burden of writing \textit{boilerplate code}\footnote{Boilerplate code is any seemingly repetitive code that shows up over and over again with little alteration.}, and (2) to enable the compiler to better
-detect code that could cause errors in a distributed system at runtime.
+building distributed systems. We try to achieve that by using Scala's
+\textit{type system} to (1) reduce the amount of \textit{boilerplate code}\footnote{Boilerplate code is any seemingly repetitive code that shows up over and over again with little alteration.} distributed system builders have to write, and
+(2) to enable the compiler to better detect code that could cause errors
+in a distributed system at runtime.
 
 Towards that goal, I've solved two major problems at the intersection of
 programming languages and distributed systems.
 
-\vspace{-0.1in}
+\vspace{-0.15in}
 \begin{itemize}
 \item ~~\textbf{\textsf{Serialization (Pickling):}} performant, type-safe, customizable/extensible \& boilerplate-free data exchange
-\item ~~\textbf{\textsf{Distributable Functions (Spores):}} reliably and safely distribute Scala's functional features
+\item ~~\textbf{\textsf{Distributable Functions (Spores):}} reliably and safely distribute Scala's functional language features
 \end{itemize}
 
+\vspace{-0.2in}
 \subsection*{\textbf{Pickling}}
 \vspace{-0.1in}
 
-As more and more traditional applications migrate to the cloud, the demand for
-interoperability between different services is at an all-time high, and is
-increasing. At the center of it all is communication.
+Existing serialization frameworks for languages like
+Java~\cite{JavaSerialization} tend to take a single-format approach to
+serialization; that is, data can only ever exist in one format: bytes. But
+what if your distributed system exchanges messages in other formats, like JSON
+or XML? What's more, Java Serialization has long been acknowledged to have a
+high overhead~\cite{JavaSlow1, Javaslow2}; this is because the JVM does the
+work to figure out how to serialize objects at runtime, while the user's
+program is running. In many real distributed systems, this cost is simply too
+high; low-latency is of utmost importance.
 
-A central aspect to this communication that has received surprisingly little
-attention in the literature is the need to serialize, or pickle objects,
-i.e., to persist in-memory data by converting them to a binary, text, or
-some other representation. As more and more applications evolve the need to
-communicate with different machines, providing abstractions and constructs
-for easy-to-use, typesafe, and performant serialization is more important than
-ever.
+Scala/Pickling is a framework we designed to overcome several of these
+limitations.
 
-The key idea behind Scala/Pickling is that \textit{serialization code is generated at compile-time}.
+The key idea behind Scala/Pickling is that we can use the type system to
+\textit{generate serialization code at compile-time}. That means that the work
+to do the serialization happens while the programmer is waiting for their code
+to compile, not during performance-critical moments while their program is
+running.
 
+Building on top of Scala's new metaprogramming facilities\footnote{Techniques
+to extend the compiler.}~\cite{ScalaMacros} (macros) we were able to design a
+system that could deconstruct arbitrary objects at compile-time and generate
+code to serialize them. What's more, using \textit{type
+classes}\footnote{Interfaces that can be retroactively added to types.} at
+compile-time with macros, we were able to \textit{generalize the output format
+to any user-defined format}, meaning users can easily swap between
+representations like JSON, XML, or they can even invent their own.
+% To handle and developing a new generic programming technique for Scala that we call \textit{materialization}.
+
+\begin{figure*}[t!]
+ \centering
+ \includegraphics[width=\textwidth]{travInt-all.pdf}
+ \caption{\footnotesize Results for pickling and unpickling an immutable
+   \texttt{Vector[Int]} using different frameworks. Figure~\ref{fig:results-vector}(a) shows the roundtrip pickle/unpickle time as the size of the \texttt{Vector} varies. Figure~\ref{fig:results-vector}(b) shows the amount of free memory available during pickling/unpickling as the size of the \texttt{Vector} varies. Figure~\ref{fig:results-vector}(c) shows the pickled size of \texttt{Vector}.}
+ \label{fig:results-vector}
+\end{figure*}
+
+In experiments, we've shown a naive, unoptimized version of Scala/Pickling
+outperforming even the fastest serialization frameworks used in industry in time, space, and memory, as shown in Figure~\ref{fig:results-vector}.
+
+Our results were accepted at OOPSLA 2013~\cite{Pickling}, a top-tier venue for programming languages research. I was the lead author on the project, conceived of the idea and lead the development with two colleagues to realize the implementation of Scala/Pickling.
+
+\vspace{-0.2in}
 \subsection*{\textbf{Spores}}
+\vspace{-0.1in}
 
 Spores are  functions that that
+
+\vspace{-0.2in}
+\subsection*{\textbf{Impact}}
+\vspace{-0.1in}
+
+I've additionally gone on to speak about Scala/Pickling I've, a recently minted professor of Computer Science and creator of \href{https://spark.incubator.apache.org/}{Apache Spark}~\cite{Spark} a framework for big data processing that's faster and rivals Hadoop/MapReduce
+
+and released our framework fo, which exp
 
 % Given the large number of , and Scala's penchant for
 
@@ -171,15 +211,15 @@ Spores are  functions that that
 % and all share the need to communicate in various ways, in many formats, even
 % within the same application.
 
+loded in popularity and has 300 stars and a dozen or so contributors to date.
 
-
-Our results were accepted at OOPSLA 2013~\cite{Pickling}, and . I've, a recently minted professor of Computer Science and creator of \href{https://spark.incubator.apache.org/}{Apache Spark}~\cite{Spark} a framework for big data processing that's faster and rivals Hadoop/MapReduce
 
 Will enable functional programming languages like Scala to safely and reliably
 \textit{distribute} their functional features.
 
 Given that my research is also intended
 
+This makes it possible to more reliably
 
 
 \section*{\textbf{Essay 3:} Exhibiting Leadership: Bringing Twitter and Typesafe Engineers Together}
