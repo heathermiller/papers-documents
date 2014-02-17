@@ -89,8 +89,52 @@ experience with.}
 % exciting and interesting about the field. Please prepare a speech to give to
 % the students. (300-500 words)
 
-% problems that computer science is solving
 
+
+This talk is called ``oh the cool places...'' that Computer Science can take you.
+Must sound weird, right? Computer Scientists work desk jobs, don't they? I bet
+you've got this \href{http://g-ecx.images-amazon.com/images/G/01/dvd/fox/officespace/Office3\_L.jpg}{picture in your mind
+of a job that looks a lot like the one portrayed in that movie, Office Space}.
+\href{http://kentuckybasketballforum.com/uploads/images/office\_space\_initech.jpg}{An uptight boss in an office park with suspenders asking you whether
+you've submitted your TPS reports.}
+
+Not really.
+
+What are the perks?
+
+Whether you're the family-oriented type, the competitive-backcountry-skiier
+type, a foodie, whatever your flavor, in many professions in this field, your
+working hours can work around you. There's no other profession that I can
+think of with as much flexibility in terms of when and where you work.
+
+Some, like Alex McCaw, a JavaScript and Ruby developer,
+\href{http://alexmaccaw.co.uk/posts/traveling\_writing\_programming}{even
+spend months or years traveling around the world}, working wherever they land.
+
+I hope I can convince you that
+
+Computer Scientists are dynamic.
+
+Stop right now and imagine what a Computer Scientist does for a living.
+
+Being a developer is actually loaded with freedom. Flexibility on working hours.
+
+Alex McCaw
+http://blog.alexmaccaw.com/how-to-travel-around-the-world-for-a-year
+
+
+
+So go learn some code. See where it'll take you.
+
+% % computer science is cool
+% % problems that computer science is solving
+% Computer Scientists work on distributed sensor networks.
+
+% Artists
+% %   health care
+% %   social networks
+% % the number of jobs projected in 2020. the number of graduates expected
+% % the average salary
 
 
 \section*{\textbf{Essay 2:} Technical Essay: How Pickles \& Spores Can Improve Distributed Programming in Scala}
@@ -250,12 +294,114 @@ framework for big data processing that's faster and rivals Hadoop/MapReduce,
 to incorporate Scala/Pickling and Scala Spores into Spark.
 
 
-\section*{\textbf{Essay 3:} Exhibiting Leadership: Bringing Twitter and Typesafe Engineers Together}
+\section*{\textbf{Essay 3:} Exhibiting Leadership: Bringing Twitter \& Typesafe Engineers Together, Scala Docs}
 
-Pushed the \verb|Try| type into the now widely-used Scala Futures library.
-Worked together with engineers at Twitter, Typesafe, and EPFL to standardize
-and agree on a foundation for concurrency that is now included and ships with
-the Scala Standard Library.
+% Please provide 1-2 examples of a time when you exhibited leadership. Explain
+% what you were trying to achieve and how you were influential. Feel free to
+% examine the ways in which you acted as a role model to the members of your
+% broader community, your technical community, or your university. (400-600
+% words)
+
+\vspace{-0.1in}
+\subsection*{\textbf{Bringing Twitter and Typesafe Engineers Together for a Better scala.concurrent}}
+\vspace{-0.1in}
+
+At the end of 2011, the open source Scala ecosystem was hopelessly fragmented
+with respect to concurrency libraries. One of the most fundamental building
+blocks of asynchronous and concurrent systems is the notion of a
+\textit{future}, which encapsulates a delayed asynchronous computation. The
+Scala standard library shipped with three different future implementations in
+different packages. At the same time, many of the most widespread third party
+libraries shipped with their own incompatible future implementation. Almost
+all implementations, including those in the Scala standard library, had
+serious design flaws or were otherwise missing important functionality.
+
+Consequently, a group of concurrency experts in the EPFL group (PhD students
+and postdocs) set out to clean up the ecosystem by designing a new unifying
+concurrency substrate based on a consolidation of the best futures libraries
+to be released in the \verb|scala.concurrent| package of Scala's standard
+library.
+
+We teamed up with developers of the Akka library, which at the time
+contained the most widely used future implementation. However, as we worked,
+the design of \verb|scala.concurrent| began to sway exclusively towards Akka's
+interests. We were risking losing sight of the needs of other important
+members of the Scala community, most notably, Twitter, who had an influential
+future implementation of their own.
+
+Seeing this, where the Akka team did not, I took it upon myself to reach out
+to Marius Eriksen, the lead designer of Twitter's future library in an effort
+to see if Twitter would be interested in contributing to this consolidation
+effort. After all, one important goal of our effort was to also enable Twitter
+to base their popular RPC framework, \textit{Finagle}, on our future
+implementation in \verb|scala.concurrent|. Enthusiastically, Twitter joined
+our effort.
+
+To my surprise, however, the Akka team found itself almost constantly at odds
+with Twitter's technical needs. One of the most crucial elements of the
+controversy was a rather elegant class library for asynchronous exception
+handling, called \verb|Try| that needed to be at the center of our future
+implementation in order for Twitter to be able to adopt
+\verb|scala.concurrent|.
+
+Convinced of the elegance and technical superiority of the \verb|Try|-based
+implementation, I made an effort and eventually succeeded in bringing the
+EPFL-based concurrency team to agreement. However, the strong resistance of
+the Akka team required several rounds of technical negotiations that I played
+a primary role in orchestrating.
+
+After weeks of negotiations, an agreement was finally struck favoring the
+\verb|Try|-based solution. More than a year later, \verb|Try| is now
+enthusiastically accepted by users, and even amongst the Akka team, it's
+considered to be one of the main approaches to failure handling in Scala.
+
+I acted as a role model to my peers in this scenario by taking the initiative
+to reach out to leading engineers in the open source community, seeing a
+superior technical solution, and patiently pushing towards it, even in the
+face of adversity.
+
+% in an effort to produce better
+% software. As a result it greatly improved .
+% The framework has since taken off, instrumental in industry.
+
+%  can be viewed as a role model in this  that i participated in OSS. I
+% contributed in a way that had a lasting impact on a large community of
+% commercial users of open source.
+
+% Users are happier, it's a clearer, more usable solution.
+% As a result, it made the community stronger by making the voice of all members equally heard.
+
+% Pushed the \verb|Try| type into the now widely-used Scala Futures library.
+% Worked together with engineers at Twitter, Typesafe, and EPFL to standardize
+% and agree on a foundation for concurrency that is now included and ships with
+% the Scala Standard Library.
+
+% During the work, I realized the benefits of using a small class library developed by Twitter
+% Twitter would have not adopted. Important to bring the different parties togeter.
+
+% While our goal was to unify, we were going the route of fragmentation.
+
+% Even in the presence of severe resistance from the Akka team, I insisted on including some of the main engineers at Twitter in the discussion and design process of this unifying concurrency substrate.
+
+% Helped organized meetings with leaders of the Scala and Akka projects as well as Marius Eriksen at Twitter.
+
+% As a result, to the benefit of the whole commmunity.
+
+% I was instrumental in...
+
+\vspace{-0.1in}
+\subsection*{\textbf{Building Scala's Documentation}}
+\vspace{-0.1in}
+
+When I joined the Scala group in 2011, there was little to no documentation.
+The Scala compiler and standard library were developed and maintained by a
+professor and a handful of full-time PhD students, amidst a small explosion
+of.
+
+Gets 100,000 visitors per month. 67 contributors.
+
+Role model in that I pushed, despite considerable push-back in my group, naysayers that believed my effort would fail. I pushed and succeeded, and produced a quality and growing resource for the entire Scala community to participate in.
+
 
 \section*{\textbf{Essay 4:} In Pursuit of Anita's Goal of 50/50 by 2020}
 
