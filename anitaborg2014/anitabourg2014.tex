@@ -16,6 +16,7 @@
 \usepackage{fontspec}
 \usepackage{graphicx}
 \usepackage{subfig}
+\usepackage[ampersand]{easylist}
 % \usepackage{natbib}
 \usepackage[citestyle=numeric, maxbibnames=20, minbibnames=20]{biblatex}
 \usepackage{url,fancyhdr}
@@ -54,7 +55,7 @@
 %% hyperlinks
 \usepackage{savesym}
 \savesymbol{pdfbookmark}
-\usepackage[colorlinks=true,urlcolor=DarkBlue,citecolor=DarkBlue]{hyperref}
+\usepackage[colorlinks=true,urlcolor=DarkBlue,citecolor=DarkBlue,linkcolor=DarkBlue]{hyperref}
 \restoresymbol{HR}{pdfbookmark}
 
 \markboth{\textcolor{Black}{Heather Miller}}{\textcolor{Black}{Anita Borg Scholarship}}
@@ -77,8 +78,116 @@ live in Switzerland now, I am still very much a stranger to the cultural norms
 of this country, and to high school and undergraduate education here. For
 these reasons, I'll be answering questions such as ``what cultural factors in
 your country influence fewer women to select technical degrees?'' from the
-perspective of the US, as it is the only country I have deep intuitions and
+perspective of the US, as it is the only country I have deep intuition and
 experiences with.}
+
+\section*{\textbf{Essay 1:} Student Speech: Oh The Cool Places Computer Science Can Take You}
+
+% Imagine that as an Anita Borg scholar, you are given the opportunity to give a
+% 5 minute speech to a group of high school students to encourage them to pursue
+% degrees in Computer Science.  Remember, the students want to know what is
+% exciting and interesting about the field. Please prepare a speech to give to
+% the students. (300-500 words)
+
+% problems that computer science is solving
+
+
+
+\section*{\textbf{Essay 2:} Technical Essay: How Pickles \& Spores Can Improve Distributed Programming in Scala}
+
+% Please write an essay on a technical project you took part in, or on a piece
+% of research you undertook, where your contribution and involvement was key to
+% its success. When writing your essay, please remember that the CS professional
+% reviewing your application may not share the same technical expertise or
+% knowledge of your particular research field. Please make sure to explain all
+% technical terms and processes accordingly. Your essay should include the
+% following sections: The problem your project or research is trying to solve,
+% the solution that was chosen, the technical challenges you faced, your
+% contribution to the success of the project and why you consider this project
+% successful or innovative or both. (400-600 words)
+
+% Note: Treat this essay as a technical report or research paper. Feel free to
+% use tables, references, or figures.
+
+% - A brief overview of the problem
+% - Your approach to the key technical challenges
+% - How you solved the problem
+% - Impact/conclusions
+
+I work on the Scala programming language with Martin Odersky at EPFL.
+
+% Inconceivably, Scala has become poised for mainstream adoption.
+
+Scala seamlessly integrates object-oriented and functional paradigms in a
+strongly statically typed language atop the Java Virtual Machine (JVM), which
+means that it smoothly interoperates with Java. It's a particularly exciting
+language to be working on as an academic researcher at the moment, because it's currently
+\href{http://www.indeed.com/jobtrends/scala,+groovy+and+java,+erlang,+haskell.html}{skyrocketing in popularity},
+and is used by companies like Twitter, Foursquare, and The Guardian to solve
+rich and interesting problems in distributed computing.
+
+My PhD research concentrates on making Scala a language that facilitates
+ distributed systems. We try to achieve that by using Scala's
+\textit{type system} to (1) lessen the burden of writing \textit{boilerplate code}\footnote{Boilerplate code is any seemingly repetitive code that shows up over and over again with little alteration.}, and (2) to enable the compiler to better
+detect code that could cause errors in a distributed system at runtime.
+
+Towards that goal, I've solved two major problems at the intersection of
+programming languages and distributed systems.
+
+\vspace{-0.1in}
+\begin{itemize}
+\item ~~\textbf{\textsf{Serialization (Pickling):}} performant, type-safe, customizable/extensible \& boilerplate-free data exchange
+\item ~~\textbf{\textsf{Distributable Functions (Spores):}} reliably and safely distribute Scala's functional features
+\end{itemize}
+
+\subsection*{\textbf{Pickling}}
+\vspace{-0.1in}
+
+As more and more traditional applications migrate to the cloud, the demand for
+interoperability between different services is at an all-time high, and is
+increasing. At the center of it all is communication.
+
+A central aspect to this communication that has received surprisingly little
+attention in the literature is the need to serialize, or pickle objects,
+i.e., to persist in-memory data by converting them to a binary, text, or
+some other representation. As more and more applications evolve the need to
+communicate with different machines, providing abstractions and constructs
+for easy-to-use, typesafe, and performant serialization is more important than
+ever.
+
+The key idea behind Scala/Pickling is that \textit{serialization code is generated at compile-time}.
+
+\subsection*{\textbf{Spores}}
+
+Spores are  functions that that
+
+% Given the large number of , and Scala's penchant for
+
+% With the growing trend towards cloud computing and mobile applications,
+% distributed programming has entered the mainstream. Whether we consider a
+% cluster of commodity machines churning through a massive data-parallel job, or
+% a smartphone interacting with a social network, all are ``distributed'' jobs.
+% % ,
+% and all share the need to communicate in various ways, in many formats, even
+% within the same application.
+
+
+
+Our results were accepted at OOPSLA 2013~\cite{Pickling}, and . I've, a recently minted professor of Computer Science and creator of \href{https://spark.incubator.apache.org/}{Apache Spark}~\cite{Spark} a framework for big data processing that's faster and rivals Hadoop/MapReduce
+
+Will enable functional programming languages like Scala to safely and reliably
+\textit{distribute} their functional features.
+
+Given that my research is also intended
+
+
+
+\section*{\textbf{Essay 3:} Exhibiting Leadership: Bringing Twitter and Typesafe Engineers Together}
+
+Pushed the \verb|Try| type into the now widely-used Scala Futures library.
+Worked together with engineers at Twitter, Typesafe, and EPFL to standardize
+and agree on a foundation for concurrency that is now included and ships with
+the Scala Standard Library.
 
 \section*{\textbf{Essay 4:} In Pursuit of Anita's Goal of 50/50 by 2020}
 
@@ -143,6 +252,7 @@ Given the opportunity to make a meaningful impact in this space, as Head
 of EPFL's Computer Science Department, I'd focus on \textit{recruitment} and
 \textit{retainment}.
 
+\vspace{-0.15in}
 \subsection*{\textbf{Recruitment}}
 \vspace{-0.1in}
 We need to demonstrate that computing is a captivating and creative field, and
@@ -212,6 +322,7 @@ demonstrate to women at large that we can be strong, beautiful, and passionate
 % Zina Nichole Lahr have inspired hundreds of thousands, using technology to
 % drive her own animations.
 
+\vspace{-0.15in}
 \subsection*{\textbf{Retainment}}
 \vspace{-0.1in}
 
@@ -241,20 +352,21 @@ venture through the list of all female students in the department to discuss
 how well each student is doing, and what the department could do for those
 young women who seem to be dwindling in motivation or perseverance.
 
+\vspace{-0.15in}
 \subsection*{\textbf{In Sum}}
 \vspace{-0.1in}
 
 I deeply and passionately believe that the way forward to realizing Dr. Anita
 Borg's and so many others' goal of equal participation is to work together to
 change our profession's image. We must strive to induce excitement, and to
-show all of exhilarating and creative things that can be undertaken in
+show all of the exhilarating and creative things that can be undertaken in
 computing. And to get there, we need a brave batch of creative and motivated
 women to lead the way, to show the world that this \textit{is} the norm.
 
 Striving towards these goals is at the foundation of who I am. These goals
-drive my decisions to give talks, talk to and interact with people, to write
-and tweet. They will continue to be a motivating force for me in my career for
-as long as imbalance abounds.
+drive my decisions to give talks, talk to and interact with people in my
+field, to write and tweet. They will continue to be a motivating force for me
+in my career for as long as imbalance abounds.
 
 % \bibliographystyle{siam}
 % \bibliographystyle{plain}
