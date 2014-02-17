@@ -146,23 +146,23 @@ programming languages and distributed systems.
 \vspace{-0.1in}
 
 Existing serialization frameworks for languages like
-Java~\cite{JavaSerialization} tend to take a single-format approach to
-serialization; that is, data can only ever exist in one format: bytes. But
-what if your distributed system exchanges messages in other formats, like JSON
-or XML? What's more, Java Serialization has long been acknowledged to have a
-high overhead~\cite{JavaSlow1, Javaslow2}; this is because the JVM does the
-work to figure out how to serialize objects at runtime, while the user's
-program is running. In many real distributed systems, this cost is simply too
-high; low-latency is of utmost importance.
+Java~\cite{JavaSerialization} or Kryo~\cite{Kryo} tend to take a single-format
+approach to serialization; that is, data can only ever exist in one format:
+bytes. But what if your distributed system exchanges messages in other
+formats, like JSON or XML? What's more, Java Serialization has long been
+acknowledged to have a high overhead~\cite{JavaSlow1, Javaslow2}; this is
+because the JVM does the work to figure out how to serialize objects at
+runtime, while the user's program is running. In many real distributed
+systems, this cost is simply too high; low-latency is of utmost importance.
 
 Scala/Pickling is a framework we designed to overcome several of these
 limitations.
 
 The key idea behind Scala/Pickling is that we can use the type system to
-\textit{generate serialization code at compile-time}. That means that the work
-to do the serialization happens while the programmer is waiting for their code
-to compile, not during performance-critical moments while their program is
-running.
+\textit{generate serialization code at compile-time}. That means that a lot of
+the work to do the serialization happens while the programmer is waiting for
+their code to compile, not during performance-critical moments while their
+program is running.
 
 Building on top of Scala's new metaprogramming facilities\footnote{Techniques
 to extend the compiler.}~\cite{ScalaMacros} (macros) we were able to design a
@@ -183,43 +183,71 @@ representations like JSON, XML, or they can even invent their own.
 \end{figure*}
 
 In experiments, we've shown a naive, unoptimized version of Scala/Pickling
-outperforming even the fastest serialization frameworks used in industry in time, space, and memory, as shown in Figure~\ref{fig:results-vector}.
+outperforming even the fastest serialization frameworks used in industry in
+time, space, and memory, as shown in Figure~\ref{fig:results-vector}.
 
-Our results were accepted at OOPSLA 2013~\cite{Pickling}, a top-tier venue for programming languages research. I was the lead author on the project, conceived of the idea and lead the development with two colleagues to realize the implementation of Scala/Pickling.
+Our results were accepted at OOPSLA 2013~\cite{Pickling}, a top-tier academic
+venue for programming languages research. I was the lead author on the
+project, conceived of the idea, and lead the development with two colleagues
+of the implementation of Scala/Pickling.
 
 \vspace{-0.2in}
 \subsection*{\textbf{Spores}}
 \vspace{-0.1in}
 
-Spores are  functions that that
+Functions as first-class values are at the heart of functional programming
+languages. A function which represents incrementing an integer, for example,
+can be passed to a ``higher-order function'' (like a method) as an argument,
+and can be applied to every element of a list. Extending this notion to
+distributed programming gives you a model very much like that of
+Hadoop/MapReduce, a popular abstraction and framework for big data processing.
+
+However, functions can be very problematic; they can capture references to
+other objects, which, in a distributed scenario, might not be serializable.
+This is a problem observed across both purely functional programming languages
+like Haskell~\cite{CloudHaskell}, as well as across object-oriented languages
+with closures as Java will soon have.
+% Here, Scala is a trailblazer, it's the
+% first widely used distributed programming language with functions, and as such .
+
+Spores are a function-like abstraction and proven-sound type system, which,
+together with Scala/Pickling, control what variables are captured, and ensures
+that captured variables are serializable and thus spores are distributable.
+
+The key idea behind spores is to store the type information of captured
+variables in the type of a spore. This way, it is possible to use such restricted
+function types in the APIs of distributed frameworks to prevent users from passing in
+closures that might capture problematic objects.
+As a result, distributed system builders can build new Hadoop/MapReduce-like systems
+that prevent a whole class of runtime errors that users of these systems currently face.
+Using spores, these errors will always be caught at
+compile-time, never while a program is running.
+
+Spores are currently under submission to a top-tier academic venue for
+programming languages research. I was the lead author on the project,
+conceived of the idea, and lead the development of and soundness proofs of
+the type system with one colleague.
+
 
 \vspace{-0.2in}
 \subsection*{\textbf{Impact}}
 \vspace{-0.1in}
 
-I've additionally gone on to speak about Scala/Pickling I've, a recently minted professor of Computer Science and creator of \href{https://spark.incubator.apache.org/}{Apache Spark}~\cite{Spark} a framework for big data processing that's faster and rivals Hadoop/MapReduce
+I've gone on to give featured talks about Scala/Pickling and Scala Spores at
+prestigious industrial conferences such as
+\href{http://www.infoq.com/presentations/scala-pickles-spores}{Strange Loop
+2013} and \href{http://parleys.com/play/51c3799fe4b0d38b54f4625a}{ScalaDays
+2013}. Meanwhile, Scala/Pickling has grown into a popular open source project
+with 300 stars on Github and a dozen or so contributors to date.
+\href{http://docs.scala-lang.org/sips/pending/spores.html}{Spores have been
+proposed for inclusion in the Scala programming language as a Scala
+Improvement Proposal (SIP-21)}~\cite{Spores}.
 
-and released our framework fo, which exp
-
-% Given the large number of , and Scala's penchant for
-
-% With the growing trend towards cloud computing and mobile applications,
-% distributed programming has entered the mainstream. Whether we consider a
-% cluster of commodity machines churning through a massive data-parallel job, or
-% a smartphone interacting with a social network, all are ``distributed'' jobs.
-% % ,
-% and all share the need to communicate in various ways, in many formats, even
-% within the same application.
-
-loded in popularity and has 300 stars and a dozen or so contributors to date.
-
-
-Will enable functional programming languages like Scala to safely and reliably
-\textit{distribute} their functional features.
-
-Given that my research is also intended
-
-This makes it possible to more reliably
+I've been approached by Matei Zaharia, the CTO of Databricks, Assistant
+Professor at MIT, and author of
+\href{https://spark.incubator.apache.org/}{Apache Spark}~\cite{Spark}, a
+framework for big data processing that's faster and rivals Hadoop/MapReduce,
+to incorporate Scala/Pickling and Scala Spores into Spark.
 
 
 \section*{\textbf{Essay 3:} Exhibiting Leadership: Bringing Twitter and Typesafe Engineers Together}
