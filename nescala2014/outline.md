@@ -31,3 +31,22 @@ Stuff that was promised in abstract:
 - Dependent types in Scala
 - What type-level programming means
 
+Simon Peyton Jones on Sexy Types (POPL talk 2003)
+
+- Well typed programs don’t go wrong!
+- Less mundanely (but more allusively) sexy types let you think higher thoughts and still stay [almost] sane:
+
+    – deeply higher-order functions
+    – functors
+    – folds and unfolds
+    – monads and monad transformers
+    – arrows (now finding application in real-time reactive programming)
+    – short-cut deforestation
+    – bootstrapped data structures
+
+Dependently typed programming languages: 
+
+- Epigram
+- Idris
+- Coq
+
