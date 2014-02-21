@@ -50,3 +50,51 @@ Dependently typed programming languages:
 - Idris
 - Coq
 
+Indexed datatypes aren't really dependent types.
+
+The motivation is to express application-specific properties that the typechecker can check.
+
+Connection to domain-specific languages. You have an embedded DSL and you want
+to have custom typechecking for the constructs in this language.
+
+Type-level programming related to implicits. Adriaan's OOPSLA paper talks
+about type-level programming.
+
+Type-level computation: what is it?
+You compute a new type at compile-time given other types.
+(Slide with people talking on twitter about type-level computation)
+
+**Can't forget to do...**<br/>
+Help Martin make points about dotty simplifications – the why's<br/>
+The practical troubles with some of these features
+
+**Possible intro...?**
+Think about all the cool stuff you can do without type systems. Recursion,
+etc. Let's do all of that _with_ the type system. What does this even mean?
+Why is it useful?
+
+## Dependent Types
+
+Scala has only path-dependent types. That's all. 
+
+A dependent method type is the type of method which includes the entire
+signature of the method. If there is a path-dependent type occurring in the
+method type in a way where that path-dependent type refers to a parameter of
+the method, then the method has a dependent method type.
+
+    def m(x: C)(y: x.D): ...
+
+Dependent method types. What are dependent method types useful for?
+
+**Dependent method types** 
+
+A method has a result type that refers to the method's parameters then the
+method has dependent method type.
+
+    def m(x: T): x.C
+
+Where do indexed datatypes fit in? We can have these in Scala. Shapeless has
+them. (I think?)
+
+What are all of the ways that types can be "dependent" in other languages?
+
