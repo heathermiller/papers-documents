@@ -200,7 +200,7 @@ This data provides insight into (a) the interaction of participants with the aut
 The data shows that SE-related MOOCs can be very useful not just for students, but
   also for professional software engineers.
   Moreover, the survey results provide new insights into the role of new technologies and tools
-  for effective teaching and learning. We find that providing innovative course-supporting tools (IDE plugins, testing frameworks, interactive build tools, automated cloud-based graders, style checkers) and considering human-computer interaction factors has helped make distance learning effective and enjoyable. In fact, our on-campus students who followed the MOOC in place of the first half of our functional programming course overwhelmingly preferred the online format over the traditional format of the course, thanks mostly to the tighter feedback loop made possible by the tools.
+  for effective teaching and learning. We find that providing innovative course-supporting tools (IDE plugins, testing frameworks, interactive build tools, automated cloud-based graders, style checkers) and considering human-computer interaction factors have helped make distance learning effective and enjoyable. In fact, our on-campus students who followed the MOOC in place of the first half of our functional programming course overwhelmingly preferred the online format over the traditional format of the course, thanks mostly to the tighter feedback loop made possible by the tools.
 
 % In this paper, we describe our experience organizing a MOOC on the principles of functional
 % programming with more than 100,000 registered students. However, what sets
@@ -290,7 +290,7 @@ Several provided tools enable students to
 interact with the assignments and their submission. The
 interactive build tool~\cite{sbt} allows students to run unit tests and to
 directly submit their solutions to our cloud-based grading infrastructure.
-Submitted solutions are processed in the cloud in several steps. First, the
+Submitted solutions are processed in the cloud in two steps. First, the
 solution is analyzed with a custom code style checker. This style checker is based
 on Scalastyle~\cite{ScalaStyle}, which is similar to
 Checkstyle~\cite{Ware08} for Java. Submissions that are not written in the
@@ -379,7 +379,7 @@ while loops, magic numbers, overlong lines or non-standard capitalization.
 
 The majority of the grade is obtained by running a comprehensive test suite
 that is private to the automated graders on each student's submission.
-Tests are executed in using ScalaTest~\cite{scalatest}, a unit testing framework
+Tests are executed by using ScalaTest~\cite{scalatest}, a unit testing framework
 for Scala and Java. The framework was customized so that each unit test can be
 assigned an individual weight and the framework computes the overall score of
 the successful tests. Some of the unit tests are handed out to the students as
@@ -810,7 +810,7 @@ would scale to a course of the scale of progfun (50,000 registered students
 versus 500 registered students).
 
 Looking back into the literature a bit further, there also exists a body of
-of work on automated grading of programming, beginning as early as the late 1960's,
+work on automated grading of programming, beginning as early as the late 1960's,
 much of which is nicely summarized in a survey by Douce et al.~\cite{Douce}. These approaches
 are somewhat similar in that they are predominantly test-based. That is, even the very
 first automated testing systems introduced by Hext et al.~\cite{Hext69} sought to compare
