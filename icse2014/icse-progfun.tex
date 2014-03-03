@@ -47,9 +47,14 @@
 
 \documentclass{sig-alternate}
 
-\usepackage{fontspec}
+% \usepackage{fontspec}
 \usepackage{listings,xspace}
 \usepackage{url}
+\usepackage{xcolor}
+\usepackage[scaled]{beramono}
+% \usepackage[T1]{fontenc}
+% \usepackage{inconsolata}
+% \usepackage{pxfonts}
 
 \newcommand{\todo}[1]{$\spadesuit$~#1~$\spadesuit$}
 
@@ -69,12 +74,21 @@
   showstringspaces=false%
 }[keywords,comments,strings]%
 
-\lstset{language=Scala,%
-  mathescape=true,%
-  columns=[c]fixed,%
-  basewidth={0.5em, 0.40em},%
-  basicstyle=\tt,%
-  xleftmargin=0.0cm
+% \lstset{language=Scala,%
+%   basicstyle=\ttfamily\fontsize{7pt}{1em}\selectfont,
+%   mathescape=true,%
+%   keywordstyle=\bfseries,
+%   columns=[c]fixed,%
+%   basewidth={0.5em, 0.40em},%
+%   basicstyle=\tt,%
+%   xleftmargin=0.0cm
+% }
+
+\lstset{tabsize=2,
+basicstyle=\ttfamily\fontsize{8pt}{1em}\selectfont,
+keywordstyle=\bfseries,
+commentstyle=\itshape\rmfamily,
+language=scala,moredelim=[il][\sffamily]{?},mathescape=false,showspaces=false,showstringspaces=false,xleftmargin=15pt,escapechar=@, morekeywords=[1]{let,fn,val},deletekeywords={for},classoffset=0,belowskip=\smallskipamount
 }
 
 \begin{document}
@@ -82,7 +96,7 @@
 \setlength{\pdfpagewidth}{8.5in}
 \setlength{\pdfpageheight}{11in}
 
-\setmonofont[Scale=0.8,BoldFont={Consolas Bold}]{Consolas}
+% \setmonofont[Scale=0.8,BoldFont={Consolas Bold}]{Consolas}
 %
 % --- Author Metadata here ---
 \conferenceinfo{ICSE}{'14, May 31 -- June 7, 2014, Hyderabad, India}
@@ -535,14 +549,6 @@ object WorthItBarGraph
   \label{fig:2d-histogram}
 \end{figure*}
 
-\begin{figure}[ht!]
-  \centering
-  \includegraphics[width=\columnwidth]{plots/top-scores-submissions-histogram.pdf}
-  \vspace{-0.7cm}
-  \caption{The number of submissions required to achieve a perfect score in the ``Huffman'' assignment.}
-  \label{fig:top-scores-submissions}
-\end{figure}
-
 All survey results have been released as part of the\\ \textsc{progfun-stats} open-source
 project~\cite{progfun-stats}. The survey data is available in simple
 plain text formats, such  as tab-separated values. Thus, it is easy to process
@@ -631,6 +637,14 @@ number of students who also submitted six or more times (thus earning no additio
 credit); this is a clear indication that the automated grading and feedback
 was also used for learning without improving one's score.
 
+\begin{figure}[ht!]
+  \centering
+  \includegraphics[width=\columnwidth]{plots/top-scores-submissions-histogram.pdf}
+  \vspace{-0.7cm}
+  \caption{The number of submissions required to achieve a perfect score in the ``Huffman'' assignment.}
+  \label{fig:top-scores-submissions}
+\end{figure}
+
 This change in the grading policy had an interesting effect on the quality of
 initial submissions. Figure~\ref{fig:top-scores-submissions} shows the change
 in the number of submissions of students who achieved a perfect score on a
@@ -656,15 +670,6 @@ about 30\%). This suggests that limitations on submissions should be an importan
   \caption{Final scores after the entire course (both iterations).}
   \label{fig:final-scores}
 \end{figure*}
-
-\begin{figure}[ht!]
-  \centering
-  \includegraphics[width=0.85\columnwidth]{plots/education.png}
-  \vspace{-0.5cm}
-  \caption{Educational background of MOOC participants}
-  \label{fig:education}
-\end{figure}
-
 
 % \paragraph{Summary}
 
@@ -694,7 +699,14 @@ course.
 Figure~\ref{fig:final-scores} shows how students performed in both Fall 2012 and Spring 2013 offerings of the course.
 Students had access to an immediate feedback loop, giving them insight into how their code fared our automated test suite, including hints about which of our tests failed and cost them points, or which aspects of style needed to be improved (also a score deduction). This format resulted in a markedly different trend in how students seemed to navigate course material, how they seemed to learn, and certainly how they scored compared to a traditional course. Of particular interest is the strong tendency of students to continue improving their submission. Of all possible scores, the highest concentration of any one score (excluding scores of 0/0) for both iterations of the course was the perfect score of 80/80.
 
-\pagebreak
+\begin{figure}[ht!]
+  \centering
+  \includegraphics[width=0.85\columnwidth]{plots/education.png}
+  \vspace{-0.5cm}
+  \caption{Educational background of MOOC participants}
+  \label{fig:education}
+\end{figure}
+
 \subsection{Not just for students}
 
 In this section, we evaluate the background and motivation of MOOC participants,
@@ -868,8 +880,8 @@ preferred over traditional on-campus course format.
 Finally, the results of our evaluation show that SE-related MOOCs can be very useful not just for
 students, but also for practicing professional software engineers.
 
-\vfill
-\eject
+% \vfill
+% \eject
 
 %
 % The following two commands are all you need in the
