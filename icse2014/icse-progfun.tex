@@ -52,6 +52,7 @@
 \usepackage{url}
 \usepackage{xcolor}
 \usepackage[scaled]{beramono}
+\usepackage{balance}
 % \usepackage[T1]{fontenc}
 % \usepackage{inconsolata}
 % \usepackage{pxfonts}
@@ -90,6 +91,10 @@ keywordstyle=\bfseries,
 commentstyle=\itshape\rmfamily,
 language=scala,moredelim=[il][\sffamily]{?},mathescape=false,showspaces=false,showstringspaces=false,xleftmargin=15pt,escapechar=@, morekeywords=[1]{let,fn,val},deletekeywords={for},classoffset=0,belowskip=\smallskipamount
 }
+
+\clubpenalty = 10000
+\widowpenalty = 10000
+\displaywidowpenalty = 10000
 
 \begin{document}
 
@@ -305,7 +310,7 @@ The lectures are accompanied by interactive, not-for-credit
 quizzes requiring real-time participation from the students as they watch the videos, as well as weekly or biweekly assignments, all of which
 consist of programming exercises.
 
-\paragraph{Testing and submission}
+\paragraph{Testing and Submission}
 Several provided tools enable students to
 interact with the assignments and their submission. The
 interactive build tool~\cite{sbt} allows students to run unit tests and to
@@ -324,7 +329,7 @@ This ensures that their solutions are compatible with our test suite, and
 also creates an incentive for students to build a comprehensive test
 suite of their own.
 
-\paragraph{Interactive feedback}
+\paragraph{Interactive Feedback}
 
 Upon each submission the student receives feedback about how the code fared on
 the secret test suite. This feedback contains non-obvious hints about where the submitted code could be logically incorrect, causing failing tests, and
@@ -342,12 +347,12 @@ assignment.
 % In Section~\ref{sec:eval-grading-policy} we evaluate the effect
 % of the different grading policies on the grades of submissions.
 
-\paragraph{Certificate of completion} Students who obtain more than 60\% of
+\paragraph{Certificate of Completion} Students who obtain more than 60\% of
 all possible points (or 48 points out of a total of 80 possible points) receive a certificate of completion. In addition, those
 who earn more than 80\% of all possible points (or 64 points out of a total of 80 possible points) receive a so-called
 ``certificate of distinction''.
 
-\subsection{Additional elements of the EPFL course}
+\subsection{Additional Elements of the EPFL Course}
 
 The EPFL course is a true superset of the MOOC: EPFL students follow the
 online lectures and quizzes just like any other participant, in our
@@ -361,7 +366,7 @@ consisted of:
 \item {\bf offline second-half of the course} where subsequent course material was presented to students as a traditional on-campus course.
 \end{itemize}
 
-\subsection{Commercial tutorial sessions}
+\subsection{Commercial Tutorial Sessions}
 
 The course format lends itself to additional, commercial offerings. For the
 third iteration of our course on functional programming principles, Typesafe, Inc.,
@@ -567,7 +572,7 @@ that represents how ``worth it'' the course was for students, on a scale from
 % many levels. Throughout each offering of progfun, we have monitored characteristics
 % such as
 
-\subsection{EPFL course evaluation}
+\subsection{EPFL Course Evaluation}
 
 Upon the conclusion of each semester, EPFL undergraduates complete an evaluation for
 each of their courses, typically as an assessment of course quality for the Computer
@@ -588,13 +593,13 @@ Next, we'll examine the background and motivation of MOOC participants which hel
 explain whether MOOCs can be useful to professional software engineers. Finally,
 as a third step, we evaluate the acceptance of our MOOC in a university setting.
 
-\subsection{Tools for effective distance learning}
+\subsection{Tools for Effective Distance Learning}
 
 In this section we evaluate the use of two important tools: (a) the automated
 grading system and (b) the Scala IDE for Eclipse plugin with the Worksheet IDE,
 which was released specifically for use in the first iteration of the course.
 
-\subsubsection{Automated grading system}
+\subsubsection{Automated Grading System}
 
 Before evaluating the grading system, we first clarify the respective grading
 policies used. As mentioned in Section~\ref{sec:mooc-elements} the grading
@@ -606,7 +611,7 @@ times; the sixth and later submissions would not give any credit. In both
 iterations, the (valid) submission with the highest grade determined the final
 grade for that assignment.
 
-\paragraph{Usage of the submission system}
+\paragraph{Usage of the Submission System}
 
 Figure~\ref{fig:2d-histogram} shows the correlation between the achieved
 score for one representative assignment (an implementation of Huffman coding using
@@ -636,6 +641,8 @@ However, interestingly, there are still a significant
 number of students who also submitted six or more times (thus earning no additional
 credit); this is a clear indication that the automated grading and feedback
 was also used for learning without improving one's score.
+
+% \pagebreak
 
 \begin{figure}[ht!]
   \centering
@@ -678,7 +685,7 @@ about 30\%). This suggests that limitations on submissions should be an importan
 % the heat map shows people improved scores by submitting again and again.
 
 
-\subsubsection{The Scala IDE and Worksheet plugin}
+\subsubsection{The Scala IDE and Worksheet Plug-in}
 
 Figure~\ref{fig:ides} shows survey respondents' code editor preferences both
 (a) preferred for use outside of the course, as well as (b) the code editor used
@@ -707,7 +714,7 @@ Students had access to an immediate feedback loop, giving them insight into how 
   \label{fig:education}
 \end{figure}
 
-\subsection{Not just for students}
+\subsection{Not Just for Students}
 
 In this section, we evaluate the background and motivation of MOOC participants,
 in an effort to show that MOOCs can be useful to professional software engineers.
@@ -771,7 +778,7 @@ many as the closest substitute.
   \label{fig:epfl-course-eval}
 \end{figure*}
 
-\subsection{Acceptance and student evaluation}
+\subsection{Acceptance and Student Evaluation}
 
 Figure~\ref{fig:epfl-course-eval} shows the result of our survey among
 students at EPFL who took both the MOOC as well as the subsequent second part
@@ -798,6 +805,8 @@ or very good.
 % While this
 % might have been evident in the lower attendance numbers for the weekly exercise sessions as
 % compared to previous years,
+
+% \vspace{-0.06in}
 
 \section{Related Work}
 \label{sec:related-work}
@@ -888,6 +897,7 @@ students, but also for practicing professional software engineers.
 % initial runs of your .tex file to
 % produce the bibliography for the citations in your paper.
 \bibliographystyle{abbrv}
+\balance
 \bibliography{sigproc}  % sigproc.bib is the name of the Bibliography in this case
 % You must have a proper ".bib" file
 %  and remember to run:
