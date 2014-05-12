@@ -1,0 +1,69 @@
+A hearty thank you to reviewers for the helpful feedback! It's illuminated
+numerous ways we can improve/clarify the presentation and make claims more
+precise.
+
+ *R1/2/4 voiced concerns about checking captured objects beyond first level of
+reference.
+
+Our system allows for both (a) lightweight checking through tagging types and
+(b) enforcing transitive properties like picklability are carried over to
+spores. An important perhaps overlooked detail: the type system allows
+composing both kinds of properties and we have proven this composition sound.
+
+Transitive properties like picklability/immutability/etc are not enforced
+through the spores type system. Rather, spores were designed for extensibility;
+we ensure that deep checking can be applied to spores as follows.
+
+An initial motivation was to be able to require typeclass instances for
+captured types, eg, picklability; spores integrate seamlessly with
+Scala/pickling (OOPSLA'13).
+
+Transitive properties expressed using known techniques, eg generics (Zibin
+etal's OIGJ system for transitive immutability) or annotated types, can be
+enforced for captured types using custom spore properties. Instead of merely
+tagging types, implicit macros can generate typeclass instances for all types
+satisfying a predicate. Eg, using OIGJ we can define an implicit macro
+
+ implicit def isImmutable[T: TypeTag]: Immutable[T]
+
+which returns a typeclass instance for all types of the shape C[O, Immut]
+that's deeply immutable (analyzing the TypeTag). Custom spore properties
+requiring typeclasses constructed in such a way enable transitive checking for
+a variety of such (pluggable) extensions, including compositions thereof (eg,
+picklability/immutability).
+
+ *R1 is not convinced of usefulness of automatically converting conforming closures
+
+First, to correct a misunderstanding of the review stating those spores "still
+need to be manually checked". This is incorrect, since automatically converted
+spores have already been checked by the conversion macro. Additionally, we
+found in >29000 LOC of real Spark-based code that 63% of closures distributed
+via RDD's map are automatically convertible with no manual work. Closures with
+capture capture on average 1.6 variables, resulting in low syntactic overhead
+of spores.
+
+ *R1/3/4 would like more evidence of benefits/practicality.
+
+Acknowledging our empirical study is preliminary, we collected much more
+additional evidence, see above/below. We would be very happy to adjust claims
+accordingly.
+
+(1) 7 Akka projects (GitHub projects with average 23 stars, >100 commits;
+average 2.7 contributors), contain 19 occurrences of an unchecked pattern to
+avoid capturing Actor instances within closures used concurrently. Spores
+excluding Actor statically enforce the safety of all those closures.
+
+(2) 3 threads on the Spark mailing list in the last 3mos reported runtime
+NotSerializableExceptions due to closure capture. In all cases, spores would
+catch these errors during compilation.
+
+(3 ANECDOTAL) Spores were inspired by a need of the Spark creator to address a
+common problem with closures in Spark programs. Our Scala Improvement Proposal
+has been discussed extensively in public involving Akka etc, suggesting strong
+anecdotal evidence of practicality/timeliness.
+
+ *R4 asks about needing an assumption for property 1 in Sec3.5 to hold: Yes,
+the stated assumption is necessary and can be added without issues.
+
+ *R2/3/4 provided citations we are very grateful for, and will discuss in our
+revision.
