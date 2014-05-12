@@ -2502,7 +2502,19 @@ We also provide an implicit conversion from standard Scala functions to spores. 
 % % \twocolumn
 % \end{figure*}
 
-In this section we evaluate the practicality of using spores as an alternative to normal closures in Scala by measuring the number of changes required to convert existing programs that crucially rely on closures to use spores. We analyze a number of real Scala programs, taken from three categories:
+In this section we evaluate the practicality and the benefits of using spores
+as an alternative to normal closures in Scala. The evaluation has three parts.
+In the first part we measure the impact of introducing spores in existing
+programs. In the second part we evaluate the importance of excluding specific
+types from the environment of closures. In the third part we evaluate the
+syntactic overhead of spores in a large code base of big data-style
+applications.
+
+\subsection{Using Spores Instead of Closures}
+
+In this section we measure the number of changes required to convert existing
+programs that crucially rely on closures to use spores. We analyze a number of
+real Scala programs, taken from three categories:
 \begin{enumerate}
 \vspace{-1mm}
 \item General, closure-heavy code, taken from the exercises of the popular MOOC on Functional Programming Principles in Scala; the goal of analyzing this code is to get an approximation of the worst-case effort required when consistently using spores instead of closures, in a mostly-functional code base.
