@@ -1381,13 +1381,13 @@ val safeSpore = spore {
 The fact that for spores a certain shape is enforced is very useful. However,
 in some situations this is not enough. For example, a common source of race
 conditions in data-parallel frameworks like Scala's parallel collections
-manifests itself when users unwittingly capture mutable objects (\eg an
+manifests itself when users capture mutable objects (\eg an
 instance of \verb|scala.collection.mutable.HashMap| from the Scala standard
 library). Thus, a user might want to enforce that closures only capture
-immutable objects, so as to avoid interference. However, such constraints
+immutable objects. However, such constraints
 cannot be enforced using the spore shape alone (captured objects are stored in
-constant values in the spore header, but such a constant might still refer to
-a mutable object).
+constant values in the spore header, but such constants might still refer to
+mutable objects).
 
 In this section, we introduce a form of type-based constraints called
 ``context bounds'' which enforce certain type-based properties for all
@@ -1402,15 +1402,14 @@ captured variables. A typical example for such a type class is \verb|Pickler|:
 types with an instance of the \verb|Pickler| type class can be pickled using a
 new type-based pickling framework for Scala~\cite{ScalaPickling}. To be able
 to pickle a spore, it's necessary that all its captured types have an instance
-of Pickler.\footnote{A spore can be pickled by pickling its environment and
+of \verb|Pickler|.\footnote{A spore can be pickled by pickling its environment and
 the fully-qualified class name of its corresponding function class.}
 
 % because Property[T] allows requiring that all captured types implement the "interface" T
 % and then you can continue like in the snippet you showed me about how it's not Java-style interfaces but more like JavaGI and C++...
 
 Spores allow expressing such a requirement using a notion of implicit {\em
-properties}. The idea is that if there is an implicit value
-\footnote{An implicit value is a value in \textit{implicit scope} that's statically selected based on its type.}
+properties}. The idea is that if there is an implicit value\footnote{An implicit value is a value in \textit{implicit scope} that's statically selected based on its type.}
 of type \verb|Property[Pickler]| in scope at the
 point where a spore is created, then it is enforced that all captured types in
 the spore header have an instance of the \verb|Pickler| type class
@@ -1425,8 +1424,7 @@ spore {
   (x: String) => { ...}
 }
 \end{lstlisting}
-
-While an imported property does not have an impact on how a spore is
+\noindent While an imported property does not have an impact on how a spore is
 constructed (besides the property import), it has an impact on the result type
 of the spore macro. In the above example, the result type would be a
 refinement of the \verb|Spore| type:\footnote{In the code example, \texttt{implicitly[T]} returns the uniquely-defined implicit value of \texttt{T} which is in scope at the invocation site.}
@@ -1438,8 +1436,7 @@ Spore[String, Int] {
   implicit val ev$0 = implicitly[Pickler[Captured]]
 }
 \end{lstlisting}
-
-For each property that's imported, the resulting spore refinement type
+\noindent For each property that's imported, the resulting spore refinement type
 contains an implicit value with the corresponding type class instance for type
 \verb|Captured|.
 
@@ -1474,8 +1471,7 @@ spores library):
 \begin{lstlisting}[numbers=none]
     trait Property[C[_]]
 \end{lstlisting}
-
-As a running example, we will be defining a custom  property for
+\noindent As a running example, we will be defining a custom  property for
 immutable types. A custom property can be introduced using a generic trait,
 and an implicit ``property'' object that mixes in the above \verb|Property|
 trait:
@@ -1509,8 +1505,7 @@ into an implicit property object:
 \begin{lstlisting}[numbers=none]
     implicit object myProps extends Property[Pickler] with Property[Immutable]
 \end{lstlisting}
-
-By making this compound property available in a scope within which spores are
+\noindent By making this compound property available in a scope within which spores are
 created (for example, using an \verb|import|), it is enforced that those
 spores have both the context bound \verb|Pickler| and the context bound
 \verb|Immutable|.
