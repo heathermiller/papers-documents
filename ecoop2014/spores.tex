@@ -182,20 +182,20 @@ parallel, concurrent, and distributed programming to the mainstream. The
 popularity of the rationale behind this viewpoint (immutable data transformed
 by function application) has even lead to a number of object-oriented (OO)
 programming languages adopting functional features such as lambdas
-(functions) and thereby function closures.
+and thereby function closures.
 However, despite this established viewpoint of FP as an enabler, reliably
 distributing function closures over a network, or using them in concurrent
 environments nonetheless remains a challenge across FP and OO languages.
 This paper takes a step towards more principled distributed and concurrent
 programming by introducing a new closure-like abstraction and type system,
 called {\em spores}, that can guarantee closures to be serializable, thread-safe,
-or even have general, custom user-defined properties. Crucially, our system is
+or even have custom user-defined properties. Crucially, our system is
 based on the principle of encoding type information corresponding to captured
 variables in the type of a spore.
-We prove our type system sound, implement our approach for Scala\footnote{\sporeurl}, evaluate
-its practicality through an small empirical study, and show the power of these
+We prove our type system sound, implement our approach for Scala,\footnote{\sporeurl} evaluate
+its practicality through a small empirical study, and show the power of these
 guarantees through a case analysis of real-world distributed and concurrent
-frameworks that this safe foundation for migratable closures facilitates.
+frameworks that this safe foundation for closures facilitates.
 
 % == 150-word abstract for the submission page ==
 % Functional programming is regularly touted as the way forward for bringing
@@ -221,7 +221,7 @@ frameworks that this safe foundation for migratable closures facilitates.
 %
 \section{Introduction}
 
-With the growing trend towards cloud computing, mobile applications, big data,
+With the growing trend towards cloud computing, mobile applications, and big data,
 distributed programming has entered the mainstream. The
 traditional view of software development as being focused on a program running
 on a single machine, interacting directly with the user, has become largely
@@ -267,7 +267,7 @@ monad~\cite{HaskellPar} to name a few.
 % safety, and verification opportunities~\cite{Nova}.
 
 In the context of distributed programming, data-parallel frameworks like
-Hadoop or MapReduce~\cite{MapReduce} and Spark~\cite{Spark} are designed
+\\Hadoop or MapReduce~\cite{MapReduce} and Spark~\cite{Spark} are designed
 around functional patterns where closures are
 transmitted across cluster nodes to large-scale persistent datasets. As a result of the ``big data'' revolution,
 these frameworks have become very popular, in turn further highlighting the
@@ -409,7 +409,7 @@ of captured types.
 \item {\bf Ease of Use}. Spores should be lightweight
 to use, and be able to integrate seamlessly with existing practice. It should
 be possible to capitalize on the benefits of precise types while at the same
-time ensuring that working with spores is never too bulky or verbose, thanks
+time ensuring that working with spores is never too verbose, thanks
 to the help of automatic type synthesis and inference. At the same time,
 frameworks like Spark, for which the need for controlled capture is central,
 should be able to use spores, meanwhile requiring only minimal changes in
@@ -453,7 +453,7 @@ solutions to allow control over the environment of closures.
 
 C++11~\cite{CplusplusLambas} has introduced syntactic rules for explicit
 capture specifications that indicate which variables are captured and how (by
-reference, or by making a copy). Since the capturing semantics is purely
+reference or by copy). Since the capturing semantics is purely
 syntactic, a capture specification is only enforced at closure creation time.
 Thus, when composing two closures, the capture semantics is not preserved.
 Spores, on the other hand, capture such specifications at the level of types,
@@ -503,7 +503,7 @@ also enables users to define their own arbitrary and customizable constraints.
 soundness of the type system.
 
 \item We present an implementation of spores in and for the full Scala
-language\footnote{\sporeurl}.
+language.\footnote{\sporeurl}
 
 \item We (a) demonstrate the practicality of spores through an small
 empirical study using a collection of real-world Scala programs, and (b) show the power
@@ -914,7 +914,7 @@ controlled.
 Below, we describe the syntactic shape of spores, and in
 Section~\ref{sec:spore-type} we describe the \verb|Spore| type.
 In Section~\ref{sec:adv-usage-type-constraints} we informally describe the type
-system, and how to add user-defined type-based constraints to
+system, and how to add user-defined constraints to
 customize what types a spore can capture.
 % \todo{Should we make a list of properties that need to be satisfied for a closure to be guaranteeably serializable or thread-safe? Then, progress through the entire Spores section and show how each aspect of the design achieves that.}
 
@@ -1092,7 +1092,7 @@ using the \verb|+| symbol.
 The \verb|Spore| type is shown in Figure~\ref{fig:spore-arity1}. Like normal
 Scala functions, spores are contravariant in their argument type \verb|A|, and
 covariant in their result type \verb|B|. Additionally, type \verb|Spore| has
-has two abstract type members. In a concrete spore, the \verb|Captured| type
+two abstract type members. In a concrete spore, the \verb|Captured| type
 member is defined to be a tuple type with the types of all captured variables.
 We will introduce the \verb|Excluded| type member later, in Section~\ref{sec:excluded-types}
 
@@ -1109,7 +1109,7 @@ We will introduce the \verb|Excluded| type member later, in Section~\ref{sec:exc
 
 A spore can be defined as shown in Figure~\ref{fig:captured-spore}, with its
 corresponding type shown in Figure~\ref{fig:captured-type}. As can be seen,
-the types of the environment listed in the spore header are captured and
+the types of the environment listed in the spore header are
 represented by the \verb|Captured| type member in the spore's type.
 
 \begin{figure}[t!]
@@ -1184,7 +1184,7 @@ is Scala's bottom type). The composition of \verb|s1| and \verb|s2|, written
     Spore[String, String] { type Captured = (String, Int) }
 \end{lstlisting}
 
-Note that the \verb|Captured| type member of the result spore is equal to the
+\noindent Note that the \verb|Captured| type member of the result spore is equal to the
 \verb|Captured| type of \verb|s1|, since it is guaranteed that the result
 spore does not capture more than what \verb|s1| already captures. Thus, not
 only are spores composable, but so are their (refinement) types.
@@ -1204,7 +1204,7 @@ explicitly define the spore's environment.
 Therefore, it is also possible to use function literals as spores if they
 satisfy the spore shape constraints. To support this, an implicit
 conversion\footnote{In Scala, implicit conversions can be thought of as methods which can be implicitly invoked based upon their type, and whether or not they are present in implicit scope. Implicit conversions carry the \texttt{implicit} keyword before their declaration.}
-macro\footnote{In Scala, macros are methods that are transparently loaded by the compiler and executed (or expanded) during compilation. A macro is defined as if it is a normal method, but it is linked using the \texttt{macro} keyword to an additional method that operates on abstract syntax trees.} is provided which converts regular
+macro\footnote{In Scala, macros are methods that are transparently loaded by the compiler and executed (or expanded) during compilation. A macro is defined like a normal method, but it is linked using the \texttt{macro} keyword to an additional method that operates on abstract syntax trees.} is provided which converts regular
 functions to spores, but only if the converted function is a literal: only
 then is it possible to enforce the spore shape.
 
@@ -1214,8 +1214,8 @@ Converting functions to spores opens up the use of spores in a number of other
 situations, most prominently, for-comprehensions\footnote{The implicit
 conversion makes it possible to have for-comprehensions without altering the
 Scala compiler, because de-sugaring the for-comprehension happens before
-implicit conversions are inserted.} (Scala's version of Haskell's do-
-notation). In Scala, for-comprehensions are desugared to invocations of the
+implicit conversions are inserted.} (Scala's version of Haskell's do-notation).
+In Scala, for-comprehensions are desugared to invocations of the
 higher-order \verb|map|, \verb|flatMap|, and \verb|filter|
 methods, each of which take normal functions as arguments.
 
@@ -1287,8 +1287,8 @@ spores.
 \vspace{1mm}
 
 In this section, we describe two different kinds of ``type constraints'' which
-enable more fine-grained control over closure capture semantics; excluded
-types which prevent certain types from being captured and context bounds for
+enable more fine-grained control over closure capture semantics; \emph{excluded
+types} which prevent certain types from being captured, and \emph{context bounds} for
 captured types which enforce certain type-based properties for all captured
 variables of a spore. Importantly, all of these different kinds of constraints
 compose, as we will see in later subsections.
@@ -1316,12 +1316,13 @@ type SporeNoActor[-A, +B] = Spore[A, B] {
 }
 \end{lstlisting}
 \noindent
-Note the use of the auxiliary type constructor \verb|No|: it enables the exclusion of multiple types while supporting desired sub-typing relationships. Its definition is very simple:
+Note the use of the auxiliary type constructor \verb|No| (defined as \lstinline{trait No[-T]}): it enables
+the exclusion of multiple types while supporting desired sub-typing relationships.
 
-\begin{lstlisting}[numbers=none]
-trait No[-T]
-\end{lstlisting}
-\noindent
+% \begin{lstlisting}[numbers=none]
+% trait No[-T]
+% \end{lstlisting}
+% \noindent
 
 % (We explain the "-" annotation on the type parameter below when discussing sub-typing.)
 
@@ -1333,16 +1334,17 @@ type SafeSpore = Spore[Int, String] {
 }
 \end{lstlisting}
 
-Given Scala's sub-typing rules for refinement types, a spore refinement
+\noindent Given Scala's sub-typing rules for refinement types, a spore refinement
 excluding a superset of types excluded by an ``otherwise type-compatible''
-spore is a subtype. For example, \verb|SafeSpore| is a sub type of
+spore is a subtype. For example, \verb|SafeSpore| is a subtype of
 \verb|SporeNoActor[Int, String]|.
 
 \paragraph{\textbf{\textit{Subtyping}}}
 
 Using some frameworks typically user-defined subclasses are created that extend framework-provided types. However, the extended types are sometimes not safe to be captured. For example, in Akka, user-created closures should not capture variables of type \verb|Actor| and any subtypes thereof. To express such a constraint in our system we define the \verb|No| type constructor to be contravariant in its type parameter; this is the meaning of the \verb|-| annotation in the type declaration \verb|trait No[-T]|.
 
-As a result, the following refinement type is a supertype of type \verb|SporeNoActor[Int, Int]| defined above (we assume \verb|MyActor| is a subclass of \verb|Actor|):
+As a result, the following refinement type is a supertype of type\\
+\verb|SporeNoActor[Int, Int]| defined above (we assume \verb|MyActor| is a subclass of \verb|Actor|):
 
 \begin{lstlisting}
 type MySpore = Spore[Int, Int] {
@@ -1350,7 +1352,8 @@ type MySpore = Spore[Int, Int] {
 }
 \end{lstlisting}
 \noindent
-It is important that \verb|MySpore| is a supertype and not a subtype of \verb|SporeNoActor[Int, Int]|, since an instance of \verb|MySpore| could capture some other subclass of \verb|Actor| which is not itself a subclass of \verb|MyActor|. Thus, it would not be safe to use an instance of \verb|MySpore| where an instance of \verb|SporeNoActor[Int, Int]| is required. On the other hand, an instance of \verb|SporeNoActor[Int, Int]| is safe to use in place of an instance of \verb|MySpore|, since it is guaranteed not to capture \verb|Actor| or any of its subclasses.
+It is important that \verb|MySpore| is a supertype and not a subtype of\\
+\verb|SporeNoActor[Int, Int]|, since an instance of \verb|MySpore| could capture some other subclass of \verb|Actor| which is not itself a subclass of \verb|MyActor|. Thus, it would not be safe to use an instance of \verb|MySpore| where an instance of \verb|SporeNoActor[Int, Int]| is required. On the other hand, an instance of \verb|SporeNoActor[Int, Int]| is safe to use in place of an instance of \verb|MySpore|, since it is guaranteed not to capture \verb|Actor| or any of its subclasses.
 
 \paragraph{\textbf{\textit{Reducing \texttt{Excluded} Boilerplate}}}
 
