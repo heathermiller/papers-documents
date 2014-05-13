@@ -1196,7 +1196,7 @@ explicitly define the spore's environment.
 
 Therefore, it is also possible to use function literals as spores if they
 satisfy the spore shape constraints. To support this, an implicit
-conversion\footnote{In Scala, implicit conversions can be thought of as methods which can be implicitly invoked based upon their type, and whether or not they are present in implicit scope. Implicit conversions carry the \texttt{implicit} keyword before their declaration.}
+conversion\footnote{In Scala, implicit conversions can be thought of as methods which can be implicitly invoked based upon their type, and whether or not they are present in implicit scope.}
 macro\footnote{In Scala, macros are methods that are transparently loaded by the compiler and executed (or expanded) during compilation. A macro is defined like a normal method, but it is linked using the \texttt{macro} keyword to an additional method that operates on abstract syntax trees.} is provided which converts regular
 functions to spores, but only if the converted function is a literal: only
 then is it possible to enforce the spore shape.
@@ -1204,13 +1204,10 @@ then is it possible to enforce the spore shape.
 \subsubsection{For-Comprehensions}
 
 Converting functions to spores opens up the use of spores in a number of other
-situations, most prominently, for-comprehensions\footnote{The implicit
-conversion makes it possible to have for-comprehensions without altering the
-Scala compiler, because de-sugaring the for-comprehension happens before
-implicit conversions are inserted.} (Scala's version of Haskell's do-notation).
-In Scala, for-comprehensions are desugared to invocations of the
-higher-order \verb|map|, \verb|flatMap|, and \verb|filter|
-methods, each of which take normal functions as arguments.
+situations; most prominently, for-comprehensions (Scala's version of Haskell's do-notation) in Scala
+are desugared to invocations of the higher-order \verb|map|, \verb|flatMap|, and \verb|filter|
+methods, each of which take normal functions as arguments.\footnote{For-comprehensions are desugared
+before implicit conversions are inserted; thus, no change to the Scala compiler is necessary.}
 
 % \footnote{Lazy filtering is supported using the additional
 % \verb|withFilter| method}
@@ -1373,10 +1370,8 @@ val safeSpore = spore {
 
 The fact that for spores a certain shape is enforced is very useful. However,
 in some situations this is not enough. For example, a common source of race
-conditions in data-parallel frameworks like Scala's parallel collections
-manifests itself when users capture mutable objects (\eg an
-instance of \verb|scala.collection.mutable.HashMap| from the Scala standard
-library). Thus, a user might want to enforce that closures only capture
+conditions in data-parallel frameworks manifests itself when users capture
+mutable objects. Thus, a user might want to enforce that closures only capture
 immutable objects. However, such constraints
 cannot be enforced using the spore shape alone (captured objects are stored in
 constant values in the spore header, but such constants might still refer to
@@ -1449,10 +1444,8 @@ to require argument spores to have certain context bounds. For example,
 requiring argument spores to have picklers defined for their captured types
 can be achieved as follows:
 
-\begin{lstlisting}
-def m[A, B](s: Spore[A, B])(implicit p: Pickler[s.Captured]) = {
-  // ...
-}
+\begin{lstlisting}[numbers=none]
+def m[A, B](s: Spore[A, B])(implicit p: Pickler[s.Captured]) = ...
 \end{lstlisting}
 
 
@@ -1915,7 +1908,7 @@ P \in pn \rightarrow \mathcal{T} & \mbox {property map}
 
 We formalize spores in the context of a standard, typed lambda calculus with records. Apart from novel language and type-systematic features, our formal development follows a well-known methodology~\cite{TAPL}. Figure~\ref{fig:syntax} shows the syntax of our core language. Terms are standard except for the \texttt{spore}, \texttt{import}, and \texttt{compose} terms. A \texttt{spore} term creates a new spore. It contains a list of variable definitions (the spore header), a list of property names, and the spore's closure. A property name refers to a type family (a set of types) that all captured types must belong to.
 
-An illustrative example of a property name and its associated type family, but in the context of Scala, is a type class: a spore satisfies such a property if there is a type class instance for all its captured types.
+An illustrative example of a property and its associated type family is a type class: a spore satisfies such a property if there is a type class instance for all its captured types.
 
 An \texttt{import} term imports a property name into the property environment
 within a lexical scope (a term); the property environment contains properties
@@ -1932,7 +1925,7 @@ The grammar of types is standard except for spore types. Spore types are refinem
 
 \subsection{Subtyping}\label{sec:subtyping}
 
-Figure~\ref{fig:subtyping} shows the subtyping rules. Record (\textsc{S-Rec}) and function (\textsc{S-Fun}) subtyping are standard.
+Figure~\ref{fig:subtyping} shows the subtyping rules; rules \textsc{S-Rec} and \textsc{S-Fun} are standard~\cite{TAPL}.
 
 The subtyping rule for spores (\textsc{S-Spore}) is analogous to the subtyping rule for functions with respect to the argument and result types. Additionally, for two spore types to be in a subtyping relationship either their captured types have to be the same ($M_1 = M_2$) or the supertype must be an abstract spore type ($M_2 = \texttt{type}~\mathcal{C}$). The subtype must guarantee at least the properties of its supertype, or a superset thereof. Taken together, this rule expresses the fact that a spore type whose type member $\mathcal{C}$ is not abstract is compatible with an abstract spore type as long as it has a superset of the supertype's properties. This is important for spores used as first-class values: functions operating on spores with arbitrary environments can simply demand an abstract spore type. The way both the captured types and the properties are modeled corresponds to (but simplifies) the subtyping rule for refinement types in Scala (see Section~\ref{sec:adv-usage-type-constraints}).
 
@@ -2187,7 +2180,7 @@ Rule \textsc{T-Comp} derives a result type for the composition of two spores. It
   \vspace{-7mm}
 \end{figure*}
 
-Figure~\ref{fig:opsem} shows the evaluation rules of a small-step operational semantics for our core language. The only non-standard rules are \textsc{E-AppSpore}, \textsc{E-Spore}, \textsc{E-Imp}, and \textsc{E-Comp3}. Rule \textsc{E-AppSpore} applies a spore literal to an argument value. The differences to regular function application (\textsc{E-AppAbs}) are (a) that the types in the spore header must satisfy the properties of the spore dynamically, and (b) that the variables in the spore header must be replaced by their values in the body of the spore's closure. Rule \textsc{E-Spore} is a simple congruence rule. Rule \textsc{E-Imp} is a computation rule that is always enabled. It adds property name $pn$ to all spore terms within the body $t$. The $insert$ helper function is defined in Figure~\ref{fig:helper} (we omit rules for \verb|compose| and \verb|let|, since they are analogous to rules \textsc{H-InsApp} and \textsc{H-InsSel}).
+Figure~\ref{fig:opsem} shows the evaluation rules of a small-step operational semantics for our core language. The only non-standard rules are \textsc{E-AppSpore}, \textsc{E-Spore}, \textsc{E-Imp}, and \textsc{E-Comp3}. Rule \textsc{E-AppSpore} applies a spore literal to an argument. The differences to regular function application (\textsc{E-AppAbs}) are (a) that the types in the spore header must satisfy the properties of the spore dynamically, and (b) that the variables in the spore header must be replaced by their values in the body of the spore's closure. Rule \textsc{E-Spore} is a congruence rule. Rule \textsc{E-Imp} is a computation rule that is always enabled. It adds property name $pn$ to all spore terms within the body $t$. The $insert$ helper function is defined in Figure~\ref{fig:helper} (we omit rules for \verb|compose| and \verb|let|; they are analogous to rules \textsc{H-InsApp} and \textsc{H-InsSel}).
 
 Rule \textsc{E-Comp3} is the computation rule for spore composition. Besides computing the composition in a way analogous to regular function composition, it defines the spore header of the result spore, as well as its properties. The properties of the result spore are restricted to those that are satisfied by the captured variables of both argument spores.
 
@@ -2308,11 +2301,11 @@ By induction on a derivation of $\Gamma ; \Delta \vdash t : T$.
 
 \subsection{Relation to spores in Scala}
 
-The soundness proof (see Section~\ref{sec:soundness}) of the formal type system guarantees several important properties for well-typed programs which closely correspond to the pragmatic model of spores in Scala:
+The type soundness proof (see Section~\ref{sec:soundness}) guarantees several important properties for well-typed programs which closely correspond to the pragmatic model in Scala:
 
 \begin{enumerate}
 
-\item Application of spores: for each property name $pn$, it is ensured that the dynamic types of all captured variables are contained in the type family $pn$ maps to ($P(pn)$). Note that Definition~\ref{def:beh-subtyping} is essential for this property to hold.
+\item Application of spores: for each property name $pn$, it is ensured that the dynamic types of all captured variables are contained in the type family $pn$ maps to ($P(pn)$).
 
 \item Dynamically, a spore only accesses its parameter and the variables in its header.
 
@@ -2446,13 +2439,13 @@ Figure~\ref{fig:opsem-ext} shows the extensions to the operational semantics. Ru
 \section{Implementation}
 \label{sec:implementation}
 
-We have implemented spores as a macro library for Scala 2.10 and 2.11. Macros are an experimental feature introduced in Scala 2.10 that enable ``macro defs'', methods that take expression trees as arguments and that return an expression tree that is inlined at each invocation site of the macro. Macros are expanded during type checking in a way which enables macros to synthesize their result type during macro expansion, specialized for each expansion site.
+We have implemented spores as a macro library for Scala 2.10 and 2.11. Macros are an experimental feature introduced in Scala 2.10 that enable ``macro defs,'' methods that take expression trees as arguments and that return an expression tree that is inlined at each invocation site. Macros are expanded during type checking in a way which enables macros to synthesize their result type specialized for each expansion site.
 
 The implementation for Scala 2.10 requires in addition a compiler plug-in that provides a backport of the support for Java 8 SAM types (``functional interfaces'') of Scala 2.11. SAM type support extends type inference for user-defined subclasses of Scala's standard function types which enables infering the types of spore parameters.
 
 An expression \verb|spore { val y: S = s; (x: T) => /* body */ }| invokes the \verb|spore| macro which is passed the block \verb|{ val y... }| as an expression tree. A spore without type constraints simply checks that within the body of the spore's closure, only the parameter \verb|x| as well as the variables in the spore header are accessed according to the spore type-checking rules. The expression tree returned by the macro creates an instance of a {\em refinement type} of the abstract \verb|Spore| class that implements its \verb|apply| method (inherited from the corresponding standard Scala function trait) by applying the spore's closure. The \verb|Captured| type member (see Section~\ref{sec:spore-type}) is defined by the generated refinement type to be a tuple type with the types of all captured variables. If there are no type constraints the \verb|Excluded| type member is defined to be \verb|No[Nothing]|.
 
-Type constraints are implemented as follows. First, invoking the generic \verb|without| macro passing a type argument \verb|T|, say, augments the generated \verb|Spore| refinement type by effectivly adding the clause \verb|with No[T]| to the definition of its \verb|Excluded| type member. Second, the existence of additional bounds on the captured types is detected by attempting to infer an implicit value of type \verb|Property[_]|. If such an implicit value can be inferred, a sequence of types specifying type bounds is obtained as follows. Basically, the type of the implicit value is matched against the pattern \\ \verb|Property[t1] with ... with Property[tn]| where the \verb|ti| are type variables. For each type \verb|ti| an implicit value member
+Type constraints are implemented as follows. First, invoking the generic \verb|without| macro passing a type argument \verb|T|, say, augments the generated \verb|Spore| refinement type by effectivly adding the clause \verb|with No[T]| to the definition of its \verb|Excluded| type member. Second, the existence of additional bounds on the captured types is detected by attempting to infer an implicit value of type \verb|Property[_]|. If such an implicit value can be inferred, a sequence of types specifying type bounds is obtained as follows. The type of the implicit value is matched against the pattern \verb|Property[t1] with ... with Property[tn]| where the \verb|ti| are type variables. For each type \verb|ti| an implicit value member
 
 \begin{lstlisting}[numbers=none]
     implicit val evi: ti[Captured] = implicitly[ti[Captured]]
@@ -2540,7 +2533,7 @@ real Scala programs, taken from three categories:
 \vspace{-1mm}
 \item General, closure-heavy code, taken from the exercises of the popular MOOC on Functional Programming Principles in Scala; the goal of analyzing this code is to get an approximation of the worst-case effort required when consistently using spores instead of closures, in a mostly-functional code base.
 
-\item Parallel applications based on Scala's parallel collections. These examples evaluate the practicality of introducing spores into a parallel code base to increase its robustness.
+\item Parallel applications based on Scala's parallel collections. These examples evaluate the practicality of using spores in a parallel code base to increase its robustness.
 
 \item Distributed applications based on the Apache Spark cluster computing framework. In this case, we evaluate the practicality of using spores in Spark applications to make sure closures are guaranteed to be serializable.
 \vspace{-2mm}
@@ -2599,13 +2592,12 @@ The above conventions can be enforced by the compiler, avoiding unexpected runti
 val mapFun: Spore[Session, (List[String], GenericOpAggregator)] =
   spore { val localMapping = mapping
     (s: Session) => (keyList, new GenericOpAggregator(s, localMapping)) }
-
 val reduceFun: Spore[(GenericOpAggregator, GenericOpAggregator),
                       GenericOpAggregator] =
   spore { (a, b) => a.merge(b) }
 \end{lstlisting}
 \noindent
-The spore shape enforces the use of \verb|localMapping| (moved from the method body into \verb|mapFun|). Furthermore, there is no more possibility of accidentally capturing a reference to the enclosing object.
+The spore shape enforces the use of \verb|localMapping| (moved into \verb|mapFun|). Furthermore, there is no more possibility of accidentally capturing a reference to the enclosing object.
 
 
 \subsection{Safer Closures for Parallel Collections}
@@ -2674,8 +2666,7 @@ transitive properties using spores, one can either use type constraints based
 on type classes which enforce a transitive property such as serializability
 (Section~\ref{sec:adv-usage-type-constraints}) or by integrating with type
 systems that enforce transitive properties (Section~\ref{sec:trans-props}). Unlike ML5, spores
-do not require a type system extension and have been implemented for mainline
-Scala.
+do not require a type system extension.
 
 HdpH~\cite{HDPH} generalizes Cloud Haskell's closures in several aspects:
 first, closures can be transformed without eliminating them. Second,
