@@ -179,10 +179,9 @@ and
 
 Functional programming (FP) is regularly touted as the way forward for bringing
 parallel, concurrent, and distributed programming to the mainstream. The
-popularity of the rationale behind this viewpoint (immutable data transformed
-by function application) has even lead to a number of object-oriented (OO)
-programming languages adopting functional features such as lambdas
-and thereby function closures.
+popularity of the rationale behind this viewpoint has even lead to a number of
+object-oriented (OO) programming languages adopting functional features such
+as lambdas and thereby function closures.
 However, despite this established viewpoint of FP as an enabler, reliably
 distributing function closures over a network, or using them in concurrent
 environments nonetheless remains a challenge across FP and OO languages.
@@ -221,18 +220,21 @@ frameworks that this safe foundation for closures facilitates.
 %
 \section{Introduction}
 
+% The traditional view of software development as being focused on a program running
+% on a single machine, interacting directly with the user, has become largely
+% obsolete.
+
+% Whether we consider a cluster of hundreds of commodity machines
+% churning through a massive data-parallel job, or a smartphone interacting with
+% a social network, all are ``distributed'' jobs, and all share the need to
+% interact in typically asynchronous, reactive ways with other clients or
+% services.
+
 With the growing trend towards cloud computing, mobile applications, and big data,
-distributed programming has entered the mainstream. The
-traditional view of software development as being focused on a program running
-on a single machine, interacting directly with the user, has become largely
-obsolete. Popular paradigms in software engineering such as software as a
-service (SaaS), RESTful services, or the rise of multitudes of different
-models and systems for big data processing and interactive analytics, evidence
-this trend. Whether we consider a cluster of hundreds of commodity machines
-churning through a massive data-parallel job, or a smartphone interacting with
-a social network, all are ``distributed'' jobs, and all share the need to
-interact in typically asynchronous, reactive ways with other clients or
-services.
+distributed programming has entered the mainstream. Popular paradigms in software
+engineering such as software as a service (SaaS), RESTful services, or the rise
+of a multitude of systems for big data processing and interactive
+analytics, evidence this trend.
 
 Meanwhile, at the same time, functional programming has been undeniably
 gaining traction in recent years, as is evidenced by the ongoing trend of
@@ -240,8 +242,12 @@ traditionally object-oriented or imperative languages being extended with
 functional features, such as lambdas in \mbox{Java 8}~\cite{JavaLambdas},
 C++11~\cite{CplusplusLambas}, and Visual Basic 9~\cite{Meijer}, the perceived
 importance of functional programming in general empirical studies on software
-developers~\cite{PLAdoption}, and the measurable popularity of functional
+developers~\cite{PLAdoption}, and the popularity of functional
 programming massively online open courses (MOOCs)~\cite{ICSEMOOC}.
+
+% , where the
+% fundamental idea is to distribute data across nodes/threads and to perform the
+% same task on the different pieces of this distributed data in parallel
 
 One reason for the rise in popularity of functional programming languages and
 features within object-oriented communities is the basic philosophy of
@@ -249,9 +255,7 @@ transforming immutable data by applying first-class functions, and the
 observation that this functional style simplifies reasoning about data in
 parallel, concurrent, and distributed code. A popular and well-understood
 example of this style of programming for which many popular frameworks have
-come to fruition is functional data-parallel programming, where the
-fundamental idea is to distribute data across nodes/threads and to perform the
-same task on the different pieces of this distributed data in parallel.
+come to fruition is functional data-parallel programming.
 Examples across functional and object-oriented paradigms include \mbox{Java
 8}'s monadic-style optionally parallel collections~\cite{JavaLambdas}, Scala's
 parallel~\cite{ScalaParColls} and concurrent dataflow~\cite{FlowPools}
@@ -267,7 +271,7 @@ monad~\cite{HaskellPar} to name a few.
 % safety, and verification opportunities~\cite{Nova}.
 
 In the context of distributed programming, data-parallel frameworks like
-\\Hadoop or MapReduce~\cite{MapReduce} and Spark~\cite{Spark} are designed
+MapReduce~\cite{MapReduce} and Spark~\cite{Spark} are designed
 around functional patterns where closures are
 transmitted across cluster nodes to large-scale persistent datasets. As a result of the ``big data'' revolution,
 these frameworks have become very popular, in turn further highlighting the
@@ -277,11 +281,11 @@ the network.
 % making the robust distribution of computations and % closures
 % essential.
 
-Frameworks like Spark embody a pattern that we like to call ``Lambda The
-Ultimate Distributive'' where closures are shipped to the data such that (a)
-data to-be-processed as well as services local
-to a node are passed as arguments, and (b) data that needs to
-be shipped with the closure is captured and serialized.
+% Frameworks like Spark embody a pattern that we like to call ``Lambda The
+% Ultimate Distributive'' where closures are shipped to the data such that (a)
+% data to-be-processed as well as services local
+% to a node are passed as arguments, and (b) data that needs to
+% be shipped with the closure is captured and serialized.
 
 % have to be pure or can't have access to mutable things
 
@@ -326,26 +330,25 @@ class MyCoolRddApp {
   }
 }
 \end{lstlisting}
-
+\noindent
 In this example, the closure \verb|(x => x + shift(x))| is passed to the
 \verb|map| method of the distributed collection \verb|rdd| which requires
 serializing the closure (as, in Spark, parts of the data structure reside on
 different machines). However, calling \verb|shift| inside the closure invokes
 a method on the enclosing object \verb|this|. Thus, the closure is capturing,
-and must therefore serialize, \verb|this|. If \verb|Log|, referred to from
+and must therefore serialize, \verb|this|. If \verb|Log|, a field of
 \verb|this|, is not serializable, this will fail at runtime.
 
 In fact, closures suffer not only from the problems shown in these two
 examples; there are numerous more hazards that manifest {\em across
-programming paradigms}. To provide a complete glimpse, closure-related hazards
+programming paradigms}. To provide a glimpse, closure-related hazards
 related to concurrency and distribution include:
 
 % Unfortunately, besides the above mentioned problems, closures exhibit a variety of additional hazards, across programming paradigms.
 
 \vspace{-2mm}
 \begin{itemize}
-\item free variables that are not serializable;
-\item accidental references to \verb|this| or other enclosing objects that are not serializable;
+\item accidental capture of non-serializable variables (including \verb|this|);
 \item language-specific compilation schemes, creating implicit references to objects that are not serializable;
 \item transitive references that inadvertently hold on to excessively large object graphs, creating memory leaks;
 \item capturing references to mutable objects, leading to race conditions in a concurrent setting;
@@ -448,8 +451,8 @@ immutability, or any other user-defined property. In addition, spores allow
 restricting captured types in a way that's integrated with object-oriented
 concerns, such as subtyping and open class hierarchies.
 
-In industry, a number of languages have adopted or proposed pragmatic
-solutions to allow control over the environment of closures.
+% In industry, a number of languages have adopted or proposed pragmatic
+% solutions to allow control over the environment of closures.
 
 C++11~\cite{CplusplusLambas} has introduced syntactic rules for explicit
 capture specifications that indicate which variables are captured and how (by
@@ -461,16 +464,15 @@ enabling composability. Furthermore, spores' type constraints enable more
 general type-directed control over capturing than capture-by-value or
 capture-by-reference alone.
 
-There is a preliminary proposal for closures in the Rust
-language~\cite{RustFunctions} that allows describing the closed-over variables
+A preliminary proposal for closures in the Rust
+language~\cite{RustFunctions} allows describing the closed-over variables
 in the environment using closure bounds, requiring captured types to implement
-certain traits. These closure bounds are limited to a small set of built-in
+certain traits. Closure bounds are limited to a small set of built-in
 traits to enforce properties like sendability. Spores on the other hand enable
 user-defined property definition, allowing for greater customizability of
-closure capturing semantics. Furthermore, in Rust, the environment of a
-closure must always be allocated on the stack (although not necessarily the
-top-most stack frame). Spores, like regular Scala closures, do not have such a
-restriction.
+closure capturing semantics. Furthermore, unlike spores, the environment of a
+closure in Rust must always be allocated on the stack (although not necessarily the
+top-most stack frame).
 
 {Java 8}~\cite{JavaLambdas,JavaLambdaTranslation} introduces a limited type of
 closure which is only permitted to capture variables that are
@@ -2638,7 +2640,8 @@ Parallel closures~\cite{ParallelClosures} are a variation of closures that make 
 
 HdpH~\cite{HDPH} generalizes Cloud Haskell's closures in several aspects: first, closures can be transformed without eliminating them. Second, unnecessary serialization is avoided, e.g., when applying a closure immediately after creation. Otherwise, the discussion of Cloud Haskell in Section~\ref{sec:sel-rel-work} also applies to HdpH. Delimited continuations~\cite{DelimitedContinuations} represent a way to serialize behavior in Scala, but don't resolve any of the problems of normal Scala closures when it comes to accidental capture, as spores do.
 
-Termite Scheme~\cite{Termite} is a Scheme dialect for distributed programming based on an Erlang-style concurrency model. Closures and continuations are always serializable, since references to non-serializable objects (like open files or physical devices) are automatically wrapped in processes that are serialized as their process ID. In contrast, with spores there is no such automatic wrapping. Unlike closures in Termite Scheme, spores are statically-typed, supporting type-based constraints. Distributed Functional Programming in Scheme~\cite{DFPS} also provides serializable closures in a dynamically-typed setting. Python's standard serialization module, \verb|pickle|, does not support serializing closures. Dill~\cite{dill} extends Python's \verb|pickle| module, adding support for functions and closures. Constraints are not supported.
+Termite Scheme~\cite{Termite} is a Scheme dialect for distributed programming based on an Erlang-style concurrency model. Closures and continuations are always serializable, since references to non-serializable objects (like open files or physical devices) are automatically wrapped in processes that are serialized as their process ID. In contrast, with spores there is no such automatic wrapping. Unlike closures in Termite Scheme, spores are statically-typed, supporting type-based constraints.
+Serializable closures in a dynamically-typed setting are also the basis for~\cite{DFPS}. Python's standard serialization module, \verb|pickle|, does not support serializing closures. Dill~\cite{dill} extends Python's \verb|pickle| module, adding support for functions and closures, but without constraints.
 
 
 % Java RMI~\cite{JavaRMI}
