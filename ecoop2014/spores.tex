@@ -1616,6 +1616,35 @@ type MySafeSpore = Spore[String, Int] {
 % m(s2)
 
 
+\subsection{Transitive Properties}
+\label{sec:trans-props}
+
+Transitive properties like picklability or immutability are not enforced
+through the spores type system. Rather, spores were designed for extensibility;
+we ensure that deep checking can be applied to spores as follows.
+
+An initial motivation was to be able to require type class instances for
+captured types, \eg picklability; spores integrate seamlessly with
+Scala/pickling~\cite{ScalaPickling}.
+
+Transitive properties expressed using known techniques, \eg generics (Zibin
+etal's OIGJ system~\cite{ZibinPLAE10} for transitive immutability) or annotated types, can be
+enforced for captured types using custom spore properties. Instead of merely
+tagging types, implicit macros can generate type class instances for all types
+satisfying a predicate. For example, using OIGJ we can define an implicit macro
+
+\begin{lstlisting}[numbers=none]
+implicit def isImmutable[T: TypeTag]: Immutable[T]
+\end{lstlisting}
+
+which returns a type class instance for all types of the shape \verb|C[O, Immut]|
+that's deeply immutable (analyzing the \verb|TypeTag|). Custom spore properties
+requiring type classes constructed in such a way enable transitive checking for
+a variety of such (pluggable) extensions, including compositions thereof (\eg
+picklability/immutability).
+
+
+
 % =========== BEGINNING OF OLD SPORES SECTION ===========
 % \section{Spores}
 
@@ -2643,7 +2672,7 @@ allow spores to require properties not limited to mobility. To support such
 transitive properties using spores, one can either use type constraints based
 on type classes which enforce a transitive property such as serializability
 (Section~\ref{sec:adv-usage-type-constraints}) or by integrating with type
-systems that enforce transitive properties (Section\ref{}). Unlike ML5, spores
+systems that enforce transitive properties (Section~\ref{sec:trans-props}). Unlike ML5, spores
 do not require a type system extension and have been implemented for mainline
 Scala.
 
