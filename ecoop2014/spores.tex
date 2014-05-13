@@ -314,7 +314,7 @@ mechanism, serializing closures nonetheless remains surprisingly error-prone.
 For example, attempting to serialize a closure with transitive references to
 objects that are not marked as serializable will crash at runtime, typically
 with no compile-time checks whatsoever. The kicker is that it's remarkably
-easy to accidentally create such a problematic transitive reference,
+easy to accidentally and unknowingly create such a problematic transitive reference,
 especially in an object-oriented language.
 
 For example, consider the following use of a distributed collection in Scala
@@ -360,11 +360,12 @@ headaches for authors of concurrent or distributed frameworks. Framework users
 who stumble across any of these issues are put in a position where it's
 unclear whether or not the encountered issue is a problem on the side of the
 user or the framework, thus often adversely hitting the perceived reliability
-of these frameworks and libraries. Furthermore, even internal
-function-based APIs pose serious software engineering challenges, since small
-changes to a codebase can affect the environment captured by a given closure,
-potentially rendering it suddenly not serializable or adding inadvertent
-race conditions, thus making refactoring error-prone, and debugging difficult.
+of these frameworks and libraries.
+% Furthermore, even internal
+% function-based APIs pose serious software engineering challenges, since small
+% changes to a codebase can affect the environment captured by a given closure,
+% potentially rendering it suddenly not serializable or adding inadvertent
+% race conditions, thus making refactoring error-prone, and debugging difficult.
 
 We argue that solving these problems in a principled way could lead to more
 confidence on behalf of library authors in exposing functions in APIs, thus
@@ -2619,12 +2620,46 @@ In the above example, capturing a mutable object (or, in fact, any object of typ
 \section{Other Related Work}
 \label{sec:related-work}
 
-Parallel closures~\cite{ParallelClosures} are a variation of closures that make data in the environment available using read-only references using a type system for reference immutability. This enables parallel execution without the possibility of data races. Spores are not limited to immutable environments, and do not require a type system extension. River Trail~\cite{HerhutHSS13} provides a concurrency model for JavaScript, similar to parallel closures; however, capturing variables in closures in currently not supported.
+Parallel closures~\cite{ParallelClosures} are a variation of closures that
+make data in the environment available using read-only references using a type
+system for reference immutability. This enables parallel execution without the
+possibility of data races. Spores are not limited to immutable environments,
+and do not require a type system extension. River Trail~\cite{HerhutHSS13}
+provides a concurrency model for JavaScript, similar to parallel closures;
+however, capturing variables in closures in currently not supported.
 
-HdpH~\cite{HDPH} generalizes Cloud Haskell's closures in several aspects: first, closures can be transformed without eliminating them. Second, unnecessary serialization is avoided, e.g., when applying a closure immediately after creation. Otherwise, the discussion of Cloud Haskell in Section~\ref{sec:sel-rel-work} also applies to HdpH. Delimited continuations~\cite{DelimitedContinuations} represent a way to serialize behavior in Scala, but don't resolve any of the problems of normal Scala closures when it comes to accidental capture, as spores do.
+ML5~\cite{MurphyML5} provides mobile closures that are verified not to use
+resources not present on machines where they are applied. This property is
+enforced transitively, meaning for all values reachable from captured values,
+which is stronger than what plain spores provide. However, type constraints
+allow spores to require properties not limited to mobility. To support such
+transitive properties using spores, one can either use type constraints based
+on type classes which enforce a transitive property such as serializability
+(Section~\ref{sec:adv-usage-type-constraints}) or by integrating with type
+systems that enforce transitive properties (Section\ref{}). Unlike ML5, spores
+do not require a type system extension and have been implemented for mainline
+Scala.
 
-Termite Scheme~\cite{Termite} is a Scheme dialect for distributed programming based on an Erlang-style concurrency model. Closures and continuations are always serializable, since references to non-serializable objects (like open files or physical devices) are automatically wrapped in processes that are serialized as their process ID. In contrast, with spores there is no such automatic wrapping. Unlike closures in Termite Scheme, spores are statically-typed, supporting type-based constraints.
-Serializable closures in a dynamically-typed setting are also the basis for~\cite{DFPS}. Python's standard serialization module, \verb|pickle|, does not support serializing closures. Dill~\cite{dill} extends Python's \verb|pickle| module, adding support for functions and closures, but without constraints.
+HdpH~\cite{HDPH} generalizes Cloud Haskell's closures in several aspects:
+first, closures can be transformed without eliminating them. Second,
+unnecessary serialization is avoided, e.g., when applying a closure
+immediately after creation. Otherwise, the discussion of Cloud Haskell in
+Section~\ref{sec:sel-rel-work} also applies to HdpH. Delimited
+continuations~\cite{DelimitedContinuations} represent a way to serialize
+behavior in Scala, but don't resolve any of the problems of normal Scala
+closures when it comes to accidental capture, as spores do.
+
+Termite Scheme~\cite{Termite} is a Scheme dialect for distributed programming
+based on an Erlang-style concurrency model. Closures and continuations are
+always serializable, since references to non-serializable objects (like open
+files or physical devices) are automatically wrapped in processes that are
+serialized as their process ID. In contrast, with spores there is no such
+automatic wrapping. Unlike closures in Termite Scheme, spores are statically-typed,
+supporting type-based constraints. Serializable closures in a
+dynamically-typed setting are also the basis for~\cite{DFPS}. Python's
+standard serialization module, \verb|pickle|, does not support serializing
+closures. Dill~\cite{dill} extends Python's \verb|pickle| module, adding
+support for functions and closures, but without constraints.
 
 
 % Java RMI~\cite{JavaRMI}
