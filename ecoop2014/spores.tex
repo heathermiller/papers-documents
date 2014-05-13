@@ -1195,7 +1195,7 @@ explicitly define the spore's environment.
 
 Therefore, it is also possible to use function literals as spores if they
 satisfy the spore shape constraints. To support this, an implicit
-conversion\footnote{In Scala, implicit conversions can be thought of as methods which can be implicitly invoked based upon their type, and whether or not they are present in implicit scope. Implicit conversions carry the \texttt{implicit} keyword before their declaration.}
+conversion\footnote{In Scala, implicit conversions can be thought of as methods which can be implicitly invoked based upon their type, and whether or not they are present in implicit scope.}
 macro\footnote{In Scala, macros are methods that are transparently loaded by the compiler and executed (or expanded) during compilation. A macro is defined like a normal method, but it is linked using the \texttt{macro} keyword to an additional method that operates on abstract syntax trees.} is provided which converts regular
 functions to spores, but only if the converted function is a literal: only
 then is it possible to enforce the spore shape.
@@ -1203,13 +1203,10 @@ then is it possible to enforce the spore shape.
 \subsubsection{For-Comprehensions}
 
 Converting functions to spores opens up the use of spores in a number of other
-situations, most prominently, for-comprehensions\footnote{The implicit
-conversion makes it possible to have for-comprehensions without altering the
-Scala compiler, because de-sugaring the for-comprehension happens before
-implicit conversions are inserted.} (Scala's version of Haskell's do-notation).
-In Scala, for-comprehensions are desugared to invocations of the
-higher-order \verb|map|, \verb|flatMap|, and \verb|filter|
-methods, each of which take normal functions as arguments.
+situations; most prominently, for-comprehensions (Scala's version of Haskell's do-notation) in Scala
+are desugared to invocations of the higher-order \verb|map|, \verb|flatMap|, and \verb|filter|
+methods, each of which take normal functions as arguments.\footnote{For-comprehensions are desugared
+before implicit conversions are inserted; thus, no change to the Scala compiler is necessary.}
 
 % \footnote{Lazy filtering is supported using the additional
 % \verb|withFilter| method}
@@ -1372,10 +1369,8 @@ val safeSpore = spore {
 
 The fact that for spores a certain shape is enforced is very useful. However,
 in some situations this is not enough. For example, a common source of race
-conditions in data-parallel frameworks like Scala's parallel collections
-manifests itself when users capture mutable objects (\eg an
-instance of \verb|scala.collection.mutable.HashMap| from the Scala standard
-library). Thus, a user might want to enforce that closures only capture
+conditions in data-parallel frameworks manifests itself when users capture
+mutable objects. Thus, a user might want to enforce that closures only capture
 immutable objects. However, such constraints
 cannot be enforced using the spore shape alone (captured objects are stored in
 constant values in the spore header, but such constants might still refer to
@@ -1448,10 +1443,8 @@ to require argument spores to have certain context bounds. For example,
 requiring argument spores to have picklers defined for their captured types
 can be achieved as follows:
 
-\begin{lstlisting}
-def m[A, B](s: Spore[A, B])(implicit p: Pickler[s.Captured]) = {
-  // ...
-}
+\begin{lstlisting}[numbers=none]
+def m[A, B](s: Spore[A, B])(implicit p: Pickler[s.Captured]) = ...
 \end{lstlisting}
 
 
