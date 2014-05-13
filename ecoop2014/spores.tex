@@ -192,7 +192,7 @@ called {\em spores}, that can guarantee closures to be serializable, thread-safe
 or even have custom user-defined properties. Crucially, our system is
 based on the principle of encoding type information corresponding to captured
 variables in the type of a spore.
-We prove our type system sound, implement our approach for Scala,\footnote{\sporeurl} evaluate
+We prove our type system sound, implement our approach for Scala, evaluate
 its practicality through a small empirical study, and show the power of these
 guarantees through a case analysis of real-world distributed and concurrent
 frameworks that this safe foundation for closures facilitates.
@@ -2673,6 +2673,13 @@ on type classes which enforce a transitive property such as serializability
 (Section~\ref{sec:adv-usage-type-constraints}) or by integrating with type
 systems that enforce transitive properties (Section~\ref{sec:trans-props}). Unlike ML5, spores
 do not require a type system extension.
+
+A well-known type-based representation of closures uses existential types
+where the existentially quantified variable represents the type of the (value)
+environment for the closure; this representation enables type-preserving
+compilation of functional languages~\cite{MorrisettWCG99}. A spore type
+may have an abstract \verb|Captured| type, effectively encoding an existantial quantification; however,
+captured types are typically concrete, and the spore type system supports constraints on them.
 
 HdpH~\cite{HDPH} generalizes Cloud Haskell's closures in several aspects:
 first, closures can be transformed without eliminating them. Second,
