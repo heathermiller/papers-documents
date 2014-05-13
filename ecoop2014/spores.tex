@@ -2041,7 +2041,14 @@ Rule \textsc{S-SporeFun} expresses the fact that spore types are refinements of 
 
 Typing derivations use a judgement of the form $\Gamma ; \Delta \vdash t : T$. Besides the standard variable environment $\Gamma$ we use a property environment $\Delta$ which is a sequence of property names that are ``active'' while deriving the type $T$ of term $t$. The property environment is reminiscent of the implicit parameter context used in the original work on implicit parameters~\cite{LewisLMS00}; it is an environment for names whose definition sites ``just happen to be far removed from their usages.''
 
-In the typing rules we assume the existence of a global property mapping $P$ from property names $pn$ to type families $\mathcal{T}$. This technique is reminiscent of the way some object-oriented core languages provide a global class table for type-checking. The main difference is that our core language does not include constructs to extend the global property map; such constructs are left out of the core language for simplicity, since the creation of properties is not essential to our model.
+In the typing rules we assume the existence of a global property mapping $P$ from property names $pn$ to type families $\mathcal{T}$. This technique is reminiscent of the way some object-oriented core languages provide a global class table for type-checking. The main difference is that our core language does not include constructs to extend the global property map; such constructs are left out of the core language for simplicity, since the creation of properties is not essential to our model. We require $P$ to follow behavioral subtyping:
+
+\begin{definition}
+\emph{(Behavioral subtyping of property mapping)}
+\label{def:beh-subtyping}
+If $T <: T'$ and $T' \in P(pn)$, then $T \in P(pn)$
+\vspace{-2.5mm}
+\end{definition}
 
 The typing rules are standard except for rules \textsc{T-Imp}, \textsc{T-Spore}, and \textsc{T-Comp}, which are new. Only these three type rules inspect or modify the property environment $\Delta$. Note that there is no rule for spore application, since there is a subtyping relationship between spores and functions (see Section~\ref{sec:subtyping}). Using the subsumption rule \textsc{T-Sub} spore application is expressed using the standard rule for function application (\textsc{T-App}).
 
@@ -2275,7 +2282,7 @@ The soundness proof (see Section~\ref{sec:soundness}) of the formal type system 
 
 \begin{enumerate}
 
-\item Application of spores: for each property name $pn$, it is ensured that the dynamic types of all captured variables are contained in the type family $pn$ maps to ($P(pn)$).
+\item Application of spores: for each property name $pn$, it is ensured that the dynamic types of all captured variables are contained in the type family $pn$ maps to ($P(pn)$). Note that Definition~\ref{def:beh-subtyping} is essential for this property to hold.
 
 \item Dynamically, a spore only accesses its parameter and the variables in its header.
 
