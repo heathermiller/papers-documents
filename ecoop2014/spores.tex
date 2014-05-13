@@ -180,7 +180,7 @@ and
 
 Functional programming (FP) is regularly touted as the way forward for bringing
 parallel, concurrent, and distributed programming to the mainstream. The
-popularity of the rationale behind this viewpoint has even lead to a number of
+popularity of the rationale behind this viewpoint has even led to a number of
 object-oriented (OO) programming languages adopting functional features such
 as lambdas and thereby function closures.
 However, despite this established viewpoint of FP as an enabler, reliably
@@ -192,7 +192,7 @@ called {\em spores}, that can guarantee closures to be serializable, thread-safe
 or even have custom user-defined properties. Crucially, our system is
 based on the principle of encoding type information corresponding to captured
 variables in the type of a spore.
-We prove our type system sound, implement our approach for Scala,\footnote{\sporeurl} evaluate
+We prove our type system sound, implement our approach for Scala, evaluate
 its practicality through a small empirical study, and show the power of these
 guarantees through a case analysis of real-world distributed and concurrent
 frameworks that this safe foundation for closures facilitates.
@@ -314,7 +314,7 @@ solve the problem of languages like Haskell that cannot rely on such a
 mechanism, serializing closures nonetheless remains surprisingly error-prone.
 For example, attempting to serialize a closure with transitive references to
 objects that are not marked as serializable will crash at runtime, typically
-with no compile-time checks whatsoever. The kicker is that it's remarkably
+with no compile-time checks whatsoever. The kicker is that it is remarkably
 easy to accidentally and unknowingly create such a problematic transitive reference,
 especially in an object-oriented language.
 
@@ -455,7 +455,7 @@ environment; spores require only that {\em what} is captured is specified, not
 serializable closures; user-defined type constraints enable spores to
 express more properties than just serializability, like thread-safety,
 immutability, or any other user-defined property. In addition, spores allow
-restricting captured types in a way that's integrated with object-oriented
+restricting captured types in a way that is integrated with object-oriented
 concerns, such as subtyping and open class hierarchies.
 
 % In industry, a number of languages have adopted or proposed pragmatic
@@ -1021,7 +1021,7 @@ shown in Figure~\ref{fig:normal-spore-shape} has the exact same evaluation
 semantics. Interestingly, this closure shape is already used in production
 systems such as Spark in an effort to avoid problems with accidentally
 captured references, such as \verb|this|. However, in systems like Spark, the
-above shape is merely a convention that's not enforced.
+above shape is merely a convention that is not enforced.
 
 \vspace{2mm}
 \subsection{The \texttt{Spore} Type}
@@ -1036,7 +1036,7 @@ Figure~\ref{fig:spore-type} shows Scala's arity-1 function type and the arity-1 
 Functions are contravariant in their argument type \verb|A| (indicated using
 \verb|-|) and covariant in their result type \verb|B| (indicated
 using \verb|+|). The \verb|apply| method of \verb|Function1| is abstract; a concrete implementation applies
-the body of the function that's being defined to the parameter \verb|x|.
+the body of the function that is being defined to the parameter \verb|x|.
 
 Individual spores have {\em refinement types} of the base \verb|Spore| type, which, to be compatible with normal Scala functions,
 is itself a subtype of \verb|Function1|. Like functions, spores are contravariant in their argument type \verb|A|, and
@@ -1236,7 +1236,7 @@ before implicit conversions are inserted; thus, no change to the Scala compiler 
 
 In situations where for-comprehension closures capture variables, preventing
 them from being converted implicitly to spores, we introduce an alternative
-syntax for capturing variables in spores: an object that's referred to using a
+syntax for capturing variables in spores: an object that is referred to using a
 so-called ``stable identifier'' \verb|id| can additionally be captured using
 the syntax \verb|capture(id)|.\footnote{In Scala, a stable identifier is
 basically a selection p.x where p is a path and x is an identifier (see Scala
@@ -1403,7 +1403,7 @@ the fully-qualified class name of its corresponding function class.}
 % and then you can continue like in the snippet you showed me about how it's not Java-style interfaces but more like JavaGI and C++...
 
 Spores allow expressing such a requirement using a notion of implicit {\em
-properties}. The idea is that if there is an implicit value\footnote{An implicit value is a value in \textit{implicit scope} that's statically selected based on its type.}
+properties}. The idea is that if there is an implicit value\footnote{An implicit value is a value in \textit{implicit scope} that is statically selected based on its type.}
 of type \verb|Property[Pickler]| in scope at the
 point where a spore is created, then it is enforced that all captured types in
 the spore header have an instance of the \verb|Pickler| type class
@@ -1430,7 +1430,7 @@ Spore[String, Int] {
   implicit val ev$0 = implicitly[Pickler[Captured]]
 }
 \end{lstlisting}
-\noindent For each property that's imported, the resulting spore refinement type
+\noindent For each property that is imported, the resulting spore refinement type
 contains an implicit value with the corresponding type class instance for type
 \verb|Captured|.
 
@@ -1638,7 +1638,7 @@ implicit def isImmutable[T: TypeTag]: Immutable[T]
 \end{lstlisting}
 
 which returns a type class instance for all types of the shape \verb|C[O, Immut]|
-that's deeply immutable (analyzing the \verb|TypeTag|). Custom spore properties
+that is deeply immutable (analyzing the \verb|TypeTag|). Custom spore properties
 requiring type classes constructed in such a way enable transitive checking for
 a variety of such (pluggable) extensions, including compositions thereof (\eg
 picklability/immutability).
@@ -2085,7 +2085,7 @@ Rule \textsc{T-Imp} imports a property $pn$ into the property environment within
 
 Rule \textsc{T-Spore} derives a type for a spore term. In the spore, all terms on right-hand sides of variable definitions in the spore header must be well-typed in the same environment $\Gamma ; \Delta$ according to their declared type. The body of the spore's closure, $t_2$, must be well-typed in an environment containing only the variables in the spore header and the closure's parameter, one of the central properties of spores. The last premise requires all captured types to satisfy both the properties in the current property environment, $\Delta$, as well as the properties listes in the spore term, $\Delta'$. Finally, the resulting spore type contains the argument and result types of the spore's closure, the sequence of captured types according to the spore header, and the concatenation of properties $\Delta$ and $\Delta'$. The intuition here is that properties in the environment have been explicitly imported by the user, thus indicating that all spores in the scope of the corresponding import should satisfy them.
 
-Rule \textsc{T-Comp} derives a result type for the composition of two spores. It inspects the captured types of both spores ($\seq{S}$ and $\seq{R}$) to ensure that the properties of the resulting spore, $\Delta$, are satisfied by the captured variables of both spores. Otherwise, the argument and result types are analogous to regular function composition. Note that it's always possible to weaken the properties of a spore through spore subtyping and subsumption (\textsc{T-Sub}).
+Rule \textsc{T-Comp} derives a result type for the composition of two spores. It inspects the captured types of both spores ($\seq{S}$ and $\seq{R}$) to ensure that the properties of the resulting spore, $\Delta$, are satisfied by the captured variables of both spores. Otherwise, the argument and result types are analogous to regular function composition. Note that it is always possible to weaken the properties of a spore through spore subtyping and subsumption (\textsc{T-Sub}).
 
 \subsection{Operational semantics}\label{sec:opsem}
 
@@ -2661,7 +2661,7 @@ system for reference immutability. This enables parallel execution without the
 possibility of data races. Spores are not limited to immutable environments,
 and do not require a type system extension. River Trail~\cite{HerhutHSS13}
 provides a concurrency model for JavaScript, similar to parallel closures;
-however, capturing variables in closures in currently not supported.
+however, capturing variables in closures is currently not supported.
 
 ML5~\cite{MurphyML5} provides mobile closures that are verified not to use
 resources not present on machines where they are applied. This property is
