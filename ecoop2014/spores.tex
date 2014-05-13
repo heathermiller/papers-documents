@@ -2674,6 +2674,13 @@ on type classes which enforce a transitive property such as serializability
 systems that enforce transitive properties (Section~\ref{sec:trans-props}). Unlike ML5, spores
 do not require a type system extension.
 
+A well-known type-based representation of closures uses existential types
+where the existentially quantified variable represents the type of the (value)
+environment for the closure; this representation enables type-preserving
+compilation of functional languages~\cite{MorrisettWCG99}. A spore type
+may have an abstract \verb|Captured| type, effectively encoding an existantial quantification; however,
+captured types are typically concrete, and the spore type system supports constraints on them.
+
 HdpH~\cite{HDPH} generalizes Cloud Haskell's closures in several aspects:
 first, closures can be transformed without eliminating them. Second,
 unnecessary serialization is avoided, e.g., when applying a closure
