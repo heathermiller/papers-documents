@@ -382,10 +382,15 @@ constraints for captured variables, making spores safer to use in a concurrent
 or distributed setting. We show that this approach can be made practical by
 automatically synthesizing refinement types using macros, and by leveraging
 local type inference. Using type-based constraints, spores allow expressing a
-variety of ``safe'' closures, such as guaranteed-serializable closures,
-closures which capture only immutable types, or closures with custom, user-defined
-type-based properties. Finally, we argue that by principle of a type-based
-approach, spores can potentially benefit from optimization, further
+variety of ``safe'' closures.
+
+To express safe closures with transitive properties such as guaranteed
+serializability, or closures capturing only deeply immutable types, spores
+support type constraints based on type classes which enforce transitive properties.
+In addition, implicit macros in Scala enable integration with type systems that
+enforce transitive properties using generics or annotated types. Spores also
+support user-defined type constraints. Finally, we argue that by principle
+of a type-based approach, spores can potentially benefit from optimization, further
 safety via type system extensions, and verification opportunities.
 
 The design of spores is guided by the following principles:
@@ -493,14 +498,15 @@ This paper makes the following contributions:
 \vspace{-1.5mm}
 \begin{itemize}
 \item We introduce a closure-like abstraction and type system,  called
-``spores'', which avoids typical hazards when using closures in a concurrent
+``spores,'' which avoids typical hazards when using closures in a concurrent
 or distributed setting through controlled variable capture and customizable
 user-defined constraints for captured types.
 
-\item We introduce an approach for type-based constraints that allow
-expressing  a variety of properties from the literature including, {\em but
-not limited to}, serializability and thread-safety/immutability. Our approach
-also enables users to define their own arbitrary and customizable constraints.
+\item We introduce an approach for type-based constraints that can be combined with
+existing type systems to express a variety of properties from the literature,
+including, but not limited to, serializability and thread-safety/immutability.
+Transitive properties can be lifted to spore types in a variety of ways, \eg using
+type classes.
 
 \item We present a formalization of spores with type constraints and  prove
 soundness of the type system.
@@ -508,7 +514,7 @@ soundness of the type system.
 \item We present an implementation of spores in and for the full Scala
 language.\footnote{\sporeurl}
 
-\item We (a) demonstrate the practicality of spores through an small
+\item We (a) demonstrate the practicality of spores through a small
 empirical study using a collection of real-world Scala programs, and (b) show the power
 of the guarantees spores provide through case studies using parallel and distributed frameworks.
 \end{itemize}
