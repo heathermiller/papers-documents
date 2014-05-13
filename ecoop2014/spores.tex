@@ -390,7 +390,7 @@ safety via type system extensions, and verification opportunities.
 The design of spores is guided by the following principles:
 
 \begin{itemize}
-\item {\bf Type-safety} Spores should be able to express type-based
+\item {\bf Type-safety.} Spores should be able to express type-based
 properties of captured variables in a statically safe way. Including type
 information of captured variables in the type of a spore creates a number of
 previously impossible opportunities; it facilitates the verification of
@@ -400,7 +400,7 @@ compilers to implement safe transformations that can further simplify the use
 of safe closures, and it makes it possible for spores to integrate with type
 class-based frameworks like Scala/pickling~\cite{ScalaPickling}.
 
-\item {\bf Extensibility}. Given types which include information about what  a
+\item {\bf Extensibility.} Given types which include information about what  a
 closure captures, libraries and frameworks should be able to restrict the
 types that are captured by spores. Enforcing these {\em type constraints}
 should not be limited to serializability, thread-safety, or other pre-defined
@@ -409,7 +409,7 @@ variable capture based on user-defined types. It should be possible to use
 existing type-based mechanisms to express a variety of user-defined properties
 of captured types.
 
-\item {\bf Ease of Use}. Spores should be lightweight
+\item {\bf Ease of Use.} Spores should be lightweight
 to use, and be able to integrate seamlessly with existing practice. It should
 be possible to capitalize on the benefits of precise types while at the same
 time ensuring that working with spores is never too verbose, thanks
@@ -418,14 +418,14 @@ frameworks like Spark, for which the need for controlled capture is central,
 should be able to use spores, meanwhile requiring only minimal changes in
 application code.
 
-\item {\bf Practicality} Spores should be practical to use in general, as
+\item {\bf Practicality.} Spores should be practical to use in general, as
 well as be practical for inclusion in the full-featured Scala language. They
 should be practical in a variety of real-world scenarios (for use with Spark,
 Akka, parallel collections, and other closure-heavy code). At the same time,
 to enable a robust integration with the host language, existing type system
 features should be reused instead of extended.
 
-\item {\bf Reliability for API Designers}. Spores should enable library
+\item {\bf Reliability for API Designers.} Spores should enable library
 authors to confidently release libraries that expose functions in user-facing
 APIs without concern of runtime exceptions or other dubious errors falling on
 their users.
@@ -1180,10 +1180,10 @@ is Scala's bottom type). The composition of \verb|s1| and \verb|s2|, written
 spore does not capture more than what \verb|s1| already captures. Thus, not
 only are spores composable, but so are their (refinement) types.
 
-In Section~\ref{sec:adv-usage-type-constraints}, we'll see two kinds of ``type
-constraints'' which provides more control over spore capturing semantics, and
-thus the spore types, that our system provides, namely, {\em excluded types} and
-{\em context bounds for captured types}. We will see that even with these added type constraints, the spore type is still composable.
+% In Section~\ref{sec:adv-usage-type-constraints}, we'll see two kinds of ``type
+% constraints'' which provides more control over spore capturing semantics, and
+% thus the spore types, that our system provides, namely, {\em excluded types} and
+% {\em context bounds for captured types}. We will see that even with these added type constraints, the spore type is still composable.
 
 \subsubsection{Implicitly Converting Functions to Spores}
 
@@ -1494,7 +1494,7 @@ It's also possible to define compound properties by mixing in multiple traits
 into an implicit property object:
 
 \begin{lstlisting}[numbers=none]
-    implicit object myProps extends Property[Pickler] with Property[Immutable]
+implicit object myProps extends Property[Pickler] with Property[Immutable]
 \end{lstlisting}
 \noindent By making this compound property available in a scope within which spores are
 created (for example, using an \verb|import|), it is enforced that those
@@ -1589,10 +1589,12 @@ Spore[String, String] {
 
 Given that type constraints compose, it's evident that as spores compose, type
 constraints can monotonically increase in number. Thus, it's important to note
-that it's also possible to soundly loosen constraints using the regular type
-widening rules.
+that it's also possible to soundly loosen constraints using regular type
+widening.
 
 Let's say we have a spore with the following (too elaborate) refinement type:
+
+% assigning the spore to a variable or by passing it to a parameter of a supertype:
 
 \begin{lstlisting}
 val s2: Spore[String, Int] {
@@ -1600,20 +1602,19 @@ val s2: Spore[String, Int] {
   type Excluded = No[Actor] with No[Util]
 }
 \end{lstlisting}
-
 \noindent
-Then we can soundly drop constraints by assigning the spore to a variable or by passing it to a parameter of a supertype:
+Then we can soundly drop constraints by using a supertype such as \verb|MySafeSpore|:
 
 \begin{lstlisting}
 type MySafeSpore = Spore[String, Int] {
   type Captured
   type Excluded <: No[Actor]
 }
-val simpleSpore: MySafeSpore = s2
-def m(s: Spore[String, Int] { type Excluded <: No[Actor] })
-m(s2)
 \end{lstlisting}
 
+% val simpleSpore: MySafeSpore = s2
+% def m(s: Spore[String, Int] { type Excluded <: No[Actor] })
+% m(s2)
 
 
 % =========== BEGINNING OF OLD SPORES SECTION ===========
@@ -2413,7 +2414,7 @@ We have implemented spores as a macro library for Scala 2.10 and 2.11. Macros ar
 
 The implementation for Scala 2.10 requires in addition a compiler plug-in that provides a backport of the support for Java 8 SAM types (``functional interfaces'') of Scala 2.11. SAM type support extends type inference for user-defined subclasses of Scala's standard function types which enables infering the types of spore parameters.
 
-An expression \verb|spore { val y: S = s; (x: T) => /* body */ }| invokes the \verb|spore| macro which is passed the block \verb|{ val y... }| as an expression tree. A spore without type constraints simply checks that within the body of the spore's closure, only the parameter \verb|x| as well as the variables in the spore header are accessed according to the spore type-checking rules. The expression tree returned by the macro creates an instance of a {\em refinement type} of the abstract \verb|Spore| class that implements its \verb|apply| method (which itself is inherited from the corresponding standard Scala function trait) by applying the spore's closure. The \verb|Spore| class also has abstract type members \verb|Captured| and \verb|Excluded|. The \verb|Captured| type member is defined by the generated refinement type to be a tuple type with the types of all captured variables. If there are no type constraints the \verb|Excluded| type member is defined to be \verb|No[Nothing]|.
+An expression \verb|spore { val y: S = s; (x: T) => /* body */ }| invokes the \verb|spore| macro which is passed the block \verb|{ val y... }| as an expression tree. A spore without type constraints simply checks that within the body of the spore's closure, only the parameter \verb|x| as well as the variables in the spore header are accessed according to the spore type-checking rules. The expression tree returned by the macro creates an instance of a {\em refinement type} of the abstract \verb|Spore| class that implements its \verb|apply| method (inherited from the corresponding standard Scala function trait) by applying the spore's closure. The \verb|Captured| type member (see Section~\ref{sec:spore-type}) is defined by the generated refinement type to be a tuple type with the types of all captured variables. If there are no type constraints the \verb|Excluded| type member is defined to be \verb|No[Nothing]|.
 
 Type constraints are implemented as follows. First, invoking the generic \verb|without| macro passing a type argument \verb|T|, say, augments the generated \verb|Spore| refinement type by effectivly adding the clause \verb|with No[T]| to the definition of its \verb|Excluded| type member. Second, the existence of additional bounds on the captured types is detected by attempting to infer an implicit value of type \verb|Property[_]|. If such an implicit value can be inferred, a sequence of types specifying type bounds is obtained as follows. Basically, the type of the implicit value is matched against the pattern \\ \verb|Property[t1] with ... with Property[tn]| where the \verb|ti| are type variables. For each type \verb|ti| an implicit value member
 
@@ -2423,7 +2424,7 @@ Type constraints are implemented as follows. First, invoking the generic \verb|w
 \noindent
 is generated and added to the \verb|Spore| refinement type.
 
-We also provide an implicit conversion from standard Scala functions to spores. This conversion is implemented as a macro whose expansion fails if the argument function is not a literal, since in this case it is impossible for the macro to check the spore shape/capturing constraints.
+The implicit conversion (Section~\ref{sec:basic-usage}) from standard Scala functions to spores is implemented as a macro whose expansion fails if the argument function is not a literal, since in this case it is impossible for the macro to check the spore shape/capturing constraints.
 
 % Comparison and relationship with Java8 SAM stuff. Cite paper {\em Java SAM Typed Closures: A Sound and Complete Type Inference System for Nominal Types} ~\cite{JavaSAM}
 
@@ -2531,7 +2532,7 @@ Frameworks like MapReduce~\cite{MapReduce} and Apache Spark~\cite{Spark} are des
 
 In Spark, these patterns are directly expressed in Scala using the standard higher-order functions \verb|map| and \verb|reduce| applied to an abstraction for distributed collections called ``resilient distributed dataset'' (RDD). However, to avoid unexpected runtime exceptions due to unserializable closures when passing closures to RDDs, programmers must adopt conventions that are subtle and unchecked by the Scala compiler.
 
-The following example shows a typical pattern extracted from a code base used in production:
+The following typical pattern was extracted from a code base used in production:
 
 \begin{lstlisting}
 class GenericOp(sc: SparkContext, mapping: Map[String, String]) {
@@ -2552,11 +2553,11 @@ class GenericOp(sc: SparkContext, mapping: Map[String, String]) {
 }
 \end{lstlisting}
 \noindent
-The \verb|GenericOp| class provides a method \verb|doOp| which performs a compound operation on the RDD \verb|cachedSessions|. \verb|GenericOp| has a parameter of type \verb|SparkContext|, the main entry point for functionality provided by Spark, and a parameter of type \verb|Map[String, String]| used within \verb|doOp|. The main computation of \verb|doOp| is the last expression of its body: a chain of invocations of \verb|map|, \verb|reduceByKey|, and \verb|collectAsMap|. To ensure that the argument closures of \verb|map| and \verb|reduceByKey| are serializable, the code follows two conventions: first, instead of defining \verb|mapFun| and \verb|reduceFun| as methods of class \verb|GenericOp|, they are defined using lambdas stored in local variables. Second, instead of using the \verb|mapping| parameter directly, it is first copied into a local variable \verb|localMapping|. The reason for the first convention is that in Scala converting a method to a function implicitly captures a reference to the enclosing object. However, \verb|GenericOp| is not serializable, since it refers to a \verb|SparkContext| which is not serializable. The reason for the second convention is that using \verb|mapping| directly, would result in \verb|mapFun| capturing the \verb|this| reference to be able to access it.
+The \verb|GenericOp| class provides a method \verb|doOp| which performs a compound operation on the RDD \verb|cachedSessions|. \verb|GenericOp| has a parameter of type \verb|SparkContext|, the main entry point for functionality provided by Spark, and a parameter of type \verb|Map[String, String]| used within \verb|doOp|. The main computation of \verb|doOp| is the last expression of its body: a chain of invocations of \verb|map|, \verb|reduceByKey|, and \verb|collectAsMap|. To ensure that the argument closures of \verb|map| and \verb|reduceByKey| are serializable, the code follows two conventions: first, instead of defining \verb|mapFun| and \verb|reduceFun| as methods of class \verb|GenericOp|, they are defined using lambdas stored in local variables. Second, instead of using the \verb|mapping| parameter directly, it is first copied into a local variable \verb|localMapping|. The reason for the first convention is that in Scala converting a method to a function implicitly captures a reference to the enclosing object. However, \verb|GenericOp| is not serializable, since it refers to a \verb|SparkContext| which is not serializable. The reason for the second convention is that using \verb|mapping| directly, would result in \verb|mapFun| capturing \verb|this| to be able to access it.
 
 \subsubsection{Applying Spores}
 
-Using spores, the above conventions can be enforced by the compiler, avoiding unexpected runtime exceptions. It is sufficient to turn \verb|mapFun| and \verb|reduceFun| into spores:
+The above conventions can be enforced by the compiler, avoiding unexpected runtime exceptions, by turning \verb|mapFun| and \verb|reduceFun| into spores:
 
 \begin{lstlisting}
 val mapFun: Spore[Session, (List[String], GenericOpAggregator)] =
@@ -2575,7 +2576,7 @@ The spore shape enforces the use of \verb|localMapping| (moved from the method b
 
 Scala's parallel collections provide data-parallel operations for standard collection types like maps and sequences. These data-parallel operations typically take closures as arguments that are applied to all elements of the underlying collection in parallel. Unfortunately, it is easy to create race conditions by capturing mutable objects within such closures, and Scala's type checker does not provide any assistance for avoiding them.
 
-Spores with context bounds allow making the use of parallel collections safer by preventing mutable objects from being captured in closures passed to data-parallel operations. In the following we show how this can be achieved using the custom property for immutable types shown in Section~\ref{sec:adv-usage-type-constraints} as well as a wrapper API utilizing spores instead of regular closures.
+Spores with context bounds allow making the use of parallel collections safer by preventing mutable objects from being captured in closures passed to data-parallel operations. Here, we show how to achieve this using the custom property for immutable types of Section~\ref{sec:adv-usage-type-constraints} as well as a wrapper API utilizing spores instead of regular closures.
 
 To ensure that only spores with context bound \verb|Immutable| are passed to data-parallel, higher-order methods such as \verb|map|, we provide a wrapper for \verb|ParIterable[A]|, the supertype of all parallel collections:
 
