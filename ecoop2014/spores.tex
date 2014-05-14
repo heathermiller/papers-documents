@@ -2663,8 +2663,7 @@ guarantees provided by spores would require only little syntactic overhead.
 
 \subsection{Spores and Akka}
 
-We have verified on an additional set of sources that excluding specific types
-from closures is in fact important.
+We have also verified that excluding specific types from closures is important.
 
 The Akka event-driven middleware provides an actor abstraction for
 concurrency. When using futures together with actors, it is common to provide
@@ -2729,7 +2728,7 @@ class GenericOp(sc: SparkContext, mapping: Map[String, String]) {
 }
 \end{lstlisting}
 \noindent
-The \verb|GenericOp| class provides a method \verb|doOp| which performs a compound operation on the RDD \verb|cachedSessions|. \verb|GenericOp| has a parameter of type \verb|SparkContext|, the main entry point for functionality provided by Spark, and a parameter of type \verb|Map[String, String]| used within \verb|doOp|. The main computation of \verb|doOp| is the last expression of its body: a chain of invocations of \verb|map|, \verb|reduceByKey|, and \verb|collectAsMap|. To ensure that the argument closures of \verb|map| and \verb|reduceByKey| are serializable, the code follows two conventions: first, instead of defining \verb|mapFun| and \verb|reduceFun| as methods of class \verb|GenericOp|, they are defined using lambdas stored in local variables. Second, instead of using the \verb|mapping| parameter directly, it is first copied into a local variable \verb|localMapping|. The reason for the first convention is that in Scala converting a method to a function implicitly captures a reference to the enclosing object. However, \verb|GenericOp| is not serializable, since it refers to a \verb|SparkContext| which is not serializable. The reason for the second convention is that using \verb|mapping| directly, would result in \verb|mapFun| capturing \verb|this| to be able to access it.
+The \verb|doOp| method performs operations on the RDD \verb|cachedSessions|. \verb|GenericOp| has a parameter of type \verb|SparkContext|, the main entry point for functionality provided by Spark, and a parameter of type \verb|Map[String, String]|. The main computation is a chain of invocations of \verb|map|, \verb|reduceByKey|, and \verb|collectAsMap|. To ensure that the argument closures of \verb|map| and \verb|reduceByKey| are serializable, the code follows two conventions: first, instead of defining \verb|mapFun| and \verb|reduceFun| as methods, they are defined using lambdas stored in local variables. Second, instead of using the \verb|mapping| parameter directly, it is first copied into a local variable \verb|localMapping|. The reason for the first convention is that in Scala converting a method to a function implicitly captures a reference to the enclosing object. However, \verb|GenericOp| is not serializable, since it refers to a \verb|SparkContext|. The reason for the second convention is that using \verb|mapping| directly would result in \verb|mapFun| capturing \verb|this|.
 
 \subsubsection{Applying Spores}
 
