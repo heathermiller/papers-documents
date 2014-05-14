@@ -2492,53 +2492,13 @@ The implicit conversion (Section~\ref{sec:basic-usage}) from standard Scala func
 \section{Evaluation}
 \label{sec:evaluation}
 
-
-\begin{figure*}[t!]
-\vspace{-3mm}
-% \onecolumn
-% \setlength\LTleft{10pt}            % default: \parindent
-% \setlength\LTright{10pt}           % default: \fill
-\begin{longtable}{c@{}c c@{}c c@{}c c@{}c c@{}c c@{}c c@{}c }
-\toprule%
-
-{\bfseries } && {\bfseries ~average LOC~} && {\bfseries ~average \# of~} && {\bfseries ~\% closures that~} \\
-{\bfseries Project} && {\bfseries per closure} && {\bfseries captured vars} && {\bfseries don't capture} \\
-
-\cmidrule(l){0-1} \cmidrule(l){2-3} \cmidrule(l){4-5} \cmidrule(l){6-7}
-
-% \endhead
-
-
-\parbox[c][0.8cm]{4cm}{\centering\normalsize\href{https://github.com/sameeragarwal/blinkdb}{\texttt{sameeragarwal/blinkdb}}\\ \stars 268 ~ \contribs 33 ~ \loc 22,022} && 1.39 && 1 && 93.5\% \\
-
-\myrowcolour%
-\parbox[c][0.8cm]{4cm}{\centering\normalsize\href{https://github.com/freeman-lab/thunder}{\texttt{freeman-lab/thunder}}\\ \stars 89 ~ \contribs 2 ~ \loc 2,813} && 1.03 && 1.30 && 23.3\% \\
-
-\parbox[c][0.8cm]{4cm}{\centering\normalsize\href{https://github.com/bigdatagenomics/adam}{\texttt{bigdatagenomics/adam}}\\ \stars 86 ~ \contribs 16 ~ \loc 19,055} && 1.90 && 1.44 && 80.2\% \\
-
-\myrowcolour%
-\parbox[c][0.8cm]{4cm}{\centering\normalsize\href{https://github.com/ooyala/spark-jobserver}{\texttt{ooyala/spark-jobserver}}\\ \stars 79 ~ \contribs 6 ~ \loc 5,578} && 1.60 && 1 && 80.0\% \\
-
-\parbox[c][0.8cm]{5cm}{\centering\normalsize\href{https://github.com/Sotera/correlation-approximation}{\texttt{Sotera/correlation-approximation}}\\ \stars 12 ~ \contribs 2 ~ \loc 775} && 4.55 && 1.25 && 63.6\% \\
-
-\myrowcolour%
-\parbox[c][0.8cm]{4cm}{\centering\normalsize\href{https://github.com/aecc/stream-tree-learning}{\texttt{aecc/stream-tree-learning}}\\ \stars 1 ~ \contribs 2 ~ \loc 1,199} && 5.73 && 2 && 54.5\% \\
-
-\parbox[c][0.8cm]{5cm}{\centering\normalsize\href{https://github.com/lagerspetz/TimeSeriesSpark}{\texttt{lagerspetz/TimeSeriesSpark}}\\ \stars 5 ~ \contribs 1 ~ \loc 14,882} && 2.85 && 1.77 && 75.0\% \\
-
-\bottomrule
-
-\textbf{Total~\loc 66,324} && -- && 1.39 && 67.2\% \\
-
-\bottomrule
-
-\end{longtable}
-\vspace{2mm}
-\caption{Spark codebases}
-\vspace{-4mm}
-\end{figure*}
-
-
+\begin{figure}[t!]
+\centering
+\includegraphics[width=\textwidth]{evaluation.pdf}
+\caption{Evaluating the practicality of using spores in place of normal closures}
+\label{fig:spore-eval}
+\vspace{-5mm}
+\end{figure}
 
 % program        | LOC | #closures | #converted | LOC changed | #captured vars
 %
@@ -2615,17 +2575,56 @@ real Scala programs, taken from three categories:
 \vspace{-2mm}
 \end{enumerate}
 
-\begin{figure}[t!]
-\centering
-\includegraphics[width=\textwidth]{evaluation.pdf}
-\caption{Evaluating the practicality of using spores in place of normal closures}
-\label{fig:spore-eval}
-\vspace{-5mm}
-\end{figure}
-
 \paragraph{\textbf{Methodology}} For each program, we obtained (a) the number of closures in the program that are candidates for conversion, (b) the number of closures that could be converted to spores, (c) the changed/added number of LOC, and (d) the number of captured variables. It is important to note that during the conversion it was not possible to rely on an implicit conversion of functions to spores, since the expected types of all library methods that were invoked by the evaluated applications remained normal function types. Thus, the reported numbers are worse than they would be for APIs using spores.
 
 \paragraph{\textbf{Results}} The results are shown in Figure~\ref{fig:spore-eval}. Out of 32 closures 29 could be converted to spores with little effort. One closure failed to infer its parameter type when expressed as a spore. Two other closures could not be converted due to implementation restrictions of our prototype. On average, per converted closure 1.4 LOC had to be changed. This number is dominated by two factors: the inability to use the implicit conversion from functions to spores, and one particularly complex closure in ``mandelbrot'' that required changing 9 LOC. In our programs, the number of captured variables is on average 0.56. These results suggest that programs using closures in non-trivial ways can typically be converted to using spores with little effort, even if the used APIs do not use spore types.
+
+
+\begin{figure*}[t!]
+\vspace{-3mm}
+% \onecolumn
+% \setlength\LTleft{10pt}            % default: \parindent
+% \setlength\LTright{10pt}           % default: \fill
+\begin{longtable}{c@{}c c@{}c c@{}c c@{}c c@{}c c@{}c c@{}c }
+\toprule%
+
+{\bfseries } && {\bfseries ~average LOC~} && {\bfseries ~average \# of~} && {\bfseries ~\% closures that~} \\
+{\bfseries Project} && {\bfseries per closure} && {\bfseries captured vars} && {\bfseries don't capture} \\
+
+\cmidrule(l){0-1} \cmidrule(l){2-3} \cmidrule(l){4-5} \cmidrule(l){6-7}
+
+% \endhead
+
+
+\parbox[c][0.8cm]{4cm}{\centering\normalsize\href{https://github.com/sameeragarwal/blinkdb}{\texttt{sameeragarwal/blinkdb}}\\ \stars 268 ~ \contribs 33 ~ \loc 22,022} && 1.39 && 1 && 93.5\% \\
+
+\myrowcolour%
+\parbox[c][0.8cm]{4cm}{\centering\normalsize\href{https://github.com/freeman-lab/thunder}{\texttt{freeman-lab/thunder}}\\ \stars 89 ~ \contribs 2 ~ \loc 2,813} && 1.03 && 1.30 && 23.3\% \\
+
+\parbox[c][0.8cm]{4cm}{\centering\normalsize\href{https://github.com/bigdatagenomics/adam}{\texttt{bigdatagenomics/adam}}\\ \stars 86 ~ \contribs 16 ~ \loc 19,055} && 1.90 && 1.44 && 80.2\% \\
+
+\myrowcolour%
+\parbox[c][0.8cm]{4cm}{\centering\normalsize\href{https://github.com/ooyala/spark-jobserver}{\texttt{ooyala/spark-jobserver}}\\ \stars 79 ~ \contribs 6 ~ \loc 5,578} && 1.60 && 1 && 80.0\% \\
+
+\parbox[c][0.8cm]{5cm}{\centering\normalsize\href{https://github.com/Sotera/correlation-approximation}{\texttt{Sotera/correlation-approximation}}\\ \stars 12 ~ \contribs 2 ~ \loc 775} && 4.55 && 1.25 && 63.6\% \\
+
+\myrowcolour%
+\parbox[c][0.8cm]{4cm}{\centering\normalsize\href{https://github.com/aecc/stream-tree-learning}{\texttt{aecc/stream-tree-learning}}\\ \stars 1 ~ \contribs 2 ~ \loc 1,199} && 5.73 && 2 && 54.5\% \\
+
+\parbox[c][0.8cm]{5cm}{\centering\normalsize\href{https://github.com/lagerspetz/TimeSeriesSpark}{\texttt{lagerspetz/TimeSeriesSpark}}\\ \stars 5 ~ \contribs 1 ~ \loc 14,882} && 2.85 && 1.77 && 75.0\% \\
+
+\bottomrule
+
+\textbf{Total~\loc 66,324} && -- && 1.39 && 67.2\% \\
+
+\bottomrule
+
+\end{longtable}
+\vspace{2mm}
+\caption{Spark codebases}
+\vspace{-4mm}
+\end{figure*}
+
 
 \subsection{Spores and Apache Spark}
 
@@ -2814,13 +2813,6 @@ support for functions and closures, but without constraints.
 
 % Should reference Cloud Types~\cite{CloudTypes}
 
-\section*{Acknowledgements}
-
-We would like to thank the anonymous ECOOP 2014 referees for their thorough
-reviews and helpful suggestions which greatly improved the quality of the
-paper. Heather Miller was supported by a US National Science Foundation
-Graduate Research Fellowship.
-
 \section{Conclusion}
 \label{sec:conclusion}
 
@@ -2869,6 +2861,12 @@ programs to use spores requires relatively little effort.
 % of safe closures, and it makes it possible for spores to integrate with type
 % class-based frameworks like Scala/pickling~\cite{ScalaPickling}.
 
+\section*{Acknowledgements}
+
+We would like to thank the anonymous ECOOP 2014 referees for their thorough
+reviews and helpful suggestions which greatly improved the quality of the
+paper. Heather Miller was supported by a US National Science Foundation
+Graduate Research Fellowship.
 
 \bibliographystyle{abbrv}
 \bibliography{bib}
