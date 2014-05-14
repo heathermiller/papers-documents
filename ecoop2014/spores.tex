@@ -490,7 +490,7 @@ closure capturing semantics. Furthermore, unlike spores, the environment of a
 closure in Rust must always be allocated on the stack (although not necessarily the
 top-most stack frame).
 
-{Java 8}~\cite{JavaLambdas,JavaLambdaTranslation} introduces a limited type of
+{Java 8}~\cite{JavaLambdas} introduces a limited type of
 closure which is only permitted to capture variables that are
 effectively-final. Like with Scala's standard closures, variable capture is
 implicit, which can lead to accidental captures that spores are designed to
@@ -2703,9 +2703,10 @@ enforce the safety of all those closures.
 
 %\subsection{More Robust Distribution of Closures}
 
-Frameworks like MapReduce~\cite{MapReduce} and Apache Spark~\cite{Spark} are designed for processing large datasets in a cluster. The programming models of these frameworks rely on distributing functions used for well-known map/reduce computation patterns.
+Frameworks like MapReduce~\cite{MapReduce} and Apache Spark~\cite{Spark} are designed for processing large datasets in a cluster,
+using well-known map/reduce computation patterns.
 
-In Spark, these patterns are directly expressed in Scala using the standard higher-order functions \verb|map| and \verb|reduce| applied to an abstraction for distributed collections called ``resilient distributed dataset'' (RDD). However, to avoid unexpected runtime exceptions due to unserializable closures when passing closures to RDDs, programmers must adopt conventions that are subtle and unchecked by the Scala compiler.
+In Spark, these patterns are expressed using higher-order functions, like \verb|map|, applied to the ``resilient distributed dataset'' (RDD) abstraction. However, to avoid unexpected runtime exceptions due to unserializable closures when passing closures to RDDs, programmers must adopt conventions that are subtle and unchecked by the Scala compiler.
 
 The following typical pattern was extracted from a code base used in production:
 
@@ -2817,8 +2818,8 @@ systems that enforce transitive properties (Section~\ref{sec:trans-props}). Unli
 do not require a type system extension.
 
 A well-known type-based representation of closures uses existential types
-where the existentially quantified variable represents the type of the (value)
-environment for the closure; this representation enables type-preserving
+where the existentially quantified variable represents the closure's environment,
+enabling type-preserving
 compilation of functional languages~\cite{MorrisettWCG99}. A spore type
 may have an abstract \verb|Captured| type, effectively encoding an existantial quantification; however,
 captured types are typically concrete, and the spore type system supports constraints on them.
@@ -2869,7 +2870,7 @@ opportunities, including but not limited to controlled capture in concurrent,
 distributed, and other arbitrary scenarios where closures must be
 controlled.
 
-Finally, we demonstrate the practicality of our approach through a small
+Finally, we demonstrate the practicality of our approach through an
 empirical study, and show that converting non-trivial
 programs to use spores requires relatively little effort.
 % We also illustrate
