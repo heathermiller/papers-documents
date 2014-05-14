@@ -2565,36 +2565,31 @@ applications, we studied the code bases of 7 open-source applications using
 the popular ``big data'' framework Apache Spark.
 Figure~\ref{fig:spark-apps-stats} shows a summary of the applications.\footnote{All
 applications are hosted in public repositories on the social coding website GitHub.}
-The applications comprise 66324 LOC (including comments and whitespace) of Scala source code.
 
-\paragraph{\textbf{Methodology}} We evaluated the applications along the two
-dimensions utility and practicality. In the first case we were interested how
-often closures could benefit from the additional spore checking. Given that
-all applications were using the Spark framework, we counted the number of
-closures passed to the higher-order \verb|map| method of the \verb|RDD| type
-(Spark's distributed collection abstraction); all of these closures must be
-serializable to avoid runtime exceptions. (The \verb|RDD| type has many more
-higher-order functions that require serializable closures such as
-\verb|flatMap|; \verb|map| is by far the most common higher-order function,
-though, and is thus in some sense representative of the use of closures in
-Spark.) In the second case, we analyzed the percentage of spores that could be
-converted automatically to spores assuming the Spark API would use spore types
-instead of regular function types, thus not incurring any syntactic overhead.
-In the case where such an automatic conversion would not be possible, we
-analyzed the average number of captured variables, indicating the syntactic
-overhead of using spores.
+\paragraph{\textbf{Methodology}} We evaluated the applications along two
+dimensions. In the first dimension we were interested how often closures could
+benefit from the additional spore checking. Given the use of the Spark
+framework, we counted the number of closures passed to the higher-order
+\verb|map| method of the \verb|RDD| type (Spark's distributed collection
+abstraction); all of these closures must be serializable to avoid runtime
+exceptions. (The \verb|RDD| type has several more higher-order functions that
+require serializable closures such as \verb|flatMap|; \verb|map| is the most
+commonly used higher-order function, though, and is thus representative of the
+use of closures in Spark.) In the second dimension, we analyzed the percentage
+of spores that could be converted automatically to spores assuming the Spark
+API would use spore types instead of regular function types, thus not
+incurring any syntactic overhead. In cases where automatic conversion would be
+impossible, we analyzed the average number of captured variables, indicating
+the syntactic overhead of using explicit spores.
 
 \paragraph{\textbf{Results}} Figure~\ref{fig:spark-apps-stats} summarizes our
-results. As can be seen, the number of closures passed to the \verb|map|
-method of the \verb|RDD| type varies between 5 (\verb|spark-jobserver|) and 81
-(\verb|adam|). As mentioned before, this is only a fraction of the closures
-that must be serializable, which is currently unchecked. Of all these
-closures, about ??.?\% do not capture any variable; these closures could be
-automatically converted to spores using the implicit macro presented in
-earlier sections. The remaining ??.?\% of closures that do capture variables,
-capture on average ??.? variables. Thus, converting such closures to spores
-would not be an unreasonable burden, in particular using the lightweight
-\verb|capture| syntax introduced earlier.
+results. The number of closures passed to \verb|RDD|'s \verb|map| method
+varies between 5 (\verb|spark-jobserver|) and 81 (\verb|adam|). Of all these
+closures, about 67.2\% do not capture any variable; these closures could be
+automatically converted to spores using the implicit macro of
+Section~\ref{sec:basic-usage}. The remaining 32.8\% of closures that do capture variables,
+capture on average 1.39 variables. Thus, converting such closures to spores
+would require only few changes.
 
 \section{Case Study}
 \label{sec:case-studies}
