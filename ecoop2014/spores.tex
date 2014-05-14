@@ -2370,7 +2370,7 @@ v ::=     ...                               & \mbox{values}
   \vspace{2mm}
   \caption{Core language syntax extensions}
   \label{fig:syntax-ext}
-  \vspace{-3mm}
+  \vspace{-4mm}
 \end{figure*}
 
 
@@ -2395,7 +2395,7 @@ v ::=     ...                               & \mbox{values}
   % \vspace{-6mm}
   \caption{Subtyping extensions}
   \label{fig:subtyping-ext}
-  \vspace{-2mm}
+  \vspace{-4mm}
 \end{figure*}
 % \vspace{2mm}
 
@@ -2424,7 +2424,7 @@ v ::=     ...                               & \mbox{values}
   % \vspace{-4mm}
   \caption{Operational semantics extensions}
   \label{fig:opsem-ext}
-  \vspace{-5mm}
+  \vspace{-6mm}
 \end{figure*}
 
 \subsection{Excluded types}
@@ -2582,9 +2582,7 @@ Figure~\ref{fig:spore-eval}. Out of 32 closures 29 could be converted
 to spores with little effort. One closure failed to infer its parameter
 type when expressed as a spore. Two other closures could not be converted
 due to implementation restrictions of our prototype. On average, per
-converted closure 1.4 LOC had to be changed. This
-
-\noindent number is dominated
+converted closure 1.4 LOC had to be changed. This number is dominated
 by two factors: the inability to use the implicit conversion from functions
 to spores, and one particularly complex closure in ``mandelbrot'' that
 required changing 9 LOC. In our programs, the number of captured variables
