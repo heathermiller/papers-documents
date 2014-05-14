@@ -38,6 +38,8 @@
 \usepackage{xcolor}
 \usepackage{lipsum}
 
+\newcommand{\comment}[1]{}
+
 % Member sequences
 \newcommand{\seq}[1]{\overline{#1}}
 
@@ -2523,12 +2525,11 @@ The implicit conversion (Section~\ref{sec:basic-usage}) from standard Scala func
 % \end{figure*}
 
 In this section we evaluate the practicality and the benefits of using spores
-as an alternative to normal closures in Scala. The evaluation has three parts.
+as an alternative to normal closures in Scala. The evaluation has two parts.
 In the first part we measure the impact of introducing spores in existing
-programs. In the second part we evaluate the importance of excluding specific
-types from the environment of closures. In the third part we evaluate the
-syntactic overhead of spores in a large code base of big data-style
-applications.
+programs. In the second part we evaluate the utility and the syntactic overhead
+of spores in a large code base of applications based on the Apache Spark
+framework for big data analytics.
 
 \subsection{Using Spores Instead of Closures}
 
@@ -2557,11 +2558,48 @@ real Scala programs, taken from three categories:
 
 \paragraph{\textbf{Results}} The results are shown in Figure~\ref{fig:spore-eval}. Out of 32 closures 29 could be converted to spores with little effort. One closure failed to infer its parameter type when expressed as a spore. Two other closures could not be converted due to implementation restrictions of our current prototype. On average, per converted closure 1.4 LOC had to be changed. This number is dominated by two factors: the inability to use the implicit conversion from normal functions to spores, and one particularly complex closure in ``mandelbrot'' that required changing 9 LOC. In our programs, the number of captured variables is on average 0.56. These results suggest that programs using closures in non-trivial ways can typically be converted to using spores with relatively little effort, even if the used APIs do not use spore types.
 
+\subsection{Spores and Apache Spark}
 
-\section{Case Studies}
+To evaluate the benefit and overhead of using spores in larger, distributed
+applications, we studied the code bases of 7 open-source applications using
+the popular ``big data'' framework Apache Spark.
+Figure~\ref{fig:spark-apps-stats} shows a summary of the applications.\footnote{All
+applications are hosted in public repositories on the social coding website GitHub.}
+The applications comprise 66324 LOC (including comments and whitespace) of Scala source code.
+
+\paragraph{\textbf{Methodology}} We evaluated the applications along the two
+dimensions utility and practicality. In the first case we were interested how
+often closures could benefit from the additional spore checking. Given that
+all applications were using the Spark framework, we counted the number of
+closures passed to the higher-order \verb|map| method of the \verb|RDD| type
+(Spark's distributed collection abstraction); all of these closures must be
+serializable to avoid runtime exceptions. (The \verb|RDD| type has many more
+higher-order functions that require serializable closures such as
+\verb|flatMap|; \verb|map| is by far the most common higher-order function,
+though, and is thus in some sense representative of the use of closures in
+Spark.) In the second case, we analyzed the percentage of spores that could be
+converted automatically to spores assuming the Spark API would use spore types
+instead of regular function types, thus not incurring any syntactic overhead.
+In the case where such an automatic conversion would not be possible, we
+analyzed the average number of captured variables, indicating the syntactic
+overhead of using spores.
+
+\paragraph{\textbf{Results}} Figure~\ref{fig:spark-apps-stats} summarizes our
+results. As can be seen, the number of closures passed to the \verb|map|
+method of the \verb|RDD| type varies between 5 (\verb|spark-jobserver|) and 81
+(\verb|adam|). As mentioned before, this is only a fraction of the closures
+that must be serializable, which is currently unchecked. Of all these
+closures, about ??.?\% do not capture any variable; these closures could be
+automatically converted to spores using the implicit macro presented in
+earlier sections. The remaining ??.?\% of closures that do capture variables,
+capture on average ??.? variables. Thus, converting such closures to spores
+would not be an unreasonable burden, in particular using the lightweight
+\verb|capture| syntax introduced earlier.
+
+\section{Case Study}
 \label{sec:case-studies}
 
-\subsection{More Robust Distribution of Closures}
+%\subsection{More Robust Distribution of Closures}
 
 Frameworks like MapReduce~\cite{MapReduce} and Apache Spark~\cite{Spark} are designed for processing large datasets in a cluster. The programming models of these frameworks rely on distributing functions used for well-known map/reduce computation patterns.
 
@@ -2606,6 +2644,7 @@ val reduceFun: Spore[(GenericOpAggregator, GenericOpAggregator),
 The spore shape enforces the use of \verb|localMapping| (moved into \verb|mapFun|). Furthermore, there is no more possibility of accidentally capturing a reference to the enclosing object.
 
 
+\comment{
 \subsection{Safer Closures for Parallel Collections}
 
 Scala's parallel collections provide data-parallel operations for standard collection types like maps and sequences. These data-parallel operations typically take closures as arguments that are applied to all elements of the underlying collection in parallel. Unfortunately, it is easy to create race conditions by capturing mutable objects within such closures, and Scala's type checker does not provide any assistance for avoiding them.
@@ -2633,6 +2672,7 @@ val pcoll = myColl.par
 \end{lstlisting}
 \noindent
 In the above example, capturing a mutable object (or, in fact, any object of type \verb|T| that does not have an implicit value of type \verb|Immutable[T]|) would lead to a compile-time error, thus preventing a potential data race.
+}
 
 % \section{Use-Cases?}
 
