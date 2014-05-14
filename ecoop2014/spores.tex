@@ -189,8 +189,8 @@ and
 Functional programming (FP) is regularly touted as the way forward for bringing
 parallel, concurrent, and distributed programming to the mainstream. The
 popularity of the rationale behind this viewpoint has even led to a number of
-object-oriented (OO) programming languages adopting functional features such
-as lambdas and thereby function closures.
+object-oriented (OO) programming languages outside the Smalltalk tradition
+adopting functional features such as lambdas and thereby function closures.
 However, despite this established viewpoint of FP as an enabler, reliably
 distributing function closures over a network, or using them in concurrent
 environments nonetheless remains a challenge across FP and OO languages.
@@ -227,6 +227,7 @@ frameworks that this safe foundation for closures facilitates.
 \keywords{closures, functions, distributed programming, concurrent programming, type systems}
 \end{abstract}
 %
+\vspace{-3mm}
 \section{Introduction}
 
 % The traditional view of software development as being focused on a program running
@@ -938,7 +939,7 @@ customize what types a spore can capture.
 % \todo{Should we make a list of properties that need to be satisfied for a closure to be guaranteeably serializable or thread-safe? Then, progress through the entire Spores section and show how each aspect of the design achieves that.}
 
 % \vspace{1mm}
-\pagebreak
+% \pagebreak
 \subsection{Spore Syntax}
 \label{sec:spore-syntax}
 
@@ -1049,7 +1050,7 @@ above shape is merely a convention that is not enforced.
 
 Figure~\ref{fig:spore-type} shows Scala's arity-1 function type and the arity-1 spore type.\footnote{For simplicity, we omit \verb+Function1+'s definitions of the \verb+andThen+ and \verb+compose+ methods.}
 Functions are
-\pagebreak
+% \pagebreak
 
 \noindent contravariant in their argument type \verb|A| (indicated using
 \verb|-|) and covariant in their result type \verb|B| (indicated
