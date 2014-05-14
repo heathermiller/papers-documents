@@ -2659,6 +2659,45 @@ Section~\ref{sec:basic-usage}. The remaining 32.8\% of closures that do capture 
 capture on average 1.39 variables. Thus, converting such closures to spores
 would require only few changes.
 
+
+\subsection{Spores and Akka}
+
+We have verified on an additional set of sources that excluding specific types
+from closures is in fact important.
+
+The Akka event-driven middleware provides an actor abstraction for
+concurrency. When using futures together with actors, it is common to provide
+the result of a future-based computation to the sender of a message sent to an
+actor.
+
+However, naive implementations of patterns such as this can problematic. To
+access the sender of a message, Akka's Actor trait provides a method
+``sender'' that returns a reference to the actor that is the sender of the
+message currently being processed. There is a potential for a data race where
+the actor starts processing a message from a different actor than the original
+sender, but a concurrent future-based computation invokes the ``sender''
+method (on \verb|this|), thus obtaining a reference to the wrong actor.
+
+Given the importance of combining actors and futures, Akka provides a library
+method ``pipeTo'' to enable programming patterns using futures that avoid
+capturing variables of type Actor in closures. However, the correct use of
+``pipeTo'' is unchecked. This paper provides a new, but statically-checked
+approach to address this problem by demanding closures passed to future
+constructors to be spores with the constraint that type Actor is excluded.
+
+\paragraph{\textbf{Methodology}} To find out how often spores with type
+constraints could turn an unchecked pattern into a statically-checked
+guarantee, we analyzed 7 open-source projects using Akka (GitHub projects
+with 23 stars on average; more than 100 commits; 2.7 contributors on average).
+For each project we searched for occurrences of ``pipeTo'' directly following
+closures passed to future constructors.
+
+\paragraph{\textbf{Results}} The 7 projects contain 19 occurrences of the
+presented unchecked pattern to avoid capturing Actor instances within closures
+used concurrently. Spores with a constraint to exclude Actor statically
+enforce the safety of all those closures.
+
+
 \section{Case Study}
 \label{sec:case-studies}
 
