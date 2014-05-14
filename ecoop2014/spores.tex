@@ -2814,15 +2814,14 @@ and do not require a type system extension. River Trail~\cite{HerhutHSS13}
 provides a concurrency model for JavaScript, similar to parallel closures;
 however, capturing variables in closures is currently not supported.
 
-ML5~\cite{MurphyML5} provides mobile closures that are verified not to use
+ML5~\cite{MurphyML5} provides mobile closures verified not to use
 resources not present on machines where they are applied. This property is
-enforced transitively, meaning for all values reachable from captured values,
+enforced transitively (for all values reachable from captured values),
 which is stronger than what plain spores provide. However, type constraints
-allow spores to require properties not limited to mobility. To support such
-transitive properties using spores, one can either use type constraints based
-on type classes which enforce a transitive property such as serializability
-(Section~\ref{sec:adv-usage-type-constraints}) or by integrating with type
-systems that enforce transitive properties (Section~\ref{sec:trans-props}). Unlike ML5, spores
+allow spores to require properties not limited to mobility.
+Transitive properties are supported either using type constraints based
+on type classes which enforce a transitive property
+or by integrating with type systems that enforce transitive properties. Unlike ML5, spores
 do not require a type system extension.
 
 A well-known type-based representation of closures uses existential types
