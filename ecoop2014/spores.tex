@@ -2672,19 +2672,19 @@ the result of a future-based computation to the sender of a message sent to an
 actor.
 
 However, naive implementations of patterns such as this can problematic. To
-access the sender of a message, Akka's Actor trait provides a method
-``sender'' that returns a reference to the actor that is the sender of the
+access the sender of a message, Akka's \verb|Actor| trait provides a method
+\verb|sender| that returns a reference to the actor that is the sender of the
 message currently being processed. There is a potential for a data race where
 the actor starts processing a message from a different actor than the original
-sender, but a concurrent future-based computation invokes the ``sender''
+sender, but a concurrent future-based computation invokes the \verb|sender|
 method (on \verb|this|), thus obtaining a reference to the wrong actor.
 
 Given the importance of combining actors and futures, Akka provides a library
-method ``pipeTo'' to enable programming patterns using futures that avoid
-capturing variables of type Actor in closures. However, the correct use of
-``pipeTo'' is unchecked. This paper provides a new, but statically-checked
+method \verb|pipeTo| to enable programming patterns using futures that avoid
+capturing variables of type \verb|Actor| in closures. However, the correct use of
+\verb|pipeTo| is unchecked. Spores provide a new statically-checked
 approach to address this problem by demanding closures passed to future
-constructors to be spores with the constraint that type Actor is excluded.
+constructors to be spores with the constraint that type \verb|Actor| is excluded.
 
 \paragraph{\textbf{Methodology}} To find out how often spores with type
 constraints could turn an unchecked pattern into a statically-checked
