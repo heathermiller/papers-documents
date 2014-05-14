@@ -2435,7 +2435,9 @@ Figure~\ref{fig:subtyping-ext} shows how the subtyping rules for spores have to 
 
 Figure~\ref{fig:opsem-ext} shows the extensions to the operational semantics. Rule \\ \textsc{E-EAppSpore} additionally requires that none of the captured types $\seq{T}$ are contained in the excluded types $\seq{U}$. Rule \textsc{E-EComp3} computes the set of excluded types of the result spore in the same way as in the corresponding type rule (\textsc{T-EComp}).
 
-\vspace{-12mm}
+Figure~\ref{fig:typing-ext} shows the extensions to the typing rules. Rule \textsc{T-ESpore} additionally requires that none of the captured types $\seq{S}$ is a subtype of one of the types contained in the excluded types $\seq{U}$. The excluded types are recorded in the type of the spore. Rule \textsc{T-EComp} computes a new set of excluded types $\seq{V}$ based on both the excluded types and the captured types of $t_1$ and $t_2$. Given that it is possible that one of the spores captures a type that is excluded in the other spore, the type of the result spore excludes only those types that are guaranteed not be captured.
+
+% \vspace{-6mm}
 \begin{figure*}[t!]
   \centering
 \begin{mathpar}
@@ -2466,9 +2468,6 @@ Figure~\ref{fig:opsem-ext} shows the extensions to the operational semantics. Ru
   \vspace{-7mm}
 \end{figure*}
 % \vspace{2mm}
-
-Figure~\ref{fig:typing-ext} shows the extensions to the typing rules. Rule \textsc{T-ESpore} additionally requires that none of the captured types $\seq{S}$ is a subtype of one of the types contained in the excluded types $\seq{U}$. The excluded types are recorded in the type of the spore. Rule \textsc{T-EComp} computes a new set of excluded types $\seq{V}$ based on both the excluded types and the captured types of $t_1$ and $t_2$. Given that it is possible that one of the spores captures a type that is excluded in the other spore, the type of the result spore excludes only those types that are guaranteed not be captured.
-
 
 \section{Implementation}
 \label{sec:implementation}
