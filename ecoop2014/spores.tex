@@ -6,14 +6,14 @@
 \documentclass[runningheads]{llncs}
 %
 
-% %% Save the class definition of \subparagraph
-% \let\llncssubparagraph\subparagraph
-% %% Provide a definition to \subparagraph to keep titlesec happy
-% \let\subparagraph\paragraph
-% %% Load titlesec
-% \usepackage[compact]{titlesec}
-% %% Revert \subparagraph to the llncs definition
-% \let\subparagraph\llncssubparagraph
+%% Save the class definition of \subparagraph
+\let\llncssubparagraph\subparagraph
+%% Provide a definition to \subparagraph to keep titlesec happy
+\let\subparagraph\paragraph
+%% Load titlesec
+\usepackage[compact]{titlesec}
+%% Revert \subparagraph to the llncs definition
+\let\subparagraph\llncssubparagraph
 \usepackage{makeidx}  % allows for indexgeneration
 \usepackage{url}
 \usepackage[xetex]{hyperref}
@@ -501,10 +501,11 @@ captured variables that are more general than serializability alone.
 
 We discuss other related work in Section~\ref{sec:related-work}.
 
+\vspace{2mm}
 \subsection{Contributions}
 
 This paper makes the following contributions:
-\vspace{-1.5mm}
+% \vspace{-2mm}
 \begin{itemize}
 \item We introduce a closure-like abstraction and type system,  called
 ``spores,'' which avoids typical hazards when using closures in a concurrent
@@ -886,7 +887,8 @@ of the guarantees spores provide through case studies using parallel and distrib
 % objects (important in particular in languages supporting the uniform access
 % principle like Eiffel [check], Smalltalk [check], and Scala).
 
-
+% \vspace{-1em}
+\vspace{1mm}
 \section{Spores}
 \label{sec:spores}
 
@@ -935,26 +937,30 @@ system, and how to add user-defined constraints to
 customize what types a spore can capture.
 % \todo{Should we make a list of properties that need to be satisfied for a closure to be guaranteeably serializable or thread-safe? Then, progress through the entire Spores section and show how each aspect of the design achieves that.}
 
-\vspace{1mm}
+% \vspace{1mm}
+\pagebreak
 \subsection{Spore Syntax}
 \label{sec:spore-syntax}
 
 \setlength{\belowcaptionskip}{-6pt}
 \begin{figure}[t!]
 \centering
-\includegraphics[width=7cm]{spore-shape.pdf}
-\vspace{-0.4cm}
+\includegraphics[width=7.4cm]{spore-shape.pdf}
+% \vspace{-0.4cm}
 \caption{The syntactic shape of a spore.}
 \label{fig:spore-shape}
+\vspace{-5mm}
 \end{figure}
 \setlength{\belowcaptionskip}{0pt}
 
+% \vspace{-5mm}
 A spore is a closure with a specific shape that dictates how the environment
 of a spore is declared. The shape of a spore is shown in Figure~\ref{fig:spore-shape}.
 A spore consists of two parts:
-\vspace{-1.5mm}
+% \vspace{-25mm}
 \begin{itemize}
 \item {\bf the spore header}, composed of a list of value definitions.
+% \vspace{-10mm}
 \item {\bf the spore body} (sometimes referred to as the ``spore closure''), a regular closure.
 \end{itemize}
 
@@ -963,7 +969,7 @@ A spore consists of two parts:
 % definitions at the beginning is called the spore header. The header is
 % followed by a regular closure, the spore's body.
 
-% \vspace{-1.5mm}
+% \vspace{-25mm}
 The characteristic property
 of a spore is that the {\em spore body} is only allowed to access its
 parameter, the values in the spore header, as well as top-level singleton objects
@@ -977,6 +983,7 @@ explicitly in the spore header, which avoids accidentally capturing
 problematic references. Moreover, importantly for object-oriented languages, it's no
 longer possible to accidentally capture the \verb|this| reference.
 
+% \vspace{-5mm}
 % \setlength{\belowcaptionskip}{-4pt}
 \begin{figure}%[b!]
 \begin{subfigure}{.5\textwidth}
@@ -1009,14 +1016,14 @@ longer possible to accidentally capture the \verb|this| reference.
   \caption{A spore.}
   \label{fig:normal-spore-shape}
 \end{subfigure}%
-% \vspace{1mm}
+\vspace{1mm}
 \caption{The evaluation semantics of a spore is equivalent to that of a closure, obtained by simply leaving out the spore marker.}
 \label{fig:evaluation-semantics}
-\vspace{-5mm}
+% \vspace{-5mm}
 \end{figure}
 % \setlength{\belowcaptionskip}{0pt}
 
-
+% \vspace{-4em}
 \subsubsection{Evaluation Semantics}
 
 The evaluation semantics of a spore is equivalent to a closure
@@ -1034,14 +1041,17 @@ above shape is merely a convention that is not enforced.
 \vspace{2mm}
 \subsection{The \texttt{Spore} Type}
 \label{sec:spore-type}
-\vspace{1mm}
+% \vspace{1mm}
 
 % \footnote{This is possible, because in Scala functions are instances of classes that mix in one of the function traits.}
 
 
 
 Figure~\ref{fig:spore-type} shows Scala's arity-1 function type and the arity-1 spore type.\footnote{For simplicity, we omit \verb+Function1+'s definitions of the \verb+andThen+ and \verb+compose+ methods.}
-Functions are contravariant in their argument type \verb|A| (indicated using
+Functions are
+\pagebreak
+
+\noindent contravariant in their argument type \verb|A| (indicated using
 \verb|-|) and covariant in their result type \verb|B| (indicated
 using \verb|+|). The \verb|apply| method of \verb|Function1| is abstract; a concrete implementation applies
 the body of the function that is being defined to the parameter \verb|x|.
@@ -1057,7 +1067,7 @@ Section~\ref{sec:excluded-types} introduces the \verb|Excluded| type member.
 
 
 \begin{figure}[b!]
-\vspace{-2mm}
+\vspace{-6mm}
 \begin{subfigure}{.5\textwidth}
   \centering
   \begin{lstlisting}
@@ -1080,7 +1090,7 @@ Section~\ref{sec:excluded-types} introduces the \verb|Excluded| type member.
   \caption{The arity-1 \texttt{Spore} type.}
   \label{fig:spore-arity1}
 \end{subfigure}%
-\vspace{-1mm}
+\vspace{1mm}
 \caption{The \texttt{Spore} type.}
 \label{fig:spore-type}
 \vspace{-2mm}
@@ -2482,30 +2492,30 @@ The implicit conversion (Section~\ref{sec:basic-usage}) from standard Scala func
 \begin{longtable}{c@{}c c@{}c c@{}c c@{}c c@{}c c@{}c c@{}c }
 \toprule%
 
-{\bfseries } && {\bfseries ~Average LOC~} && {\bfseries ~Average \# of~} && {\bfseries ~\% Closures that~} \\
-{\bfseries Project} && {\bfseries per closure} && {\bfseries aptured vars} && {\bfseries don't capture} \\
+{\bfseries } && {\bfseries ~average LOC~} && {\bfseries ~average \# of~} && {\bfseries ~\% closures that~} \\
+{\bfseries Project} && {\bfseries per closure} && {\bfseries captured vars} && {\bfseries don't capture} \\
 
 \cmidrule(l){0-1} \cmidrule(l){2-3} \cmidrule(l){4-5} \cmidrule(l){6-7}
 
 % \endhead
 
 
-\parbox[c][0.9cm]{4cm}{\centering\normalsize\href{https://github.com/sameeragarwal/blinkdb}{\texttt{sameeragarwal/blinkdb}}\\ \stars 268 ~ \contribs 33 ~ \loc 22,022} && 1.39 && 1 && 93.5\% \\
+\parbox[c][0.8cm]{4cm}{\centering\normalsize\href{https://github.com/sameeragarwal/blinkdb}{\texttt{sameeragarwal/blinkdb}}\\ \stars 268 ~ \contribs 33 ~ \loc 22,022} && 1.39 && 1 && 93.5\% \\
 
 \myrowcolour%
-\parbox[c][0.9cm]{4cm}{\centering\normalsize\href{https://github.com/freeman-lab/thunder}{\texttt{freeman-lab/thunder}}\\ \stars 89 ~ \contribs 2 ~ \loc 2,813} && 1.03 && 1.30 && 23.3\% \\
+\parbox[c][0.8cm]{4cm}{\centering\normalsize\href{https://github.com/freeman-lab/thunder}{\texttt{freeman-lab/thunder}}\\ \stars 89 ~ \contribs 2 ~ \loc 2,813} && 1.03 && 1.30 && 23.3\% \\
 
-\parbox[c][0.9cm]{4cm}{\centering\normalsize\href{https://github.com/bigdatagenomics/adam}{\texttt{bigdatagenomics/adam}}\\ \stars 86 ~ \contribs 16 ~ \loc 19,055} && 1.90 && 1.44 && 80.2\% \\
-
-\myrowcolour%
-\parbox[c][0.9cm]{4cm}{\centering\normalsize\href{https://github.com/ooyala/spark-jobserver}{\texttt{ooyala/spark-jobserver}}\\ \stars 79 ~ \contribs 6 ~ \loc 5,578} && 1.60 && 1 && 80.0\% \\
-
-\parbox[c][0.9cm]{5cm}{\centering\normalsize\href{https://github.com/Sotera/correlation-approximation}{\texttt{Sotera/correlation-approximation}}\\ \stars 12 ~ \contribs 2 ~ \loc 775} && 4.55 && 1.25 && 63.6\% \\
+\parbox[c][0.8cm]{4cm}{\centering\normalsize\href{https://github.com/bigdatagenomics/adam}{\texttt{bigdatagenomics/adam}}\\ \stars 86 ~ \contribs 16 ~ \loc 19,055} && 1.90 && 1.44 && 80.2\% \\
 
 \myrowcolour%
-\parbox[c][0.9cm]{4cm}{\centering\normalsize\href{https://github.com/aecc/stream-tree-learning}{\texttt{aecc/stream-tree-learning}}\\ \stars 1 ~ \contribs 2 ~ \loc 1,199} && 5.73 && 2 && 54.5\% \\
+\parbox[c][0.8cm]{4cm}{\centering\normalsize\href{https://github.com/ooyala/spark-jobserver}{\texttt{ooyala/spark-jobserver}}\\ \stars 79 ~ \contribs 6 ~ \loc 5,578} && 1.60 && 1 && 80.0\% \\
 
-\parbox[c][0.9cm]{5cm}{\centering\normalsize\href{https://github.com/lagerspetz/TimeSeriesSpark}{\texttt{lagerspetz/TimeSeriesSpark}}\\ \stars 5 ~ \contribs 1 ~ \loc 14,882} && 2.85 && 1.77 && 75.0\% \\
+\parbox[c][0.8cm]{5cm}{\centering\normalsize\href{https://github.com/Sotera/correlation-approximation}{\texttt{Sotera/correlation-approximation}}\\ \stars 12 ~ \contribs 2 ~ \loc 775} && 4.55 && 1.25 && 63.6\% \\
+
+\myrowcolour%
+\parbox[c][0.8cm]{4cm}{\centering\normalsize\href{https://github.com/aecc/stream-tree-learning}{\texttt{aecc/stream-tree-learning}}\\ \stars 1 ~ \contribs 2 ~ \loc 1,199} && 5.73 && 2 && 54.5\% \\
+
+\parbox[c][0.8cm]{5cm}{\centering\normalsize\href{https://github.com/lagerspetz/TimeSeriesSpark}{\texttt{lagerspetz/TimeSeriesSpark}}\\ \stars 5 ~ \contribs 1 ~ \loc 14,882} && 2.85 && 1.77 && 75.0\% \\
 
 \bottomrule
 
