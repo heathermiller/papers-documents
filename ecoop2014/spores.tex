@@ -1479,12 +1479,9 @@ def m[A, B](s: Spore[A, B])(implicit p: Pickler[s.Captured]) = ...
 \subsubsection{Defining Custom Properties}
 
 Properties can be introduced using the \verb|Property| trait (provided by the
-spores library):
+spores library): \lstinline{trait Property[C[_]]}
 
-\begin{lstlisting}[numbers=none]
-    trait Property[C[_]]
-\end{lstlisting}
-\noindent As a running example, we will be defining a custom  property for
+As a running example, we will be defining a custom  property for
 immutable types. A custom property can be introduced using a generic trait,
 and an implicit ``property'' object that mixes in the above \verb|Property|
 trait:
@@ -2256,7 +2253,7 @@ Rule \textsc{E-Comp3} is the computation rule for spore composition. Besides com
 
 \subsection{Soundness}\label{sec:soundness}
 
-This section presents a soundness proof of the spore type system. The proof is based on a pair of progress and preservation theorems~\cite{WrightF94}. A complete proof of soundness appears in the companion technical report~\cite{SporesFormally}. In addition to standard lemmas, such as Lemma~\ref{lem:substitution} and Lemma~\ref{lem:weak}, we also prove a lemma specific to our type system, namely Lemma~\ref{lem:pres-import}, which ensures types are preserved under property import. Soundness of the type system follows from Theorem~\ref{th:progress} and Theorem~\ref{th:pres}.
+This section presents a soundness proof of the spore type system. The proof is based on a pair of progress and preservation theorems~\cite{WrightF94}. A complete proof of soundness appears in the companion technical report~\cite{SporesFormally}. In addition to standard lemmas, we also prove a lemma specific to our type system, Lemma~\ref{lem:pres-import}, which ensures types are preserved under property import. Soundness of the type system follows from Theorem~\ref{th:progress} and Theorem~\ref{th:pres}.
 
 % \begin{lemma}
 % \emph{(Canonical forms)}
@@ -2282,7 +2279,7 @@ Suppose $t$ is a closed, well-typed term (that is, $\vdash t : T$ for some $T$).
 \vspace{-2.5mm}
 \end{theorem}
 \begin{proof}
-By induction on a derivation of $\vdash t : T$. The only three interesting cases are the ones for spore creation, application (where we might apply a spore to some argument), and spore composition.
+By induction on a derivation of $\vdash t : T$. The only three interesting cases are the ones for spore creation, application, and spore composition.
 \end{proof}
 
 
@@ -2846,9 +2843,9 @@ behavior in Scala, but don't resolve any of the problems of normal Scala
 closures when it comes to accidental capture, as spores do.
 
 Termite Scheme~\cite{Termite} is a Scheme dialect for distributed programming
-based on an Erlang-style concurrency model. Closures and continuations are
-always serializable, since references to non-serializable objects (like open
-files or physical devices) are automatically wrapped in processes that are
+where closures and continuations are
+always serializable; references to non-serializable objects (like open
+files) are automatically wrapped in processes that are
 serialized as their process ID. In contrast, with spores there is no such
 automatic wrapping. Unlike closures in Termite Scheme, spores are statically-typed,
 supporting type-based constraints. Serializable closures in a
