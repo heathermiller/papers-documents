@@ -2621,7 +2621,7 @@ real Scala programs, taken from three categories:
 
 \end{longtable}
 \vspace{2mm}
-\caption{Evaluating the impact and overhead of spores on real distributed applications. Each project listed is an active and noteworthy open-source project hosted on Github that is based on Apache Spark. \protect\stars~represents the number of ``stars'' (or interest) a repository has on Github, \protect\contribs~represents the number of open-source contributors to the project, and \protect\loc~represents the project's total lines of code.}
+\caption{Evaluating the impact and overhead of spores on real distributed applications. Each project listed is an active and noteworthy open-source project hosted on Github that is based on Apache Spark. \protect\stars~represents the number of ``stars'' (or interest) a repository has on Github, and \protect\contribs~represents the number of contributors to the project.}
 \label{fig:spark-apps-stats}
 \vspace{-4mm}
 \end{figure}
@@ -2629,35 +2629,35 @@ real Scala programs, taken from three categories:
 
 \subsection{Spores and Apache Spark}
 
-To evaluate the benefit and overhead of using spores in larger, distributed
-applications, we studied the code bases of 7 open-source applications using
-Apache Spark.\footnote{All
-applications are hosted in public repositories on the social coding website GitHub.}
+To evaluate both benefit and overhead of using spores in larger, distributed
+applications, we studied the codebases of 7 noteworthy open-source applications using
+Apache Spark.
 
 \paragraph{\textbf{Methodology}} We evaluated the applications along two
-dimensions. In the first dimension we were interested how often closures could
-benefit from the additional spore checking. Given the use of the Spark
-framework, we counted the number of closures passed to the higher-order
-\verb|map| method of the \verb|RDD| type (Spark's distributed collection
-abstraction); all of these closures must be serializable to avoid runtime
-exceptions. (The \verb|RDD| type has several more higher-order functions that
-require serializable closures such as \verb|flatMap|; \verb|map| is the most
-commonly used higher-order function, though, and is thus representative of the
-use of closures in Spark.) In the second dimension, we analyzed the percentage
-of spores that could be converted automatically to spores assuming the Spark
-API would use spore types instead of regular function types, thus not
-incurring any syntactic overhead. In cases where automatic conversion would be
-impossible, we analyzed the average number of captured variables, indicating
-the syntactic overhead of using explicit spores.
+dimensions. In the first dimension we were interested how widespread patterns
+are that spores could statically enforce. In the context of open-source
+applications built on top of the Spark framework, we counted the number of
+closures passed to the higher-order \verb|map| method of the \verb|RDD| type
+(Spark's distributed collection abstraction); all of these closures must be
+serializable to avoid runtime exceptions. (The \verb|RDD| type has several
+more higher-order functions that require serializable closures such as
+\verb|flatMap|; \verb|map| is the most commonly used higher-order function,
+though, and is thus representative of the use of closures in Spark.) In the
+second dimension, we analyzed the percentage of spores that could be converted
+automatically to spores assuming the Spark API would use spore types instead
+of regular function types, thus not incurring any syntactic overhead. In cases
+where automatic conversion would be impossible, we analyzed the average number
+of captured variables, indicating the syntactic overhead of using explicit
+spores.
 
 \paragraph{\textbf{Results}} Figure~\ref{fig:spark-apps-stats} summarizes our
-results. The number of closures passed to \verb|RDD|'s \verb|map| method
-varies between 5 (\verb|spark-jobserver|) and 81 (\verb|adam|). Of all these
-closures, about 67.2\% do not capture any variable; these closures could be
-automatically converted to spores using the implicit macro of
-Section~\ref{sec:basic-usage}. The remaining 32.8\% of closures that do capture variables,
-capture on average 1.39 variables. Thus, converting such closures to spores
-would require only few changes.
+results. Of all closures passed to \verb|RDD|'s \verb|map| method, about
+67.2\% do not capture any variable; these closures could be automatically
+converted to spores using the implicit macro of Section~\ref{sec:basic-usage}.
+The remaining 32.8\% of closures that do capture variables, capture on average
+1.39 variables. This indicates that unchecked patterns for serializable
+closures are widespread in real applications, and that benefiting from static
+guarantees provided by spores would require only little syntactic overhead.
 
 
 \subsection{Spores and Akka}
