@@ -38,19 +38,19 @@
 \setlength{\pdfpageheight}{\paperheight}
 \setlength{\pdfpagewidth}{\paperwidth}
 
-\conferenceinfo{CONF 'yy}{Month d--d, 20yy, City, ST, Country} 
-\copyrightyear{20yy} 
-\copyrightdata{978-1-nnnn-nnnn-n/yy/mm} 
+\conferenceinfo{GPCE'14}{September 14--15, 2014, V\"{a}ster\r{a}s, Sweden}
+\copyrightyear{2014}
+\copyrightdata{978-1-nnnn-nnnn-n/yy/mm}
 \doi{nnnnnnn.nnnnnnn}
 
-% Uncomment one of the following two, if you are not going for the 
+% Uncomment one of the following two, if you are not going for the
 % traditional copyright transfer agreement.
 
-%\exclusivelicense                % ACM gets exclusive license to publish, 
+%\exclusivelicense                % ACM gets exclusive license to publish,
                                   % you retain copyright
 
 %\permissiontopublish             % ACM gets nonexclusive license to publish
-                                  % (paid open-access papers, 
+                                  % (paid open-access papers,
                                   % short abstracts)
 
 \titlebanner{banner above paper title}        % These are ignored unless
@@ -59,12 +59,15 @@
 \title{Title Text}
 \subtitle{Subtitle Text, if any}
 
-\authorinfo{Name1}
-           {Affiliation1}
-           {Email1}
-\authorinfo{Name2\and Name3}
-           {Affiliation2/3}
-           {Email2/3}
+\authorinfo{Heather Miller}
+           {EPFL}
+           {heather.miller@epfl.ch}
+\authorinfo{Philip Haller}
+           {Typesafe, Inc.}
+           {philipp.haller@typesafe.com}
+\authorinfo{Bruno C. d. S. Oliveira}
+           {The University of Hong Kong}
+           {bruno@cs.hku.hk}
 
 \maketitle
 
@@ -74,7 +77,7 @@ This is the text of the abstract.
 
 \category{CR-number}{subcategory}{third-level}
 
-% general terms are not compulsory anymore, 
+% general terms are not compulsory anymore,
 % you may leave them out
 \terms
 term1, term2
@@ -84,180 +87,8 @@ keyword1, keyword2
 
 \section{Introduction}
 
-The text of the paper begins here.
+The text of the paper begins here.~\cite{ComparingGPHaskellRodriquez, ComparingGPHaskellHinze, ScalaGenericProgrammers, RepLib, OOGP}
 
-Lots of text.
-
-More text.
-
-Lots of text.
-
-More text.
-
-
-Lots of text.
-
-More text.
-
-Lots of text.
-
-More text.
-
-
-Lots of text.
-
-More text.
-
-Lots of text.
-
-More text.
-
-Lots of text.
-
-More text.
-
-Lots of text.
-
-More text.
-
-Lots of text.
-
-More text.
-
-Lots of text.
-
-More text.
-
-Lots of text.
-
-More text.
-
-Lots of text.
-
-More text.
-
-Lots of text.
-
-More text.
-
-Lots of text.
-
-More text.
-
-
-Lots of text.
-
-More text.
-
-Lots of text.
-
-More text.
-
-
-Lots of text.
-
-More text.
-
-Lots of text.
-
-More text.
-
-Lots of text.
-
-More text.
-
-Lots of text.
-
-More text.
-
-Lots of text.
-
-More text.
-
-Lots of text.
-
-More text.
-
-Lots of text.
-
-More text.
-
-Lots of text.
-
-More text.
-
-
-Lots of text.
-
-More text.
-
-Lots of text.
-
-More text.
-
-
-
-
-Lots of text.
-
-More text.
-
-Lots of text.
-
-More text.
-
-Lots of text.
-
-
-Lots of text.
-
-More text.
-
-Lots of text.
-
-More text.
-
-Lots of text.
-
-More text.
-
-Lots of text.
-
-More text.
-
-Lots of text.
-
-More text.
-
-Lots of text.
-
-More text.
-
-Lots of text.
-
-More text.
-
-Lots of text.
-
-More text.
-
-Lots of text.
-
-More text.
-
-Lots of text.
-
-More text.
-
-Lots of text.
-
-More text.
-
-Lots of text.
-
-More text.
-
-Lots of text.
 
 \appendix
 \section{Appendix Title}
@@ -271,16 +102,19 @@ Acknowledgments, if needed.
 % We recommend abbrvnat bibliography style.
 
 \bibliographystyle{abbrvnat}
+\bibliography{bib}
 
-% The bibliography should be embedded for final submission.
+% \bibliographystyle{abbrvnat}
 
-\begin{thebibliography}{}
-\softraggedright
+% % The bibliography should be embedded for final submission.
 
-\bibitem[Smith et~al.(2009)Smith, Jones]{smith02}
-P. Q. Smith, and X. Y. Jones. ...reference text...
+% \begin{thebibliography}{}
+% \softraggedright
 
-\end{thebibliography}
+% \bibitem[Smith et~al.(2009)Smith, Jones]{smith02}
+% P. Q. Smith, and X. Y. Jones. ...reference text...
+
+% \end{thebibliography}
 
 
 \end{document}
