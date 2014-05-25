@@ -20,7 +20,7 @@
 %-----------------------------------------------------------------------------
 
 
-\documentclass{sigplanconf}
+\documentclass[preprint]{sigplanconf}
 
 % The following \documentclass options may be useful:
 
@@ -53,16 +53,21 @@
                                   % (paid open-access papers,
                                   % short abstracts)
 
-\titlebanner{banner above paper title}        % These are ignored unless
-\preprintfooter{short description of paper}   % 'preprint' option specified.
+% \titlebanner{banner above paper title}        % These are ignored unless
+% \preprintfooter{short description of paper}   % 'preprint' option specified.
 
-\title{Title Text}
-\subtitle{Subtitle Text, if any}
+% Materialization: Pluggable Type System Extensions
+% Generative Self-Assembly: Language Extensions and Datatype Generic Programming
+% Self-Assembling Type System Extensions
+% Type System Extensions Through Generative Self-Assembly
+
+\title{Generative Self-Assembly: Language Extensions and Datatype Generic Programming}
+% \subtitle{Subtitle Text, if any}
 
 \authorinfo{Heather Miller}
            {EPFL}
            {heather.miller@epfl.ch}
-\authorinfo{Philip Haller}
+\authorinfo{Philipp Haller}
            {Typesafe, Inc.}
            {philipp.haller@typesafe.com}
 \authorinfo{Bruno C. d. S. Oliveira}
@@ -77,6 +82,12 @@ This is the text of the abstract.
 
 \category{CR-number}{subcategory}{third-level}
 
+Implicits are a huge deal, because they provide \textbf{extensibility.} Users can easily customize generated code by making use of implicits in Scala.
+
+Using this approach, we have implemented a full-featured serialization framework for Scala. Full-featured in that it handles all object-oriented concerns, such as subtyping polymorphism, object identity, etc. As well as advanced features of the type system. This is not a toy example. It's general!
+
+
+
 % general terms are not compulsory anymore,
 % you may leave them out
 \terms
@@ -90,14 +101,19 @@ keyword1, keyword2
 The text of the paper begins here.~\cite{ComparingGPHaskellRodriquez, ComparingGPHaskellHinze, ScalaGenericProgrammers, RepLib, OOGP}
 
 
-\appendix
-\section{Appendix Title}
+\section{Related Work}
+\label{sec:related-work}
 
-This is the text of the appendix, if you need one.
+\cite{TemplateYourBoilerplate}
 
-\acks
+% \appendix
+% \section{Appendix Title}
 
-Acknowledgments, if needed.
+% This is the text of the appendix, if you need one.
+
+% \acks
+
+% Acknowledgments, if needed.
 
 % We recommend abbrvnat bibliography style.
 
