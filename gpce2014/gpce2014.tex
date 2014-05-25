@@ -31,6 +31,8 @@
 
 \usepackage{listings,xspace}
 \usepackage{amsmath}
+\usepackage{fontspec}
+\usepackage{xcolor}
 
 \lstdefinelanguage{Scala}%
 {morekeywords={abstract,case,catch,char,class,%
@@ -38,6 +40,7 @@
     if,import,%
     match,module,new,null,object,override,package,private,protected,%
     public,return,super,this,throw,trait,try,type,val,var,with,implicit,%
+    macro,sealed,%
   },%
   sensitive,%
   morecomment=[l]//,%
@@ -47,12 +50,24 @@
   showstringspaces=false%
 }[keywords,comments,strings]%
 
-\lstset{language=Scala,%
-  mathescape=true,%
-  columns=[c]fixed,%
-  basewidth={0.5em, 0.40em},%
-  basicstyle=\tt,%
-  xleftmargin=0.0cm
+% \lstset{language=Scala,%
+%   mathescape=true,%
+%   columns=[c]fixed,%
+%   basewidth={0.5em, 0.40em},%
+%   basicstyle=\tt,%
+%   xleftmargin=0.0cm
+% }
+
+% \lstset{tabsize=2,
+% basicstyle=\ttfamily\fontsize{9pt}{1em}\selectfont,
+% commentstyle=\itshape\rmfamily,
+% numbers=left, numberstyle=\scriptsize\color{gray}\ttfamily, language=scala,moredelim=[il][\sffamily]{?},mathescape=false,showspaces=false,showstringspaces=false,xleftmargin=15pt,escapechar=@, morekeywords=[1]{let,fn,val},deletekeywords={for},classoffset=0,belowskip=\smallskipamount
+% }
+
+\lstset{tabsize=2,
+basicstyle=\ttfamily\fontsize{10pt}{1em}\selectfont,
+commentstyle=\itshape\rmfamily,
+language=scala,moredelim=[il][\sffamily]{?},mathescape=false,showspaces=false,showstringspaces=false,xleftmargin=15pt,escapechar=@, morekeywords=[1]{let,fn,val},deletekeywords={for},classoffset=0,belowskip=\smallskipamount
 }
 
 \newcommand{\todo}{{\bf \colorbox{red}{\color{white}TODO:}}}
@@ -63,6 +78,8 @@
 
 
 \begin{document}
+
+\setmonofont[Scale=0.8,BoldFont={Consolas Bold}]{Consolas}
 
 \special{papersize=8.5in,11in}
 \setlength{\pdfpageheight}{\paperheight}
