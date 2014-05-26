@@ -480,8 +480,10 @@ val instance_n = implicitly[Show[D_n]]
 val result_n   = instance_n.show(visitee.p_n)
 result         = result + result_n
 \end{lstlisting}
-
-
+\noindent
+Making the \verb|CShowInstance| object \verb|implicit| enables support for
+\emph{recursive types:} if one of the types $D_i = C$, then the corresponding
+invocation \verb|implicitly[Show[D_i]]| simply returns \verb|CShowInstance|.
 
 
 \subsection{Example}
