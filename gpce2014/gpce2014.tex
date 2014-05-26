@@ -370,7 +370,7 @@ site.
 
 high-level overview of the pattern. macros generate calls to \\\verb|implicitly[T]| and generate the bodies of implicit objects. the macro also inspects the type and based on that, generates nested \verb|implicitly[S]| calls. these calls are resolved either using regular implicits, or by expanding the implicit macro recursively.
 
-\subsection{Informal description of simplified case}
+\subsection{Query pattern}
 
 We start with a simplified view of types in Scala. In subsequent sections we
 show how to generalize this view to richer types.
@@ -379,8 +379,10 @@ show how to generalize this view to richer types.
   \centering
 $\ba[t]{l@{\hspace{2mm}}l@{\hspace{2mm}}}
 T    ::= & \texttt{sealed trait}~C~\{~\bar{m}~\} \\
-\gap ~|~ & \texttt{case class}~C(p_1: D_1, \ldots, p_n: D_n)~\{~\bar{m}~\} \\
+\gap ~|~ & \texttt{case class}~C(v~p_1: D_1, \ldots, v~p_n: D_n)~\{~\bar{m}~\} \\
 \gap     & \texttt{~~extends}~E_1~\texttt{with}~ \ldots ~\texttt{with}~E_m \\
+v    ::= & \texttt{var} \\
+\gap ~|~ & \epsilon \\
 m    ::= & \ldots \\
 \ea$
   \caption{Grammar for simple datatypes in Scala.}
@@ -472,21 +474,107 @@ obtained for all parameters into a single \verb|String|:
 
 \begin{lstlisting}
 var result: String = ""
-val instance_1 = implicitly[Show[D_1]]
-val result_1   = instance_1.show(visitee.p_1)
-result         = result + result_1
+val inst_1 = implicitly[Show[D_1]]
+result = result + inst_1.show(visitee.p_1)
 ...
-val instance_n = implicitly[Show[D_n]]
-val result_n   = instance_n.show(visitee.p_n)
-result         = result + result_n
+val inst_n = implicitly[Show[D_n]]
+result = result + inst_n.show(visitee.p_n)
 \end{lstlisting}
 \noindent
 Making the \verb|CShowInstance| object \verb|implicit| enables support for
 \emph{recursive types:} if one of the types $D_i = C$, then the corresponding
 invocation \verb|implicitly[Show[D_i]]| simply returns \verb|CShowInstance|.
 
+\subsubsection{Object identity}
 
-\subsection{Example}
+In object-oriented languages like Scala, it is important to take \emph{object
+identity} into account. Already simple datatypes as shown in
+Figure~\ref{fig:type-syntax} permit cycles in object graphs via re-assignable
+fields (using the \verb|var| modifier). It is therefore important to keep
+track of objects that have already been visited to avoid infinite recursion.
+
+To enable the detection of cycles in object graphs, we keep track of all
+``visited'' objects during the object graph traversal performed by a type
+class instance. However, it is not sufficient to maintain a single, global set
+of visited objects, since implementations of one type class might depend on
+other type classes; different type class instances could therefore interfere
+with each other when accessing the same global set (yielding nonsensical
+results). Thus, it is preferable to pass this set of visited objects on the
+call stack. With the mechanics introduced so far, this is not possible.
+
+To enable passing an additional context (the set of visited objects) on the call stack,
+we require type classes to extend \\\verb|Queryable[T, R]|:
+
+\begin{lstlisting}
+trait Queryable[T, R] {
+  def apply(visitee: T, visited: Set[Any]): R
+}
+\end{lstlisting}
+\noindent
+The \verb|Queryable[T, R]| trait declares an \verb|apply| method with an
+additional \verb|visited| parameter (compared to the trait of the type class),
+which is passed the set of visited objects. This extra method allows us to
+distinguish between top-level invocations of type class methods and inner
+invocations (of \verb|apply|). The only downside is that custom type class
+instances are slightly more verbose to define, although the implementation of
+\verb|apply| can typically be a trivial forwarder.
+
+For example, consider the \verb|Show[T]| type class, now extending
+\verb|Queryable[T, R]|:
+\begin{lstlisting}
+trait Show[T] extends Queryable[T, String] {
+  def show(visitee: T): String
+}
+\end{lstlisting}
+\noindent
+A type class instance for integers can be implemented as follows:
+\begin{lstlisting}
+implicit val intHasShow = new Show[Int] {
+  def show(visitee: Int): String = "" + x
+  def apply(visitee: Int, visited: Set[Any]) =
+    show(visitee)
+}
+\end{lstlisting}
+\noindent
+Note that the implementation of \verb|apply| is trivial.
+
+To enable the detection of cycles in object graphs it is necessary to
+adapt the implementation of the implicit object as follows.
+
+\begin{lstlisting}
+implicit object CShowInstance extends Show[C] {
+  def show(visitee: C): String =
+    apply(visitee, Set[Any]())
+  def apply(visitee: C, visited: Set[Any]) =
+    ...
+}
+\end{lstlisting}
+\noindent
+Note that an invocation of \verb|show| is treated as a \emph{top-level
+invocation} forwarding to \verb|apply| passing an empty set of visited
+objects. Crucially, when applying the type class instances for the class
+parameters of $C$, instead of invoking \verb|show| directly, we invoke
+\verb|apply| passing the \verb|visited| set extended with the current object
+(\verb|visitee|).
+
+\begin{lstlisting}
+var result: String = ""
+if (!visited(visitee.p_1)) {
+  val inst_1 = implicitly[Show[D_1]]
+  result = result +
+   inst_1.apply(visitee.p_1, visited + visitee)
+}
+...
+if (!visited(visitee.p_n)) {
+  val inst_n = implicitly[Show[D_n]]
+  result = result +
+   inst_n.apply(visitee.p_n, visited + visitee)
+}
+\end{lstlisting}
+\noindent
+
+
+\subsection{Generation using macros}
 Suppose the goal is to automatically generate type class instances for a type class \verb|Show[T]|.
 
 To be able to generate suitable instances for all possible types for which \verb|Show[T]| can be defined, we put an implicit macro into the companion object of \verb|Show[T]|. The fact that the implicit macro is inside the companion object means that whenever an instance \verb|Show[S]| is requested, Scala's implicit lookup mechanism searches the members of the companion object \verb|Show| where it finds the implicit macro:
