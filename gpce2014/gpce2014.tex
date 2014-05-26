@@ -393,7 +393,7 @@ In this first step we consider only closed ADT-style datatypes in Scala, which
 can be described using the grammar in Figure~\ref{fig:type-syntax}.\footnote{Case
 classes are considered to be final, even though in the current version of Scala
 they can technically be extended; extension is deprecated, though.} For example,
-an ADT for binary trees storing \verb|Int|s could be implemented as follows:
+an ADT for binary trees storing \verb|Int|s could be modeled as follows:
 
 \begin{lstlisting}
 sealed trait Tree
@@ -436,8 +436,10 @@ self-assembly pattern systematically derives a type class instance
 
 \end{enumerate}
 \noindent
-In the following we elaborate on each step; first, we consider a datatype
-whose declaration has the shape:
+In the following we elaborate on each step.
+
+\subsubsection{Case classes}
+First, we consider a datatype whose declaration has the shape:
 
 \begin{math}
 \texttt{case class}~C(p_1: D_1, \ldots, p_n: D_n)~\{~\bar{m}~\} \\
@@ -484,6 +486,37 @@ result = result + inst_n.show(visitee.p_n)
 Making the \verb|CShowInstance| object \verb|implicit| enables support for
 \emph{recursive types:} if one of the types $D_i = C$, then the corresponding
 invocation \verb|implicitly[Show[D_i]]| simply returns \verb|CShowInstance|.
+
+\subsubsection{Traits}
+
+The next step is creating instances for (abstract) traits of the following
+shape:
+\begin{math}
+\texttt{sealed trait}~D~\{~\bar{m}~\}
+\end{math}
+
+Concrete instances of this type have subtypes (dynamically) which are case
+classes (according to our initial simplified view). Therefore, the type class
+instance for $D$ performs a dynamic dispatch to select a specific instance
+based on the runtime classtype of the object that the type class is applied
+to (\verb|visitee|):
+
+\begin{lstlisting}
+implicit object DShowInstance extends Show[D] {
+  def show(visitee: D): String =
+    visitee match {
+      case null => ...
+      case v1: C1 =>
+        implicitly[Show[C1]].show(v1)
+      ...
+      case vn: Cn =>
+        implicitly[Show[Cn]].show(vn)
+    }
+}
+\end{lstlisting}
+\noindent
+The classtypes \verb|C1|, ..., \verb|Cn| are all subclasses of trait \verb|D|;
+since \verb|D| is sealed, there cannot be other subclasses.
 
 \subsubsection{Object identity}
 
