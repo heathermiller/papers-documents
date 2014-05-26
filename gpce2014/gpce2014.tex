@@ -76,6 +76,42 @@ language=scala,moredelim=[il][\sffamily]{?},mathescape=false,showspaces=false,sh
 \newcommand{\term}[1]{\mbox{\texttt{#1}}}
 \newcommand{\itl}[1]{\mbox{\textit{#1}}}
 
+% commas and semicolons
+\newcommand{\comma}{,\,}
+\newcommand{\commadots}{\comma \ldots \comma}
+\newcommand{\semi}{;\mbox{;};}
+\newcommand{\semidots}{\semi \ldots \semi}
+
+% spacing
+\newcommand{\gap}{\quad\quad}
+\newcommand{\biggap}{\quad\quad\quad}
+\newcommand{\nextline}{\\ \\}
+\newcommand{\htabwidth}{0.5cm}
+\newcommand{\tabwidth}{1cm}
+\newcommand{\htab}{\hspace{\htabwidth}}
+\newcommand{\tab}{\hspace{\tabwidth}}
+\newcommand{\linesep}{\ \hrulefill \ \smallskip}
+
+% figures
+\newcommand{\figurebox}[1]
+        {\fbox{\begin{minipage}{\textwidth} #1 \medskip\end{minipage}}}
+\newcommand{\twofig}[3]
+        {\begin{figure*}[t]#3\ \hrulefill\
+        \caption{\label{#1}#2}\end{figure*}}
+\newcommand{\boxfig}[3]
+        {\begin{figure*}\figurebox{#3\caption{\label{#1}#2}}\end{figure*}}
+\newcommand{\figref}[1]
+        {Figure~\ref{#1}}
+
+% arrays
+\newcommand{\ba}{\begin{array}}
+\newcommand{\ea}{\end{array}}
+\newcommand{\bda}{\[\ba}
+\newcommand{\eda}{\ea\]}
+\newcommand{\ei}{\end{array}}
+\newcommand{\bcases}{\left\{\begin{array}{ll}}
+\newcommand{\ecases}{\end{array}\right.}
+
 
 \begin{document}
 
@@ -334,6 +370,121 @@ site.
 
 high-level overview of the pattern. macros generate calls to \\\verb|implicitly[T]| and generate the bodies of implicit objects. the macro also inspects the type and based on that, generates nested \verb|implicitly[S]| calls. these calls are resolved either using regular implicits, or by expanding the implicit macro recursively.
 
+\subsection{Informal description of simplified case}
+
+We start with a simplified view of types in Scala. In subsequent sections we
+show how to generalize this view to richer types.
+
+\begin{figure}
+  \centering
+$\ba[t]{l@{\hspace{2mm}}l@{\hspace{2mm}}}
+T    ::= & \texttt{sealed trait}~C~\{~\bar{m}~\} \\
+\gap ~|~ & \texttt{case class}~C(p_1: D_1, \ldots, p_n: D_n)~\{~\bar{m}~\} \\
+\gap     & \texttt{~~extends}~E_1~\texttt{with}~ \ldots ~\texttt{with}~E_m \\
+m    ::= & \ldots \\
+\ea$
+  \caption{Grammar for simple datatypes in Scala.}
+  \label{fig:type-syntax}
+\end{figure}
+
+In this first step we consider only closed ADT-style datatypes in Scala, which
+can be described using the grammar in Figure~\ref{fig:type-syntax}.\footnote{Case
+classes are considered to be final, even though in the current version of Scala
+they can technically be extended; extension is deprecated, though.} For example,
+an ADT for binary trees storing \verb|Int|s could be implemented as follows:
+
+\begin{lstlisting}
+sealed trait Tree
+case class Fork(left: Tree, right: Tree)
+  extends Tree
+case class Leaf(elem: Int) extends Tree
+\end{lstlisting}
+\noindent
+The goal of the self-assembly pattern is to derive type class instances of a
+given type class for all supported datatypes (for now, the types in
+Figure~\ref{fig:type-syntax}). The pattern assumes that the type class has the
+following shape:
+\begin{lstlisting}
+trait Show[T] {
+  def show(visitee: T): String
+}
+\end{lstlisting}
+\noindent
+Importantly, for now we only consider type classes with a single type
+parameter. Moreover, the type class is supposed to have a single (abstract)
+method that has a single parameter of the generic type and some return type
+that (a) does not depend on the generic type, and (b) is a monoid.
+
+Given a type class, say \verb|Show[T]|, and a datatype, say \verb|Tree|, the
+self-assembly pattern systematically derives a type class instance
+\verb|Show[Tree]|. Applying the pattern consists of the following steps:
+
+\begin{enumerate}
+
+\item Definition of an \emph{implicit object} that extends the type of the
+      type class instance (\eg \verb|Show[Tree]|).
+
+\item Looking up implicit instances for the components of the type.
+
+\item Implementation of the type class according to the shape of the type
+      using the component instances.
+
+\item Introducing the implicit object into the right scope, so that implicit
+      search locates it.
+
+\end{enumerate}
+\noindent
+In the following we elaborate on each step; first, we consider a datatype
+whose declaration has the shape:
+
+\begin{math}
+\texttt{case class}~C(p_1: D_1, \ldots, p_n: D_n)~\{~\bar{m}~\} \\
+\texttt{~~~~~extends}~E_1~\texttt{with}~ \ldots ~\texttt{with}~E_m
+\end{math}
+
+The first step is the definition of an implicit object extending
+\verb|Show[C]|:
+
+\begin{lstlisting}
+implicit object CShowInstance extends Show[C] {
+  def show(visitee: C): String = ...
+}
+\end{lstlisting}
+\noindent
+We derive an implementation of the \verb|show| method by looking up type class
+instances for each of the class parameters $p_i$ of $C$. Since type class
+instances are declared as implicit values in Scala, we can use the following
+method \verb|implicitly| to look up type class instances:
+
+\begin{lstlisting}
+def implicitly[T](implicit e: T): T = e
+\end{lstlisting}
+\noindent
+Thus, an invocation \verb|implicitly[Show[D_i]]| returns an instance of
+\verb|Show| for type \verb|D_i|.\footnote{The \texttt{implicitly} method is
+defined in the \texttt{Predef} singleton object in Scala's standard library.}
+
+Using \verb|implicitly| we can implement the type class instance as follows.
+For each class parameter $p_i$ of $C$, we obtain the corresponding type class
+instance (of type \verb|Show[D_i]|), and use it to obtain a result of type
+\verb|String|. Since \verb|String| is a monoid, we can reduce the results
+obtained for all parameters into a single \verb|String|:
+
+\begin{lstlisting}
+var result: String = ""
+val instance_1 = implicitly[Show[D_1]]
+val result_1   = instance_1.show(visitee.p_1)
+result         = result + result_1
+...
+val instance_n = implicitly[Show[D_n]]
+val result_n   = instance_n.show(visitee.p_n)
+result         = result + result_n
+\end{lstlisting}
+
+
+
+
+\subsection{Example}
 Suppose the goal is to automatically generate type class instances for a type class \verb|Show[T]|.
 
 To be able to generate suitable instances for all possible types for which \verb|Show[T]| can be defined, we put an implicit macro into the companion object of \verb|Show[T]|. The fact that the implicit macro is inside the companion object means that whenever an instance \verb|Show[S]| is requested, Scala's implicit lookup mechanism searches the members of the companion object \verb|Show| where it finds the implicit macro:
