@@ -388,6 +388,18 @@ type tag.
 \section{Language Extensions with the \texttt{selfassembly} Library}
 \label{sec:language-extensions-library}
 
+We provide re-usable building blocks of our approach in the form of a Scala
+library.\footnote{The library has been developed and tested using Scala 2.11,
+but it should be possible to use it also with Scala 2.10, since no features
+particular to Scala 2.11 are used.}
+
+The library provides a set of traits for expressing generic functions that are
+either (a) queries or (b) transformations. Basically, a query generates type
+class instances that traverse an object graph and return a single result of a
+possibly different type. In contrast, a transformation generates type class
+instances that perform a deep copy of an object graph, applying
+transformations to reachable objects of selected types.
+
 \section{Related Work}
 \label{sec:related-work}
 
