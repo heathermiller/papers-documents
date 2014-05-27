@@ -33,6 +33,7 @@
 \usepackage{amsmath}
 \usepackage{fontspec}
 \usepackage{xcolor}
+\usepackage{url}
 
 \lstdefinelanguage{Scala}%
 {morekeywords={abstract,case,catch,char,class,%
@@ -663,9 +664,10 @@ type tag.
 \label{sec:language-extensions-library}
 
 We provide re-usable building blocks of our approach in the form of a Scala
-library.\footnote{The library has been developed and tested using Scala 2.11,
-but it should be possible to use it also with Scala 2.10, since no features
-particular to Scala 2.11 are used.}
+library.\footnote{See \url{https://github.com/phaller/selfassembly}} The
+library has been developed and tested using Scala 2.11, but it should be
+possible to use it also with Scala 2.10, since no features particular to
+Scala 2.11 are used.
 
 The library provides a set of traits for expressing generic functions that are
 either (a) queries or (b) transformations. Basically, a query generates type
@@ -673,6 +675,73 @@ class instances that traverse an object graph and return a single result of a
 possibly different type. In contrast, a transformation generates type class
 instances that perform a deep copy of an object graph, applying
 transformations to reachable objects of selected types.
+
+Queries are defined by extending either of the traits \verb|Query| or
+\verb|CyclicQuery|. The latter trait is designed to handle cyclic object
+graphs. Figure~\ref{fig:define-query} shows how to define \verb|Show[T]| as a
+cyclic query. Extending \verb|CyclicQuery|, the \verb|Show| companion object
+is required to implement the factory method \verb|mkTrees|, which returns an
+instance of \verb|Trees[C]|; \verb|Trees[C]| provides a number of methods that
+are invoked by the macro at compile time to obtain AST fragments that are
+inlined in the generated code. The \verb|Show| type class converts objects to
+strings; thus, the query has to define how to assemble result strings, based
+on an associative combination operator (\verb|combine|), begin/end delimiters
+(\verb|first|/\verb|last|), and a separator. The syntax
+\verb|q"$left + $right"| denotes a quasiquote, creating an AST node using
+Scala code, where \verb|left| and \verb|right| are tree nodes that are
+spliced into the result node. (The variation using triple quotation marks
+treats the string verbatim, so that quotation marks do not have to be
+escaped.)
+
+Apart from implementing a subclass of \verb|Trees[C]|, the \verb|Show|
+singleton object also needs to define a generic implicit method (here,
+\verb|generate|) that invokes the generation macro \verb|genQuery|. The
+\verb|genQuery| macro is provided by our library.\footnote{The type argument
+\texttt{this.type} is the type of the enclosing singleton object; it is passed
+to \texttt{genQuery} to identify the type class and the \texttt{mkTrees}
+method that should be used by the macro.}
+
+\begin{figure}
+\centering
+\begin{lstlisting}
+object Show extends CyclicQuery {
+  def mkTrees[C <: Context with Singleton](c: C)
+    : Trees[C] = new Trees(c)
+
+  class Trees[C <: Context with Singleton]
+    (override val c: C) extends super.Trees(c) {
+    import c.universe._
+
+    def combine(left: c.Tree, right: c.Tree) =
+      q"$left + $right"
+
+    def first(tpe: c.Type) = {
+      val typeString = tpe.toString.split('.')
+                          .map(_.capitalize)
+                          .mkString("")
+      q"""
+        $typeString + "("
+      """
+    }
+
+    def last(tpe: c.Type) = q"""
+      ")"
+    """
+
+    def separator = q"""
+      ", "
+    """
+  }
+
+  implicit def generate[T]: Show[T] =
+    macro genQuery[T, this.type]
+}
+\end{lstlisting}
+  \caption{Defining a query using \texttt{selfassembly}}
+  \label{fig:define-query}
+\end{figure}
+
+
 
 \section{Related Work}
 \label{sec:related-work}
