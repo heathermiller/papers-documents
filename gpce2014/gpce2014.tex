@@ -779,6 +779,63 @@ transformations to reachable objects of selected types...
 
 Here we want to talk about things like Immutable[T].
 
+Basically, the idea is that macros enable (a) inspecting the full static type
+information and (b) generating arbitrary terms (locally). This can be
+exploited to derive rich type-based properties such as deep immutability.
+
+For example, deep immutability can be expressed as shown in
+Figure~\ref{fig:immutable} (executable code using the \selfassembly library).
+
+\begin{figure}
+\centering
+\begin{lstlisting}
+trait Immutable[T] {
+  def noop(x: T): Unit
+}
+
+object Immutable extends Property {
+  def mkTrees[C <: Context with Singleton](c: C)
+    : Trees[C] = new Trees(c)
+
+  class Trees[C <: Context with Singleton]
+    (override val c: C) extends super.Trees(c) {
+    def check(tpe: c.Type): Unit = {
+      import c.universe._
+      // if tpe has var, abort
+      val allAccessors = tpe.decls.collect {
+        case meth: MethodSymbol if meth.isAccessor
+          || meth.isParamAccessor => meth }
+      val varGetters   = allAccessors.collect {
+        case meth if meth.isGetter &&
+          meth.accessed != NoSymbol &&
+            meth.accessed.asTerm.isVar => meth }
+      if (varGetters.nonEmpty) {
+        c.abort(c.enclosingPosition,
+                "not immutable")
+      }
+    }
+  }
+
+  implicit def generate[T]: Immutable[T] =
+    macro genQuery[T, this.type]
+
+  implicit val intIsImmutable =
+    new Immutable[Int] { def noop(x: Int) = {} }
+  implicit val stringIsImmutable =
+    new Immutable[String] { def noop(x: String) = {} }
+}
+\end{lstlisting}
+  \caption{Deep immutability checking using \selfassembly}
+  \label{fig:immutable}
+\end{figure}
+
+Elements like trait \verb|Property| and the \verb|genQuery| macro are provided by the
+library. The idea is that when the \verb|genQuery| macro derives an instance of
+\verb|Immutable[T]| it (a) creates an instance of class \verb|Trees| at compile time, and
+(b) uses this to check that type $T$ (accessible at compile time as \verb|tpe|) does
+not contain vars and it is possible to derive \verb|Immutable| instances for all its
+fields (in turn guaranteeing that they are all deeply immutable).
+
 
 \section{Implementation}
 
