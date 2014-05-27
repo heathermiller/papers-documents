@@ -764,16 +764,20 @@ if (!visited(visitee.p_n)) {
 \noindent
 
 
-\section{Language Extensions with the \texttt{selfassembly} Library}
-\label{sec:language-extensions-library}
+\section{Queries and Transformations}
 
-% TODO: rewrite all of this, talk about Immutable[T] instead
 The library provides a set of traits for expressing generic functions that are
 either (a) queries or (b) transformations. Basically, a query generates type
 class instances that traverse an object graph and return a single result of a
 possibly different type. In contrast, a transformation generates type class
 instances that perform a deep copy of an object graph, applying
-transformations to reachable objects of selected types.
+transformations to reachable objects of selected types...
+
+
+\section{Meta-Programming and Type Classes for Language Extensions}
+\label{sec:language-extensions}
+
+Here we want to talk about things like Immutable[T].
 
 
 \section{Implementation}
