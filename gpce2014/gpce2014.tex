@@ -66,7 +66,7 @@
 % }
 
 \lstset{tabsize=2,
-basicstyle=\ttfamily\fontsize{10pt}{1em}\selectfont,
+basicstyle=\ttfamily\fontsize{9pt}{1em}\selectfont,
 commentstyle=\itshape\rmfamily,
 language=scala,moredelim=[il][\sffamily]{?},mathescape=false,showspaces=false,showstringspaces=false,xleftmargin=15pt,escapechar=@, morekeywords=[1]{let,fn,val},deletekeywords={for},classoffset=0,belowskip=\smallskipamount
 }
@@ -113,6 +113,8 @@ language=scala,moredelim=[il][\sffamily]{?},mathescape=false,showspaces=false,sh
 \newcommand{\bcases}{\left\{\begin{array}{ll}}
 \newcommand{\ecases}{\end{array}\right.}
 
+
+\newcommand{\selfassembly}{\texttt{self-assembly~}}
 
 \begin{document}
 
@@ -372,12 +374,109 @@ site.
 % as the new class definition (which could have added members, changed
 % constructor parameters etc.)
 
-\section{The Self-Assembly Pattern}
-\label{sec:self-assembly-pattern}
+% Section 2:
+% explain how to write type classes manually
+
+\section{Basic Self-Assembly}
+\label{sec:basic-self-assembly}
+
+% This is how we can write type classes using the selfassembly library
+% This is quite short!
+% After that we explain how it's actually generated!
+% It's a pattern that generalizes the way one typically writes type classes by hand.
+
+The previous section showed how to write type classes like \verb|Show[T]| manually, pointing out a source of
+significant boilerplate code. In this section, we describe the basic usage of the \selfassembly library, which
+allows defining type classes in a way that avoids this boilerplate. Section~\ref{sec:basic-generation} explains
+the mechanics of the automatic type class generation implemented in the \selfassembly library.
+
+\subsection{Basic Usage}
+
+\begin{figure}
+\centering
+\begin{lstlisting}
+object Show extends Query {
+  def mkTrees[C <: Context with Singleton](c: C)
+    : Trees[C] = new Trees(c)
+
+  class Trees[C <: Context with Singleton]
+    (override val c: C) extends super.Trees(c) {
+    import c.universe._
+
+    def combine(left: c.Tree, right: c.Tree) =
+      q"$left + $right"
+
+    def first(tpe: c.Type) = {
+      val typeString = tpe.toString.split('.')
+                          .map(_.capitalize)
+                          .mkString("")
+      stringTree(typeString + "(")
+    }
+
+    def last(tpe: c.Type) = stringTree(")")
+
+    def separator = stringTree(", ")
+  }
+
+  implicit def generate[T]: Show[T] =
+    macro genQuery[T, this.type]
+}
+\end{lstlisting}
+  \caption{Implementing a type class using \selfassembly}
+  \label{fig:basic-usage}
+\end{figure}
+
+The \selfassembly library allows implementing type classes in a way such that
+instances for a large class of types are generated automatically, on-the-fly.
+Suppose a user would like to provide instances of \verb|Show[T]| for as many
+types as possible.
+
+Using \selfassembly it's sufficient to create a singleton
+object that extends a library-provided trait, and that implements two factory
+methods, \verb|generate| and \verb|mkTrees|, as follows.
+Figure~\ref{fig:basic-usage} shows the \verb|Show| companion object,\footnote{A companion
+object is a singleton object with the same name as a trait...} which extends
+the \verb|Query| trait. The \verb|mkTrees| factory method, abstract in \verb|Query|,
+creates a new \verb|Trees| instance; \verb|Trees[C]| provides a number of methods that
+are invoked by the \selfassembly library at \emph{compile time} to obtain AST fragments that are
+inlined in the generated code. The \verb|Show| type class converts objects to
+strings; thus, the query has to define how to assemble result strings, based
+on an associative combination operator (\verb|combine|), begin/end delimiters
+(\verb|first|/\verb|last|), and a separator. The syntax
+\verb|q"$left + $right"| denotes a \emph{quasiquote} (TODO: cite tech report), creating an AST node using
+Scala code, where \verb|left| and \verb|right| are tree nodes that are
+spliced into the result node.
+
+Apart from implementing a subclass of \verb|Trees[C]|, the \verb|Show|
+singleton object also needs to define a generic implicit method (here,
+\verb|generate|) that invokes the generation macro \verb|genQuery|. The
+\verb|genQuery| macro is provided by our library.\footnote{The type argument
+\texttt{this.type} is the type of the enclosing singleton object; it is passed
+to \texttt{genQuery} to identify the type class and the \texttt{mkTrees}
+method that should be used by the library to generate instances.}
+
+\paragraph{Result} With the \verb|Show| singleton object defined as in Figure~\ref{fig:basic-usage}
+it is no longer necessary for the user to define a type class instance for every single type manually.
+Instead, whenever an instance of type, say, \verb|Show[MyClass]|, is required
+(typically, using an implicit parameter), Scala's type checker automatically inserts
+a call to the \emph{implicit def} \verb|generate[MyClass]|; this implicit def generates a
+suitable implementation of the searched type class instance on-the-fly. As a result,
+type class instances do not have to be defined manually.
+
+\subsection{Customization}
+
+Generation as provided by \selfassembly is convenient, but in some cases it is desirable
+to have full control over the type class instances for specific types (one strength of the
+type class pattern as introduced in Section~\ref{sec:background}). When using the
+\selfassembly library, customization is still possible. It is sufficient to define
+custom instances for selected types manually; these custom instances are then transparently
+picked up and chosen in place of automatically-generated ones. It is even possible to
+use Scala's scoping and implicit precedence rules to prioritize certain instances over
+others.
+
+\subsection{Generation Mechanism}\label{sec:basic-generation}
 
 high-level overview of the pattern. macros generate calls to \\\verb|implicitly[T]| and generate the bodies of implicit objects. the macro also inspects the type and based on that, generates nested \verb|implicitly[S]| calls. these calls are resolved either using regular implicits, or by expanding the implicit macro recursively.
-
-\subsection{Query pattern}
 
 We start with a simplified view of types in Scala. In subsequent sections we
 show how to generalize this view to richer types.
@@ -445,8 +544,7 @@ self-assembly pattern systematically derives a type class instance
 \noindent
 In the following we elaborate on each step.
 
-\subsubsection{Case classes}
-First, we consider a datatype whose declaration has the shape:
+\paragraph{Case classes} First, we consider a datatype whose declaration has the shape:
 
 \begin{math}
 \texttt{case class}~C(p_1: D_1, \ldots, p_n: D_n)~\{~\bar{m}~\} \\
@@ -494,9 +592,7 @@ Making the \verb|CShowInstance| object \verb|implicit| enables support for
 \emph{recursive types:} if one of the types $D_i = C$, then the corresponding
 invocation \verb|implicitly[Show[D_i]]| simply returns \verb|CShowInstance|.
 
-\subsubsection{Traits}
-
-The next step is creating instances for (abstract) traits of the following
+\paragraph{Traits} The next step is creating instances for (abstract) traits of the following
 shape:
 \begin{math}
 \texttt{sealed trait}~D~\{~\bar{m}~\}
@@ -525,11 +621,65 @@ implicit object DShowInstance extends Show[D] {
 The classtypes \verb|C1|, ..., \verb|Cn| are all subclasses of trait \verb|D|;
 since \verb|D| is sealed, there cannot be other subclasses.
 
-\subsubsection{Object identity}
+
+
+\subsection{Generation using macros}
+Suppose the goal is to automatically generate type class instances for a type class \verb|Show[T]|.
+
+To be able to generate suitable instances for all possible types for which \verb|Show[T]| can be defined, we put an implicit macro into the companion object of \verb|Show[T]|. The fact that the implicit macro is inside the companion object means that whenever an instance \verb|Show[S]| is requested, Scala's implicit lookup mechanism searches the members of the companion object \verb|Show| where it finds the implicit macro:
+
+\begin{lstlisting}
+object Show {
+  implicit def generate[T]: Show[T] =
+    macro genQuery[T]
+}
+\end{lstlisting}
+\noindent
+Thus, the implicit lookup mechanism inserts an invocation of the macro method
+\verb|genQuery|. Being a macro, \verb|genQuery| returns an abstract syntax
+tree instead of a (runtime) value. It is declared as follows:
+
+\begin{lstlisting}
+def genQuery[T : c.WeakTypeTag](c: Context):
+  c.Tree = ...
+\end{lstlisting}
+\noindent
+Note that in this declaration the type parameter \verb|T| is annotated with a
+so-called \emph{context bound} \verb|c.WeakTypeTag|. The context bound is an
+alternative way of adding a synthetic implicit parameter:
+
+\begin{lstlisting}
+def genQuery[T](c: Context)
+  (implicit ev: c.WeakTypeTag[T]): c.Tree = ...
+\end{lstlisting}
+\noindent
+The evidence parameter \verb|ev| of type \verb|c.WeakTypeTag[T]| provides
+access to the full static type information of type \verb|T|. The
+\verb|genQuery| macro inspects this type information to generate a value of
+the following shape:
+
+\begin{lstlisting}
+implicit object $instanceName extends Show[T] {
+  def mkString(visitee: T): String = $tree
+}
+$instanceName
+\end{lstlisting}
+\noindent
+As required, the generated value has type \verb|Show[T]|. Hygiene requires the
+macro to generate a fresh (term) name \verb|$instanceName|. The actual
+implementation of the type class (\verb|$tree|) is generated by inspecting the
+type tag.
+
+
+\section{Self-Assembly for Object Orientation}
+
+In this section we talk about all the OO features that we support...
+
+\subsection{Object identity}
 
 In object-oriented languages like Scala, it is important to take \emph{object
-identity} into account. Already simple datatypes as shown in
-Figure~\ref{fig:type-syntax} permit cycles in object graphs via re-assignable
+identity} into account. Simple datatypes as shown in
+Figure~\ref{fig:type-syntax} already permit cycles in object graphs via re-assignable
 fields (using the \verb|var| modifier). It is therefore important to keep
 track of objects that have already been visited to avoid infinite recursion.
 
@@ -614,61 +764,10 @@ if (!visited(visitee.p_n)) {
 \noindent
 
 
-\subsection{Generation using macros}
-Suppose the goal is to automatically generate type class instances for a type class \verb|Show[T]|.
-
-To be able to generate suitable instances for all possible types for which \verb|Show[T]| can be defined, we put an implicit macro into the companion object of \verb|Show[T]|. The fact that the implicit macro is inside the companion object means that whenever an instance \verb|Show[S]| is requested, Scala's implicit lookup mechanism searches the members of the companion object \verb|Show| where it finds the implicit macro:
-
-\begin{lstlisting}
-object Show {
-  implicit def generate[T]: Show[T] =
-    macro genQuery[T]
-}
-\end{lstlisting}
-\noindent
-Thus, the implicit lookup mechanism inserts an invocation of the macro method
-\verb|genQuery|. Being a macro, \verb|genQuery| returns an abstract syntax
-tree instead of a (runtime) value. It is declared as follows:
-
-\begin{lstlisting}
-def genQuery[T : c.WeakTypeTag](c: Context):
-  c.Tree = ...
-\end{lstlisting}
-\noindent
-Note that in this declaration the type parameter \verb|T| is annotated with a
-so-called \emph{context bound} \verb|c.WeakTypeTag|. The context bound is an
-alternative way of adding a synthetic implicit parameter:
-
-\begin{lstlisting}
-def genQuery[T](c: Context)
-  (implicit ev: c.WeakTypeTag[T]): c.Tree = ...
-\end{lstlisting}
-\noindent
-The evidence parameter \verb|ev| of type \verb|c.WeakTypeTag[T]| provides
-access to the full static type information of type \verb|T|. The
-\verb|genQuery| macro inspects this type information to generate a value of
-the following shape:
-
-\begin{lstlisting}
-implicit object $instanceName extends Show[T] {
-  def mkString(visitee: T): String = $tree
-}
-$instanceName
-\end{lstlisting}
-\noindent
-As required, the generated value has type \verb|Show[T]|. Hygiene requires the
-macro to generate a fresh (term) name \verb|$instanceName|. The actual
-implementation of the type class (\verb|$tree|) is generated by inspecting the
-type tag.
-
-\subsection{Inspecting the type parameter}
-
-\subsection{Generation of nested implicitly calls}
-
-
 \section{Language Extensions with the \texttt{selfassembly} Library}
 \label{sec:language-extensions-library}
 
+% TODO: rewrite all of this, talk about Immutable[T] instead
 We provide re-usable building blocks of our approach in the form of a Scala
 library.\footnote{See \url{https://github.com/phaller/selfassembly}} The
 library has been developed and tested using Scala 2.11, but it should be
@@ -681,72 +780,6 @@ class instances that traverse an object graph and return a single result of a
 possibly different type. In contrast, a transformation generates type class
 instances that perform a deep copy of an object graph, applying
 transformations to reachable objects of selected types.
-
-Queries are defined by extending either of the traits \verb|Query| or
-\verb|CyclicQuery|. The latter trait is designed to handle cyclic object
-graphs. Figure~\ref{fig:define-query} shows how to define \verb|Show[T]| as a
-cyclic query. Extending \verb|CyclicQuery|, the \verb|Show| companion object
-is required to implement the factory method \verb|mkTrees|, which returns an
-instance of \verb|Trees[C]|; \verb|Trees[C]| provides a number of methods that
-are invoked by the macro at compile time to obtain AST fragments that are
-inlined in the generated code. The \verb|Show| type class converts objects to
-strings; thus, the query has to define how to assemble result strings, based
-on an associative combination operator (\verb|combine|), begin/end delimiters
-(\verb|first|/\verb|last|), and a separator. The syntax
-\verb|q"$left + $right"| denotes a quasiquote, creating an AST node using
-Scala code, where \verb|left| and \verb|right| are tree nodes that are
-spliced into the result node. (The variation using triple quotation marks
-treats the string verbatim, so that quotation marks do not have to be
-escaped.)
-
-Apart from implementing a subclass of \verb|Trees[C]|, the \verb|Show|
-singleton object also needs to define a generic implicit method (here,
-\verb|generate|) that invokes the generation macro \verb|genQuery|. The
-\verb|genQuery| macro is provided by our library.\footnote{The type argument
-\texttt{this.type} is the type of the enclosing singleton object; it is passed
-to \texttt{genQuery} to identify the type class and the \texttt{mkTrees}
-method that should be used by the macro.}
-
-\begin{figure}
-\centering
-\begin{lstlisting}
-object Show extends CyclicQuery {
-  def mkTrees[C <: Context with Singleton](c: C)
-    : Trees[C] = new Trees(c)
-
-  class Trees[C <: Context with Singleton]
-    (override val c: C) extends super.Trees(c) {
-    import c.universe._
-
-    def combine(left: c.Tree, right: c.Tree) =
-      q"$left + $right"
-
-    def first(tpe: c.Type) = {
-      val typeString = tpe.toString.split('.')
-                          .map(_.capitalize)
-                          .mkString("")
-      q"""
-        $typeString + "("
-      """
-    }
-
-    def last(tpe: c.Type) = q"""
-      ")"
-    """
-
-    def separator = q"""
-      ", "
-    """
-  }
-
-  implicit def generate[T]: Show[T] =
-    macro genQuery[T, this.type]
-}
-\end{lstlisting}
-  \caption{Defining a query using \texttt{selfassembly}}
-  \label{fig:define-query}
-\end{figure}
-
 
 
 \section{Related Work}
