@@ -587,7 +587,7 @@ of type classes for specific types.
 \begin{figure}
 \centering
 \begin{lstlisting}
-object Show extends Query {
+object Show extends Query[String] {
   def mkTrees[C <: Context with Singleton](c: C)
     : Trees[C] = new Trees(c)
 
@@ -595,17 +595,22 @@ object Show extends Query {
     (override val c: C) extends super.Trees(c) {
     import c.universe._
 
-    def combine(left: c.Tree, right: c.Tree) =
-      q"$left + $right"
+    def combine(left: c.Expr[String],
+                right: c.Expr[String])
+      : c.Expr[String] = c.Expr(q"$left + $right")
 
-    def first(tpe: c.Type) = {
+    def first(tpe: c.Type): c.Expr[String] = {
       val typeString = tpe.typeSymbol.name.toString
-      stringTree(typeString + "(")
+      c.Expr(q"""
+        $typeString + "("
+      """)
     }
 
-    def last(tpe: c.Type) = stringTree(")")
+    def last(tpe: c.Type): c.Expr[String] =
+      reify(")")
 
-    def separator = stringTree(", ")
+    def separator: c.Expr[String] =
+      reify(", ")
   }
 
   implicit def generate[T]: Show[T] =
@@ -618,10 +623,14 @@ object Show extends Query {
 
 The \selfassembly library allows implementing type classes in a way such that
 instances for a large class of types are generated automatically, on-the-fly.
-Suppose a user would like to provide instances of \verb|Show[T]| for as many
-types as possible.
+This section introduces the library using the simple \verb|Show| type class
+introduced in Section~\ref{sec:type-classes}. Section~\ref{sec:queries-transformations}
+shows how our approach extends to different forms of type classes, commonly referred to
+as queries and transformations (TODO: cite papers).
 
-Using \selfassembly it's sufficient to create a singleton
+\paragraph{Generating Instances for \texttt{Show}} Suppose a user would like
+to provide instances of \verb|Show[T]| for as many
+types as possible. Using \selfassembly it's sufficient to create a singleton
 object that extends a library-provided trait, and that implements two factory
 methods, \verb|generate| and \verb|mkTrees|, as follows.
 Figure~\ref{fig:basic-usage} shows the \verb|Show| companion object,\footnote{A companion
@@ -1027,7 +1036,7 @@ if (!visited(visitee.p_n)) {
 \noindent
 
 
-\section{Queries and Transformations}
+\section{Queries and Transformations}\label{sec:queries-transformations}
 
 The library provides a set of traits for expressing generic functions that are
 either (a) queries or (b) transformations. Basically, a query generates type
