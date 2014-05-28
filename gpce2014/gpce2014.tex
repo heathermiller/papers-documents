@@ -286,26 +286,25 @@ Implicits and macros powerful tools for doing generative programming. In fact, s
 
 We first describe what we call the ``self-assembly pattern'' -- a technique for combining implicits and macros to generate complex in Section~\ref{sec:self-assembly-pattern} to generate type class instances.
 
-\section{Type Classes and the Boilerplate Problem}
+\section{Type Classes and Reusability}
 \label{sec:background}
 
-This section reviews the how type classes can be encoded in Scala 
-using implicits and conventional OO features. This section also
-observes that type classes instances for various types tend to require 
-code that follows a common pattern. The pattern is the motivation 
-for the remainder of the paper, which aims at capturing the
-pattern as reusable code and generate type class instances
-automatically from that code. 
+This section provides an introduction to type classes~\cite{} and reviews how to
+encode them in Scala using implicits and conventional OO features~\cite{Oliveira2010}.
+This section also observes that type classes instances for various
+types tend to require code that follows a common pattern. The pattern
+is the motivation for the remainder of the paper, which shows how
+to capture the pattern as reusable code and generate type class
+instances automatically from that code.
 
 
-\begin{comment}
-\subsection{Singletons}
-\label{sec:singletons}
-
-...
-
-\paragraph{Companion Objects} ...
-\end{comment}
+%\subsection{Singletons}
+% \label{sec:singletons}
+% 
+% ...
+% 
+% \paragraph{Companion Objects} ...
+% \end{comment}
 
 \subsection{Implicits}
 \label{sec:implicits}
@@ -314,7 +313,7 @@ automatically from that code.
 automatically based on type. These capabilities are enabled when using the
 \term{implicit} keyword. For example, a method \term{log} with multiple
 parameter lists may annotate their last parameter list using the
-\term{implicit} keyword.\footnote{Example taken from~\cite{Oliveira2010}.}
+\term{implicit} keyword.%%\footnote{Example taken from~\cite{Oliveira2010}.}
 
 \begin{lstlisting}
 def log(msg: String)(implicit o: PrintStream) =
@@ -342,6 +341,7 @@ selected as an implicit argument.
 
 %\todo Talk about how we use implicit values in our framework here.
 
+\begin{comment}
 \paragraph{Implicit Conversions.} Implicit conversions can be thought of as
 methods which, like implicit parameters, can be implicitly selected (\ie
 invoked) based upon their type, and whether or not they are present in
@@ -364,6 +364,7 @@ returned. Since the implicit conversion has the effect of adding a
 ``new'' method to type \term{Int}, \term{message} is typically called an
 {\em extension method}. In our framework we use implicit conversions,
 for example, for adding a \term{pickle} method to arbitrary objects.
+\end{comment}
 
 % cite Adriaan's and Bruno's OOPSLA paper. Where? How?
 % Example of a type class: maybe Ordering type class of std lib?
@@ -408,12 +409,38 @@ for example, for adding a \term{pickle} method to arbitrary objects.
 \subsection{Type Classes}
 \label{sec:type-classes}
 
+Type classes are a language mechanism that provide a disciplined
+alternative to ad-hoc polymorphism. They have been popularized by
+Haskell, but several other languages have adopted similar ideas.  Type
+classes allow functions to be defined over a set of types.  If values
+of a type \lstinline{T} should provide a certain functionality then that
+functionality can be specified as an \emph{instance} of a type class.
+
+\begin{figure}
+\begin{lstlisting}
+// Show type class
+trait Show[T] {
+  def show(visitee : T) : String
+}
+
+// Show instance for integers
+implicit object IntInstance extends Show[Int] {
+  def show(v : Int) = v.toString()
+}
+\end{lstlisting}
+\caption{\lstinline{Show} type class and corresponding instance for
+  integers.}
+\label{fig:showtc}
+\end{figure}
+
+In Scala type classes can be implemented using a combination of 
+standard OO features (traits, classes and objects) and implicits. 
+An example of a type class is shown in Figure~\ref{fig:showtc}.
+
 \begin{lstlisting}
 // explicit parameter
 def eshow[T](visitee : T)(showT : Show[T]) = 
   showT.show(visitee)
-	
-
 	
 // implicit parameter
 def ishow[T](v : T)(implicit showT : Show[T]) = 
@@ -439,20 +466,6 @@ implicit def showWrapper[T : Show](visitee : T) =
 def test2 = 5.show()
 \end{lstlisting}	
 
-\begin{figure}
-\begin{lstlisting}
-// Show type class
-trait Show[T] {
-  def show(visitee : T) : String
-}
-
-// Show instance for integers
-implicit object IntInstance extends Show[Int] {
-  def show(v : Int) = v.toString()
-}
-\end{lstlisting}
-\caption{\lstinline{Show} type class and corresponding instance for integers.}
-\end{figure}
 
 \begin{figure}
 \begin{lstlisting}	
