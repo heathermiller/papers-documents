@@ -825,6 +825,16 @@ to strings.
 
 \subsubsection{Separate Compilation}
 
+To support subtyping polymorphism not only across different compilation units,
+but also across separately-compiled modules/packages, \selfassembly provides
+\emph{dynamic instance registries}. In the case of separately-compiled
+modules, subclasses for which we would like to generate instances are in
+general only discovered at link time. To be able to discover such subclasses,
+it is possible to register generated instances with runtime classes with an
+\emph{instance registry} at runtime. A reference to such an instance registry
+can then be shared across separately-compiled packages.
+
+
 \subsection{Object Identity}
 
 In object-oriented languages like Scala, it is important to take \emph{object
