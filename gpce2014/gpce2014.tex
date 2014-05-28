@@ -489,9 +489,7 @@ object Show extends Query {
       q"$left + $right"
 
     def first(tpe: c.Type) = {
-      val typeString = tpe.toString.split('.')
-                          .map(_.capitalize)
-                          .mkString("")
+      val typeString = tpe.typeSymbol.name.toString
       stringTree(typeString + "(")
     }
 
@@ -757,7 +755,70 @@ type tag.
 
 In this section we talk about all the OO features that we support...
 
-\subsection{Object identity}
+\subsection{Subtyping}
+
+Object-oriented languages like Java or Scala enable the definition of a
+\emph{subtyping relation} based on class hierarchies. Given the pervasive use
+of subtyping in typical object-oriented programs, our approach is designed to
+account for \emph{subtyping polymorphism}. In addition, we provide mechanisms
+that enable the object-oriented features even in a setting where
+modules/packages are separately compiled.
+
+\subsubsection{Open Hierarchies}
+
+Classes defined in languages like Java are by default ``open,'' which means
+that they can have an unbounded number of subclasses spread across several
+compilation units. By contrast, \emph{final classes} cannot have subclasses at
+all. In addition, \emph{sealed classes} in Scala can only have subclasses
+defined within the same compilation unit.
+
+\begin{figure}
+\centering
+\begin{lstlisting}
+File PersonA.scala:
+abstract class Person {
+  def name: String
+  def age: Int
+}
+case class Employee(n: String, a: Int, s: Int)
+  extends Person {
+  def name = n
+  def age = a
+}
+
+File PersonB.scala:
+case class Firefighter(n: String, a: Int, s: Int)
+  extends Person {
+  def name = n
+  def age = a
+  def since = s
+}
+\end{lstlisting}
+  \caption{Open class hierarchy}
+  \label{fig:class-hierarchy}
+\end{figure}
+
+Our approach enables the generation of type class instances even for open
+classes. For example, consider the class hierarchy shown in
+Figure~\ref{fig:class-hierarchy}. It is possible to automatically generate
+an instance for type \verb|Person|:
+
+\begin{lstlisting}
+val em = Employee("Dave", 35, 80000)
+val ff = Firefighter("Jim", 40, 2004)
+val inst = implicitly[Show[Person]]
+println(inst.show(em))
+// prints: Employee(Dave, 35, 80000)
+println(inst.show(ff))
+// prints: Firefighter(Jim, 40, 2004)
+\end{lstlisting}
+\noindent
+Note that we are using the same \verb|Show| instance to convert both objects
+to strings.
+
+\subsubsection{Separate Compilation}
+
+\subsection{Object Identity}
 
 In object-oriented languages like Scala, it is important to take \emph{object
 identity} into account. Simple datatypes as shown in
