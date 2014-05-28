@@ -289,6 +289,15 @@ We first describe what we call the ``self-assembly pattern'' -- a technique for 
 \section{Type Classes and the Boilerplate Problem}
 \label{sec:background}
 
+This section reviews the how type classes can be encoded in Scala 
+using implicits and conventional OO features. This section also
+observes that type classes instances for various types tend to require 
+code that follows a common pattern. The pattern is the motivation 
+for the remainder of the paper, which aims at capturing the
+pattern as reusable code and generate type class instances
+automatically from that code. 
+
+
 \begin{comment}
 \subsection{Singletons}
 \label{sec:singletons}
