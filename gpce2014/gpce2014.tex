@@ -403,15 +403,8 @@ for example, for adding a \term{pickle} method to arbitrary objects.
 // explicit parameter
 def eshow[T](visitee : T)(showT : Show[T]) = 
   showT.show(visitee)
-  
-trait Show[T] {
-  def show(visitee : T) : String
-}
 	
-// showing integers
-implicit object IntInstance extends Show[Int] {
-  def show(v : Int) = v.toString()
-}
+
 	
 // implicit parameter
 def ishow[T](v : T)(implicit showT : Show[T]) = 
@@ -434,8 +427,26 @@ implicit def showWrapper[T : Show](visitee : T) =
    def show() = implicitly[Show[T]].show(visitee)
  } 
 	
-def test2 = 5.show()	
-	
+def test2 = 5.show()
+\end{lstlisting}	
+
+\begin{figure}
+\begin{lstlisting}
+// Show type class
+trait Show[T] {
+  def show(visitee : T) : String
+}
+
+// Show instance for integers
+implicit object IntInstance extends Show[Int] {
+  def show(v : Int) = v.toString()
+}
+\end{lstlisting}
+\caption{\lstinline{Show} type class and corresponding instance for integers.}
+\end{figure}
+
+\begin{figure}
+\begin{lstlisting}	
 sealed trait Tree 
 case class Fork(left : Tree, right : Tree) 
   extends Tree
@@ -452,7 +463,12 @@ implicit object TreeInst extends Show[Tree] {
 	
 val tree : Tree = Fork(Fork(Leaf(3),Leaf(4)),Leaf(5))
 def test3 = tree.show()
-	
+\end{lstlisting}
+\caption{Trees of integers and corresponding \lstinline{Show} instance.}
+\end{figure}
+
+\begin{figure}
+\begin{lstlisting}	
 sealed trait PTree[A]
 case class Branch[A](x : A, l : PTree[A], r : PTree[A]) 
   extends PTree[A]
@@ -472,6 +488,8 @@ implicit def PTreeInst[A : Show] : Show[PTree[A]] =
 val ptree : PTree[Int] = Branch(5,Empty,Empty)
 def test4 = ptree.show()
 \end{lstlisting}
+\caption{Parametrized trees and corresponding \lstinline{Show} instance.}
+\end{figure}
 
 \begin{comment}
 \subsection{Macros}
