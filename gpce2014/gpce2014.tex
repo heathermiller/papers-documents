@@ -35,6 +35,7 @@
 \usepackage{xcolor}
 \usepackage{url}
 \usepackage{todonotes}
+\usepackage{comment}
 
 \lstdefinelanguage{Scala}%
 {morekeywords={abstract,case,catch,char,class,%
@@ -285,16 +286,17 @@ Implicits and macros powerful tools for doing generative programming. In fact, s
 
 We first describe what we call the ``self-assembly pattern'' -- a technique for combining implicits and macros to generate complex in Section~\ref{sec:self-assembly-pattern} to generate type class instances.
 
-\section{Background}
+\section{Type Classes and the Boilerplate Problem}
 \label{sec:background}
 
+\begin{comment}
 \subsection{Singletons}
 \label{sec:singletons}
 
 ...
 
 \paragraph{Companion Objects} ...
-
+\end{comment}
 
 \subsection{Implicits}
 \label{sec:implicits}
@@ -397,8 +399,81 @@ for example, for adding a \term{pickle} method to arbitrary objects.
 \subsection{Type Classes}
 \label{sec:type-classes}
 
-...
+\begin{lstlisting}
+// explicit parameter
+def eshow[T](visitee : T)(showT : Show[T]) = 
+  showT.show(visitee)
+  
+trait Show[T] {
+  def show(visitee : T) : String
+}
+	
+// showing integers
+implicit object IntInstance extends Show[Int] {
+  def show(v : Int) = v.toString()
+}
+	
+// implicit parameter
+def ishow[T](v : T)(implicit showT : Show[T]) = 
+  showT.show(v)
+	
+// implicit parameter with context bounds
+def show[T : Show](v : T) = 
+  implicitly[Show[T]].show(v) 
+	
+def test1 = show(5) 
+	
+// Adding a show method to an arbitrary 
+// object of a certain type
+trait Showable {
+ def show() : String
+}
+	
+implicit def showWrapper[T : Show](visitee : T) = 
+ new Showable {
+   def show() = implicitly[Show[T]].show(visitee)
+ } 
+	
+def test2 = 5.show()	
+	
+sealed trait Tree 
+case class Fork(left : Tree, right : Tree) 
+  extends Tree
+case class Leaf(elem : Int) extends Tree
+	
+implicit object TreeInst extends Show[Tree] {
+ def show(visitee : Tree) : String = 
+   visitee match {
+     case Fork(l,r) => 
+       "Fork(" + l.show() + ", " + r.show() + ")"
+     case Leaf(x) => "Leaf(" + x.show() + ")"
+   }
+}
+	
+val tree : Tree = Fork(Fork(Leaf(3),Leaf(4)),Leaf(5))
+def test3 = tree.show()
+	
+sealed trait PTree[A]
+case class Branch[A](x : A, l : PTree[A], r : PTree[A]) 
+  extends PTree[A]
+case class Empty[A] extends PTree[A]
+	
+implicit def PTreeInst[A : Show] : Show[PTree[A]] = 
+  new Show[PTree[A]] {
+    def show(visitee : PTree[A]) = 
+     visitee match {
+        case Branch(x,l,r) => 
+           "Branch(" + x.show() + ", " + l.show() + 
+           ", " + r.show() + ")"
+   	    case Empty() => "Empty()"
+     }
+}
+	
+val ptree : PTree[Int] = Branch(5,Empty,Empty)
+def test4 = ptree.show()
+\end{lstlisting}
 
+\begin{comment}
 \subsection{Macros}
 \label{sec:macros}
 
@@ -456,6 +531,7 @@ site.
 % definition (the AST of ``\verb|class D { ... }|''), and returns a possibly changed AST
 % as the new class definition (which could have added members, changed
 % constructor parameters etc.)
+\end{comment}
 
 % Section 2:
 % explain how to write type classes manually
