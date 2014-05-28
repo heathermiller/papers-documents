@@ -578,7 +578,7 @@ of type classes for specific types.
 \begin{figure}
 \centering
 \begin{lstlisting}
-object Show extends Query {
+object Show extends Query[String] {
   def mkTrees[C <: Context with Singleton](c: C)
     : Trees[C] = new Trees(c)
 
@@ -586,17 +586,22 @@ object Show extends Query {
     (override val c: C) extends super.Trees(c) {
     import c.universe._
 
-    def combine(left: c.Tree, right: c.Tree) =
-      q"$left + $right"
+    def combine(left: c.Expr[String],
+                right: c.Expr[String])
+      : c.Expr[String] = c.Expr(q"$left + $right")
 
-    def first(tpe: c.Type) = {
+    def first(tpe: c.Type): c.Expr[String] = {
       val typeString = tpe.typeSymbol.name.toString
-      stringTree(typeString + "(")
+      c.Expr(q"""
+        $typeString + "("
+      """)
     }
 
-    def last(tpe: c.Type) = stringTree(")")
+    def last(tpe: c.Type): c.Expr[String] =
+      reify(")")
 
-    def separator = stringTree(", ")
+    def separator: c.Expr[String] =
+      reify(", ")
   }
 
   implicit def generate[T]: Show[T] =
