@@ -530,9 +530,9 @@ inlined in the generated code. The \verb|Show| type class converts objects to
 strings; thus, the query has to define how to assemble result strings, based
 on an associative combination operator (\verb|combine|), begin/end delimiters
 (\verb|first|/\verb|last|), and a separator. The syntax
-\verb|q"$left + $right"| denotes a \emph{quasiquote} (TODO: cite tech report), creating an AST node using
-Scala code, where \verb|left| and \verb|right| are tree nodes that are
-spliced into the result node.
+\verb|q"$left + $right"| denotes a \emph{quasiquote}~\cite{Quasiquotes},
+creating an AST node using Scala code, where \verb|left| and \verb|right|
+are tree nodes that are spliced into the result node.
 
 Apart from implementing a subclass of \verb|Trees[C]|, the \verb|Show|
 singleton object also needs to define a generic implicit method (here,
