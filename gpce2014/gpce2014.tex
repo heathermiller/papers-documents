@@ -951,13 +951,62 @@ to strings.
 \subsubsection{Separate Compilation}
 
 To support subtyping polymorphism not only across different compilation units,
-but also across separately-compiled modules/packages, \selfassembly provides
-\emph{dynamic instance registries}. In the case of separately-compiled
-modules, subclasses for which we would like to generate instances are in
-general only discovered at link time. To be able to discover such subclasses,
-it is possible to register generated instances with runtime classes with an
-\emph{instance registry} at runtime. A reference to such an instance registry
-can then be shared across separately-compiled packages.
+but also across separately-compiled modules,\footnote{In the Scala ecosystem
+such modules are typically distributed in separate ``JAR files.''}
+\selfassembly provides \emph{dynamic instance registries}. In the case of
+separately-compiled modules, subclasses for which we would like to generate
+instances are in general only discovered at link time. To be able to discover
+such subclasses, \selfassembly allows registering generated instances
+with an \emph{instance registry} at runtime. A reference to such an
+instance registry can then be shared across separately-compiled modules.
+
+For example, module A could create a registry and populate it with a number of
+instances:
+\begin{lstlisting}
+implicit val reg = new SimpleRegistry[Show]
+reg.register(classOf[Employee],
+             implicitly[Show[Employee]])
+reg.register(classOf[Firefighter],
+             implicitly[Show[Firefighter]])
+...
+\end{lstlisting}
+\noindent
+Note that the registry \verb|reg| is defined as an \emph{implicit value;} as we
+explain in the following, this is required to enable registry look-ups when
+dispatching to type class instances based on objects' runtime types.
+
+With the instance registry set up in this way, another separately-compiled
+module B is then able to dispatch to instances registered by module A:
+
+\begin{lstlisting}
+implicit val localReg = getRegistryFrom(moduleA)
+localReg.register(classOf[Judge],
+                  implicitly[Show[Judge]])
+...
+\end{lstlisting}
+\noindent
+Importantly, when module B invokes the \verb|show| method of an instance
+\verb|instP| of type \verb|Show[Person]|, passing an object with dynamic type
+\verb|Employee|, the generated instance \verb|instP| dispatches to the correct
+type class instance of type \verb|Show[Employee]| through a look-up in
+registry \verb|localReg|.
+
+\paragraph{Generation mechanics}
+
+To enable registry look-ups, we augment the dispatch logic with a default
+case:\footnote{Minimally simplified; the actual code also keeps track of object
+identities as discussed further below.}
+\begin{lstlisting}
+case _ =>
+  val registry$1: Registry[Show] =
+    implicitly[Registry[Show]]
+  val lookup$2: Option[Show[_]] =
+    registry$1.get(clazz)
+  lookup$2.get
+          .asInstanceOf[Show[Person]]
+          .show(visitee)
+}
+\end{lstlisting}
 
 
 \subsection{Object Identity}
