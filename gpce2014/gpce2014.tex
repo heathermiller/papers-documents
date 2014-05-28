@@ -185,6 +185,88 @@ keyword1, keyword2
 
 \section{Introduction}
 
+Programming often requires the definition of similar methods (or
+functions) for different types of values. Some of these methods are so
+common that certain languages simply assume that every value supports
+them. In Object-Oriented Programming languages like Java or Scala,
+every object has a few methods, including \lstinline{toString},
+\lstinline{equals}, \lstinline{clone} or \lstinline{hashCode}.  Some
+other methods or functionality, such as serialization, are also quite
+common, but languages do not impose it on every type.
+
+%% even if sometimes, for particular objects, the method in
+%%question does not make sense
+
+Very often the definition of such methods is follows a common
+pattern and some languages provide default implementations...
+
+Section 1: 
+   - Programming requires many similar methods: toString, clone, 
+      serialization ...
+   - A language can help by proving an implementation mechanism 
+     (example serialization in Java), but this can be inflexible:
+     sometimes cannot override behaviour; cannot define an alternative 
+     generic behaviour.
+   - DGP aims at allowing a flexible mechanism to do user-defined
+   generic functions;
+   - DGP explored extensibly in Haskell and Purely Functional
+   Programming. 
+   - Much less work on OO languages. OO languages have challenges 
+    that do not exist in pure languages like Haskell: Subtyping,
+    object graphs, general mutability
+   - How to do generic programming in OO languages
+   - Our solution using Scala macros to generate type class instances
+   - Making DGP efficient with macros (generating instances at compile
+   time). Treating type classes as first class entities
+   (double-check)?
+   - Case study: industrial strength serialization framework
+
+Section 2: Type Classes and the Boilerplate Problem
+  - What are type classes? (also introduce implicits)
+  - Show type class
+  - 3 instances: Int, List and Tree
+  - note that there is a similar pattern going on.
+
+Section 3: Basic selfassembly
+  - Show how to use the library to generate the instances and solve
+  the problem in Section 2; (What does the user have todo with your library?)
+  - Show how to define the ``generic function'' (What if a user wants to
+  define his own generic function?)
+  - explain the mechanisms involved (example, macros)
+  - Query Pattern? (here or somewhere else)?
+
+Section 4: Selfassembly for OO features
+  - Explain problem of object identity 
+  - Subtyping
+  - Mutability? (Is this an issue?)
+
+Section 5: Language extensions with the selfassembly Library
+  - Show some more general patterns
+
+...
+
+Section (n-1): Implementation and Case studies
+  - Tell about the implementation
+  - Tell about what generic functions have been implemented
+     and plans for more functionality
+
+Section n: Related work
+   - DGP in Haskell
+   - DGP in OO languages
+   - Compile-time reflection
+
+Question: What's meant by language extensions?
+quesries & transformations (in the sense of SyB?)
+
+Question: How about producer generic functions? Example deserialize?
+
+Question: "can use these generative techniques to extend the compiler and type system in local but powerful ways."?
+
+
+full of d\'ej\`a vu moments. When a programmer writtes 
+a new program, it is very likely that some similar pattern or
+functionality that 
+
 The text of the paper begins here.~\cite{ComparingGPHaskellRodriquez, ComparingGPHaskellHinze, ScalaGenericProgrammers, RepLib, OOGP}
 
 Implicits are a huge deal, because they provide \textbf{extensibility.} Users can easily customize generated code by making use of implicits in Scala.
@@ -850,6 +932,14 @@ achieved already and how much the code size was reduced and improved in terms of
 
 \section{Related Work}
 \label{sec:related-work}
+
+Our work is novel in 
+
+\subsection{Datatype-Generic Programming in Haskell}
+
+\subsection{Datatype-Generic Programming in OO Languages}
+
+\subsection{Compile-time Reflection}
 
 \cite{TemplateYourBoilerplate}
 
