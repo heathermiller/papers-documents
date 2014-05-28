@@ -34,6 +34,7 @@
 \usepackage{fontspec}
 \usepackage{xcolor}
 \usepackage{url}
+\usepackage{todonotes}
 
 \lstdefinelanguage{Scala}%
 {morekeywords={abstract,case,catch,char,class,%
@@ -71,7 +72,7 @@ commentstyle=\itshape\rmfamily,
 language=scala,moredelim=[il][\sffamily]{?},mathescape=false,showspaces=false,showstringspaces=false,xleftmargin=15pt,escapechar=@, morekeywords=[1]{let,fn,val},deletekeywords={for},classoffset=0,belowskip=\smallskipamount
 }
 
-\newcommand{\todo}{{\bf \colorbox{red}{\color{white}TODO:}}}
+% \newcommand{\todo}{{\bf \colorbox{red}{\color{white}TODO:}}}
 \newcommand{\ie}{{\em i.e.,~}}
 \newcommand{\eg}{{\em e.g.,~}}
 \newcommand{\term}[1]{\mbox{\texttt{#1}}}
@@ -200,18 +201,18 @@ common, but languages do not impose it on every type.
 Very often the definition of such methods is follows a common
 pattern and some languages provide default implementations...
 
-Section 1: 
-   - Programming requires many similar methods: toString, clone, 
+Section 1:
+   - Programming requires many similar methods: toString, clone,
       serialization ...
-   - A language can help by proving an implementation mechanism 
+   - A language can help by proving an implementation mechanism
      (example serialization in Java), but this can be inflexible:
-     sometimes cannot override behaviour; cannot define an alternative 
+     sometimes cannot override behaviour; cannot define an alternative
      generic behaviour.
    - DGP aims at allowing a flexible mechanism to do user-defined
    generic functions;
    - DGP explored extensibly in Haskell and Purely Functional
-   Programming. 
-   - Much less work on OO languages. OO languages have challenges 
+   Programming.
+   - Much less work on OO languages. OO languages have challenges
     that do not exist in pure languages like Haskell: Subtyping,
     object graphs, general mutability
    - How to do generic programming in OO languages
@@ -236,7 +237,7 @@ Section 3: Basic selfassembly
   - Query Pattern? (here or somewhere else)?
 
 Section 4: Selfassembly for OO features
-  - Explain problem of object identity 
+  - Explain problem of object identity
   - Subtyping
   - Mutability? (Is this an issue?)
 
@@ -263,9 +264,9 @@ Question: How about producer generic functions? Example deserialize?
 Question: ``can use these generative techniques to extend the compiler and type system in local but powerful ways.''?
 
 
-full of d\'ej\`a vu moments. When a programmer writtes 
+full of d\'ej\`a vu moments. When a programmer writtes
 a new program, it is very likely that some similar pattern or
-functionality that 
+functionality that
 
 The text of the paper begins here.~\cite{ComparingGPHaskellRodriquez, ComparingGPHaskellHinze, ScalaGenericProgrammers, RepLib, OOGP}
 
@@ -467,12 +468,18 @@ site.
 % After that we explain how it's actually generated!
 % It's a pattern that generalizes the way one typically writes type classes by hand.
 
-The previous section showed how to write type classes like \verb|Show[T]| manually, pointing out a source of
-significant boilerplate code. In this section, we describe the basic usage of the \selfassembly library, which
-allows defining type classes in a way that avoids this boilerplate. Section~\ref{sec:basic-generation} explains
-the mechanics of the automatic type class generation implemented in the \selfassembly library.
+The previous section showed how to write type classes like \verb|Show[T]|
+manually, pointing out a source of significant boilerplate code. In
+section~\cite{sec:basic-usage}, we outline the basic usage of the
+\selfassembly library, which allows defining type classes desired in a way
+where the required boilerplate is generated for you.
+Section~\ref{sec:basic-generation} explains the mechanics of the automatic
+type class generation implemented in the \selfassembly library.
+Section~\cite{sec:customization} outlines how one can customize the generation
+of type classes for specific types.
 
 \subsection{Basic Usage}
+\label{sec:basic-usage}
 
 \begin{figure}
 \centering
@@ -542,17 +549,6 @@ Instead, whenever an instance of type, say, \verb|Show[MyClass]|, is required
 a call to the \emph{implicit def} \verb|generate[MyClass]|; this implicit def generates a
 suitable implementation of the searched type class instance on-the-fly. As a result,
 type class instances do not have to be defined manually.
-
-\subsection{Customization}
-
-Generation as provided by \selfassembly is convenient, but in some cases it is desirable
-to have full control over the type class instances for specific types (one strength of the
-type class pattern as introduced in Section~\ref{sec:background}). When using the
-\selfassembly library, customization is still possible. It is sufficient to define
-custom instances for selected types manually; these custom instances are then transparently
-picked up and chosen in place of automatically-generated ones. It is even possible to
-use Scala's scoping and implicit precedence rules to prioritize certain instances over
-others.
 
 \subsection{Generation Mechanism}\label{sec:basic-generation}
 
@@ -750,6 +746,17 @@ macro to generate a fresh (term) name \verb|$instanceName|. The actual
 implementation of the type class (\verb|$tree|) is generated by inspecting the
 type tag.
 
+\subsection{Customization}
+\label{sec:customization}
+
+Generation as provided by \selfassembly is convenient, but in some cases it is desirable
+to have full control over the type class instances for specific types (one strength of the
+type class pattern as introduced in Section~\ref{sec:background}). When using the
+\selfassembly library, customization is still possible. It is sufficient to define
+custom instances for selected types manually; these custom instances are then transparently
+picked up and chosen in place of automatically-generated ones. It is even possible to
+use Scala's scoping and implicit precedence rules to prioritize certain instances over
+others.
 
 \section{Self-Assembly for Object Orientation}
 
@@ -994,7 +1001,7 @@ achieved already and how much the code size was reduced and improved in terms of
 \section{Related Work}
 \label{sec:related-work}
 
-Our work is novel in 
+Our work is novel in
 
 \subsection{Datatype-Generic Programming in Haskell}
 
