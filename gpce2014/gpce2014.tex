@@ -286,14 +286,16 @@ Implicits and macros powerful tools for doing generative programming. In fact, s
 
 We first describe what we call the ``self-assembly pattern'' -- a technique for combining implicits and macros to generate complex in Section~\ref{sec:self-assembly-pattern} to generate type class instances.
 
-\section{Type Classes and Reusability}
+\section{Type Classes and a Boilerplate Problem}
 \label{sec:background}
 
-This section provides an introduction to type classes~\cite{} and reviews how to
-encode them in Scala using implicits and conventional OO features~\cite{Oliveira2010}.
-This section also observes that type classes instances for various
-types tend to require code that follows a common pattern. The pattern
-is the motivation for the remainder of the paper, which shows how
+This section provides an introduction to type classes~\cite{} and
+reviews how to encode them in Scala using implicits and conventional
+OO features~\cite{Oliveira2010}.  This section also observes that type
+classes instances for various types tend to require code that follows
+a common pattern. The pattern can be viewed as a source of code
+boilerplate, since similar code needs to be repeated throughout several 
+definitions. The remainder of the paper aims at showing how 
 to capture the pattern as reusable code and generate type class
 instances automatically from that code.
 
@@ -309,7 +311,7 @@ instances automatically from that code.
 \subsection{Implicits}
 \label{sec:implicits}
 
-\paragraph{Implicit Parameters.} In Scala, it is possible to select values
+In Scala, it is possible to select values
 automatically based on type. These capabilities are enabled when using the
 \term{implicit} keyword. For example, a method \term{log} with multiple
 parameter lists may annotate their last parameter list using the
@@ -425,7 +427,7 @@ trait Show[T] {
 
 // Show instance for integers
 implicit object IntInstance extends Show[Int] {
-  def show(v : Int) = v.toString()
+  def show(o : Int) = o.toString()
 }
 \end{lstlisting}
 \caption{\lstinline{Show} type class and corresponding instance for
@@ -435,23 +437,239 @@ implicit object IntInstance extends Show[Int] {
 
 In Scala type classes can be implemented using a combination of
 standard OO features (traits, classes and objects) and implicits.
-An example of a type class is shown in Figure~\ref{fig:showtc}.
+The Scala encoding of type classes is essentially a \emph{design pattern}~\cite{}: 
+instead of having built-in language concepts for type classes, Scala 
+uses general language features to model type classes.
+A type class is simply an interface that provides operations 
+over one (or more) generic types. Such interfaces can be modeled 
+as traits in Scala. An example of a type class is shown in
+Figure~\ref{fig:showtc}. The trait \lstinline{Show[T]} models a type 
+class that provides pretty printing functionality for some type
+\lstinline{T} via a method \lstinline{show}. 
+
+The main conceptual difference between standard OO methods and
+type-class methods is that the later are provided \emph{externally} to
+objects. For example suppose that we wanted to add pretty printing
+functionality to integers. To do this we could create an instance of
+the type class Show where the generic type parameter \lstinline{T} is
+instantiated to \lstinline{Int}. The \lstinline{object IntInstance} in
+Figure~\ref{fig:showtc} illustrates how to model such instance in
+Scala using regular objects. In that object, the \lstinline{show}
+method takes an argument \lstinline{o} of type \lstinline{Int} an 
+invokes the \lstinline{toString()} method on \lstinline{o}. 
+%%To use the pretty printing functionality in client code we could create 
+%%a method \lstinline{eshow}:
+
+%%begin{lstlisting}
+%%// explicitly taking instance argument
+%%def eshow[T](o : T)(showT : Show[T]) = showT.show(o)
+%%\end{lstlisting}
+
+%%This method takes an object \lstinline{o} of some generic type \lstinline{T} and 
+%%an instance \lstinline{showT} of type \lstinline{Show[T]} and applies 
+%%the \lstinline{show} method in \lstinline{showT} to \lstinline{o}. 
+%%With \lstinline{eshow} we could  
+
+\paragraph{Type-Directed Resolution of Instances} An interesting
+aspect of type classes is that instances can be automatically
+determined using a type-directed resolution mechanism. This 
+type-directed resolution mechanism allows type classes 
+to be used from client code through a mechanism similar to 
+overloading. One way to achieve this is Scala is using an implicit 
+parameter:
 
 \begin{lstlisting}
-// explicit parameter
-def eshow[T](visitee : T)(showT : Show[T]) =
-  showT.show(visitee)
-
-// implicit parameter
+// show with implicit parameter
 def ishow[T](v : T)(implicit showT : Show[T]) =
   showT.show(v)
+\end{lstlisting}
 
-// implicit parameter with context bounds
+In \lstinline{ishow} the idea is that the method takes two parameters,
+with the last of these (\lstinline{showT}) being implicit. As we have
+seen in Section~\ref{sec:implicits} this means that the second
+parameters can be automatically determined by the compiler.  For
+example if we wanted to use \lstinline{show} on integers we could
+simply write a program such as:
+
+\begin{lstlisting}
+def test1 = ishow(5)
+\end{lstlisting}
+
+Provided that an \lstinline{implicit} value of type
+\lstinline{Show[Int]} is in the implicit scope (for example
+\lstinline{IntInstance} from Figure~\ref{fig:showtc}), the second
+parameter is automatically inferred by the compiler.
+
+\paragraph{Context Bounds} Type classes are pervasivaly used in
+Scala. Because of this Scala offers an alternative convinient syntax sugar called
+\emph{context bounds}. Context bounds allows code using type classes to be
+written more compactly and arguably more intuitively. With context
+bounds, instead of writting \lstinline{ishow} we could write:
+
+\begin{lstlisting}
+// show with context bounds
 def show[T : Show](v : T) =
   implicitly[Show[T]].show(v)
+\end{lstlisting}
 
-def test1 = show(5)
+The idea of context bounds comes from the fact that type classes can
+also be seen as a generic programming mechanism~\cite{}, which allows
+generic parameters to be constrained. In this case the type of
+\lstinline{show} can be read as a generic method where the generic
+type argument must be an instance of \lstinline{Show}. 
+A small problem with context bounds there is no parameter name to be used in the 
+definition of \lstinline{show}. However, it is possible to
+\emph{query} the implicit scope for a value of a certain type 
+using a simple auxiliary method called \lstinline{implicitly}:
 
+\begin{lstlisting}
+def implicitly[T](implicit x : T) : T = x
+\end{lstlisting}
+
+This precludes the need for having to have the name of the implicit
+argument in hand in order to use it.
+From the client perspective, using \lstinline{show} is similar to
+using \lstinline{ishow}. 
+
+\subsection{Pretty Printing Complex Structures}
+
+\begin{figure}
+\begin{lstlisting}
+sealed trait Tree
+case class Fork(left : Tree, right : Tree)
+  extends Tree
+case class Leaf(elem : Int) extends Tree
+
+implicit object TreeInst extends Show[Tree] {
+ def show(visitee : Tree) : String = 
+   visitee match {
+     case Fork(l,r) => 
+       "Fork(" + show(l) + ", " + show(r) + ")"
+     case Leaf(x) => "Leaf(" + x.toString() + ")"
+   }
+}
+\end{lstlisting}
+\caption{Trees of integers and corresponding \lstinline{Show}
+  instance.}
+\label{fig:trees}
+\end{figure}
+
+Of course it is also possible to apply type classes to more complex
+structures. For example consider a simple type of binary trees with 
+integers at the leafs. Figure~\ref{fig:trees} shows how to model such
+trees in Scala using \emph{case classes}~\cite{} and \emph{sealed
+  traits}. The keyword \lstinline{sealed} in Scala means that the
+trait can only be implemented by definitions in the existing module. 
+Any definition outside the module will not be able to implement the
+trait. Together with case classes this allows modeling \emph{algebraic
+  datatypes}, which are a well-know concept from functional programming.
+The \lstinline{Tree} trait is the type of trees. The case class 
+\lstinline{Fork} models the binary nodes of the tree, wheres the case 
+class \lstinline{Leaf} models the leafs containing an integer value. 
+
+To define pretty printing for \lstinline{Tree} using the
+\lstinline{Show} type class we create an \lstinline{object TreeInst}. 
+This object provides a definition for the
+\lstinline{show} method that pattern matches on the 
+two tree constructors (cases) of \lstinline{Tree}. The implementation 
+of the two cases is unremarcable: in both cases the
+constructors names and the arguments are printed. 
+
+A simple test program illustrating the use of \lstinline{TreeInst}
+is shown next:
+
+\begin{lstlisting}
+val tree : Tree = Fork(Fork(Leaf(3),Leaf(4)),Leaf(5))
+def test3 = show(tree)
+\end{lstlisting}
+
+\noindent The value \lstinline{tree} defines a simple tree and the
+definition \lstinline{test3} pretty prints that tree. 
+
+\begin{figure}
+\begin{lstlisting}
+sealed trait PTree[A]
+case class Branch[A](x : A, l : PTree[A], r : PTree[A])
+  extends PTree[A]
+case class Empty[A] extends PTree[A]
+
+implicit def PTreeInst[A : Show] : Show[PTree[A]] = 
+  new Show[PTree[A]] {
+    def show(visitee : PTree[A]) = 
+     visitee match {
+        case Branch(x,l,r) => 
+           "Branch(" + implicitly[Show[A]].show(x) + 
+           ", " + show(l) + ", " + show(r) + ")"
+   	    case Empty() => "Empty()"
+     }
+}
+\end{lstlisting}
+\caption{Parametrized trees and corresponding \lstinline{Show}
+  instance.}
+\label{fig:ptrees}
+\end{figure}
+
+\paragraph{Recursive Resolution and Compositionality of Instances}
+Another interesting aspect of type classes is that they provide a
+highly compositional way to define instances for parametrized types. 
+Lets consider a variant of trees, shown in Figure~\ref{fig:ptrees}, which is 
+parametrized by some element type \lstinline{A}. The type these trees 
+is \lstinline{PTree[A]} and there are two types of nodes:
+\lstinline{Branch} nodes with an element of type \lstinline{A}
+and two branches; and \lstinline{Empty} nodes with no content. 
+
+Like other types it is possible to define an instance (\lstinline{PTreeInst})
+for the type \lstinline{PTree[A]}. However in order to pretty pretty
+such trees it is necessary to know how to print the elements of type 
+\lstinline{A} as well. To accomplish this we require that the
+generic type parameter \lstinline{A} has a \lstinline{Show} instance 
+using a context bound.  To print the elements in the
+\lstinline{Branch} case, the instance can be retrieved from the local 
+scope using \lstinline{implicitly} and then used to print the element.
+With this instance it is possible to print trees with integer elements, such as:
+
+\begin{lstlisting}
+val ptree : PTree[Int] = Branch(5,Empty,Empty)
+def test4 = ptree.show()
+\end{lstlisting}
+
+However, more interestingly, it is also possible to print trees where
+for any element type that has a \lstinline{Show} instance. For example:
+
+\begin{lstlisting}
+val ptree2 : PTree[PTree[Tree]] = 
+  Branch(Branch(tree,Empty,Empty),Empty,Empty)
+def test5 = show(ptree2)
+\end{lstlisting}
+
+Here \lstinline{ptree2} has element types of type
+\lstinline{PTree[PTree[Tree]]}. To print the trees the instance for
+\lstinline{PTree} has to be used twice: one to print values of type
+\lstinline{PTree[PTree[Tree]]}; and another time to print values of
+type \lstinline{PTree[Tree]}. In fact it is possible to use
+arbitrarely many instances of the various types (possible multiple
+times) during type-directed resolution, which makes the process very
+compositional. This is possible because the type-directed resolution
+mechanism is recursive.
+
+\subsection{A Boilerplate Problem}
+
+Although type classes are nice, they often require similar code for 
+different instances. For example consider the two instances 
+in Figures~\ref{fig:trees} and~\ref{fig:ptrees}. The code that is
+needed in both instances is quite similar and it follows a common 
+pattern: for each case the constructor name and parameters are
+printed. Therefore code tends to be quite similar across instances. This 
+code can be viewed as a form of boilerplate since we could hope that 
+it could be mechanically generated. However, at the moment the code 
+is being defined by hand for each instance. 
+
+%Both \lstinline{ishow} and \lstinline{show}
+%provide a convenient way for some client code to invoke the pretty
+%printing functionality on some values of type \lstinline{T}.
+
+\begin{comment}
+\begin{lstlisting}
 // Adding a show method to an arbitrary
 // object of a certain type
 trait Showable {
@@ -465,53 +683,12 @@ implicit def showWrapper[T : Show](visitee : T) =
 
 def test2 = 5.show()
 \end{lstlisting}
+\end{comment}
 
 
-\begin{figure}
-\begin{lstlisting}
-sealed trait Tree
-case class Fork(left : Tree, right : Tree)
-  extends Tree
-case class Leaf(elem : Int) extends Tree
 
-implicit object TreeInst extends Show[Tree] {
- def show(visitee : Tree) : String =
-   visitee match {
-     case Fork(l,r) =>
-       "Fork(" + l.show() + ", " + r.show() + ")"
-     case Leaf(x) => "Leaf(" + x.show() + ")"
-   }
-}
 
-val tree : Tree = Fork(Fork(Leaf(3),Leaf(4)),Leaf(5))
-def test3 = tree.show()
-\end{lstlisting}
-\caption{Trees of integers and corresponding \lstinline{Show} instance.}
-\end{figure}
 
-\begin{figure}
-\begin{lstlisting}
-sealed trait PTree[A]
-case class Branch[A](x : A, l : PTree[A], r : PTree[A])
-  extends PTree[A]
-case class Empty[A] extends PTree[A]
-
-implicit def PTreeInst[A : Show] : Show[PTree[A]] =
-  new Show[PTree[A]] {
-    def show(visitee : PTree[A]) =
-     visitee match {
-        case Branch(x,l,r) =>
-           "Branch(" + x.show() + ", " + l.show() +
-           ", " + r.show() + ")"
-   	    case Empty() => "Empty()"
-     }
-}
-
-val ptree : PTree[Int] = Branch(5,Empty,Empty)
-def test4 = ptree.show()
-\end{lstlisting}
-\caption{Parametrized trees and corresponding \lstinline{Show} instance.}
-\end{figure}
 
 \begin{comment}
 \subsection{Macros}
