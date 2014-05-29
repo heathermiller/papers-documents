@@ -187,20 +187,59 @@ keyword1, keyword2
 
 \section{Introduction}
 
+In programming many different types of values often require similar
+functionality. For example it is quite common to use methods (or
+functions) that compare two values for equality or produce a pretty
+printed string representation of the value. Because such functionality
+is so common it is desirable to have some programming language support
+that helps defining functions working over a large class of types.
+
+The solutions offered by existing programming languages are quite
+varied. Even when considering a single language, various different
+designs can co-exist.  For example, in Java, every object has a few
+methods, including \lstinline{toString}, \lstinline{equals},
+\lstinline{clone} or \lstinline{hashCode}.  These methods provide a
+simple default implementation. However most of the times the
+programmer is supposed to override the methods to ensure proper
+functionality. Some other methods or functionality, such as
+serialization, are also quite common, but Java does not impose it on
+every type. Instead Java takes a different design where if a class
+implements a \lstinline{Serializable} interfaces then instances of
+that class automatically provide a serialization mechanism. This is
+quite convenient because the programmer does not have to write any
+code for doing serialization: the Java runtime automatically provides
+the serialization functionality. Still there is other functionality
+that also makes sense in a large class of types for which Java
+provides no special support.
+
+Another approach to providing similar functionality for a large class
+of types is to use type classes~\cite{}.  Type classes provide a
+mechanism where a certain functionality can be captured in an
+interface. When programmers need certain types of values to support a
+given functionality, they can implement an \emph{instance} of a type 
+class. However a notable feature of type classes (when compared 
+to OO methods) is their support for \emph{retroactive extensibility}.
+Retroactive extensibility means that the functionality can be implemented 
+\emph{after} the type or class has been defined. This is in constrast 
+with conventional OO programming, where 
+
+
+ 
+
+A common problem in programming languages is how to deal with
+certain methods (or functions) that  many different types of values. 
+For example equality or pretty printing 
+
 Programming often requires the definition of similar methods (or
 functions) for different types of values. Some of these methods are so
 common that certain languages simply assume that every value supports
-them. In Object-Oriented Programming languages like Java or Scala,
-every object has a few methods, including \lstinline{toString},
-\lstinline{equals}, \lstinline{clone} or \lstinline{hashCode}.  Some
-other methods or functionality, such as serialization, are also quite
-common, but languages do not impose it on every type.
+them. 
 
 %% even if sometimes, for particular objects, the method in
 %%question does not make sense
 
-Very often the definition of such methods is follows a common
-pattern and some languages provide default implementations...
+Very often the definition of such methods follows a common
+pattern. and some languages provide default implementations...
 
 Section 1:
    - Programming requires many similar methods: toString, clone,
