@@ -188,7 +188,7 @@ keyword1, keyword2
 \section{Introduction}
 
 In programming many different types of values often require similar
-functionality. For example it is quite common to use methods (or
+functionality. For example it is common to use methods (or
 functions) that compare two values for equality or produce a pretty
 printed string representation of the value. Because such functionality
 is so common it is desirable to have some programming language support
@@ -213,7 +213,7 @@ that also makes sense in a large class of types for which Java
 provides no special support.
 
 Another approach to providing similar functionality for a large class
-of types is to use type classes~\cite{}.  Type classes provide a
+of types is to use type classes~\cite{}. Type classes provide a
 mechanism where a certain functionality can be captured in an
 interface. When programmers need certain types of values to support a
 given functionality, they can implement an \emph{instance} of a type 
@@ -221,10 +221,42 @@ class. However a notable feature of type classes (when compared
 to OO methods) is their support for \emph{retroactive extensibility}.
 Retroactive extensibility means that the functionality can be implemented 
 \emph{after} the type or class has been defined. This is in constrast 
-with conventional OO programming, where 
+with conventional OO programming, where all methods should be
+implemented together with the definition of the class. Retroactive 
+extensibility means that type classes offer a lot of flexibility and
+possibility for customizing behaviour. As a result several authors 
+have argued for the software engineering benifits of using type classes~\cite{}.
 
-
+Because of the flexibility and extensibility of type classes, the
+Scala language has embraced them~\cite{}. Scala provides some language
+features that help using type classes more effectively. Today, type
+class inspired designs are used by various libraries~\cite{}.  Type
+classes solve the problem of defining some functionality for a large
+class of types elegantly.
  
+However there is still space for improvement. Consider again the way
+serialization is done in Java. The language provides native support
+for it and the programmer does not need to write how to serialize code
+for particular classes!  In contrast with type classes the porgrammer
+would need to define the serialization code for each class himself.
+One could imagine that the serialization approach would also make
+sense for other types of operations such as \lstinline{equals} or
+\lstinline{toString}.  It would be very convenient if Java would
+provide automatically sensible implementations of these operations.
+In a sense, each operation would correspond to a little \emph{language
+  extension} that is built-in by the developers of the language.
+
+
+
+On the other hand the Java 
+design is very inflexible: it does not allow programmers to change 
+the way serialization works. In practice this is a serious problem 
+because it is not possible to use the serialization mechanism to 
+serialize into formats that it does not support; or it does not allow 
+customizing the way serialization works for a particular class.
+ 
+Ideally we would like to have a mechanism that allows both the 
+flexibility and extensibility of type classes, and the 
 
 A common problem in programming languages is how to deal with
 certain methods (or functions) that  many different types of values. 
