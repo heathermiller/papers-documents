@@ -300,9 +300,9 @@ instances automatically from that code.
 
 %\subsection{Singletons}
 % \label{sec:singletons}
-% 
+%
 % ...
-% 
+%
 % \paragraph{Companion Objects} ...
 % \end{comment}
 
@@ -433,56 +433,56 @@ implicit object IntInstance extends Show[Int] {
 \label{fig:showtc}
 \end{figure}
 
-In Scala type classes can be implemented using a combination of 
-standard OO features (traits, classes and objects) and implicits. 
+In Scala type classes can be implemented using a combination of
+standard OO features (traits, classes and objects) and implicits.
 An example of a type class is shown in Figure~\ref{fig:showtc}.
 
 \begin{lstlisting}
 // explicit parameter
-def eshow[T](visitee : T)(showT : Show[T]) = 
+def eshow[T](visitee : T)(showT : Show[T]) =
   showT.show(visitee)
-	
+
 // implicit parameter
-def ishow[T](v : T)(implicit showT : Show[T]) = 
+def ishow[T](v : T)(implicit showT : Show[T]) =
   showT.show(v)
-	
+
 // implicit parameter with context bounds
-def show[T : Show](v : T) = 
-  implicitly[Show[T]].show(v) 
-	
-def test1 = show(5) 
-	
-// Adding a show method to an arbitrary 
+def show[T : Show](v : T) =
+  implicitly[Show[T]].show(v)
+
+def test1 = show(5)
+
+// Adding a show method to an arbitrary
 // object of a certain type
 trait Showable {
  def show() : String
 }
-	
-implicit def showWrapper[T : Show](visitee : T) = 
+
+implicit def showWrapper[T : Show](visitee : T) =
  new Showable {
    def show() = implicitly[Show[T]].show(visitee)
- } 
-	
+ }
+
 def test2 = 5.show()
-\end{lstlisting}	
+\end{lstlisting}
 
 
 \begin{figure}
-\begin{lstlisting}	
-sealed trait Tree 
-case class Fork(left : Tree, right : Tree) 
+\begin{lstlisting}
+sealed trait Tree
+case class Fork(left : Tree, right : Tree)
   extends Tree
 case class Leaf(elem : Int) extends Tree
-	
+
 implicit object TreeInst extends Show[Tree] {
- def show(visitee : Tree) : String = 
+ def show(visitee : Tree) : String =
    visitee match {
-     case Fork(l,r) => 
+     case Fork(l,r) =>
        "Fork(" + l.show() + ", " + r.show() + ")"
      case Leaf(x) => "Leaf(" + x.show() + ")"
    }
 }
-	
+
 val tree : Tree = Fork(Fork(Leaf(3),Leaf(4)),Leaf(5))
 def test3 = tree.show()
 \end{lstlisting}
@@ -490,23 +490,23 @@ def test3 = tree.show()
 \end{figure}
 
 \begin{figure}
-\begin{lstlisting}	
+\begin{lstlisting}
 sealed trait PTree[A]
-case class Branch[A](x : A, l : PTree[A], r : PTree[A]) 
+case class Branch[A](x : A, l : PTree[A], r : PTree[A])
   extends PTree[A]
 case class Empty[A] extends PTree[A]
-	
-implicit def PTreeInst[A : Show] : Show[PTree[A]] = 
+
+implicit def PTreeInst[A : Show] : Show[PTree[A]] =
   new Show[PTree[A]] {
-    def show(visitee : PTree[A]) = 
+    def show(visitee : PTree[A]) =
      visitee match {
-        case Branch(x,l,r) => 
-           "Branch(" + x.show() + ", " + l.show() + 
+        case Branch(x,l,r) =>
+           "Branch(" + x.show() + ", " + l.show() +
            ", " + r.show() + ")"
    	    case Empty() => "Empty()"
      }
 }
-	
+
 val ptree : PTree[Int] = Branch(5,Empty,Empty)
 def test4 = ptree.show()
 \end{lstlisting}
@@ -677,10 +677,14 @@ type class instances do not have to be defined manually.
 
 \subsection{Generation Mechanism}\label{sec:basic-generation}
 
-high-level overview of the pattern. macros generate calls to \\\verb|implicitly[T]| and generate the bodies of implicit objects. the macro also inspects the type and based on that, generates nested \verb|implicitly[S]| calls. these calls are resolved either using regular implicits, or by expanding the implicit macro recursively.
+% high-level overview of the pattern. macros generate calls to
+% \\\verb|implicitly[T]| and generate the bodies of implicit objects. the
+% macro also inspects the type and based on that, generates nested
+% \verb|implicitly[S]| calls. these calls are resolved either using regular
+% implicits, or by expanding the implicit macro recursively.
 
-We start with a simplified view of types in Scala. In subsequent sections we
-show how to generalize this view to richer types.
+% We start with a simplified view of types in Scala. In subsequent sections we
+% show how to generalize this view to richer types.
 
 \begin{figure}
   \centering
@@ -696,11 +700,230 @@ m    ::= & \ldots \\
   \label{fig:type-syntax}
 \end{figure}
 
-In this first step we consider only closed ADT-style datatypes in Scala, which
-can be described using the grammar in Figure~\ref{fig:type-syntax}.\footnote{Case
-classes are considered to be final, even though in the current version of Scala
-they can technically be extended; extension is deprecated, though.} For example,
-an ADT for binary trees storing \verb|Int|s could be modeled as follows:
+We begin by illustrating the general idea of our generation technique through
+a simple example that is itself based solely on closed ADT-style datatypes in
+Scala, which can be described using the grammar in
+Figure~\ref{fig:type-syntax}.\footnote{Case classes are considered to be
+final, even though in the current version of Scala they can technically be
+extended; extension is deprecated, though.} In subsequent sections we show how
+to generalize this view to richer types.
+
+Our treatment is centered on an example, in which, our goal is to
+automatically ``derive'' type class instances that ``show'' information about
+a given type. Think of it as a \verb|toString| method that traverses the
+structure of a type, and nicely prints information about all of the fields of
+that type.
+
+We structure our treatment into three distinct steps (described in the
+corresponding subsections):
+
+\begin{enumerate}
+\item In Section~\ref{sec:triggering-generation}, we show how our generation is
+      triggered.
+
+\item In Section~\ref{sec:macro-based-generation}, we explain our macro-based
+      generation technique.
+
+\item In Section~\ref{sec:generated-type-class-instances}, we show some example
+      type class instances that result from our generation technique, and relate
+      them to the type class pattern introduced in Section~\ref{sec:type-classes}
+\end{enumerate}
+
+\subsubsection{Triggering generation}
+\label{sec:triggering-generation}
+
+To be able to generate suitable instances for all possible types for which
+\verb|Show[T]| can be defined, we put an implicit macro into the companion
+object of \verb|Show[T]|. The fact that the implicit macro is inside the
+companion object means that whenever an instance \verb|Show[S]| is requested,
+Scala's implicit lookup mechanism searches the members of the companion object
+\verb|Show| where it finds the implicit macro:
+
+\begin{lstlisting}
+object Show extends Query[String] {
+  ...
+  implicit def generate[T]: Show[T] =
+    macro genQuery[T, this.type]
+}
+\end{lstlisting}
+\noindent
+Thus, the implicit lookup mechanism inserts an invocation of the macro method
+\verb|genQuery|.
+
+\subsubsection{Macro-based generation}
+\label{sec:macro-based-generation}
+
+Being a macro, \verb|genQuery| returns an abstract syntax
+tree instead of a (runtime) value. It is declared as follows:
+
+\begin{lstlisting}
+def genQuery[T:c.WeakTypeTag, S:c.WeakTypeTag]
+    (c: Context): c.Tree = ...
+\end{lstlisting}
+\noindent
+Note that in this declaration, the type parameters \verb|T| and \verb|S| are annotated with
+so-called \emph{context bounds} \verb|c.WeakTypeTag|. Context bounds are an
+alternative way of adding synthetic implicit parameters:
+
+\begin{lstlisting}
+def genQuery[T, S](c: Context)
+  (implicit ev1: c.WeakTypeTag[T],
+            ev2: c.WeakTypeTag[S]): c.Tree = ...
+\end{lstlisting}
+\noindent
+The evidence parameters \verb|ev1| and \verb|ev2| of type \verb|c.WeakTypeTag[T]| provide
+access to the full static type information of types \verb|T| and \verb|S|.
+
+% The \verb|genQuery| macro inspects this type information to generate a value of
+% the following shape:
+
+% \begin{lstlisting}
+% implicit object $instanceName extends Show[T] {
+%   def show(visitee: T): String = $tree
+% }
+% $instanceName
+% \end{lstlisting}
+% \noindent
+% As required, the generated value has type \verb|Show[T]|. Hygiene requires the
+% macro to generate a fresh (term) name \verb|$instanceName|. The actual
+% implementation of the type class (\verb|$tree|) is generated as follows.
+
+First, the macro collects essential information about the types and the type
+class for which an instance should be generated. Second, the macro creates an
+instance of the user-provided \verb|Trees| class by invoking the
+\verb|mkTrees| factory method. These steps are shown in Figure~\ref{fig:macro-set-up}.
+
+\begin{figure}
+\centering
+\begin{lstlisting}
+trait Query[R] ... {
+
+  def mkTrees[C <: Context with Singleton](c: C)
+    : Trees[C]
+
+  abstract class Trees[C <: Context with Singleton]
+    (override val c: C) extends super.Trees(c) { }
+
+  def genQuery[T:c.WeakTypeTag, S:c.WeakTypeTag]
+    (c: Context): c.Tree = {
+    import c.universe._
+
+    val tpe = weakTypeOf[T]
+    val stpe = weakTypeOf[S]
+    val tpeOfTypeClass =
+      stpe.typeSymbol.asClass.companion.asType
+          .asClass.toTypeConstructor
+    val qresTpe =
+      tpeOfTypeClass.decls.head.asMethod.returnType
+
+    val trees = mkTrees[c.type](c)
+    ...
+\end{lstlisting}
+  \caption{Macro-based generation: set-up}
+  \label{fig:macro-set-up}
+\end{figure}
+
+The body of the type class is generated using the following
+quasiquote:\footnote{For simplicity and not to obscure the presentation we are
+not concerned about hygiene.}
+
+\begin{lstlisting}
+val acc = c.Expr[R](q"combineResult")
+val postfixTree = c.Expr[R](q"postfix")
+q"""
+  var combineResult: $qresTpe = ${trees.first(tpe)}
+  ..$fieldTrees // (list of trees)
+  val postfix: $qresTpe = ${trees.last(tpe)}
+  combineResult = ${trees.combine(acc, postfixTree)}
+  combineResult
+"""
+\end{lstlisting}
+\noindent
+
+The quasiquote produces an AST which constitutes the implementation of the
+single abstract method of the type class. The AST returns the value of
+\verb|combineResult|, a local variable of type \verb|R|, the type parameter of
+\verb|Query[R]| within which the macro is defined; \verb|R| is the return type
+of the type class method (\eg \verb|String| in the case of \verb|Show|). The
+value of \verb|combineResult| is the result of combining the following pieces:
+first, the initial result returned by the AST \verb|trees.first(tpe)|; second,
+the results returned by nested invocations of the type class on fields;
+finally, the result returned by the AST \verb|trees.last(tpe)|. To obtain
+those ASTs, the macro utilizes the \verb|trees| instance (of type
+\verb|Trees|) that was constructed in the set-up phase (see Figure~\ref{fig
+:macro-set-up}). Moreover, all these fragments are combined using the AST
+returned by \verb|trees.combine(acc, postfixTree)|.
+
+The list of ASTs \verb|fieldTrees| is obtained as follows. For each field
+declared in type \verb|tpe|, the following subtree is generated:
+
+\begin{figure}
+\centering
+\begin{lstlisting}
+val symTp = sym.typeSignatureIn(tpe)
+val fieldName = sym.name.toString.trim
+val valueTree = trees.fieldValueTree(fieldName,
+                  symTp, tpeOfTypeClass)
+val next = c.Expr[R](q"res")
+val sepTree =
+  if (isFirst) { isFirst = false; q"" }
+  else q"combineResult =
+    ${trees.combine(acc,
+                    trees.separator).tree}"
+q"""
+  $sepTree
+  val res: $qresTpe = $valueTree
+  combineResult = ${trees.combine(acc, next).tree}
+"""
+\end{lstlisting}
+  \caption{desc.}
+  \label{fig:macro-combine-result}
+\end{figure}
+
+Of all these subtrees,
+\verb|trees.fieldValueTree(fieldName, symTp, tpeOfTypeClass)| is most interesting.
+It expands to a nested look-up of a type class instance for the field, as well as
+an invocation of the type class method. Figure~\ref{fig:macro-field-value} shows its implementation.
+The AST returned by \verb|implicitlyTree(tpe, tpeOfTypeClass)| is expanded as follows,
+obtaining a type class instance for the current field:
+\begin{lstlisting}
+val instType = appliedType(tpeOfTypeClass, tpe)
+q"implicitly[$instType]"
+\end{lstlisting}
+
+
+\begin{figure}
+\centering
+\begin{lstlisting}
+def fieldValueTree(name: String, tpe: c.Type,
+                   tpeOfTypeClass: c.Type): c.Tree = {
+  val instTree   = q"inst"
+  val fieldTree  = q"value"
+  val invokeTree = invoke(instTree, fieldTree)
+  q"""
+    val inst = ${implicitlyTree(tpe, tpeOfTypeClass)}
+    val value = visitee.${TermName(name)}
+    $invokeTree
+  """
+}
+\end{lstlisting}
+  \caption{Nested implicit look-ups of instances}
+  \label{fig:macro-field-value}
+\end{figure}
+
+
+
+% All methods are the \verb|Trees| class are provided by the library, although some of these methods are abstract
+
+\subsubsection{Generated Type Class Instances}
+\label{sec:generated-type-class-instances}
+
+The generation technique explained in the previous section produces implicit
+(singleton) objects which correspond to the type class intances portion of the
+type class pattern introduced in Section~\ref{sec:type-classes}.
+
+Let's say the datatype that we'd like to call \verb|show| on is a closed
+ADT for binary trees, which looks like:
 
 \begin{lstlisting}
 sealed trait Tree
@@ -709,167 +932,260 @@ case class Fork(left: Tree, right: Tree)
 case class Leaf(elem: Int) extends Tree
 \end{lstlisting}
 \noindent
-The goal of the self-assembly pattern is to derive type class instances of a
-given type class for all supported datatypes (for now, the types in
-Figure~\ref{fig:type-syntax}). The pattern assumes that the type class has the
-following shape:
-\begin{lstlisting}
-trait Show[T] {
-  def show(visitee: T): String
-}
-\end{lstlisting}
-\noindent
-Importantly, for now we only consider type classes with a single type
-parameter. Moreover, the type class is supposed to have a single (abstract)
-method that has a single parameter of the generic type and some return type
-that (a) does not depend on the generic type, and (b) is a monoid.
 
-Given a type class, say \verb|Show[T]|, and a datatype, say \verb|Tree|, the
-self-assembly pattern systematically derives a type class instance
-\verb|Show[Tree]|. Applying the pattern consists of the following steps:
+As one might infer, in order to create type class instances of type
+\verb|Show[Tree]|, one must be able to create type class instances for
+\verb|Tree|'s two subclasses, \verb|Fork|, and \verb|Leaf|. Since both
+\verb|Fork| and \verb|Leaf|.
 
-\begin{enumerate}
-
-\item Definition of an \emph{implicit object} that extends the type of the
-      type class instance (\eg \verb|Show[Tree]|).
-
-\item Looking up implicit instances for the components of the type.
-
-\item Implementation of the type class according to the shape of the type
-      using the component instances.
-
-\item Introducing the implicit object into the right scope, so that implicit
-      search locates it.
-
-\end{enumerate}
-\noindent
-In the following we elaborate on each step.
-
-\paragraph{Case classes} First, we consider a datatype whose declaration has the shape:
+Note that \verb|Fork| and \verb|Leaf| are each case classes with the general
+shape:
 
 \begin{math}
 \texttt{case class}~C(p_1: D_1, \ldots, p_n: D_n)~\{~\bar{m}~\} \\
 \texttt{~~~~~extends}~E_1~\texttt{with}~ \ldots ~\texttt{with}~E_m
 \end{math}
-
-The first step is the definition of an implicit object extending
-\verb|Show[C]|:
-
-\begin{lstlisting}
-implicit object CShowInstance extends Show[C] {
-  def show(visitee: C): String = ...
-}
-\end{lstlisting}
 \noindent
-We derive an implementation of the \verb|show| method by looking up type class
-instances for each of the class parameters $p_i$ of $C$. Since type class
-instances are declared as implicit values in Scala, we can use the following
-method \verb|implicitly| to look up type class instances:
 
-\begin{lstlisting}
-def implicitly[T](implicit e: T): T = e
-\end{lstlisting}
-\noindent
-Thus, an invocation \verb|implicitly[Show[D_i]]| returns an instance of
-\verb|Show| for type \verb|D_i|.\footnote{The \texttt{implicitly} method is
-defined in the \texttt{Predef} singleton object in Scala's standard library.}
+An arbitrary type class instance (implicit singleton object) can be generated
+using the technique described in the previous section which corresponds to the
+arbitrary shape of $C$:
 
-Using \verb|implicitly| we can implement the type class instance as follows.
-For each class parameter $p_i$ of $C$, we obtain the corresponding type class
-instance (of type \verb|Show[D_i]|), and use it to obtain a result of type
-\verb|String|. Since \verb|String| is a monoid, we can reduce the results
-obtained for all parameters into a single \verb|String|:
+\begin{figure}[h!]
+\centering
+\includegraphics[width=0.87\columnwidth]{basic-generation.pdf}
+\caption{desc.}
+\label{fig:basic-generation}
+\end{figure}
 
-\begin{lstlisting}
-var result: String = ""
-val inst_1 = implicitly[Show[D_1]]
-result = result + inst_1.show(visitee.p_1)
-...
-val inst_n = implicitly[Show[D_n]]
-result = result + inst_n.show(visitee.p_n)
-\end{lstlisting}
-\noindent
-Making the \verb|CShowInstance| object \verb|implicit| enables support for
-\emph{recursive types:} if one of the types $D_i = C$, then the corresponding
-invocation \verb|implicitly[Show[D_i]]| simply returns \verb|CShowInstance|.
-
-\paragraph{Traits} The next step is creating instances for (abstract) traits of the following
-shape:
-\begin{math}
-\texttt{sealed trait}~D~\{~\bar{m}~\}
-\end{math}
-
-Concrete instances of this type have subtypes (dynamically) which are case
-classes (according to our initial simplified view). Therefore, the type class
-instance for $D$ performs a dynamic dispatch to select a specific instance
-based on the runtime classtype of the object that the type class is applied
-to (\verb|visitee|):
-
-\begin{lstlisting}
-implicit object DShowInstance extends Show[D] {
-  def show(visitee: D): String =
-    visitee match {
-      case null => ...
-      case v1: C1 =>
-        implicitly[Show[C1]].show(v1)
-      ...
-      case vn: Cn =>
-        implicitly[Show[Cn]].show(vn)
-    }
-}
-\end{lstlisting}
-\noindent
-The classtypes \verb|C1|, ..., \verb|Cn| are all subclasses of trait \verb|D|;
-since \verb|D| is sealed, there cannot be other subclasses.
+As we can see, the implicit object (1) in Figure~\ref{fig:basic-generation} is
+exactly the same as in the manual type class pattern described in
+Section~\ref{sec:type-classes}. (2) is the the implementation of the single
+abstract method of the type class (the \verb|show| method of the \verb|Show|
+trait). (3) is the result of expanding the \verb|implicitlyTree| invocation
+shown in Figure~\ref{fig:macro-field-value}. (4) corresponds to the
+accumulation logic which itself results from the expansion of
+\verb|combineResult| shown in Figure~\ref{fig:macro-combine-result}. Finally,
+(5) corresponds to the expansion of \verb|trees.first| and \verb|trees.last|
+in the body of the macro-generated implementation of \verb|Show|'s single
+abstract method, \verb|show|.
 
 
 
-\subsection{Generation using macros}
-Suppose the goal is to automatically generate type class instances for a type class \verb|Show[T]|.
+% To understand the self-assembly pattern, we use the following example.
+% Given an ADT for binary trees storing \verb|Int|s modeled as follows:
 
-To be able to generate suitable instances for all possible types for which \verb|Show[T]| can be defined, we put an implicit macro into the companion object of \verb|Show[T]|. The fact that the implicit macro is inside the companion object means that whenever an instance \verb|Show[S]| is requested, Scala's implicit lookup mechanism searches the members of the companion object \verb|Show| where it finds the implicit macro:
+% In this example, our goal is to automatically ``derive'' type class instances
+% that ``show'' information about a given type. Think of it as a \verb|toString|
+% method that traverses the structure of a type, and nicely prints information
+% about all of the fields of that type.
 
-\begin{lstlisting}
-object Show {
-  implicit def generate[T]: Show[T] =
-    macro genQuery[T]
-}
-\end{lstlisting}
-\noindent
-Thus, the implicit lookup mechanism inserts an invocation of the macro method
-\verb|genQuery|. Being a macro, \verb|genQuery| returns an abstract syntax
-tree instead of a (runtime) value. It is declared as follows:
+% The \verb|Show| type class should look like this:
 
-\begin{lstlisting}
-def genQuery[T : c.WeakTypeTag](c: Context):
-  c.Tree = ...
-\end{lstlisting}
-\noindent
-Note that in this declaration the type parameter \verb|T| is annotated with a
-so-called \emph{context bound} \verb|c.WeakTypeTag|. The context bound is an
-alternative way of adding a synthetic implicit parameter:
+% \begin{lstlisting}
+% trait Show[T] {
+%   def show(visitee: T): String
+% }
+% \end{lstlisting}
+% \noindent
 
-\begin{lstlisting}
-def genQuery[T](c: Context)
-  (implicit ev: c.WeakTypeTag[T]): c.Tree = ...
-\end{lstlisting}
-\noindent
-The evidence parameter \verb|ev| of type \verb|c.WeakTypeTag[T]| provides
-access to the full static type information of type \verb|T|. The
-\verb|genQuery| macro inspects this type information to generate a value of
-the following shape:
+% And let's say the datatype that we'd like to call \verb|show| on is a closed
+% ADT for binary trees, which looks like:
 
-\begin{lstlisting}
-implicit object $instanceName extends Show[T] {
-  def mkString(visitee: T): String = $tree
-}
-$instanceName
-\end{lstlisting}
-\noindent
-As required, the generated value has type \verb|Show[T]|. Hygiene requires the
-macro to generate a fresh (term) name \verb|$instanceName|. The actual
-implementation of the type class (\verb|$tree|) is generated by inspecting the
-type tag.
+% \begin{lstlisting}
+% sealed trait Tree
+% case class Fork(left: Tree, right: Tree)
+%   extends Tree
+% case class Leaf(elem: Int) extends Tree
+% \end{lstlisting}
+% \noindent
+% % The goal of the self-assembly pattern is to derive type class instances of a
+% % given type class for all supported datatypes (for now, the types in
+% % Figure~\ref{fig:type-syntax}).
+
+% In order to automatically derive a type class instance of type
+% \verb|Show[Tree]|, the pattern assumes that the type class has:
+
+% \begin{itemize}
+% \item exactly one type parameter, and
+% \item a single abstract method with a single parameter of generic type, a return type that does not depend on the generic type, and which is a monoid.
+% \end{itemize}
+
+% This is all satisfied for trait \verb|Show| shown above. As one might infer,
+% in order to create type class instances of type \verb|Show[Tree]|, one must be
+% able to create type class instances for \verb|Tree|'s two subclasses,
+% \verb|Fork|, and \verb|Leaf|. Since both \verb|Fork| and \verb|Leaf|.
+
+% As per section~\ref{sec:type-classes}, each type class instance is implemented
+% using an implicit (singleton) object. Each of these is generated using the
+% same generic (macro-based) generation mechanism.
+
+% An example of one such implicit object is shown below:
+
+% % Automatic generation of type class instances parameterized on different
+% % datatypes can be achieved using the pattern shown in
+% % Figure~\ref{fig:basic-generation}.
+
+% \begin{figure}[h!]
+% \centering
+% \includegraphics[width=0.87\columnwidth]{basic-generation.pdf}
+% \caption{desc.}
+% \label{fig:basic-generation}
+% \end{figure}
+
+% The basic steps that this algorithm takes are as follows (each numbered step
+% corresponds to the numbers shown in the figure):
+
+
+% % Therefore, we need to define a case
+% % class that matches the same shape as both \verb|Fork| and \verb|Leaf|:
+
+% % \begin{math}
+% % \texttt{case class}~C(p_1: D_1, \ldots, p_n: D_n)~\{~\bar{m}~\} \\
+% % \texttt{~~~~~extends}~E_1~\texttt{with}~ \ldots ~\texttt{with}~E_m
+% % \end{math}
+
+
+% \begin{enumerate}
+% \item Definition of an \emph{implicit object} that extends the type of the
+%       type class instance (\eg \verb|Show[Tree]|) we'd like to generate. Note here that
+
+% \item
+% \end{enumerate}
+
+
+% % The following is one such example,
+
+% % The pattern assumes that the type class has the
+% % following shape:
+% % Importantly, for now we only consider type classes with a single type
+% % parameter. Moreover, the type class is supposed to have a single (abstract)
+% % method that has a single parameter of the generic type and some return type
+% % that (a) does not depend on the generic type, and (b) is a monoid.
+
+% % \begin{lstlisting}
+% % implicit object CShowInstance extends Show[C] {
+% %   def show(visitee: C): String = {
+% %     var result = "C("
+
+% %     val inst_1 = implicitly[Show[D1]]
+% %     result += inst_1.show(visitee.p_1)
+% %     ...
+% %     val inst_n = implicitly[Show[DN]]
+% %     result += inst_n.show(visitee.p_n)
+% %     result += ")"
+% %   }
+% % }
+% % \end{lstlisting}
+% % \noindent
+
+% Given a type class, say \verb|Show[T]|, and a datatype, say \verb|Tree|, the
+% self-assembly pattern systematically derives a type class instance
+% \verb|Show[Tree]|. Applying the pattern requires the following steps:
+
+% \begin{enumerate}
+
+% \item Definition of an \emph{implicit object} that extends the type of the
+%       type class instance (\eg \verb|Show[Tree]|) we'd like to generate.
+
+% \item An implementation of the abstract method, within the implicit object,
+%       which provides (implicitly looked-up) instances of the type the type class instance is parameterized
+%       upon.
+
+% \item Implicit look-up of instances for the components of the type.
+
+% \item Implementation of the type class according to the shape of the type
+%       using the component instances.
+
+% \item Introducing the implicit object into the right scope, so that implicit
+%       search locates it.
+
+% \end{enumerate}
+% \noindent
+% In the following we elaborate on each step.
+
+% \paragraph{Case classes} First, we consider a datatype whose declaration has the shape:
+
+% \begin{math}
+% \texttt{case class}~C(p_1: D_1, \ldots, p_n: D_n)~\{~\bar{m}~\} \\
+% \texttt{~~~~~extends}~E_1~\texttt{with}~ \ldots ~\texttt{with}~E_m
+% \end{math}
+
+% The first step is the definition of an implicit object extending
+% \verb|Show[C]|:
+
+% \begin{lstlisting}
+% implicit object CShowInstance extends Show[C] {
+%   def show(visitee: C): String = ...
+% }
+% \end{lstlisting}
+% \noindent
+% We derive an implementation of the \verb|show| method by looking up type class
+% instances for each of the class parameters $p_i$ of $C$. Since type class
+% instances are declared as implicit values in Scala, we can use the following
+% method \verb|implicitly| to look up type class instances:
+
+% \begin{lstlisting}
+% def implicitly[T](implicit e: T): T = e
+% \end{lstlisting}
+% \noindent
+% Thus, an invocation \verb|implicitly[Show[D_i]]| returns an instance of
+% \verb|Show| for type \verb|D_i|.\footnote{The \texttt{implicitly} method is
+% defined in the \texttt{Predef} singleton object in Scala's standard library.}
+
+% Using \verb|implicitly| we can implement the type class instance as follows.
+% For each class parameter $p_i$ of $C$, we obtain the corresponding type class
+% instance (of type \verb|Show[D_i]|), and use it to obtain a result of type
+% \verb|String|. Since \verb|String| is a monoid, we can reduce the results
+% obtained for all parameters into a single \verb|String|:
+
+% \begin{lstlisting}
+% var result: String = ""
+% val inst_1 = implicitly[Show[D_1]]
+% result = result + inst_1.show(visitee.p_1)
+% ...
+% val inst_n = implicitly[Show[D_n]]
+% result = result + inst_n.show(visitee.p_n)
+% \end{lstlisting}
+% \noindent
+% Making the \verb|CShowInstance| object \verb|implicit| enables support for
+% \emph{recursive types:} if one of the types $D_i = C$, then the corresponding
+% invocation \verb|implicitly[Show[D_i]]| simply returns \verb|CShowInstance|.
+
+% \paragraph{Traits} The next step is creating instances for (abstract) traits of the following
+% shape:
+% \begin{math}
+% \texttt{sealed trait}~D~\{~\bar{m}~\}
+% \end{math}
+
+% Concrete instances of this type have subtypes (dynamically) which are case
+% classes (according to our initial simplified view). Therefore, the type class
+% instance for $D$ performs a dynamic dispatch to select a specific instance
+% based on the runtime classtype of the object that the type class is applied
+% to (\verb|visitee|):
+
+% \begin{lstlisting}
+% implicit object DShowInstance extends Show[D] {
+%   def show(visitee: D): String =
+%     visitee match {
+%       case null => ...
+%       case v1: C1 =>
+%         implicitly[Show[C1]].show(v1)
+%       ...
+%       case vn: Cn =>
+%         implicitly[Show[Cn]].show(vn)
+%     }
+% }
+% \end{lstlisting}
+% \noindent
+% The classtypes \verb|C1|, ..., \verb|Cn| are all subclasses of trait \verb|D|;
+% since \verb|D| is sealed, there cannot be other subclasses.
+
+
+
+% \subsection{Generation using macros}
+% Suppose the goal is to automatically generate type class instances for a type class \verb|Show[T]|.
+
 
 \subsection{Customization}
 \label{sec:customization}
