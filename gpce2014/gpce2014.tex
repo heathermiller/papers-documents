@@ -69,7 +69,7 @@
 
 \lstset{tabsize=2,
 basicstyle=\ttfamily\fontsize{9pt}{1em}\selectfont,
-commentstyle=\itshape\rmfamily,
+commentstyle=\color{gray}\itshape\ttfamily,
 language=scala,moredelim=[il][\sffamily]{?},mathescape=false,showspaces=false,showstringspaces=false,xleftmargin=15pt,escapechar=@, morekeywords=[1]{let,fn,val},deletekeywords={for},classoffset=0,belowskip=\smallskipamount
 }
 
@@ -156,7 +156,7 @@ language=scala,moredelim=[il][\sffamily]{?},mathescape=false,showspaces=false,sh
 % Generative Self-Assembly: Lightweight Language Extension and Datatype Generic Programming, All-in-One
 % Blending Language Extension and Datatype Generic Programming via Generative Self-Assembly
 
-\title{Generative Self-Assembly: Lightweight Language Extension and Datatype Generic Programming, All-in-One}
+\title{Lightweight Language Extension and Datatype Generic Programming, All-in-One}
 % \subtitle{Subtitle Text, if any}
 
 \authorinfo{Heather Miller}
@@ -175,15 +175,15 @@ language=scala,moredelim=[il][\sffamily]{?},mathescape=false,showspaces=false,sh
 This is the text of the abstract.
 \end{abstract}
 
-\category{CR-number}{subcategory}{third-level}
+% \category{CR-number}{subcategory}{third-level}
 
-% general terms are not compulsory anymore,
-% you may leave them out
-\terms
-term1, term2
+% % general terms are not compulsory anymore,
+% % you may leave them out
+% \terms
+% term1, term2
 
-\keywords
-keyword1, keyword2
+% \keywords
+% keyword1, keyword2
 
 \section{Introduction}
 
@@ -216,15 +216,16 @@ Another approach to providing similar functionality for a large class
 of types is to use type classes~\cite{}. Type classes provide a
 mechanism where a certain functionality can be captured in an
 interface. When programmers need certain types of values to support a
-given functionality, they can implement an \emph{instance} of a type 
-class. However a notable feature of type classes (when compared 
+given functionality, they can implement an \emph{instance} of a type
+class. However a notable feature of type classes (when compared
 to OO methods) is their support for \emph{retroactive extensibility}.
-Retroactive extensibility means that the functionality can be implemented 
-\emph{after} the type or class has been defined. This is in constrast 
+
+Retroactive extensibility means that the functionality can be implemented
+\emph{after} the type or class has been defined. This is in contrast
 with conventional OO programming, where all methods should be
-implemented together with the definition of the class. Retroactive 
+implemented together with the definition of the class. Retroactive
 extensibility means that type classes offer a lot of flexibility and
-possibility for customizing behaviour. As a result several authors 
+possibility for customizing behaviour. As a result several authors
 have argued for the software engineering benifits of using type classes~\cite{}.
 
 Because of the flexibility and extensibility of type classes, the
@@ -233,7 +234,7 @@ features that help using type classes more effectively. Today, type
 class inspired designs are used by various libraries~\cite{}.  Type
 classes solve the problem of defining some functionality for a large
 class of types elegantly.
- 
+
 However there is still space for improvement. Consider again the way
 serialization is done in Java. The language provides native support
 for it and the programmer does not need to write how to serialize code
@@ -248,97 +249,97 @@ In a sense, each operation would correspond to a little \emph{language
 
 
 
-On the other hand the Java 
-design is very inflexible: it does not allow programmers to change 
-the way serialization works. In practice this is a serious problem 
-because it is not possible to use the serialization mechanism to 
-serialize into formats that it does not support; or it does not allow 
+On the other hand the Java
+design is very inflexible: it does not allow programmers to change
+the way serialization works. In practice this is a serious problem
+because it is not possible to use the serialization mechanism to
+serialize into formats that it does not support; or it does not allow
 customizing the way serialization works for a particular class.
- 
-Ideally we would like to have a mechanism that allows both the 
-flexibility and extensibility of type classes, and the 
+
+Ideally we would like to have a mechanism that allows both the
+flexibility and extensibility of type classes, and the
 
 A common problem in programming languages is how to deal with
-certain methods (or functions) that  many different types of values. 
-For example equality or pretty printing 
+certain methods (or functions) that  many different types of values.
+For example equality or pretty printing
 
-Programming often requires the definition of similar methods (or
-functions) for different types of values. Some of these methods are so
-common that certain languages simply assume that every value supports
-them. 
+% Programming often requires the definition of similar methods (or
+% functions) for different types of values. Some of these methods are so
+% common that certain languages simply assume that every value supports
+% them.
 
-%% even if sometimes, for particular objects, the method in
-%%question does not make sense
+% %% even if sometimes, for particular objects, the method in
+% %%question does not make sense
 
-Very often the definition of such methods follows a common
-pattern. and some languages provide default implementations...
+% Very often the definition of such methods follows a common
+% pattern. and some languages provide default implementations...
 
-Section 1:
-   - Programming requires many similar methods: toString, clone,
-      serialization ...
-   - A language can help by proving an implementation mechanism
-     (example serialization in Java), but this can be inflexible:
-     sometimes cannot override behaviour; cannot define an alternative
-     generic behaviour.
-   - DGP aims at allowing a flexible mechanism to do user-defined
-   generic functions;
-   - DGP explored extensibly in Haskell and Purely Functional
-   Programming.
-   - Much less work on OO languages. OO languages have challenges
-    that do not exist in pure languages like Haskell: Subtyping,
-    object graphs, general mutability
-   - How to do generic programming in OO languages
-   - Our solution using Scala macros to generate type class instances
-   - Making DGP efficient with macros (generating instances at compile
-   time). Treating type classes as first class entities
-   (double-check)?
-   - Case study: industrial strength serialization framework
+% Section 1:
+%    - Programming requires many similar methods: toString, clone,
+%       serialization ...
+%    - A language can help by proving an implementation mechanism
+%      (example serialization in Java), but this can be inflexible:
+%      sometimes cannot override behaviour; cannot define an alternative
+%      generic behaviour.
+%    - DGP aims at allowing a flexible mechanism to do user-defined
+%    generic functions;
+%    - DGP explored extensibly in Haskell and Purely Functional
+%    Programming.
+%    - Much less work on OO languages. OO languages have challenges
+%     that do not exist in pure languages like Haskell: Subtyping,
+%     object graphs, general mutability
+%    - How to do generic programming in OO languages
+%    - Our solution using Scala macros to generate type class instances
+%    - Making DGP efficient with macros (generating instances at compile
+%    time). Treating type classes as first class entities
+%    (double-check)?
+%    - Case study: industrial strength serialization framework
 
-Section 2: Type Classes and the Boilerplate Problem
-  - What are type classes? (also introduce implicits)
-  - Show type class
-  - 3 instances: Int, List and Tree
-  - note that there is a similar pattern going on.
+% Section 2: Type Classes and the Boilerplate Problem
+%   - What are type classes? (also introduce implicits)
+%   - Show type class
+%   - 3 instances: Int, List and Tree
+%   - note that there is a similar pattern going on.
 
-Section 3: Basic selfassembly
-  - Show how to use the library to generate the instances and solve
-  the problem in Section 2; (What does the user have todo with your library?)
-  - Show how to define the ``generic function'' (What if a user wants to
-  define his own generic function?)
-  - explain the mechanisms involved (example, macros)
-  - Query Pattern? (here or somewhere else)?
+% Section 3: Basic selfassembly
+%   - Show how to use the library to generate the instances and solve
+%   the problem in Section 2; (What does the user have todo with your library?)
+%   - Show how to define the ``generic function'' (What if a user wants to
+%   define his own generic function?)
+%   - explain the mechanisms involved (example, macros)
+%   - Query Pattern? (here or somewhere else)?
 
-Section 4: Selfassembly for OO features
-  - Explain problem of object identity
-  - Subtyping
-  - Mutability? (Is this an issue?)
+% Section 4: Selfassembly for OO features
+%   - Explain problem of object identity
+%   - Subtyping
+%   - Mutability? (Is this an issue?)
 
-Section 5: Language extensions with the selfassembly Library
-  - Show some more general patterns
+% Section 5: Language extensions with the selfassembly Library
+%   - Show some more general patterns
 
-...
+% ...
 
-Section (n-1): Implementation and Case studies
-  - Tell about the implementation
-  - Tell about what generic functions have been implemented
-     and plans for more functionality
+% Section (n-1): Implementation and Case studies
+%   - Tell about the implementation
+%   - Tell about what generic functions have been implemented
+%      and plans for more functionality
 
-Section n: Related work
-   - DGP in Haskell
-   - DGP in OO languages
-   - Compile-time reflection
+% Section n: Related work
+%    - DGP in Haskell
+%    - DGP in OO languages
+%    - Compile-time reflection
 
-Question: What's meant by language extensions?
-quesries \& transformations (in the sense of SyB?)
+% Question: What's meant by language extensions?
+% quesries \& transformations (in the sense of SyB?)
 
-Question: How about producer generic functions? Example deserialize?
+% Question: How about producer generic functions? Example deserialize?
 
-Question: ``can use these generative techniques to extend the compiler and type system in local but powerful ways.''?
+% Question: ``can use these generative techniques to extend the compiler and type system in local but powerful ways.''?
 
 
-full of d\'ej\`a vu moments. When a programmer writtes
-a new program, it is very likely that some similar pattern or
-functionality that
+% full of d\'ej\`a vu moments. When a programmer writtes
+% a new program, it is very likely that some similar pattern or
+% functionality that
 
 The text of the paper begins here.~\cite{ComparingGPHaskellRodriquez, ComparingGPHaskellHinze, ScalaGenericProgrammers, RepLib, OOGP}
 
@@ -365,8 +366,8 @@ reviews how to encode them in Scala using implicits and conventional
 OO features~\cite{Oliveira2010}.  This section also observes that type
 classes instances for various types tend to require code that follows
 a common pattern. The pattern can be viewed as a source of code
-boilerplate, since similar code needs to be repeated throughout several 
-definitions. The remainder of the paper aims at showing how 
+boilerplate, since similar code needs to be repeated throughout several
+definitions. The remainder of the paper aims at showing how
 to capture the pattern as reusable code and generate type class
 instances automatically from that code.
 
@@ -508,15 +509,15 @@ implicit object IntInstance extends Show[Int] {
 
 In Scala type classes can be implemented using a combination of
 standard OO features (traits, classes and objects) and implicits.
-The Scala encoding of type classes is essentially a \emph{design pattern}~\cite{}: 
-instead of having built-in language concepts for type classes, Scala 
+The Scala encoding of type classes is essentially a \emph{design pattern}~\cite{}:
+instead of having built-in language concepts for type classes, Scala
 uses general language features to model type classes.
-A type class is simply an interface that provides operations 
-over one (or more) generic types. Such interfaces can be modeled 
+A type class is simply an interface that provides operations
+over one (or more) generic types. Such interfaces can be modeled
 as traits in Scala. An example of a type class is shown in
-Figure~\ref{fig:showtc}. The trait \lstinline{Show[T]} models a type 
+Figure~\ref{fig:showtc}. The trait \lstinline{Show[T]} models a type
 class that provides pretty printing functionality for some type
-\lstinline{T} via a method \lstinline{show}. 
+\lstinline{T} via a method \lstinline{show}.
 
 The main conceptual difference between standard OO methods and
 type-class methods is that the later are provided \emph{externally} to
@@ -526,9 +527,9 @@ the type class Show where the generic type parameter \lstinline{T} is
 instantiated to \lstinline{Int}. The \lstinline{object IntInstance} in
 Figure~\ref{fig:showtc} illustrates how to model such instance in
 Scala using regular objects. In that object, the \lstinline{show}
-method takes an argument \lstinline{o} of type \lstinline{Int} an 
-invokes the \lstinline{toString()} method on \lstinline{o}. 
-%%To use the pretty printing functionality in client code we could create 
+method takes an argument \lstinline{o} of type \lstinline{Int} an
+invokes the \lstinline{toString()} method on \lstinline{o}.
+%%To use the pretty printing functionality in client code we could create
 %%a method \lstinline{eshow}:
 
 %%begin{lstlisting}
@@ -536,17 +537,17 @@ invokes the \lstinline{toString()} method on \lstinline{o}.
 %%def eshow[T](o : T)(showT : Show[T]) = showT.show(o)
 %%\end{lstlisting}
 
-%%This method takes an object \lstinline{o} of some generic type \lstinline{T} and 
-%%an instance \lstinline{showT} of type \lstinline{Show[T]} and applies 
-%%the \lstinline{show} method in \lstinline{showT} to \lstinline{o}. 
-%%With \lstinline{eshow} we could  
+%%This method takes an object \lstinline{o} of some generic type \lstinline{T} and
+%%an instance \lstinline{showT} of type \lstinline{Show[T]} and applies
+%%the \lstinline{show} method in \lstinline{showT} to \lstinline{o}.
+%%With \lstinline{eshow} we could
 
 \paragraph{Type-Directed Resolution of Instances} An interesting
 aspect of type classes is that instances can be automatically
-determined using a type-directed resolution mechanism. This 
-type-directed resolution mechanism allows type classes 
-to be used from client code through a mechanism similar to 
-overloading. One way to achieve this is Scala is using an implicit 
+determined using a type-directed resolution mechanism. This
+type-directed resolution mechanism allows type classes
+to be used from client code through a mechanism similar to
+overloading. One way to achieve this is Scala is using an implicit
 parameter:
 
 \begin{lstlisting}
@@ -587,10 +588,10 @@ The idea of context bounds comes from the fact that type classes can
 also be seen as a generic programming mechanism~\cite{}, which allows
 generic parameters to be constrained. In this case the type of
 \lstinline{show} can be read as a generic method where the generic
-type argument must be an instance of \lstinline{Show}. 
-A small problem with context bounds there is no parameter name to be used in the 
+type argument must be an instance of \lstinline{Show}.
+A small problem with context bounds there is no parameter name to be used in the
 definition of \lstinline{show}. However, it is possible to
-\emph{query} the implicit scope for a value of a certain type 
+\emph{query} the implicit scope for a value of a certain type
 using a simple auxiliary method called \lstinline{implicitly}:
 
 \begin{lstlisting}
@@ -600,7 +601,7 @@ def implicitly[T](implicit x : T) : T = x
 This precludes the need for having to have the name of the implicit
 argument in hand in order to use it.
 From the client perspective, using \lstinline{show} is similar to
-using \lstinline{ishow}. 
+using \lstinline{ishow}.
 
 \subsection{Pretty Printing Complex Structures}
 
@@ -612,9 +613,9 @@ case class Fork(left : Tree, right : Tree)
 case class Leaf(elem : Int) extends Tree
 
 implicit object TreeInst extends Show[Tree] {
- def show(visitee : Tree) : String = 
+ def show(visitee : Tree) : String =
    visitee match {
-     case Fork(l,r) => 
+     case Fork(l,r) =>
        "Fork(" + show(l) + ", " + show(r) + ")"
      case Leaf(x) => "Leaf(" + x.toString() + ")"
    }
@@ -626,25 +627,25 @@ implicit object TreeInst extends Show[Tree] {
 \end{figure}
 
 Of course it is also possible to apply type classes to more complex
-structures. For example consider a simple type of binary trees with 
+structures. For example consider a simple type of binary trees with
 integers at the leafs. Figure~\ref{fig:trees} shows how to model such
 trees in Scala using \emph{case classes}~\cite{} and \emph{sealed
   traits}. The keyword \lstinline{sealed} in Scala means that the
-trait can only be implemented by definitions in the existing module. 
+trait can only be implemented by definitions in the existing module.
 Any definition outside the module will not be able to implement the
 trait. Together with case classes this allows modeling \emph{algebraic
   datatypes}, which are a well-know concept from functional programming.
-The \lstinline{Tree} trait is the type of trees. The case class 
-\lstinline{Fork} models the binary nodes of the tree, wheres the case 
-class \lstinline{Leaf} models the leafs containing an integer value. 
+The \lstinline{Tree} trait is the type of trees. The case class
+\lstinline{Fork} models the binary nodes of the tree, wheres the case
+class \lstinline{Leaf} models the leafs containing an integer value.
 
 To define pretty printing for \lstinline{Tree} using the
-\lstinline{Show} type class we create an \lstinline{object TreeInst}. 
+\lstinline{Show} type class we create an \lstinline{object TreeInst}.
 This object provides a definition for the
-\lstinline{show} method that pattern matches on the 
-two tree constructors (cases) of \lstinline{Tree}. The implementation 
+\lstinline{show} method that pattern matches on the
+two tree constructors (cases) of \lstinline{Tree}. The implementation
 of the two cases is unremarcable: in both cases the
-constructors names and the arguments are printed. 
+constructors names and the arguments are printed.
 
 A simple test program illustrating the use of \lstinline{TreeInst}
 is shown next:
@@ -655,7 +656,7 @@ def test3 = show(tree)
 \end{lstlisting}
 
 \noindent The value \lstinline{tree} defines a simple tree and the
-definition \lstinline{test3} pretty prints that tree. 
+definition \lstinline{test3} pretty prints that tree.
 
 \begin{figure}
 \begin{lstlisting}
@@ -664,12 +665,12 @@ case class Branch[A](x : A, l : PTree[A], r : PTree[A])
   extends PTree[A]
 case class Empty[A] extends PTree[A]
 
-implicit def PTreeInst[A : Show] : Show[PTree[A]] = 
+implicit def PTreeInst[A : Show] : Show[PTree[A]] =
   new Show[PTree[A]] {
-    def show(visitee : PTree[A]) = 
+    def show(visitee : PTree[A]) =
      visitee match {
-        case Branch(x,l,r) => 
-           "Branch(" + implicitly[Show[A]].show(x) + 
+        case Branch(x,l,r) =>
+           "Branch(" + implicitly[Show[A]].show(x) +
            ", " + show(l) + ", " + show(r) + ")"
    	    case Empty() => "Empty()"
      }
@@ -682,20 +683,20 @@ implicit def PTreeInst[A : Show] : Show[PTree[A]] =
 
 \paragraph{Recursive Resolution and Compositionality of Instances}
 Another interesting aspect of type classes is that they provide a
-highly compositional way to define instances for parametrized types. 
-Lets consider a variant of trees, shown in Figure~\ref{fig:ptrees}, which is 
-parametrized by some element type \lstinline{A}. The type these trees 
+highly compositional way to define instances for parametrized types.
+Lets consider a variant of trees, shown in Figure~\ref{fig:ptrees}, which is
+parametrized by some element type \lstinline{A}. The type these trees
 is \lstinline{PTree[A]} and there are two types of nodes:
 \lstinline{Branch} nodes with an element of type \lstinline{A}
-and two branches; and \lstinline{Empty} nodes with no content. 
+and two branches; and \lstinline{Empty} nodes with no content.
 
 Like other types it is possible to define an instance (\lstinline{PTreeInst})
 for the type \lstinline{PTree[A]}. However in order to pretty pretty
-such trees it is necessary to know how to print the elements of type 
+such trees it is necessary to know how to print the elements of type
 \lstinline{A} as well. To accomplish this we require that the
-generic type parameter \lstinline{A} has a \lstinline{Show} instance 
+generic type parameter \lstinline{A} has a \lstinline{Show} instance
 using a context bound.  To print the elements in the
-\lstinline{Branch} case, the instance can be retrieved from the local 
+\lstinline{Branch} case, the instance can be retrieved from the local
 scope using \lstinline{implicitly} and then used to print the element.
 With this instance it is possible to print trees with integer elements, such as:
 
@@ -708,7 +709,7 @@ However, more interestingly, it is also possible to print trees where
 for any element type that has a \lstinline{Show} instance. For example:
 
 \begin{lstlisting}
-val ptree2 : PTree[PTree[Tree]] = 
+val ptree2 : PTree[PTree[Tree]] =
   Branch(Branch(tree,Empty,Empty),Empty,Empty)
 def test5 = show(ptree2)
 \end{lstlisting}
@@ -725,15 +726,15 @@ mechanism is recursive.
 
 \subsection{A Boilerplate Problem}
 
-Although type classes are nice, they often require similar code for 
-different instances. For example consider the two instances 
+Although type classes are nice, they often require similar code for
+different instances. For example consider the two instances
 in Figures~\ref{fig:trees} and~\ref{fig:ptrees}. The code that is
-needed in both instances is quite similar and it follows a common 
+needed in both instances is quite similar and it follows a common
 pattern: for each case the constructor name and parameters are
-printed. Therefore code tends to be quite similar across instances. This 
-code can be viewed as a form of boilerplate since we could hope that 
-it could be mechanically generated. However, at the moment the code 
-is being defined by hand for each instance. 
+printed. Therefore code tends to be quite similar across instances. This
+code can be viewed as a form of boilerplate since we could hope that
+it could be mechanically generated. However, at the moment the code
+is being defined by hand for each instance.
 
 %Both \lstinline{ishow} and \lstinline{show}
 %provide a convenient way for some client code to invoke the pretty
@@ -1675,7 +1676,47 @@ transformations to reachable objects of selected types...
 \section{Meta-Programming and Type Classes for Language Extensions}
 \label{sec:language-extensions}
 
-Here we want to talk about things like Immutable[T].
+In this section we show how our approach supports the definition of {\em
+lightweight language extensions} that go beyond object-oriented DGP as
+discussed in the previous sections. In particular, the self-assembly pattern
+allows defining custom type-based properties that can be type-checked by the
+existing Scala type checker.
+
+An important characteristic of the self-assembly pattern and library is that
+it is a {\em compile-time} generic programming pattern. In addition to having
+access to query and transformation facilities provided by the library, users
+also have access to full type information and Scala's meta-programming API,
+enabling one to generatively define {\em lightweight language extensions}
+beyond runtime datatype generic programming patterns.
+
+The key to support both object-oriented DGP and lightweight language
+extensions is the fact that our approach is based on generic programming {\em
+at compile time}. In addition to having access to query and transformation
+facilities provided by the library, users also have (a) access to full static
+type information and (b) Scala's meta-programming API, enabling one to
+generatively define {\em lightweight language extensions}.
+
+The enabled language extensions are lightweight in the sense that they cannot
+extend the existing syntax or change Scala’s existing type-checking. Instead,
+they can be thought of as pluggable type system
+extensions~\cite{PluggableTypes} in that without changing the existing
+typechecker, additional properties can be checked. As a result, our approach
+supports extensions such as (transitive) type-based immutability checking
+which goes beyond even advanced proposals for DGP.
+
+
+%  . refine existing
+% typechecking.
+
+
+Like before, the patterns we are going to discuss are implemented in our \selfassembly library. Beyond providing re-usable abstractions, our library also serves as a layer between Scala’s macro system and users wishing to define type-system extensions. In this way, the library enforces a principled use of macros\todo{we probably need to qualify this...}, in addition to the typed expression trees discussed in Section~\ref{where we use Expr[String] the first time}.
+
+Section 6.1 introduces our approach using the example of a type-based property for checking deep immutability. Section 6.2 explains the general pattern implemented in \selfassembly.
+
+\subsubsection{Example}
+
+In the following section we will discuss one such example, a type property for
+deep immutability.
 
 Basically, the idea is that macros enable (a) inspecting the full static type
 information and (b) generating arbitrary terms (locally). This can be
@@ -1734,17 +1775,70 @@ library. The idea is that when the \verb|genQuery| macro derives an instance of
 not contain vars and it is possible to derive \verb|Immutable| instances for all its
 fields (in turn guaranteeing that they are all deeply immutable).
 
+\subsection{Principles}
+
+Oliveira et al.~\cite{Oliveira2010} present the idea of introducing relations
+on types using Scala’s implicits.
+
+\subsubsection{Defining unary type relations}
+
+Using implicits a unary type relation can be defined in Scala using a generic
+type constructor TC[A]. A type T can de declared to be an element of this
+relation, by defining an {\em implicit value} of type TC[T]:
+
+\begin{lstlisting}
+implicit val tct = new TC[T] {}
+\end{lstlisting}
+\noindent
+
+This way, an arbitrary {\em bounded} unary type relation can be defined. The
+membership of a type U in the relation TC can be checked by requiring evidence
+for it using an implicit parameter:
+
+\begin{lstlisting}
+def m[U](implicit ev: TC[U]): ...
+\end{lstlisting}
+\noindent
+
+(Classes, and thereby constructors, can also have such implicit parameters.)
+(Only if there exists an implicit value of type \verb|TC[U]| can an invocation
+(of method \verb|m| be type-checked.
+
+Polymorphic implicit methods allow defining a certain class of unbounded type
+relations by returning values of type \verb|TC[V]| for multiple types V. For
+example, the following implicit method declares all types that are equal to or
+subtypes of type Person to be elements of relation \verb|TC|:
+
+\begin{lstlisting}
+implicit def belowPerson[S <: Person]: TC[S] = new TC[S] {}
+\end{lstlisting}
+\noindent
+
+However, without meta-programming the domain of the relation can only be
+restricted using type bounds; this is not enough for rich properties such as
+immutability. In our approach, it is possible to define relations taking deep
+structural type information into account by generating implicit instances
+based on the properties of {\em type tags;} user-defined properties inspect
+such type tags at compile time. A type tag (which is part of Scala’s meta-
+programming API) provides access to the full static type and symbol
+information that is otherwise only accessible to the compiler. As a result,
+the type relations that our approach and library support are:
+
+\begin{itemize}
+\item unbounded (since it’s possible to generate instances for an unbounded number of types), and
+\item based on deep structural type information.
+\end{itemize}
 
 \section{Implementation}
 
 We provide re-usable building blocks of our approach in the form of a Scala
 library.\footnote{See \url{https://github.com/phaller/selfassembly}} The
 library has been developed and tested using the current stable release of
-Scala, Scala 2.11.\footnote{Scala 2.11 is the current stable release of Scala
-as of April 2014.} No extension of the Scala language or compiler is required
-by the library. The library comprises around 2,700 LOC (including whitespace
-and comments).\footnote{We used the following command: \texttt{git ls-files |
-grep scala | xargs wc -l}}
+Scala, Scala 2.11. No extension of the Scala language or compiler is required
+by the library. The library comprises around 2,700 LOC.
+% (including whitespace
+% and comments).\footnote{We used the following command: \texttt{git ls-files |
+% grep scala | xargs wc -l}}
 
 % It should be possible to use the library also with Scala 2.10, since no features
 % particular to Scala 2.11 are used...
@@ -1760,8 +1854,9 @@ the type of an invocation of a blackbox macro, no macro expansion is
 necessary. As a result, one can reason about the types of blackbox macros (and
 their invocations) using just their type signatures (which look just like
 method signatures). It is currently unclear, whether whitebox macros will
-become a non-experimental feature of a future Scala release.\footnote{Personal
-communication with Martin Odersky, Spring 2014.}
+become a non-experimental feature of a future Scala release.
+% \footnote{Personal
+% communication with Martin Odersky, Spring 2014.}
 
 Importantly, the implementation of our library requires only blackbox macros.
 
@@ -1787,6 +1882,8 @@ Our work is novel in
 \subsection{Compile-time Reflection}
 
 \cite{TemplateYourBoilerplate}
+\cite{Pickling}
+\cite{SYB}
 
 % \appendix
 % \section{Appendix Title}
