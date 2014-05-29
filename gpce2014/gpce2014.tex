@@ -1739,12 +1739,41 @@ fields (in turn guaranteeing that they are all deeply immutable).
 
 We provide re-usable building blocks of our approach in the form of a Scala
 library.\footnote{See \url{https://github.com/phaller/selfassembly}} The
-library has been developed and tested using Scala 2.11, but it should be
-possible to use it also with Scala 2.10, since no features particular to
-Scala 2.11 are used...
+library has been developed and tested using the current stable release of
+Scala, Scala 2.11.\footnote{Scala 2.11 is the current stable release of Scala
+as of April 2014.} No extension of the Scala language or compiler is required
+by the library. The library comprises around 2,700 LOC (including whitespace
+and comments).\footnote{We used the following command: \texttt{git ls-files |
+grep scala | xargs wc -l}}
 
-Report on examples implemented. Report on port of scala-pickling to \selfassembly and percentage of functionality
-achieved already and how much the code size was reduced and improved in terms of structure.
+% It should be possible to use the library also with Scala 2.10, since no features
+% particular to Scala 2.11 are used...
+
+\paragraph{Use of Macros} As explained in previous sections, our
+implementation is based on Scala's macro support~\cite{Burmako2012} which was
+introduced in Scala 2.10 as an experimental feature. The Scala release version
+2.11 distinguishes between two kinds of macros: \emph{blackbox} and
+\emph{whitebox} macros. The essential difference between the two kinds has to
+do with type-checking: To determine the type of an invocation of a whitebox
+macro, the compiler has to expand the macro first. In contrast, to determine
+the type of an invocation of a blackbox macro, no macro expansion is
+necessary. As a result, one can reason about the types of blackbox macros (and
+their invocations) using just their type signatures (which look just like
+method signatures). It is currently unclear, whether whitebox macros will
+become a non-experimental feature of a future Scala release.\footnote{Personal
+communication with Martin Odersky, Spring 2014.}
+
+Importantly, the implementation of our library requires only blackbox macros.
+
+\subsection{Implemented Examples}
+
+Using \selfassembly, we have implemented the following type classes and
+generic functions...
+
+\subsection{Case Study: Scala Serialization}
+
+% Report on examples implemented. Report on port of scala-pickling to \selfassembly and percentage of functionality
+% achieved already and how much the code size was reduced and improved in terms of structure.
 
 \section{Related Work}
 \label{sec:related-work}
