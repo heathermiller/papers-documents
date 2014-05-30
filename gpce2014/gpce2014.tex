@@ -229,7 +229,7 @@ programming, where all methods (such as \lstinline{toString} or
 definition of the class. Retroactive extensibility means that type
 classes offer a lot of flexibility and possibility for customizing
 behaviour. As a result several authors have argued for the software
-engineering benifits of using type classes~\cite{}.
+engineering benefits of using type classes~\cite{}.
 
 Because of the flexibility and extensibility of type classes, the
 Scala language has embraced them~\cite{}. Scala provides some language
@@ -249,12 +249,12 @@ sense for other types of operations such as \lstinline{equals} or
 provide automatically sensible implementations of these operations!
 
 While directly built-in \emph{language extensions} such as the
-serialization mechanism are very convinient, they are also quite
+serialization mechanism are very convenient, they are also quite
 inflexible. There are two essential problems:
 
 \begin{itemize}
 \item {\bf Lack of Customization:} The algorithm to do serialization
-  is built-in the language. Because of that programmers using the
+  is built-in to the language. Because of that programmers using the
   language cannot control or customize how serialization works. For
   example it is not possible to adapt the serialization mechanism to
   work with other formats (such as JSON or XML).
@@ -273,10 +273,10 @@ implementation advantages of Java's serialization mechanism.  The key
 idea is to provide programmers with a generic mechanism for doing automatic
 implementations of type classes. This mechanism allows programmers
 to define their own generic functionality, such as serialization,
-pretty printing or equality.
+pretty printing, or equality.
 
 \Selfassembly uses Scala's \emph{type-safe macro
-  system}~\cite{Burmako2012, Burmako2013} and it allows generating \emph{efficient} code.  It
+  system}~\cite{Burmako2012, Burmako2013} and it allows generating \emph{efficient} code~\cite{Pickling}.  It
 is inspired by existing approaches to \emph{datatype-generic
   programming} (DGP)~\cite{ComparingGPHaskellRodriquez,
   ComparingGPHaskellHinze}. DGP is an advanced form of generic
@@ -284,21 +284,21 @@ programming~\cite{}, where generic functions can be defined by
 inspecting the structure of types. A goal of DGP is static
 \emph{type-safety}. That is, if we define a generic function, then it
 should be possible to type-check the definition of the generic
-function. Any type-errors should be reported at compile-time and in
+function. Any type errors should be reported at compile-time and in
 terms of the generic function code (but not in terms of generated
-code, for example).The use of Scala's type-safe macro
-system in our approach allow us to preserve the type-safety goal of
-DGP while, at the same time, supporting the definition of efficient
-generic functions.  As we discuss in detail in Section~\ref{} defining
+code, for example). The use of Scala's type-safe macro
+system in our approach allows us to preserve the type-safety goal of
+DGP, while, at the same time, supporting the definition of efficient
+generic functions.  As we discuss in detail in Section~\ref{sec:related-work}, defining
 generic functions that combine type-safety and efficiency is quite
 challenging with other approaches.
 
 Another distinctive feature of \selfassembly is the support for OO
 features when defining generic functions. The vast majority of DGP
 approaches have been developed for Haskell. Haskell is a purely
-functional language, that has considerable differences to OO languages
+functional language, which has considerable differences to OO languages
 like Scala or Java. In particular, Haskell has no \emph{subtyping} or a
-notion similar to \emph{object identity}. As a result directly porting
+notion similar to \emph{object identity}. As a result, directly porting
 DGP approaches developed for Haskell is limiting because these
 approaches cannot deal with subtyping or object identity. However,
 these features need to be accountted by generic functions for OO
@@ -306,15 +306,16 @@ languages. \Selfassembly provides the necessary mechanism to allow
 the definition of generic functions with both subtyping and object identity.
 
 Using \sselfassembly, we have ported a full-featured serialization
-framework for Scala~\cite{} as a generic function (or LLE). The
+framework for Scala~\cite{Pickling} as a generic function (or LLE). The
 framework is full-featured in that it handles all object-oriented
-concerns, such as subtyping polymorphism, object identity, as well as,
+concerns, such as subtyping polymorphism, object identity, as well as
 advanced features of the type system. In contrast to the original
 implementation, which was developed in an ad-hoc way, the new
 implementation reuses all the generic infrastructure of
-\selfassembly. As a result the code for the serialization framework is
+\texttt{self-assembly}. As a result, the code for the serialization framework is
 significantly shorter. Furthermore we have implemented various other
-generic functions such as ...
+generic functions such as type-safe equality, pretty printing, and
+a scaling transformation.
 
 Finally we also show a different application of LLEs: \emph{generic
   properties}. In \selfassembly it is also possible to define some
@@ -335,7 +336,7 @@ In summary the contributions of this paper are:
   type classes \emph{and} type-safe macros, which provides both
   \emph{efficiency} and \emph{type-safety}. The framework includes
   several auxiliary definitions, such as generic queries and
-  transformations, that help defining new LLEs.
+  transformations, that help define new LLEs.
 
 \item {\bf a full-featured DGP approach for OOP:} \selfassembly
   supports the definition of datatype-generic functions.
