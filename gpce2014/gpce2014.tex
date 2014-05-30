@@ -1523,7 +1523,7 @@ defined within the same compilation unit.
 \begin{figure}
 \centering
 \begin{lstlisting}
-File PersonA.scala:
+// File PersonA.scala:
 abstract class Person {
   def name: String
   def age: Int
@@ -1534,7 +1534,7 @@ case class Employee(n: String, a: Int, s: Int)
   def age = a
 }
 
-File PersonB.scala:
+// File PersonB.scala:
 case class Firefighter(n: String, a: Int, s: Int)
   extends Person {
   def name = n
