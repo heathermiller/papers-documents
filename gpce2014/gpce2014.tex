@@ -331,25 +331,38 @@ In summary the contributions of this paper are:
 
 \begin{itemize}
 
-\item {\bf \sselfassembly:} A framework for generic programming based on 
-  type classes and type-safe macros.
+\item {\bf \sselfassembly:} A framework for LLEs based on 
+  type classes \emph{and} type-safe macros, which provides both
+  \emph{efficiency} and \emph{type-safety}. The framework includes 
+  several auxiliary definitions, such as generic queries and
+  transformations, that help defining new LLEs.
 
-\item the pattern isn't only good for standard DGP (that also happens
-  to be statically inlined and is faster than other DGP approaches),
-  but since it's based on type classes generated at compile-time, it's
-  possible to extend the language and compiler in a number of (local
-  but) powerful ways (for example, transitive immutability checking)
-  using this generative pattern.
+\item {\bf a full-featured DGP approach for OOP:} \selfassembly 
+  supports the definition of datatype-generic functions.
+  Moreover the generic functions can deal with features present in
+  production OO languages, including subtyping, object identity, 
+  object graphs, and generics. 
 
-\item in all of this, we additionally deal with oo issues like
-  subtyping polymorphism (we generate type classes for all known
-  subtypes and generate subtyping dispatches) and object
-  identity/cycles.
+\item {\bf support for generic properties:} \selfassembly also
+  supports the definition of lightweight forms of static program analysis.
+  We have implemented an immutability checker in \sselfassembly. 
 
-\item to reduce the amount of boilerplate for those wanting to use
-  this generative pattern, we also provide a library for
-  query/transformation-based generic programming that can also be used
-  for these lightweight language.
+\item {\bf a case study using serialization:} We evaluated the
+  expressive power of \selfassembly by porting a full-featured
+  serialization framework.
+
+%the pattern isn't only good for standard DGP (that also happens
+%  to be statically inlined and is faster than other DGP approaches),
+% but since it's based on type classes generated at compile-time, it's
+% possible to extend the language and compiler in a number of (local
+% but) powerful ways (for example, transitive immutability checking)
+% using this generative pattern.
+
+
+%\item to reduce the amount of boilerplate for those wanting to use
+% this generative pattern, we also provide a library for
+%  query/transformation-based generic programming that can also be used
+%  for these lightweight language.
 
 \end{itemize}
 
