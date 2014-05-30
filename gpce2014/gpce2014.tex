@@ -995,29 +995,20 @@ of type classes for specific types.
 \centering
 \begin{lstlisting}
 object Show extends Query[String] {
-  def mkTrees[C <: Context with Singleton](c: C)
-    : Trees[C] = new Trees(c)
+  def mkTrees[C <: SContext](c: C) = new Trees(c)
 
-  class Trees[C <: Context with Singleton]
-    (override val c: C) extends super.Trees(c) {
+  class Trees[C <: SContext](override val c: C)
+      extends super.Trees(c) {
     import c.universe._
+    type SExpr = c.Expr[String]
 
-    def combine(left: c.Expr[String],
-                right: c.Expr[String])
-      : c.Expr[String] = c.Expr(q"$left + $right")
+    def combine(left: SExpr, right: SExpr) =
+      c.Expr(q"$left + $right")
 
-    def first(tpe: c.Type): c.Expr[String] = {
-      val typeString = tpe.typeSymbol.name.toString
-      c.Expr(q"""
-        $typeString + "("
-      """)
+    def delimit(tpe: c.Type) = {
+      val start = tpe.typeSymbol.name.toString + "("
+      (c.Expr(q"$start"), reify(", "), reify(")"))
     }
-
-    def last(tpe: c.Type): c.Expr[String] =
-      reify(")")
-
-    def separator: c.Expr[String] =
-      reify(", ")
   }
 
   implicit def generate[T]: Show[T] =
