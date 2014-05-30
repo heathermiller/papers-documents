@@ -1631,7 +1631,7 @@ picked up and chosen in place of automatically-generated ones. It is even possib
 use Scala's scoping and implicit precedence rules to prioritize certain instances over
 others.
 
-\section{Self-Assembly for Object Orientation}
+\section{Self-Assembly for Object Orientation}\label{sec:oo}
 
 A cornerstone of the design of \selfassembly is its support for features of mainstream
 OO languages. The following Section~\ref{sec:oo-sub} explains how our approach supports
@@ -1903,14 +1903,82 @@ if (!visited(visitee.p_n)) {
 \noindent
 
 
-\section{Queries and Transformations}\label{sec:queries-transformations}
+\section{Transformations}\label{sec:queries-transformations}
 
 The library provides a set of traits for expressing generic functions that are
 either (a) queries or (b) transformations. Basically, a query generates type
 class instances that traverse an object graph and return a single result of a
 possibly different type. In contrast, a transformation generates type class
 instances that perform a deep copy of an object graph, applying
-transformations to reachable objects of selected types...
+transformations to objects of selected types. While
+Sections~\ref{sec:basic-self-assembly}-\ref{sec:oo} were focussed on generic
+queries, this section provides an overview of generic transformations.
+
+% We first introduce generic transformations by means of a typical example.
+% Subsequently, we discuss the infrastructure provided by \selfassembly to
+% define  generic transformations; finally, we show key parts of the
+% implementation of \selfassembly.
+
+\subsection{Example}
+
+Suppose we would like to express a generic transformation,
+which clones object graphs, except for subobjects of a certain type, which
+are transformed. An example for such a transformation is a generic ``scale''
+function that scales all integers in an object graph by a given factor.
+The \selfassembly library lets us write the ``scale'' function in two steps:
+first, the definition of a suitable type class; second, the implementation of
+a subclass of the library-provided \verb|Transform| class. A suitable type
+class is easily defined:
+\begin{lstlisting}
+trait Scale[T] extends Queryable[T, T] {
+  def scale(visitee: T): T
+}
+\end{lstlisting}
+\noindent
+Note that the input and output types of \verb|Queryable| are the same in this
+case, since \verb|scale| transforms any input object into an
+object of the same type. The actual transformation is defined as follows:
+\begin{lstlisting}
+object Scale extends Transform {
+  def mkTrees[C <: SContext](c: C) = new Trees(c)
+
+  class Trees[C <: SContext](override val c: C)
+    extends super.Trees(c)
+
+  implicit def generate[T]: Scale[T] =
+    macro genTransform[T, this.type]
+}
+\end{lstlisting}
+\noindent
+This transformation is not very interesting yet: it simply creates a deep
+clone of the input object. To specify how, in our case, integers are scaled,
+it is necessary to define a custom type class instance:
+\begin{lstlisting}
+def intScale(factor: Int) = new Scale[Int] {
+  def scale(visitee: Int): Int =
+    visitee * factor
+  def apply(visitee: Int, visited: Set[Any]): Int =
+    scale(visitee)
+}
+
+implicit val intInst = intScale(myFactor)
+\end{lstlisting}
+\noindent
+For convenience, we can introduce a generic \verb|gscale| function:
+
+\begin{lstlisting}
+def gscale[T](obj: T)(implicit inst: Scale[T]): T =
+  inst.scale(obj)
+\end{lstlisting}
+\noindent
+\verb|gscale| is then invoked as follows:
+\begin{lstlisting}
+implicit val inst = intScale(10)
+val scaled = gscale(obj)
+\end{lstlisting}
+
+
+\subsection{Transformations as Implemented in \selfassembly}
 
 
 \section{Generic Properties: Meta-Programming and Type Classes for Language Extensions}
