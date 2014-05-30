@@ -117,6 +117,8 @@ language=scala,moredelim=[il][\sffamily]{?},mathescape=false,showspaces=false,sh
 
 
 \newcommand{\selfassembly}{\texttt{self-assembly~}}
+\newcommand{\Selfassembly}{\texttt{Self-assembly~}}
+\newcommand{\sselfassembly}{\texttt{self-assembly}}
 
 \begin{document}
 
@@ -191,7 +193,7 @@ In programming many different types of values often require similar
 functionality. For example it is common to use methods (or
 functions) that compare two values for equality or produce a pretty
 printed string representation of the value. Because such functionality
-is so common it is desirable to have some programming language support
+is so pervasive it is desirable to have some programming language support
 that helps defining functions working over a large class of types.
 
 The solutions offered by existing programming languages are quite
@@ -204,11 +206,10 @@ programmer is supposed to override the methods to ensure proper
 functionality. Some other methods or functionality, such as
 serialization, are also quite common, but Java does not impose it on
 every type. Instead Java takes a different design where if a class
-implements a \lstinline{Serializable} interfaces then instances of
-that class automatically provide a serialization mechanism. This is
+implements a \lstinline{Serializable} interface then instances of
+that class are automatically serializable. This is
 quite convenient because the programmer does not have to write any
-code for doing serialization: the Java runtime automatically provides
-the serialization functionality. Still there is other functionality
+code for doing serialization. Still there is other functionality
 that also makes sense in a large class of types for which Java
 provides no special support.
 
@@ -217,16 +218,18 @@ of types is to use type classes~\cite{}. Type classes provide a
 mechanism where a certain functionality can be captured in an
 interface. When programmers need certain types of values to support a
 given functionality, they can implement an \emph{instance} of a type
-class. However a notable feature of type classes (when compared
-to OO methods) is their support for \emph{retroactive extensibility}.
+class. 
 
-Retroactive extensibility means that the functionality can be implemented
-\emph{after} the type or class has been defined. This is in contrast
-with conventional OO programming, where all methods should be
-implemented together with the definition of the class. Retroactive
-extensibility means that type classes offer a lot of flexibility and
-possibility for customizing behaviour. As a result several authors
-have argued for the software engineering benifits of using type classes~\cite{}.
+A notable feature of type classes is their support for
+\emph{retroactive extensibility}~\cite{}.  Retroactive extensibility means
+that the functionality can be implemented \emph{after} the type or
+class has been defined. This is in contrast with conventional OO
+programming, where all methods (such as \lstinline{toString} or 
+\lstinline{equals}) should be implemented together with the
+definition of the class. Retroactive extensibility means that type
+classes offer a lot of flexibility and possibility for customizing
+behaviour. As a result several authors have argued for the software
+engineering benifits of using type classes~\cite{}.
 
 Because of the flexibility and extensibility of type classes, the
 Scala language has embraced them~\cite{}. Scala provides some language
@@ -236,32 +239,79 @@ classes solve the problem of defining some functionality for a large
 class of types elegantly.
 
 However there is still space for improvement. Consider again the way
-serialization is done in Java. The language provides native support
-for it and the programmer does not need to write how to serialize code
-for particular classes!  In contrast with type classes the porgrammer
+serialization is done in Java. The language direct built-in support
+for serialization and the programmer does not need to write how to serialize code
+for particular classes!  In contrast with type classes the programmer
 would need to define the serialization code for each class himself.
 One could imagine that the serialization approach would also make
 sense for other types of operations such as \lstinline{equals} or
-\lstinline{toString}.  It would be very convenient if Java would
-provide automatically sensible implementations of these operations.
-In a sense, each operation would correspond to a little \emph{language
-  extension} that is built-in by the developers of the language.
+\lstinline{toString}.  It would be very convenient if the language would
+provide automatically sensible implementations of these operations!
+
+While directly built-in \emph{language extensions} such as the
+serialization mechanism are very convinient, they are also quite
+inflexible. There are two essential problems:
+
+\begin{itemize}
+\item {\bf Lack of Customization:} The algorithm to do serialization
+  is built-in the language. Because of that programmers using the
+  language cannot control or customize how serialization works. For
+  example it is not possible to adapt the serialization mechanism to
+  work with other formats (such as JSON or XML).
+
+\item {\bf Lack of Generality:} The serialization mechanism only
+  works for a specific functionality: serialization. However, as we
+  have argued, similar language extensions would make sense for other types 
+  of operations. 
+\end{itemize}
+
+In this paper we show a general mechanism, called \sselfassembly, for doing \emph{lightweight
+  language extensions} (LLEs). This mechanism solves both problems and
+provides the best of two worlds: it has the extensibility and
+customization advantages of type classes; and it has the automatic
+implementation advantages of Java's serialization mechanism.  The key
+idea is to provide programmers with a generic mechanism for doing automatic
+implementations of type classes. This mechanism allows programmers 
+to define their own generic functionality, such as serialization,
+pretty printing or equality.
+
+\Selfassembly uses Scala's \emph{type-safe macro
+  system}~\cite{} and it allows generating \emph{efficient} code.  It
+is inspired by existing approaches to \emph{datatype-generic
+  programming} (DGP)~\cite{ComparingGPHaskellRodriquez,
+  ComparingGPHaskellHinze}. DGP is an advanced form of generic
+programming~\cite{}, where generic functions can be defined by
+inspecting the structure of types. A goal of DGP is static
+\emph{type-safety}. That is, if we define a generic function, then it
+should be possible to type-check the definition of the generic
+function. Any type-errors should be reported at compile-time and in
+terms of the generic function code.The use of Scala's type-safe macro
+system in our approach allow us to preserve the type-safety goal of
+DGP while, at the same time, supporting the definition of efficient
+generic functions.  As we discuss in detail in Section~\ref{} defining
+generic functions that combine type-safety and efficiency is quite
+challenging with other approaches.
+
+Another distinctive feature of \selfassembly is the support for OO
+features when defining generic functions. Most DGP approaches 
 
 
+Using this approach, we have implemented a full-featured serialization
+framework for Scala. Full-featured in that it handles all
+object-oriented concerns, such as subtyping polymorphism, object
+identity, etc. As well as advanced features of the type system. This
+is not a toy example. It's general!
 
-On the other hand the Java
-design is very inflexible: it does not allow programmers to change
-the way serialization works. In practice this is a serious problem
-because it is not possible to use the serialization mechanism to
-serialize into formats that it does not support; or it does not allow
-customizing the way serialization works for a particular class.
+DGP shares some goals with
+reflection and meta-programming techniques. 
+Run-time reflection mechanisms (as the one in Java) are
+not type-safe (type-errors can occur at run-time), so they cannot be
+used as a DGP mechanism. Moreover, some compile-time meta-programming
+techniques are untyped: although type-errors are reported at
+compile-time they are reported in terms of generated code instead of
+the original code.
 
-Ideally we would like to have a mechanism that allows both the
-flexibility and extensibility of type classes, and the
 
-A common problem in programming languages is how to deal with
-certain methods (or functions) that  many different types of values.
-For example equality or pretty printing
 
 % Programming often requires the definition of similar methods (or
 % functions) for different types of values. Some of these methods are so
@@ -341,11 +391,11 @@ For example equality or pretty printing
 % a new program, it is very likely that some similar pattern or
 % functionality that
 
+\begin{comment}
 The text of the paper begins here.~\cite{ComparingGPHaskellRodriquez, ComparingGPHaskellHinze, ScalaGenericProgrammers, RepLib, OOGP}
 
 Implicits are a huge deal, because they provide \textbf{extensibility.} Users can easily customize generated code by making use of implicits in Scala.
 
-Using this approach, we have implemented a full-featured serialization framework for Scala. Full-featured in that it handles all object-oriented concerns, such as subtyping polymorphism, object identity, etc. As well as advanced features of the type system. This is not a toy example. It's general!
 
 Contributions.
 
@@ -356,7 +406,11 @@ Implicits and macros powerful tools for doing generative programming. In fact, s
 \item pattern
 \end{itemize}
 
-We first describe what we call the ``self-assembly pattern'' -- a technique for combining implicits and macros to generate complex in Section~\ref{sec:self-assembly-pattern} to generate type class instances.
+We first describe what we call the ``self-assembly pattern'' -- a
+technique for combining implicits and macros to generate complex in
+Section~\ref{sec:self-assembly-pattern} to generate type class
+instances.
+\end{comment}
 
 \section{Type Classes and a Boilerplate Problem}
 % \label{sec:type-classes-and-boilerplate-problem}
@@ -703,7 +757,7 @@ With this instance it is possible to print trees with integer elements, such as:
 
 \begin{lstlisting}
 val ptree : PTree[Int] = Branch(5,Empty,Empty)
-def test4 = ptree.show()
+def test4 = show(ptree)
 \end{lstlisting}
 
 However, more interestingly, it is also possible to print trees where
