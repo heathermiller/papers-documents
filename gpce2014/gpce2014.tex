@@ -881,7 +881,9 @@ following we provide an overview of macros, type checking, and usage
 restrictions; in addition, we introduce quasiquotes as a high-level API
 for working with expression trees.
 
-\paragraph{Definition} Macro defs are methods that are transparently loaded by
+\subsection{Definition}
+
+Macro defs are methods that are transparently loaded by
 the compiler and executed (or expanded) during compilation. A macro is defined
 like any normal method, but it is linked using the \verb|macro| keyword to an
 additional method that provides its implementation, which operates on
@@ -933,7 +935,9 @@ Currently, quasiquotes are type-checked during macro expansion, but are
 planned to soon be type-checked prior to expansion.
 
 
-\paragraph{Principles} In this work, we focus on one of two macro def
+\subsection{Properties}
+
+\paragraph{Constant Type Signatures} In this work, we focus on one of two macro def
 varieties, so-called ``blackbox'' macros. In this case, the type signature of
 the macro provides all information necessary for type-checking all of its
 invocations. That is, the macro does not have to be expanded prior to type-checking.
@@ -944,9 +948,11 @@ reasoning about the result type of a macro -- for blackbox macros, the
 implementation (and thus expansion) is not required to determine the result
 type.
 
-
-
-
+\paragraph{Local Expansion} Since macros are simply methods that are invoked
+at compile time, they are expanded and inlined at the user's invocation site.
+For this reason, we consider macro defs to be ``local compiler extensions.''
+They don't have the ability to change the compiler's global symbol table.
+Thus, they cannot introduce new top-level type definitions.
 
 % - the blackbox principle provides important correctness guarantees:
 % - for reasoning about the types of a program, it is not necessary to
@@ -956,8 +962,12 @@ type.
 % - thus, high-level type-based reasoning remains unaffected by potentially-erroneous
 %   macro expansions.
 
+% - for these reasons they're much more principled than approaches like TH.
 
- % -- one need not consider the macro's corresponding implementation in . One can reason about macros in an abstract way, independent of their implementation.
+% As we will see, these macros defs, coupled with implicits in Scala enable the
+% boilerplate-free type class instance synthesis.
+
+
 
 
 % - full description of macros
@@ -976,8 +986,6 @@ type.
 % It is also important to note that implicit defs as described earlier
 % in Section \ref{sec:implicits} can be implemented as macros.
 
-As we will see, these macros defs, coupled with implicits in Scala enable the
-boilerplate-free type class instance synthesis.
 % Scala pickling framework at the pickling use-
 % site.
 
