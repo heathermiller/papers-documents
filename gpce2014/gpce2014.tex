@@ -1919,8 +1919,7 @@ queries, this section provides an overview of generic transformations.
 % define  generic transformations; finally, we show key parts of the
 % implementation of \selfassembly.
 
-\subsection{Example}
-
+\paragraph{Example}
 Suppose we would like to express a generic transformation,
 which clones object graphs, except for subobjects of a certain type, which
 are transformed. An example for such a transformation is a generic ``scale''
@@ -1955,12 +1954,9 @@ clone of the input object. To specify how, in our case, integers are scaled,
 it is necessary to define a custom type class instance:
 \begin{lstlisting}
 def intScale(factor: Int) = new Scale[Int] {
-  def scale(visitee: Int): Int =
-    visitee * factor
-  def apply(visitee: Int, visited: Set[Any]): Int =
-    scale(visitee)
+  def scale(x: Int) = x * factor
+  def apply(x: Int, visited: Set[Any]) = scale(x)
 }
-
 implicit val intInst = intScale(myFactor)
 \end{lstlisting}
 \noindent
@@ -1978,7 +1974,12 @@ val scaled = gscale(obj)
 \end{lstlisting}
 
 
-\subsection{Transformations as Implemented in \selfassembly}
+\paragraph{Transformations in \selfassembly}
+The \verb|genTransform| macro is based on traversals similar to those of
+generic queries. However, the crucial difference is that the macro generates
+code to {\em clone} visited objects (based on techniques used in
+scala-pickling~\cite{Pickling}). Interestingly, the implementations of queries and
+transformations share a substantial number of generic building blocks.
 
 
 \section{Generic Properties: Meta-Programming and Type Classes for Language Extensions}
@@ -2051,7 +2052,7 @@ enable the definition of deeper structural properties.
 
 Using implicits a unary type relation can be defined in Scala using an arbitrary generic
 type constructor, say, $TC$. A type $T$ can de declared to be an element of this
-relation, by defining an {\em implicit value} of type $TC[T]$:
+relation, by defining an {\em implicit} of type $TC[T]$:
 
 \begin{lstlisting}
 implicit val tct = new TC[T] {}
@@ -2282,18 +2283,13 @@ Let us consider a sketch of \texttt{self-assembly}'s implementation of the simpl
 trait Property[R] extends AcyclicQuery[R] {
   abstract class Trees[C <: SContext]
     (override val c: C) extends super.Trees(c) {
-
     def check(tpe: c.Type): Unit
-
-    override def delimit(tpe: c.Type)
-      : (c.Expr[R], c.Expr[R], c.Expr[R]) = {
+    override def delimit(tpe: c.Type) = {
       check(tpe)
       (c.Expr(q"{}"), c.Expr(q"{}"), c.Expr(q"{}"))
     }
-
     ...
-  }
-}
+  } }
 \end{lstlisting}
 \noindent
 The trait introduces a new abstract \verb|check| method that must be
