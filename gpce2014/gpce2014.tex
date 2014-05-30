@@ -359,6 +359,7 @@ Implicits and macros powerful tools for doing generative programming. In fact, s
 We first describe what we call the ``self-assembly pattern'' -- a technique for combining implicits and macros to generate complex in Section~\ref{sec:self-assembly-pattern} to generate type class instances.
 
 \section{Type Classes and a Boilerplate Problem}
+% \label{sec:type-classes-and-boilerplate-problem}
 \label{sec:background}
 
 This section provides an introduction to type classes~\cite{} and
@@ -762,21 +763,22 @@ def test2 = 5.show()
 
 
 
-\begin{comment}
-\subsection{Macros}
+% \begin{comment}
+\section{Type-Safe Meta-Programming in Scala}
 \label{sec:macros}
 
-Scala reflection enables a form of metaprogramming which makes it possible for
-programs to modify themselves at compile-time. This compile-time reflection is
-realized in the form of hygenic macros \cite{Burmako2012}, which {\em expand}
-at compile-time to manipulate abstract syntax trees (ASTs). In our framework, we make
-use of two principal types of macros.
+Scala macros~\cite{Burmako2012, Burmako2013} enable a form of type-safe
+meta-programming. Macros are methods that are invoked at compile time; instead of
+runtime values, macros operate on and return typed expression trees. In the
+following we provide an overview of macros, type checking, and usage
+restrictions; in addition, we introduce quasiquotes as a high-level API
+for working with expression trees.
 
-\paragraph{Macro defs.} Macro defs are methods that are transparently loaded
-by the compiler and executed (or expanded) during compilation. A macro is
-defined as if it is a normal method, but it is linked using the \verb|macro|
-keyword to an additional method that operates on abstract syntax trees.
-
+\paragraph{Definition} Macro defs are methods that are transparently loaded by
+the compiler and executed (or expanded) during compilation. A macro is defined
+like any normal method, but it is linked using the \verb|macro| keyword to an
+additional method that provides its implementation, which operates on
+expression trees. Example:
 \begin{lstlisting}
 def assert(x: Boolean, msg: String): Unit =
   macro assert_impl
@@ -784,18 +786,67 @@ def assert_impl(c: Context)
   (x: c.Expr[Boolean], msg: c.Expr[String]):
                             c.Expr[Unit] = ...
 \end{lstlisting}
+\noindent
+In the above example, the parameters of \verb|assert_impl| are typed
+expression trees, which the body of \verb|assert_impl| operates on, itself
+returning an expression of type \verb|Expr[Unit]|. It is \verb|assert_impl|
+which is expanded and evaluated at compile time; its result is then inlined at
+the call site of \verb|assert| and the inlined result is type-checked.
 
-In the above, the parameters of \verb|assert_impl| are syntax
-trees, which the body of \verb|assert_impl| will operate on, itself returning
-an AST of type \verb|Expr[Unit]|. It is \verb|assert_impl| which is
-expanded and evaluated at compile-time, its result is then inlined at the
-callsite of \verb|assert| and the inlined result is typechecked
-It is also important to note that implicit defs as described earlier
-in Section \ref{sec:implicits} can be implemented as macros.
+Note that expression trees are typed, \ie \verb|assert|'s parameter of type
+\verb|Boolean| corresponds to a typed expression tree of type
+\verb|Expr[Boolean]|. There are two choices available for building expression
+trees: (a) via \verb|reify| and (b) via quasiquotes (see below):
+\begin{lstlisting}
+val expr: c.Expr[Boolean] = reify {
+  if (x.splice > 10) x.splice
+  else true
+}
+\end{lstlisting}
+\noindent
+Here, the body of \verb|reify| consists of regular Scala code; expressions in
+the enclosing scope are spliced into the result expression using the
+\verb|splice| method. Importantly, the code within \verb|reify| is
+type-checked at its definition site. This means, for the above code, Scala's type
+checker reports a type error, not in terms of the generated code, but in terms
+of the high-level typed expression trees.
+
+An alternative to working with \verb|reify|/\verb|splice| are quasiquotes.
+Quasiquotes are an experimental feature of Scala 2.11 which simplify working
+with expression trees. They allow splicing trees similar to Scala's standard
+string interpolation:
+\begin{lstlisting}
+def assert_impl(c: Context)
+  (x: c.Expr[Boolean], msg: c.Expr[String]):
+                            c.Expr[Unit] =
+  c.Expr[Unit](q"if (!$x) error($msg)")
+\end{lstlisting}
+\noindent
+Currently, quasiquotes are type-checked during macro expansion, but are
+planned to soon be type-checked prior to expansion.
+
+
+
+% - full description of macros
+% - how are things type-checked: when, what happens when there are errors
+% - footnote: whitebox macros are another form of macros which ...
+% - interactions, important details
+
+% don't have access to mutate symbol table
+% - for these reasons they're much more principled than approaches like TH.
+
+% - quasi-quotes, splicing trees
+
+
+
+
+% It is also important to note that implicit defs as described earlier
+% in Section \ref{sec:implicits} can be implemented as macros.
 
 As we will see, these macros defs, coupled with implicits in Scala enable the
-boilerplate-free usage of the Scala pickling framework at the pickling use-
-site.
+boilerplate-free type class instance synthesis.
+% Scala pickling framework at the pickling use-
+% site.
 
 % \paragraph{Macro Annotations.} Unlike macro defs, macro annotations are capable
 % of {\em adding members} to classes which carry their annotation.
@@ -820,7 +871,7 @@ site.
 % definition (the AST of ``\verb|class D { ... }|''), and returns a possibly changed AST
 % as the new class definition (which could have added members, changed
 % constructor parameters etc.)
-\end{comment}
+% \end{comment}
 
 % Section 2:
 % explain how to write type classes manually
@@ -1441,7 +1492,7 @@ abstract method, \verb|show|.
 
 Generation as provided by \selfassembly is convenient, but in some cases it is desirable
 to have full control over the type class instances for specific types (one strength of the
-type class pattern as introduced in Section~\ref{sec:background}). When using the
+type class pattern as introduced in Section~\ref{sec:type-classes}). When using the
 \selfassembly library, customization is still possible. It is sufficient to define
 custom instances for selected types manually; these custom instances are then transparently
 picked up and chosen in place of automatically-generated ones. It is even possible to
@@ -1682,12 +1733,12 @@ discussed in the previous sections. In particular, the self-assembly pattern
 allows defining custom type-based properties that can be type-checked by the
 existing Scala type checker.
 
-An important characteristic of the self-assembly pattern and library is that
-it is a {\em compile-time} generic programming pattern. In addition to having
-access to query and transformation facilities provided by the library, users
-also have access to full type information and Scala's meta-programming API,
-enabling one to generatively define {\em lightweight language extensions}
-beyond runtime datatype generic programming patterns.
+% An important characteristic of the self-assembly pattern and library is that
+% it is a {\em compile-time} generic programming pattern. In addition to having
+% access to query and transformation facilities provided by the library, users
+% also have access to full type information and Scala's meta-programming API,
+% enabling one to generatively define {\em lightweight language extensions}.
+% beyond runtime datatype generic programming patterns.
 
 The key to support both object-oriented DGP and lightweight language
 extensions is the fact that our approach is based on generic programming {\em
