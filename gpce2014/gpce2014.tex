@@ -604,7 +604,7 @@ argument in hand in order to use it.
 From the client perspective, using \lstinline{show} is similar to
 using \lstinline{ishow}.
 
-\subsection{Pretty Printing Complex Structures}
+\subsection{Pretty Printing Complex Structures}\label{sec:pretty-printing-complex}
 
 \begin{figure}
 \begin{lstlisting}
@@ -1548,7 +1548,7 @@ case class Firefighter(n: String, a: Int, s: Int)
 
 Our approach enables the generation of type class instances even for open
 classes. For example, consider the class hierarchy shown in
-Figure~\ref{fig:class-hierarchy}. It is possible to automatically generate
+Figure~\ref{fig:class-hierarchy}. The \selfassembly library can automatically generate
 an instance for type \verb|Person|:
 
 \begin{lstlisting}
@@ -1563,6 +1563,58 @@ println(inst.show(ff))
 \noindent
 Note that we are using the same \verb|Show| instance to convert both objects
 to strings.
+
+\paragraph{Generation}
+
+Concrete instances of a classtype, such as \verb|Person| in
+Figure~\ref{fig:class-hierarchy}, in general have subtypes (dynamically). One approach to
+account for subtypes is by building the logic for all possible subtypes into
+the type class instance for the supertype, like it is shown in
+Figure~\ref{fig:trees} in Section~\ref{sec:pretty-printing-complex}.
+However, such an approach does not support open class hierarchies, where new subclasses can be
+added in additional compilation units.
+
+To support open class hierarchies, the generation of type class instances for
+open classes adds a {\em dispatch step}. For a class like \verb|Person| in
+Figure~\ref{fig:class-hierarchy}, a dynamic dispatch is generated to select a
+specific type class instance based on the runtime classtype of the object that the type
+class is applied to (\verb|visitee|):\footnote{Simplified; handling of \texttt{null} values is omitted for simplicity.}
+
+\begin{lstlisting}
+implicit object PersonShowInstance extends Show[Person] {
+  def show(visitee: Person): String =
+    visitee match {
+      case v1: Employee =>
+        implicitly[Show[Employee]].show(v1)
+      case v2: Firefighter =>
+        implicitly[Show[Firefighter]].show(v2)
+    }
+}
+\end{lstlisting}
+
+% Concrete instances of this type have subtypes (dynamically) which are case
+% classes (according to our initial simplified view). Therefore, the type class
+% instance for $D$ performs a dynamic dispatch to select a specific instance
+% based on the runtime classtype of the object that the type class is applied
+% to (\verb|visitee|):
+
+% \begin{lstlisting}
+% implicit object DShowInstance extends Show[D] {
+%   def show(visitee: D): String =
+%     visitee match {
+%       case null => ...
+%       case v1: C1 =>
+%         implicitly[Show[C1]].show(v1)
+%       ...
+%       case vn: Cn =>
+%         implicitly[Show[Cn]].show(vn)
+%     }
+% }
+% \end{lstlisting}
+% \noindent
+% The classtypes \verb|C1|, ..., \verb|Cn| are all subclasses of trait \verb|D|;
+% since \verb|D| is sealed, there cannot be other subclasses.
+
 
 \subsubsection{Separate Compilation}
 
