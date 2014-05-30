@@ -2096,9 +2096,45 @@ instance of \verb|Immutable[T]| it (a) creates an instance of class
 fields (\verb|var|s) and it is possible to derive \verb|Immutable| instances
 for all its fields (in turn guaranteeing that they are all deeply immutable).
 
+The example shows that it is possible to add custom type class instances
+manually (in the example, for types \verb|Int| and \verb|String|). In general,
+this means that the checks of the generic property can be overridden for
+specific types. While providing an escape hatch (\eg in situations where
+static analysis is not powerful enough to prove a desired property for
+some type), this capability can also be used to subvert the checking of the
+generic property, of course. However, existing type checking of the Scala
+compiler remains unaffected in all cases.
+
 
 \subsection{Implementing Generic Properties}\label{sec:genprop-implementation}
 
+Generic properties are implemented as extensions of generic queries. Let us
+consider a sketch of the implementation of the simple generic \verb|Property|
+trait used in the previous example:
+\begin{lstlisting}
+trait Property[R] extends AcyclicQuery[R] {
+  abstract class Trees[C <: SContext]
+    (override val c: C) extends super.Trees(c) {
+
+    def check(tpe: c.Type): Unit
+
+    override def delimit(tpe: c.Type)
+      : (c.Expr[R], c.Expr[R], c.Expr[R]) = {
+      check(tpe)
+      (c.Expr(q"{}"), c.Expr(q"{}"), c.Expr(q"{}"))
+    }
+
+    ...
+  }
+}
+\end{lstlisting}
+\noindent
+The trait introduces a new abstract \verb|check| method that must be
+implemented by concrete properties such as \verb|Immutable| above. Moreover,
+the \verb|delimit| method that the generic query invokes for all types
+encountered in a traversal is overridden to invoke the user-defined
+\verb|check| method. Otherwise, \verb|delimit| only returns trivial expression
+trees, since they are (essentially) unused.
 
 
 \section{Implementation}
