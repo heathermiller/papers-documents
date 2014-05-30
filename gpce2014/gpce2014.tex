@@ -2146,34 +2146,57 @@ In what follows we discuss related work in more detail.
 
 \paragraph{DGP in Functional Languages} 
 The idea of DGP originated in the Functional Programming community.
-Thereare several approaches for writing datatype-generic
+There are several approaches for writing datatype-generic
 programs. Early approaches were based on programming languages with
 built-in support for DGP. These approaches include PolyP~\cite{},
 Generic Haskell~\cite{}, and Charity~\cite{}. Later approaches were
-based on small language extensions added to general purpose languages
-like Haskell. Examples include Scrap Your Boilerplate~\cite{} and
-Template Haskell~\cite{}.  More recently, researchers have realized
-that by using advanced type system features DGP could be implemented
-directly as libraries. Extensive surveys of various approaches to DGP
-in Haskell (mostly focused on libraries) document various approaches.
+based on small language extensions for general purpose languages like
+Haskell. Examples include Scrap Your Boilerplate~\cite{}, Template
+Haskell~\cite{} and generic Clean~\cite{}.
 
-\paragraph{DGP in OO Languages}
+More recently, researchers have realized that by using advanced type
+system features DGP could be implemented directly as
+libraries. Extensive surveys of various approaches to DGP in Haskell
+(mostly focused on libraries) document various approaches~\cite{}. A
+large majority of these library based approaches use \emph{run-time}
+type representations, as well as, isomorphisms that convert between
+specific datatypes and generic type representations. Without further
+optimizations this has a significant impact on performance. To improve
+performance several approaches using techniques such as
+partial-evaluation~\cite{} or inlining have been proposed~\cite{}.
+Approaches based on partial-evaluation require language support, which
+makes them more difficult to adopt. Inlining is simpler to adopt since
+it is readily available in many compiler.  Good results optimizing
+some generic functions have been reported in the GHC compiler. However
+inlining is not very predictable and some generic functions do not
+optimize well.
 
-and
-Adaptive Object-Oriented Program- ming [Lieberherr, 1996].
+Closest to our work are DGP approaches that use meta-programming
+techniques like Template Haskell~\cite{TemplateYourBoilerplate}. 
+The use of Template Haskell to do
+DGP very often motivated by performance considerations, to avoid the
+costs of run-time type representations. However Template Haskell is an 
+\emph{untyped} macro system. Therefore approaches using Template
+Haskell trade some type-safety for performance. Although type-errors
+are still detected at compile-time, they are now given in terms of the 
+generated code instead of the macro code. in \selfassembly we do not
+need to make such trade-off because we use Scala's type-safe macros.
+
+\paragraph{DGP in OO Languages} There is much less work on DGP for 
+OO languages. Adaptive Object-Oriented Programming [Lieberherr, 1996]
+can be considered a DGP approach
 
 \paragraph{Compile-time Meta-Programming}
 
-\paragraph{Other Related Work}
 
-DGP shares some goals with
-reflection and meta-programming techniques.
-Run-time reflection mechanisms (as the one in Java) are
-not type-safe (type-errors can occur at run-time), so they cannot be
-used as a DGP mechanism. Moreover, some compile-time meta-programming
-techniques are untyped: although type-errors are reported at
-compile-time they are reported in terms of generated code instead of
-the original code.
+%\paragraph{Run-time Reflection} DGP shares some goals with
+%reflection.
+%Run-time reflection mechanisms (as the one in Java) are
+%not type-safe (type-errors can occur at run-time), so they cannot be
+%used as a DGP mechanism. Moreover, some compile-time meta-programming
+%techniques are untyped: although type-errors are reported at
+%compile-time they are reported in terms of generated code instead of
+%the original code.
 
 \cite{TemplateYourBoilerplate}
 \cite{Pickling}
