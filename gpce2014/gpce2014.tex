@@ -276,7 +276,7 @@ to define their own generic functionality, such as serialization,
 pretty printing or equality.
 
 \Selfassembly uses Scala's \emph{type-safe macro
-  system}~\cite{} and it allows generating \emph{efficient} code.  It
+  system}~\cite{Burmako2012, Burmako2013} and it allows generating \emph{efficient} code.  It
 is inspired by existing approaches to \emph{datatype-generic
   programming} (DGP)~\cite{ComparingGPHaskellRodriquez,
   ComparingGPHaskellHinze}. DGP is an advanced form of generic
@@ -1067,7 +1067,7 @@ object Show extends Query[String] {
 \end{figure}
 
 The \selfassembly library allows implementing type classes in a way such that
-instances for a large class of types are generated automatically, on-the-fly.
+instances for a large class of types are generated automatically on demand, but at compile time.
 This section introduces the library using the simple \verb|Show| type class
 introduced in Section~\ref{sec:type-classes}. Section~\ref{sec:queries-transformations}
 shows how our approach extends to different forms of type classes, commonly referred to
