@@ -1581,7 +1581,8 @@ specific type class instance based on the runtime classtype of the object that t
 class is applied to (\verb|visitee|):\footnote{Simplified; handling of \texttt{null} values is omitted for simplicity.}
 
 \begin{lstlisting}
-implicit object PersonShowInstance extends Show[Person] {
+implicit object PersonShowInstance
+    extends Show[Person] {
   def show(visitee: Person): String =
     visitee match {
       case v1: Employee =>
