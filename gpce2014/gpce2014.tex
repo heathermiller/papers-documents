@@ -1633,9 +1633,15 @@ others.
 
 \section{Self-Assembly for Object Orientation}
 
-In this section we talk about all the OO features that we support...
+A cornerstone of the design of \selfassembly is its support for features of mainstream
+OO languages. The following Section~\ref{sec:oo-sub} explains how our approach supports
+{\em subtyping polymorphism} in the context of open class hierarchies (Section~\ref{sec:oo-sub-open})
+and separate compilation (Section~\ref{sec:oo-sub-sep}). In Section~\ref{sec:oo-object-identity}
+we discuss how \selfassembly handles cyclic object graphs, which are easily created
+using mutable objects with identity.
 
-\subsection{Subtyping}
+
+\subsection{Subtyping}\label{sec:oo-sub}
 
 Object-oriented languages like Java or Scala enable the definition of a
 \emph{subtyping relation} based on class hierarchies. Given the pervasive use
@@ -1644,7 +1650,7 @@ account for \emph{subtyping polymorphism}. In addition, we provide mechanisms
 that enable the object-oriented features even in a setting where
 modules/packages are separately compiled.
 
-\subsubsection{Open Hierarchies}
+\subsubsection{Open Hierarchies}\label{sec:oo-sub-open}
 
 Classes defined in languages like Java are by default ``open,'' which means
 that they can have an unbounded number of subclasses spread across several
@@ -1713,8 +1719,7 @@ specific type class instance based on the runtime classtype of the object that t
 class is applied to (\verb|visitee|):\footnote{Simplified; handling of \texttt{null} values is omitted for simplicity.}
 
 \begin{lstlisting}
-implicit object PersonShowInstance
-    extends Show[Person] {
+implicit object PersonInst extends Show[Person] {
   def show(visitee: Person): String =
     visitee match {
       case v1: Employee =>
@@ -1749,11 +1754,10 @@ implicit object PersonShowInstance
 % since \verb|D| is sealed, there cannot be other subclasses.
 
 
-\subsubsection{Separate Compilation}
+\subsubsection{Separate Compilation}\label{sec:oo-sub-sep}
 
 To support subtyping polymorphism not only across different compilation units,
-but also across separately-compiled modules,\footnote{In the Scala ecosystem
-such modules are typically distributed in separate ``JAR files.''}
+but also across separately-compiled modules,\footnote{The Scala ecosystem distributes modules in separate ``JAR files'' typically.}
 \selfassembly provides \emph{dynamic instance registries}. In the case of
 separately-compiled modules, subclasses for which we would like to generate
 instances are in general only discovered at link time. To be able to discover
@@ -1774,7 +1778,7 @@ reg.register(classOf[Firefighter],
 \noindent
 Note that the registry \verb|reg| is defined as an \emph{implicit value;} as we
 explain in the following, this is required to enable registry look-ups when
-dispatching to type class instances based on objects' runtime types.
+dispatching to type class instances based on runtime types.
 
 With the instance registry set up in this way, another separately-compiled
 module B is then able to dispatch to instances registered by module A:
@@ -1792,17 +1796,15 @@ Importantly, when module B invokes the \verb|show| method of an instance
 type class instance of type \verb|Show[Employee]| through a look-up in
 registry \verb|localReg|.
 
-\paragraph{Generation mechanics}
+\paragraph{Generation}
 
 To enable registry look-ups, we augment the dispatch logic with a default
 case:\footnote{Minimally simplified; the actual code also keeps track of object
 identities as discussed further below.}
 \begin{lstlisting}
-case _ =>
-  val registry$1: Registry[Show] =
-    implicitly[Registry[Show]]
-  val lookup$2: Option[Show[_]] =
-    registry$1.get(clazz)
+case _ => {
+  val reg$1 = implicitly[Registry[Show]]
+  val lookup$2: Option[Show[_]] = reg$1.get(clazz)
   lookup$2.get
           .asInstanceOf[Show[Person]]
           .show(visitee)
@@ -1810,7 +1812,7 @@ case _ =>
 \end{lstlisting}
 
 
-\subsection{Object Identity}
+\subsection{Object Identity}\label{sec:oo-object-identity}
 
 In object-oriented languages like Scala, it is important to take \emph{object
 identity} into account. Simple datatypes as shown in
@@ -1862,6 +1864,8 @@ implicit val intHasShow = new Show[Int] {
 \end{lstlisting}
 \noindent
 Note that the implementation of \verb|apply| is trivial.
+
+\paragraph{Generation}
 
 To enable the detection of cycles in object graphs it is necessary to
 adapt the implementation of the implicit object as follows.
