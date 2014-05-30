@@ -1963,19 +1963,26 @@ key aspects of our implementation in the \selfassembly library.
 
 % Section 6.1 introduces our approach using the example of a type-based property for checking deep immutability. Section 6.2 explains the general pattern implemented in \selfassembly.
 
-\subsection{Generic Properties: Definition}\label{sec:genprop-definition}
+\subsection{Generic Properties: Definition}
+\label{sec:genprop-definition}
 
-The generic properties supported in \selfassembly are based on unary type
-relations. Oliveira et al.~\cite{Oliveira2010} show how to define custom type
-relations in Scala using implicits (see Section~\ref{sec:implicits}). Our
-approach builds on this foundation, and extends it further using static
-meta-programming. In the following, we summarize the definition of type relations
-using implicits and present a high-level overview of our extensions.
+The generic properties supported in \selfassembly are unary type relations.
+Oliveira et al.~\cite{Oliveira2010} show how to define custom type relations
+in Scala using implicits (see Section~\ref{sec:implicits}). However, unary
+type relations defined using implicits are incapable of expressing properties
+that depend on structural type information that's inaccessible through simple
+type bounds. Our approach builds on Oliveira et al.'s foundation, and extends
+it to deep structural type information using type-safe meta-programming.
 
-\paragraph{Defining Unary Type Relations}
+In the following, we summarize the definition of type relations using
+implicits and present a high-level overview of our extensions. We then show
+how \selfassembly is augmented with meta-programming facilities in order to
+enable the definition of deeper structural properties.
 
-Using implicits a unary type relation can be defined in Scala using a generic
-type constructor $TC$. A type $T$ can de declared to be an element of this
+\paragraph{Defining Unary Type Relations via Type Classes}
+
+Using implicits a unary type relation can be defined in Scala using an arbitrary generic
+type constructor, say, $TC$. A type $T$ can de declared to be an element of this
 relation, by defining an {\em implicit value} of type $TC[T]$:
 
 \begin{lstlisting}
@@ -2006,21 +2013,98 @@ implicit def belowPerson[S <: Person]: TC[S] =
 \noindent
 However, without meta-programming the domain of the relation can only be
 restricted using type bounds; this is not enough for rich properties such as
-immutability.
+immutability since it requires deep checking to determine whether fields are
+re-assignable or not.
 
-\paragraph{Extensions in \selfassembly}
-In our approach, it is possible to define relations taking deep
-structural type information into account by generating implicit instances
-based on the properties of {\em type tags;} user-defined properties inspect
-such type tags at compile time. A type tag (which is part of Scala’s
-meta-programming API) provides access to the full static type
-information that is otherwise only accessible to the compiler. As a result,
-the type relations that our library supports are:
+\paragraph{More Powerful Type Relations via Type-Safe Meta-Programming}
 
-\begin{itemize}
-\item unbounded (since it’s possible to generate instances for an unbounded number of types), and
-\item based on deep structural type information.
-\end{itemize}
+We extend the above-described type class-based approach so as to be able to
+define relations that take deep structural type information into account. Our
+approach provides the following benefits for library authors defining new type
+relations (such as the immutable property):
+
+\begin{enumerate}
+\item Library authors are provided with a safe, read-only view of the static
+      type info corresponding to types we test for membership in the relation.
+      The provided type information is not restricted to subtyping tests, rather,
+      all functionality for analyzing type information is provided by Scala's
+      meta-programming API.
+
+\item Boilerplate for library authors is minimized using the generation approach
+      that we outlined in Section~\ref{sec:macro-based-generation}. Analogous to
+      queries and transformations, the \selfassembly library provides a set of
+      reusable abstractions, in turn making the generation mechanism easily
+      accessible to library authors.
+\end{enumerate}
+
+\paragraph{Safety}
+Static meta-programming has a reputation for being ad-hoc, untyped, and
+``anything-goes.'' However, in our approach the use of macros is fairly
+restricted. First, the used macro system is type-safe, and macro
+implementations are guaranteed to conform to their type signatures. As a result,
+these macros are easy to reason about and are well-behaved citizens in the tooling
+ecosystem. Second, and perhaps most importantly, the \selfassembly library
+encapsulates all code generation capabilities internally; library authors
+defining new generic properties are provided with only a very restricted API.
+The API is limited to a read-only view of static type information and the
+possibility to define a predicate on this information controlling type class
+instance generation.
+
+
+% - macros limited to blackbox... (can be thought of like methods, integrate with tools and stuff)
+% - macros are typed, they confirm to their type signature
+% - anything that we can do with macros that could be adverse, or otherwise undesirable
+%   we prevent users from doing it, because we don't give them the capability through our library.
+
+
+% Given that our approach is based on static meta-programming, there is a
+% concern that an excess of flexibility could make it impossible to guarantee
+% that user-defined type relations are ``safe.''
+
+
+% Acknowledging this concern, the
+% \selfassembly library encapsulates all code generation capabilities
+% internally; library authors defining new generic properties are provided with
+% only a very restricted API. The API is limited to a read-only view of static
+% type information and the possibility to define a predicate on this information
+% controlling type class instance generation.
+
+
+% users don't have the ability to generate any code by themselves. however,
+% because the generation is fully encapsulated in the library, it's safer?
+% it's what people call a ``trusted codebase''. it's not verified, and we
+% don't establish its safety.
+
+% reviewers might be wondering:
+% - how safe and good is this macro-based approach? it's like a big ugly hammer.
+%   of course you can do anything with it. you can also do anything by rewriting
+%   bytecode. it doesn't mean that it's a good approach though.
+
+% points we wanted to make at one point:
+% - template haskell and other competing approaches
+% - performance?
+% - more principled than other meta-programming approaches?
+
+
+
+
+% In our approach, it is possible to define relations that take deep
+% structural type information into account
+
+% by generating implicit instances
+% based on the properties of {\em type tags;} user-defined properties inspect
+% such type tags at compile time. A type tag (which is part of Scala’s
+% meta-programming API) provides access to the full static type
+% information that is otherwise only accessible to the compiler. As a result,
+% the type relations that our library supports are:
+
+% - simpler
+% - more powerful
+
+% \begin{itemize}
+% \item unbounded (since it’s possible to generate instances for an unbounded number of types), and
+% \item based on deep structural type information.
+% \end{itemize}
 
 
 \subsection{Example: Immutable Types}\label{sec:genprop-example}
@@ -2032,9 +2116,9 @@ the type relations that our library supports are:
 % information and (b) generating arbitrary terms (locally). This can be
 % exploited to derive rich type-based properties such as deep immutability.
 
-This section presents a complete example of a generic property: a type
-property for deep immutability. This property can be implemented using
-\selfassembly as shown in Figure~\ref{fig:immutable}.
+This section presents a complete example of a generic property as defined by a
+library author using \texttt{self-assembly}: a type property for deep immutability. The
+implementation of this property is shown in Figure~\ref{fig:immutable}.
 
 % For example, deep immutability can be expressed as shown in
 % Figure~\ref{fig:immutable} (executable code using the \selfassembly library).
@@ -2092,6 +2176,13 @@ guaranteed to be immutable""")
   \label{fig:immutable}
 \end{figure}
 
+The goal of the defined generic property is to traverse the full structure of
+a given type, and to ensure (a) that there are no re-assignable fields and (b)
+that all field types satisfy this property recursively. Therefore, the property
+is guaranteed {\em transitively} (all reachable objects are immutable). To
+guard against subclasses with re-assignable fields, the implementation assumes
+references of non-final class type potentially refer to mutable objects.
+
 Elements like trait \verb|Property| and the \verb|genQuery| macro are provided
 by the library. The idea is that when the \verb|genQuery| macro derives an
 instance of \verb|Immutable[T]| it (a) creates an instance of class
@@ -2100,7 +2191,7 @@ instance of \verb|Immutable[T]| it (a) creates an instance of class
 fields (\verb|var|s) and it is possible to derive \verb|Immutable| instances
 for all its fields (in turn guaranteeing that they are all deeply immutable).
 
-The example shows that it is possible to add custom type class instances
+The example also shows that it is possible to add custom type class instances
 manually (in the example, for types \verb|Int| and \verb|String|). In general,
 this means that the checks of the generic property can be overridden for
 specific types. While providing an escape hatch (\eg in situations where
@@ -2110,11 +2201,15 @@ generic property, of course. However, existing type checking of the Scala
 compiler remains unaffected in all cases.
 
 
-\subsection{Implementing Generic Properties}\label{sec:genprop-implementation}
+\subsection{Generic Properties as Implemented in \selfassembly}
+\label{sec:genprop-implementation}
 
-Generic properties are implemented as extensions of generic queries. Let us
-consider a sketch of the implementation of the simple generic \verb|Property|
-trait used in the previous example:
+The \selfassembly library implements generic properties as extensions of
+generic queries. Note that library authors defining new type properties are
+not exposed to the implementation discussed in the following.
+
+Let us consider a sketch of \texttt{self-assembly}'s implementation of the simple generic
+\verb|Property| trait used in the previous example:
 \begin{lstlisting}
 trait Property[R] extends AcyclicQuery[R] {
   abstract class Trees[C <: SContext]
@@ -2134,11 +2229,11 @@ trait Property[R] extends AcyclicQuery[R] {
 \end{lstlisting}
 \noindent
 The trait introduces a new abstract \verb|check| method that must be
-implemented by concrete properties such as \verb|Immutable| above. Moreover,
-the \verb|delimit| method that the generic query invokes for all types
-encountered in a traversal is overridden to invoke the user-defined
-\verb|check| method. Otherwise, \verb|delimit| only returns trivial expression
-trees, since they are (essentially) unused.
+implemented by the library author who wishes to define concrete properties
+such as \verb|Immutable[T]| above. Moreover, the \verb|delimit| method that the
+generic query invokes for all types encountered in a traversal is overridden
+to invoke the user-defined \verb|check| method. Otherwise, \verb|delimit| only
+returns trivial expression trees, since they are (essentially) unused.
 
 
 \section{Implementation}
@@ -2194,7 +2289,7 @@ Finally our work is more general than DGP in that it also allows the
 definition of generic properties like immutability checking.
 In what follows we discuss related work in more detail.
 
-\paragraph{DGP in Functional Languages} 
+\paragraph{DGP in Functional Languages}
 The idea of DGP originated in the Functional Programming community.
 There are several approaches for writing datatype-generic
 programs. Early approaches were based on programming languages with
@@ -2222,17 +2317,17 @@ inlining is not very predictable and some generic functions do not
 optimize well.
 
 Closest to our work are DGP approaches that use meta-programming
-techniques like Template Haskell~\cite{TemplateYourBoilerplate}. 
+techniques like Template Haskell~\cite{TemplateYourBoilerplate}.
 The use of Template Haskell to do
 DGP very often motivated by performance considerations, to avoid the
-costs of run-time type representations. However Template Haskell is an 
+costs of run-time type representations. However Template Haskell is an
 \emph{untyped} macro system. Therefore approaches using Template
 Haskell trade some type-safety for performance. Although type-errors
-are still detected at compile-time, they are now given in terms of the 
+are still detected at compile-time, they are now given in terms of the
 generated code instead of the macro code. in \selfassembly we do not
 need to make such trade-off because we use Scala's type-safe macros.
 
-\paragraph{DGP in OO Languages} There is much less work on DGP for 
+\paragraph{DGP in OO Languages} There is much less work on DGP for
 OO languages. Adaptive Object-Oriented Programming [Lieberherr, 1996]
 can be considered a DGP approach
 
@@ -2251,6 +2346,10 @@ can be considered a DGP approach
 \cite{TemplateYourBoilerplate}
 \cite{Pickling}
 \cite{SYB}
+
+\section{Conclusion}
+
+
 
 % \appendix
 % \section{Appendix Title}
