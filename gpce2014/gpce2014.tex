@@ -285,7 +285,8 @@ inspecting the structure of types. A goal of DGP is static
 \emph{type-safety}. That is, if we define a generic function, then it
 should be possible to type-check the definition of the generic
 function. Any type-errors should be reported at compile-time and in
-terms of the generic function code.The use of Scala's type-safe macro
+terms of the generic function code (but not in terms of generated
+code, for example).The use of Scala's type-safe macro
 system in our approach allow us to preserve the type-safety goal of
 DGP while, at the same time, supporting the definition of efficient
 generic functions.  As we discuss in detail in Section~\ref{} defining
@@ -293,25 +294,64 @@ generic functions that combine type-safety and efficiency is quite
 challenging with other approaches.
 
 Another distinctive feature of \selfassembly is the support for OO
-features when defining generic functions. Most DGP approaches 
+features when defining generic functions. The vast majority of DGP 
+approaches have been developed for Haskell. Haskell is a purely
+functional language, that has considerable differences to OO languages
+like Scala or Java. In particular, Haskell has no \emph{subtyping} or a
+notion similar to \emph{object identity}. As a result directly porting
+DGP approaches developed for Haskell is limiting because these
+approaches cannot deal with subtyping or object identity. However,
+these features need to be accountted by generic functions for OO 
+languages. \Selfassembly provides the necessary mechanism to allow 
+the definition of generic functions with both subtyping and object identity.
 
+Using \sselfassembly, we have ported a full-featured serialization
+framework for Scala~\cite{} as a generic function (or LLE). The
+framework is full-featured in that it handles all object-oriented
+concerns, such as subtyping polymorphism, object identity, as well as,
+advanced features of the type system. In contrast to the original
+implementation, which was developed in an ad-hoc way, the new
+implementation reuses all the generic infrastructure of
+\selfassembly. As a result the code for the serialization framework is
+significantly shorter. Furthermore we have implemented various other
+generic functions such as ...
 
-Using this approach, we have implemented a full-featured serialization
-framework for Scala. Full-featured in that it handles all
-object-oriented concerns, such as subtyping polymorphism, object
-identity, etc. As well as advanced features of the type system. This
-is not a toy example. It's general!
+Finally we also show a different application of LLEs: \emph{generic
+  properties}. In \selfassembly it is also possible to define some
+types of static program analysis, which guarantee that a certain
+property holds. In particular we have implemented an
+\emph{immutability checker}. If a class is immutable, the immutability
+checker will generate a type class instance for that class that
+certifies that property. It then becomes possible to
+define functions that work only on types that are certified to be
+immutable.  The immutability checker is defined with just a few lines
+of code similarly to a generic function.
 
-DGP shares some goals with
-reflection and meta-programming techniques. 
-Run-time reflection mechanisms (as the one in Java) are
-not type-safe (type-errors can occur at run-time), so they cannot be
-used as a DGP mechanism. Moreover, some compile-time meta-programming
-techniques are untyped: although type-errors are reported at
-compile-time they are reported in terms of generated code instead of
-the original code.
+In summary the contributions of this paper are:
 
+\begin{itemize}
 
+\item {\bf \sselfassembly:} A framework for generic programming based on 
+  type classes and type-safe macros.
+
+\item the pattern isn't only good for standard DGP (that also happens
+  to be statically inlined and is faster than other DGP approaches),
+  but since it's based on type classes generated at compile-time, it's
+  possible to extend the language and compiler in a number of (local
+  but) powerful ways (for example, transitive immutability checking)
+  using this generative pattern.
+
+\item in all of this, we additionally deal with oo issues like
+  subtyping polymorphism (we generate type classes for all known
+  subtypes and generate subtyping dispatches) and object
+  identity/cycles.
+
+\item to reduce the amount of boilerplate for those wanting to use
+  this generative pattern, we also provide a library for
+  query/transformation-based generic programming that can also be used
+  for these lightweight language.
+
+\end{itemize}
 
 % Programming often requires the definition of similar methods (or
 % functions) for different types of values. Some of these methods are so
@@ -2032,6 +2072,15 @@ generic functions...
 \label{sec:related-work}
 
 Our work is novel in
+
+DGP shares some goals with
+reflection and meta-programming techniques. 
+Run-time reflection mechanisms (as the one in Java) are
+not type-safe (type-errors can occur at run-time), so they cannot be
+used as a DGP mechanism. Moreover, some compile-time meta-programming
+techniques are untyped: although type-errors are reported at
+compile-time they are reported in terms of generated code instead of
+the original code.
 
 \subsection{Datatype-Generic Programming in Haskell}
 
