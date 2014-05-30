@@ -2075,7 +2075,36 @@ generic functions...
 \section{Related Work}
 \label{sec:related-work}
 
-Our work is novel in
+Our work is distinctive from previous work in various ways.  Firstly,
+when compared to existing DGP approaches, it supports challenging OO
+features such as subtyping or object identity.  Secondly \selfassembly
+builds on a type-safe macro mechanism. While there are some DGP approaches
+that use macro mechanisms too, these mechnisms tend to be untyped.
+Finally our work is more general than DGP in that it also allows the
+definition of generic properties like immutability checking.
+In what follows we discuss related work in more detail.
+
+\paragraph{DGP in Functional Languages} 
+The idea of DGP originated in the Functional Programming community.
+Thereare several approaches for writing datatype-generic
+programs. Early approaches were based on programming languages with
+built-in support for DGP. These approaches include PolyP~\cite{},
+Generic Haskell~\cite{}, and Charity~\cite{}. Later approaches were
+based on small language extensions added to general purpose languages
+like Haskell. Examples include Scrap Your Boilerplate~\cite{} and
+Template Haskell~\cite{}.  More recently, researchers have realized
+that by using advanced type system features DGP could be implemented
+directly as libraries. Extensive surveys of various approaches to DGP
+in Haskell (mostly focused on libraries) document various approaches.
+
+\paragraph{DGP in OO Languages}
+
+and
+Adaptive Object-Oriented Program- ming [Lieberherr, 1996].
+
+\paragraph{Compile-time Meta-Programming}
+
+\paragraph{Other Related Work}
 
 DGP shares some goals with
 reflection and meta-programming techniques. 
@@ -2085,12 +2114,6 @@ used as a DGP mechanism. Moreover, some compile-time meta-programming
 techniques are untyped: although type-errors are reported at
 compile-time they are reported in terms of generated code instead of
 the original code.
-
-\subsection{Datatype-Generic Programming in Haskell}
-
-\subsection{Datatype-Generic Programming in OO Languages}
-
-\subsection{Compile-time Reflection}
 
 \cite{TemplateYourBoilerplate}
 \cite{Pickling}
