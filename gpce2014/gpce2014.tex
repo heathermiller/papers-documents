@@ -996,8 +996,7 @@ def assert_impl(c: Context)
   c.Expr[Unit](q"if (!$x) error($msg)")
 \end{lstlisting}
 \noindent
-Quasiquotes statically guarantee that quoted expressions are syntactically correct, but
-the resulting trees are type-checked only once macro expansion returns.
+Quasiquotes are type-checked after they are expanded.
 
 
 \subsection{Properties}
