@@ -175,6 +175,25 @@ language=scala,moredelim=[il][\sffamily]{?},mathescape=false,showspaces=false,sh
 \maketitle
 
 \begin{abstract}
+
+In this paper we show a general mechanism, called \sselfassembly,
+for doing \emph{lightweight language extensions} (LLEs). LLEs allow
+users to define \emph{generic operations} or \emph{properties} that
+operate over a large class of types. With LLEs it is possible, for
+example, for users to define their own Java-style automatic
+serialization mechanism, or implement simple forms of static program
+analysis like a \emph{immutability checker}. However unlike language
+built-in mechanisms (such as the Java serialization mechanism), LLEs
+are multi-purpose (they can be used to define various forms of
+generic functionality) and highly customizable and extensible.  The
+key idea is to provide programmers with a generic mechanism for
+doing automatic implementations of \emph{type classes} using a
+type-safe macro mechanism. We've implemented our technique as a
+library, \selfassembly, for Scala, and evaluate its practicality by
+migrating a full-featured industrial-strength serialization
+framework for Scala to \selfassembly.
+
+
 Often generic programming and language extension are at odds with one another.
 Language extensions often require no special set-up to apply some generic
 functionality across types, though at the cost of customizability and
