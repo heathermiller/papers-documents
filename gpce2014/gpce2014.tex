@@ -189,29 +189,41 @@ This is the text of the abstract.
 
 \section{Introduction}
 
-In programming many different types of values often require similar
+
+
+In programming, many different types of values often require similar
 functionality. For example it is common to use methods (or
 functions) that compare two values for equality or produce a pretty
-printed string representation of the value. Because such functionality
-is so pervasive it is desirable to have some programming language support
-that helps defining functions working over a large class of types.
+printed string representation of the value.
+Since the need to add functionality ubiquitously across types is so pervasive,
+it's advantageous to have some programming language support
+that facilitates defining functions over a large class of types.
 
-The solutions offered by existing programming languages are quite
-varied. Even when considering a single language, various different
-designs can co-exist.  For example, in Java, every object has a few
-methods, including \lstinline{toString}, \lstinline{equals},
-\lstinline{clone} or \lstinline{hashCode}.  These methods provide a
-simple default implementation. However most of the times the
-programmer is supposed to override the methods to ensure proper
-functionality. Some other methods or functionality, such as
-serialization, are also quite common, but Java does not impose it on
-every type. Instead Java takes a different design where if a class
+Solutions to this problem across programming languages are varied.
+Even when considering a single language, various different
+designs can co-exist for ensuring that many types get some
+generic functionality.
+For example, in Java, every object always has a few
+methods; \lstinline{toString}, \lstinline{equals},
+\lstinline{clone} and \lstinline{hashCode}.
+These methods provide a simple default implementation, however,
+it's common to have to override them to achieve desired functionality.
+Serialization, on the other hand, is also an ubiquitously needed
+functionality, but unlike the above, Java
+does not ensure that serialization functionality exists for every type.
+Instead, serialization in Java is opt-in; if a class
 implements a \lstinline{Serializable} interface then instances of
-that class are automatically serializable. This is
-quite convenient because the programmer does not have to write any
-code for doing serialization. Still there is other functionality
-that also makes sense in a large class of types for which Java
-provides no special support.
+that class are automatically serializable by the JVM.
+% While these approaches are convenient in that they require
+% little or no boilerplate from the user, they're built into the
+% language or runtime, and are thus difficult or impossible to extend.
+
+% While these
+% This is
+% quite convenient because the programmer does not have to write any
+% code for doing serialization. Still there is other functionality
+% that also makes sense in a large class of types for which Java
+% provides no special support.
 
 Another approach to providing similar functionality for a large class
 of types is to use type classes~\cite{}. Type classes provide a
@@ -222,43 +234,52 @@ class.
 
 A notable feature of type classes is their support for
 \emph{retroactive extensibility}~\cite{}.  Retroactive extensibility means
-that the functionality can be implemented \emph{after} the type or
+that functionality can be implemented \emph{after} the type or
 class has been defined. This is in contrast with conventional OO
 programming, where all methods (such as \lstinline{toString} or
 \lstinline{equals}) should be implemented together with the
-definition of the class. Retroactive extensibility means that type
-classes offer a lot of flexibility and possibility for customizing
-behaviour. As a result several authors have argued for the software
+definition of the class. A major benefit of retroactive extensibility is
+flexibility and possibility for customizing behavior. As a result,
+several authors have argued for the software
 engineering benefits of using type classes~\cite{}.
-
 Because of the flexibility and extensibility of type classes, the
-Scala language has embraced them~\cite{}. Scala provides some language
-features that help using type classes more effectively. Today, type
-class inspired designs are used by various libraries~\cite{}.  Type
-classes solve the problem of defining some functionality for a large
-class of types elegantly.
+Scala language has embraced them~\cite{ScalaCollections,Pickling}.
+
+% Due to the flexibility and extensibility of type classes,
+% Scala provides some language
+% features that help using type classes more effectively. Today, type
+% class inspired designs are used by various libraries~\cite{}.  Type
+% classes solve the problem of defining some functionality for a large
+% class of types elegantly.
 
 However there is still space for improvement. Consider again the way
-serialization is done in Java. The language direct built-in support
-for serialization and the programmer does not need to write how to serialize code
-for particular classes!  In contrast with type classes the programmer
-would need to define the serialization code for each class himself.
-One could imagine that the serialization approach would also make
-sense for other types of operations such as \lstinline{equals} or
-\lstinline{toString}.  It would be very convenient if the language would
-provide automatically sensible implementations of these operations!
+serialization is done in Java. Java's support
+for serialization is built-in to the compiler and JVM, freeing the
+programmer to write any serialization boilerplate code at all.
+Type classes,on the other hand, while more flexible, require the programmer
+to define the serialization code for each class manually.
+One could also imagine that type classes could be useful for
+providing operations such as \lstinline{equals} or
+\lstinline{toString}. In all of these cases, it would be advantageous
+if it were possible to automatically provide sensible implementations
+of these operations per type!
 
-While directly built-in \emph{language extensions} such as the
-serialization mechanism are very convenient, they are also quite
+% While built-in \emph{language extensions} like Java
+% serialization are very convenient, they are also quite
+% inflexible. There are two essential problems:
+% , they're built into the
+% language or runtime, and are thus difficult or impossible to extend.
+
+While built-in \emph{language extensions} like Java
+serialization are solve this inconvenience by requiring
+little or no boilerplate from the user, they are also quite
 inflexible. There are two essential problems:
-
 \begin{itemize}
-\item {\bf Lack of Customization:} The algorithm to do serialization
-  is built-in to the language. Because of that programmers using the
+\item {\bf Lack of Customization:} Serialization
+  is built-in to the language and runtime. Thus, programmers using the
   language cannot control or customize how serialization works. For
-  example it is not possible to adapt the serialization mechanism to
+  example, it is not possible to adapt the serialization mechanism to
   work with other formats (such as JSON or XML).
-
 \item {\bf Lack of Generality:} The serialization mechanism only
   works for a specific functionality: serialization. However, as we
   have argued, similar language extensions would make sense for other types
