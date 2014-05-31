@@ -212,9 +212,9 @@ framework for Scala to \selfassembly.
 In programming, many different types of values often require similar
 functionality. For example it is common to use methods (or
 functions) that compare two values for equality or produce a pretty
-printed string representation of the value.
+printed string representation of a value.
 Since the need to add functionality ubiquitously across types is so pervasive,
-it's advantageous to have some programming language support
+it is advantageous to have some programming language support
 that facilitates defining functions over a large class of types.
 
 Solutions to this problem across programming languages are varied.
@@ -225,7 +225,7 @@ For example, in Java, every object always has a few
 methods; \lstinline{toString}, \lstinline{equals},
 \lstinline{clone} and \lstinline{hashCode}.
 These methods provide a simple default implementation, however,
-it's common to have to override them to achieve desired functionality.
+it iss common to have to override them to achieve desired functionality.
 Serialization, on the other hand, is also an ubiquitously needed
 functionality, but unlike the above, Java
 does not ensure that serialization functionality exists for every type.
@@ -244,24 +244,25 @@ that class are automatically serializable by the JVM.
 % provides no special support.
 
 Another approach to providing similar functionality for a large class
-of types is to use type classes~\cite{}. Type classes provide a
+of types is to use type classes~\cite{WadlerTypeClasses}. Type classes provide a
 mechanism where a certain functionality can be captured in an
 interface. When programmers need certain types of values to support a
 given functionality, they can implement an \emph{instance} of a type
 class.
 
 A notable feature of type classes is their support for
-\emph{retroactive extensibility}~\cite{}.  Retroactive extensibility means
-that functionality can be implemented \emph{after} the type or
-class has been defined. This is in contrast with conventional OO
-programming, where all methods (such as \lstinline{toString} or
-\lstinline{equals}) should be implemented together with the
-definition of the class. A major benefit of retroactive extensibility is
-flexibility and possibility for customizing behavior. As a result,
-several authors have argued for the software
-engineering benefits of using type classes~\cite{}.
-Because of the flexibility and extensibility of type classes, the
-Scala has embraced them~\cite{ScalaCollections,Pickling}.
+\emph{retroactive extensibility}~\cite{RetroactiveExtensibility}.
+Retroactive extensibility means that functionality can be implemented
+\emph{after} the type or class has been defined. This is in contrast
+with conventional OO programming, where all methods (such as
+\lstinline{toString} or \lstinline{equals}) should be implemented
+together with the definition of the class. A major benefit of
+retroactive extensibility is flexibility and possibility for
+customizing behavior. As a result, several authors have argued for the
+software engineering benefits of using type
+classes~\cite{RetroactiveExtensibility,Oliveira2010}. 
+Because of the flexibility and extensibility of type classes, Scala has
+embraced them~\cite{Oliveira2010,ScalaCollections,Pickling}.
 
 % Due to the flexibility and extensibility of type classes,
 % Scala provides some language
@@ -274,9 +275,9 @@ However there is still space for improvement. Consider again the way
 serialization is done in Java. Java's support
 for serialization is built-in to the compiler and JVM, freeing the
 programmer to write any serialization boilerplate code at all.
-Type classes,on the other hand, while more flexible, require the programmer
+Type classes, on the other hand, while more flexible, require the programmer
 to define the serialization code for each class manually.
-One could also imagine that type classes could be useful for
+One could also imagine mechanisms similar to serialization could also be useful for
 providing operations such as \lstinline{equals} or
 \lstinline{toString}. In all of these cases, it would be advantageous
 if it were possible to automatically provide sensible implementations
@@ -289,7 +290,7 @@ of these operations per type!
 % language or runtime, and are thus difficult or impossible to extend.
 
 While built-in \emph{language extensions} like Java
-serialization are solve this inconvenience by requiring
+serialization solve this inconvenience by requiring
 little or no boilerplate from the user, they are also quite
 inflexible. There are two essential problems:
 \begin{itemize}
@@ -318,8 +319,8 @@ pretty printing, or equality.
   system}~\cite{Burmako2012, Burmako2013} and it allows generating \emph{efficient} code~\cite{Pickling}.  It
 is inspired by existing approaches to \emph{datatype-generic
   programming} (DGP)~\cite{ComparingGPHaskellRodriquez,
-  ComparingGPHaskellHinze}. DGP is an advanced form of generic
-programming~\cite{}, where generic functions can be defined by
+  ComparingGPHaskellHinze}. DGP is an advanced form of \emph{generic
+programming}~\cite{GP}, where generic functions can be defined by
 inspecting the structure of types. A goal of DGP is static
 \emph{type-safety}. That is, if we define a generic function, then it
 should be possible to type-check the definition of the generic
@@ -335,24 +336,23 @@ challenging with other approaches.
 Another distinctive feature of \selfassembly is the support for OO
 features when defining generic functions. The vast majority of DGP
 approaches have been developed for Haskell. Haskell is a purely
-functional language, which has considerable differences to OO languages
-like Scala or Java. In particular, Haskell has no \emph{subtyping} or a
+functional language, with considerable differences to OO languages. 
+In particular, Haskell has no \emph{subtyping} or a
 notion similar to \emph{object identity}. As a result, directly porting
 DGP approaches developed for Haskell is limiting because these
-approaches cannot deal with subtyping or object identity. However,
-these features need to be accountted by generic functions for OO
-languages. \Selfassembly provides the necessary mechanism to allow
+approaches cannot deal with subtyping or object identity. 
+\Selfassembly provides the necessary mechanisms to allow
 the definition of generic functions with both subtyping and object identity.
 
-Using \sselfassembly, we have ported a full-featured serialization
+Using \sselfassembly, we ported a full-featured serialization
 framework for Scala~\cite{Pickling} as a generic function (or LLE). The
 framework is full-featured in that it handles all object-oriented
-concerns, such as subtyping polymorphism, object identity, as well as
+concerns, such as subtyping polymorphism, object identity, and
 advanced features of the type system. In contrast to the original
 implementation, which was developed in an ad-hoc way, the new
 implementation reuses all the generic infrastructure of
 \texttt{self-assembly}. As a result, the code for the serialization framework is
-significantly shorter. Furthermore we have implemented various other
+significantly shorter. We have also implemented various other
 generic functions such as type-safe equality, pretty printing, and
 a scaling transformation.
 
@@ -372,7 +372,7 @@ In summary the contributions of this paper are:
 \begin{itemize}
 
 \item {\bf \sselfassembly:} A framework for LLEs based on
-  type classes \emph{and} type-safe macros, which provides both
+  type classes \emph{and} type-safe macros, providing both
   \emph{efficiency} and \emph{type-safety}. The framework includes
   several auxiliary definitions, such as generic queries and
   transformations, that help define new LLEs.
