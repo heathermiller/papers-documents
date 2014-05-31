@@ -225,7 +225,7 @@ For example, in Java, every object always has a few
 methods; \lstinline{toString}, \lstinline{equals},
 \lstinline{clone} and \lstinline{hashCode}.
 These methods provide a simple default implementation, however,
-it iss common to have to override them to achieve desired functionality.
+it is common to have to override them to achieve desired functionality.
 Serialization, on the other hand, is also an ubiquitously needed
 functionality, but unlike the above, Java
 does not ensure that serialization functionality exists for every type.
@@ -509,7 +509,7 @@ instances.
 % \label{sec:type-classes-and-boilerplate-problem}
 \label{sec:background}
 
-This section provides an introduction to type classes~\cite{} and
+This section provides an introduction to type classes~\cite{WadlerTypeClasses} and
 reviews how to encode them in Scala using implicits and conventional
 OO features~\cite{Oliveira2010}.  This section also observes that type
 classes instances for various types tend to require code that follows
@@ -545,9 +545,9 @@ def log(msg: String)(implicit o: PrintStream) =
 This means that in an invocation of \term{log}, the implicit argument list may
 be omitted if, for each parameter of that list, there is exactly one value of
 the right type in the {\em implicit scope}. The implicit scope is an
-adaptation of the regular variable scope; imported implicits, or implicits
+adaptation of the regular variable scope. Imported implicits, or implicits
 declared in an enclosing scope are contained in the implicit scope of a method
-invocation.
+invocation. 
 
 \begin{lstlisting}
     implicit val out = System.out
@@ -555,8 +555,8 @@ invocation.
 \end{lstlisting}
 
 In the above example, the implicit val \term{out} is in the implicit scope of
-the invocation of \term{log}; since it has the right type, it is automatically
-selected as an implicit argument.
+the invocation of \term{log}. Since \term{out} has the right type, it is automatically
+selected as an implicit argument. 
 
 %\todo Maybe we should change this example? It's out of Bruno's paper, and he's
 %on the committee, he'll probably review our paper.
@@ -633,10 +633,10 @@ for example, for adding a \term{pickle} method to arbitrary objects.
 
 Type classes are a language mechanism that provide a disciplined
 alternative to ad-hoc polymorphism. They have been popularized by
-Haskell, but several other languages have adopted similar ideas.  Type
-classes allow functions to be defined over a set of types.  If values
-of a type \lstinline{T} should provide a certain functionality then that
-functionality can be specified as an \emph{instance} of a type class.
+Haskell.  Type classes allow functions to be defined over a set of
+types.  If values of a type \lstinline{T} should provide a certain
+functionality then that functionality can be specified as an
+\emph{instance} of a type class.
 
 \begin{figure}
 \begin{lstlisting}
@@ -656,8 +656,8 @@ implicit object IntInstance extends Show[Int] {
 \end{figure}
 
 In Scala type classes can be implemented using a combination of
-standard OO features (traits, classes and objects) and implicits.
-The Scala encoding of type classes is essentially a \emph{design pattern}~\cite{}:
+standard OO features (traits, classes and objects) and implicits~\cite{Oliveira2010}.
+The Scala encoding of type classes is essentially a \emph{design pattern}~\cite{Gamma95}:
 instead of having built-in language concepts for type classes, Scala
 uses general language features to model type classes.
 A type class is simply an interface that provides operations
@@ -671,7 +671,7 @@ The main conceptual difference between standard OO methods and
 type-class methods is that the later are provided \emph{externally} to
 objects. For example suppose that we wanted to add pretty printing
 functionality to integers. To do this we could create an instance of
-the type class Show where the generic type parameter \lstinline{T} is
+the type class \lstinline{Show} where the generic type parameter \lstinline{T} is
 instantiated to \lstinline{Int}. The \lstinline{object IntInstance} in
 Figure~\ref{fig:showtc} illustrates how to model such instance in
 Scala using regular objects. In that object, the \lstinline{show}
@@ -695,11 +695,10 @@ aspect of type classes is that instances can be automatically
 determined using a type-directed resolution mechanism. This
 type-directed resolution mechanism allows type classes
 to be used from client code through a mechanism similar to
-overloading. One way to achieve this is Scala is using an implicit
+overloading. This is achieved in Scala using an implicit
 parameter:
 
 \begin{lstlisting}
-// show with implicit parameter
 def ishow[T](v : T)(implicit showT : Show[T]) =
   showT.show(v)
 \end{lstlisting}
@@ -707,7 +706,7 @@ def ishow[T](v : T)(implicit showT : Show[T]) =
 In \lstinline{ishow} the idea is that the method takes two parameters,
 with the last of these (\lstinline{showT}) being implicit. As we have
 seen in Section~\ref{sec:implicits} this means that the second
-parameters can be automatically determined by the compiler.  For
+parameter can be automatically determined by the compiler.  For
 example if we wanted to use \lstinline{show} on integers we could
 simply write a program such as:
 
@@ -727,13 +726,12 @@ written more compactly and arguably more intuitively. With context
 bounds, instead of writting \lstinline{ishow} we could write:
 
 \begin{lstlisting}
-// show with context bounds
 def show[T : Show](v : T) =
   implicitly[Show[T]].show(v)
 \end{lstlisting}
 
 The idea of context bounds comes from the fact that type classes can
-also be seen as a generic programming mechanism~\cite{}, which allows
+also be seen as a generic programming mechanism~\cite{GP}, which allows
 generic parameters to be constrained. In this case the type of
 \lstinline{show} can be read as a generic method where the generic
 type argument must be an instance of \lstinline{Show}.
@@ -777,11 +775,11 @@ implicit object TreeInst extends Show[Tree] {
 Of course it is also possible to apply type classes to more complex
 structures. For example consider a simple type of binary trees with
 integers at the leafs. Figure~\ref{fig:trees} shows how to model such
-trees in Scala using \emph{case classes}~\cite{} and \emph{sealed
+trees in Scala using \emph{case classes}~\cite{Match} and \emph{sealed
   traits}. The keyword \lstinline{sealed} in Scala means that the
-trait can only be implemented by definitions in the existing module.
-Any definition outside the module will not be able to implement the
-trait. Together with case classes this allows modeling \emph{algebraic
+trait can only be implemented by definitions in the existing
+compilation unit.
+Together with case classes this allows modeling \emph{algebraic
   datatypes}, which are a well-know concept from functional programming.
 The \lstinline{Tree} trait is the type of trees. The case class
 \lstinline{Fork} models the binary nodes of the tree, wheres the case
@@ -792,11 +790,11 @@ To define pretty printing for \lstinline{Tree} using the
 This object provides a definition for the
 \lstinline{show} method that pattern matches on the
 two tree constructors (cases) of \lstinline{Tree}. The implementation
-of the two cases is unremarcable: in both cases the
-constructors names and the arguments are printed.
+of the two cases is unremarcable: both cases print the
+constructors names and the arguments.
 
 A simple test program illustrating the use of \lstinline{TreeInst}
-is shown next:
+is:
 
 \begin{lstlisting}
 val tree : Tree = Fork(Fork(Leaf(3),Leaf(4)),Leaf(5))
@@ -831,7 +829,7 @@ implicit def PTreeInst[A : Show] : Show[PTree[A]] =
 
 \paragraph{Recursive Resolution and Compositionality of Instances}
 Another interesting aspect of type classes is that they provide a
-highly compositional way to define instances for parametrized types.
+highly compositional way to define instances.
 Lets consider a variant of trees, shown in Figure~\ref{fig:ptrees}, which is
 parametrized by some element type \lstinline{A}. The type these trees
 is \lstinline{PTree[A]} and there are two types of nodes:
@@ -863,7 +861,7 @@ def test5 = show(ptree2)
 \end{lstlisting}
 
 Here \lstinline{ptree2} has element types of type
-\lstinline{PTree[PTree[Tree]]}. To print the trees the instance for
+\lstinline{PTree[Tree]}. To print the trees the instance for
 \lstinline{PTree} has to be used twice: one to print values of type
 \lstinline{PTree[PTree[Tree]]}; and another time to print values of
 type \lstinline{PTree[Tree]}. In fact it is possible to use
@@ -881,8 +879,7 @@ needed in both instances is quite similar and it follows a common
 pattern: for each case the constructor name and parameters are
 printed. Therefore code tends to be quite similar across instances. This
 code can be viewed as a form of boilerplate since we could hope that
-it could be mechanically generated. However, at the moment the code
-is being defined by hand for each instance.
+it could be mechanically generated. 
 
 %Both \lstinline{ishow} and \lstinline{show}
 %provide a convenient way for some client code to invoke the pretty
