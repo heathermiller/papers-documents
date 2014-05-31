@@ -2384,56 +2384,87 @@ generic functions...
 \section{Related Work}
 \label{sec:related-work}
 
-Our work is distinctive from previous work in various ways.  Firstly,
-when compared to existing DGP approaches, it supports challenging OO
-features such as subtyping or object identity.  Secondly \selfassembly
-builds on a type-safe macro mechanism. While there are some DGP approaches
-that use macro mechanisms too, these mechnisms tend to be untyped.
-Finally our work is more general than DGP in that it also allows the
-definition of generic properties like immutability checking.
-In what follows we discuss related work in more detail.
+This section discusses related work.
+
+%%Our work is distinctive from previous work in various ways.  Firstly,
+%%when compared to existing DGP approaches, it supports challenging OO
+%%features such as subtyping or object identity.  Secondly \selfassembly
+%%builds on a type-safe macro mechanism. While there are some DGP approaches
+%%that use macro mechanisms too, these mechnisms tend to be untyped.
+%%Finally our work is more general than DGP in that it also allows the
+%%definition of generic properties like immutability checking.
+%%In what follows we discuss related work in more detail.
 
 \paragraph{DGP in Functional Languages}
 The idea of DGP originated in the Functional Programming community.
 There are several approaches for writing datatype-generic
 programs. Early approaches were based on programming languages with
-built-in support for DGP. These approaches include PolyP~\cite{},
-Generic Haskell~\cite{}, and Charity~\cite{}. Later approaches were
+built-in support for DGP. These approaches include PolyP~\cite{PolyPJansson},
+and Generic Haskell~\cite{GenericHaskell}. Later approaches were
 based on small language extensions for general purpose languages like
-Haskell. Examples include Scrap Your Boilerplate~\cite{}, Template
-Haskell~\cite{} and generic Clean~\cite{}.
+Haskell. Examples include Scrap Your Boilerplate~\cite{SYB}, Template
+Haskell~\cite{template-haskell} and Generic Clean~\cite{GenericClean}.
 
 More recently, researchers have realized that by using advanced type
 system features DGP could be implemented directly as
 libraries. Extensive surveys of various approaches to DGP in Haskell
-(mostly focused on libraries) document various approaches~\cite{}. A
+(mostly focused on libraries) document various
+approaches~\cite{ComparingGPHaskellRodriquez,ComparingGPHaskellHinze}. A
 large majority of these library based approaches use \emph{run-time}
 type representations, as well as, isomorphisms that convert between
 specific datatypes and generic type representations. Without further
 optimizations this has a significant impact on performance. To improve
-performance several approaches using techniques such as
-partial-evaluation~\cite{} or inlining have been proposed~\cite{}.
+performance several approaches use techniques such as
+partial-evaluation~\cite{DGPPartial} or inlining~\cite{OptimizingDGP}.
 Approaches based on partial-evaluation require language support, which
 makes them more difficult to adopt. Inlining is simpler to adopt since
-it is readily available in many compiler.  Good results optimizing
+it is readily available in many compilers.  Good results optimizing
 some generic functions have been reported in the GHC compiler. However
 inlining is not very predictable and some generic functions do not
 optimize well.
 
-Closest to our work are DGP approaches that use meta-programming
-techniques like Template Haskell~\cite{TemplateYourBoilerplate}.
+Approaches that use meta-programming techniques like Template
+Haskell~\cite{TemplateYourBoilerplate} to do DGP are closest to our work.
 The use of Template Haskell to do
-DGP very often motivated by performance considerations, to avoid the
+DGP is very often motivated by performance considerations, to avoid the
 costs of run-time type representations. However Template Haskell is an
 \emph{untyped} macro system. Therefore approaches using Template
 Haskell trade some type-safety for performance. Although type-errors
 are still detected at compile-time, they are now given in terms of the
-generated code instead of the macro code. in \selfassembly we do not
+generated code instead of the macro code. In \selfassembly we do not
 need to make such trade-off because we use Scala's type-safe macros.
 
-\paragraph{DGP in OO Languages} There is much less work on DGP for
-OO languages. Adaptive Object-Oriented Programming [Lieberherr, 1996]
-can be considered a DGP approach
+In contrast to \selfassembly none of the functional DGP approaches
+deal with OO features like subtyping or object identity.
+
+\paragraph{DGP in OO Languages} Adaptive Object-Oriented Programming
+(AOOP)~\cite{DemeterBook} can be considered a DGP approach. In AOOP
+there is a domain-specific language for selecting parts of a structure
+that should be visited. This is useful to do traversals on complex
+structures and focus only on the interesting parts of the structure
+relevant for computing the final output.  DJ is an implementation of
+AOOP for Java using reflection~\cite{DJ}. More recently, inspired by
+AOOP, DemeterF~\cite{OOGP} improved on DemeterJ by providing support for
+safe traversals, generics and data-generic function generation.
+Compared to \selfassembly most AOOP approaches are not type-safe. Only in
+DemeterF a custom type system was designed to ensure type-safety of
+generic functions. However DemeterF requires an new language and it 
+is unclear wether issues like object identity are considered, since
+they take a more functional approach than other AOOP approaches.
+DemeterF is a language approach to DGP (much like Generic Haskell, for
+example); whereas we view \selfassembly as a library based approach.
+
+There has also been some work porting existing functional DGP
+approaches to Scala.  Moors et al.~\cite{OODGPMoors} did a port of
+'origami'-based DGP~\cite{DGPGibbons}. Oliveira and
+Gibbons~\cite{ScalaGenericProgrammers} picked up on this line of work
+and have shown how several other DGP approaches can be ported and
+improved in Scala. In particular they have shown some approaches that
+for doing DGP with type classes, which has a similar flavour to
+\sselfassembly.  However none of these ports attempt to deal with OO
+features like subtyping or object identity. Moreover all approaches
+are based on run-time type representations, which is in contrast to
+our compile-time approach.
 
 \paragraph{Compile-time Meta-Programming}
 
