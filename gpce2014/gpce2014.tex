@@ -786,13 +786,11 @@ case class Fork(left : Tree, right : Tree)
 case class Leaf(elem : Int) extends Tree
 
 implicit object TreeInst extends Show[Tree] {
- def show(visitee : Tree) : String =
-   visitee match {
-     case Fork(l,r) =>
-       "Fork(" + show(l) + ", " + show(r) + ")"
-     case Leaf(x) => "Leaf(" + x.toString() + ")"
-   }
-}
+ def show(visitee : Tree) : String = visitee match {
+   case Fork(l,r) =>
+    "Fork(" + show(l) + ", " + show(r) + ")"
+   case Leaf(x) => "Leaf(" + x.toString() + ")"
+ }}
 \end{lstlisting}
 \caption{Trees of integers and corresponding \lstinline{Show}
   instance.}
