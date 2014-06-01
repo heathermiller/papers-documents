@@ -20,7 +20,7 @@
 %-----------------------------------------------------------------------------
 
 
-\documentclass[preprint]{sigplanconf}
+\documentclass[preprint,nocopyrightspace]{sigplanconf}
 
 % The following \documentclass options may be useful:
 
@@ -36,6 +36,7 @@
 \usepackage{url}
 \usepackage{todonotes}
 \usepackage{comment}
+\usepackage{mdwlist}
 
 \lstdefinelanguage{Scala}%
 {morekeywords={abstract,case,catch,char,class,%
@@ -119,6 +120,14 @@ language=scala,moredelim=[il][\sffamily]{?},mathescape=false,showspaces=false,sh
 \newcommand{\selfassembly}{\texttt{self-assembly~}}
 \newcommand{\Selfassembly}{\texttt{Self-assembly~}}
 \newcommand{\sselfassembly}{\texttt{self-assembly}}
+
+\setlength{\parskip}{0pt}
+\setlength{\parsep}{0pt}
+\setlength{\headsep}{0pt}
+%\setlength{\topskip}{0pt}
+%\setlength{\topmargin}{0pt}
+\setlength{\topsep}{0pt}
+%\setlength{\partopsep}{0pt}
 
 \begin{document}
 
@@ -300,7 +309,7 @@ Type classes, on the other hand, while more flexible, require the programmer
 to define the serialization code for each class manually.
 One could also imagine mechanisms similar to serialization could also be useful for
 providing operations such as \lstinline{equals} or
-\lstinline{toString}. In all of these cases, it would be advantageous
+\lstinline{toString}. It would be advantageous
 if it were possible to automatically provide sensible implementations
 of these operations per type!
 
@@ -314,7 +323,8 @@ While built-in \emph{language extensions} like Java
 serialization solve this inconvenience by requiring
 little or no boilerplate from the user, they are also quite
 inflexible. There are two essential problems:
-\begin{itemize}
+
+\begin{itemize*}
 \item {\bf Lack of Customization:} Serialization
   is built-in to the language and runtime. Thus, programmers using the
   language cannot control or customize how serialization works. For
@@ -324,14 +334,14 @@ inflexible. There are two essential problems:
   works for a specific functionality: serialization. However, as we
   have argued, similar language extensions would make sense for other types
   of operations.
-\end{itemize}
+\end{itemize*}
 
-In this paper we show a general mechanism, called \sselfassembly, for doing \emph{lightweight
+This paper shows a general mechanism, called \sselfassembly, for doing \emph{lightweight
   language extensions} (LLEs). This mechanism solves both problems and
 provides the best of two worlds: it has the extensibility and
 customization advantages of type classes; and it has the automatic
 implementation advantages of Java's serialization mechanism.  The key
-idea is to provide programmers with a generic mechanism for doing automatic
+idea is to provide a generic mechanism for doing automatic
 implementations of type classes. This mechanism allows programmers
 to define their own generic functionality, such as serialization,
 pretty printing, or equality.
@@ -390,7 +400,7 @@ of code similarly to a generic function.
 
 In summary the contributions of this paper are:
 
-\begin{itemize}
+\begin{itemize*}
 
 \item {\bf \sselfassembly:} A framework for LLEs based on
   type classes \emph{and} type-safe macros, providing both
@@ -405,12 +415,12 @@ In summary the contributions of this paper are:
   object graphs, and generics.
 
 \item {\bf support for generic properties:} \selfassembly also
-  supports the definition of lightweight forms of static program analysis.
+  supports the definition of lightweight forms of program analysis.
   We have implemented an immutability checker in \sselfassembly.
 
-\item {\bf a case study using serialization:} We evaluated the
-  expressive power of \selfassembly by porting a full-featured
-  serialization framework.
+\item {\bf serialization case study:} We evaluated the
+  expressivity of \selfassembly by porting a full-featured
+  serialization \mbox{framework}.
 
 %the pattern isn't only good for standard DGP (that also happens
 %  to be statically inlined and is faster than other DGP approaches),
@@ -425,7 +435,7 @@ In summary the contributions of this paper are:
 %  query/transformation-based generic programming that can also be used
 %  for these lightweight language.
 
-\end{itemize}
+\end{itemize*}
 
 % Programming often requires the definition of similar methods (or
 % functions) for different types of values. Some of these methods are so
@@ -661,12 +671,8 @@ functionality then that functionality can be specified as an
 
 \begin{figure}
 \begin{lstlisting}
-// Show type class
-trait Show[T] {
-  def show(visitee : T) : String
-}
+trait Show[T] {def show(visitee : T) : String}
 
-// Show instance for integers
 implicit object IntInstance extends Show[Int] {
   def show(o : Int) = o.toString()
 }
@@ -690,11 +696,11 @@ class that provides pretty printing functionality for some type
 
 The main conceptual difference between standard OO methods and
 type-class methods is that the later are provided \emph{externally} to
-objects. For example suppose that we wanted to add pretty printing
-functionality to integers. To do this we could create an instance of
+objects. Suppose that we wanted to add pretty printing
+functionality to integers. To do this we create an instance of
 the type class \lstinline{Show} where the generic type parameter \lstinline{T} is
 instantiated to \lstinline{Int}. The \lstinline{object IntInstance} in
-Figure~\ref{fig:showtc} illustrates how to model such instance in
+Figure~\ref{fig:showtc} models such instance in
 Scala using regular objects. In that object, the \lstinline{show}
 method takes an argument \lstinline{o} of type \lstinline{Int} an
 invokes the \lstinline{toString()} method on \lstinline{o}.
@@ -747,7 +753,7 @@ written more compactly and arguably more intuitively. With context
 bounds, instead of writting \lstinline{ishow} we could write:
 
 \begin{lstlisting}
-def show[T : Show](v : T) =
+def show[T : Show](v : T) = 
   implicitly[Show[T]].show(v)
 \end{lstlisting}
 
