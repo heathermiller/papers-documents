@@ -819,38 +819,13 @@ of the two cases is unremarcable: both cases print the
 constructors names and the arguments.
 
 A simple test program illustrating the use of \lstinline{TreeInst}
-is:
+is shown next. The value \lstinline{tree} defines a simple tree and the
+definition \lstinline{test3} pretty prints that tree.
 
 \begin{lstlisting}
 val tree : Tree = Fork(Fork(Leaf(3),Leaf(4)),Leaf(5))
 def test3 = show(tree)
 \end{lstlisting}
-
-\noindent The value \lstinline{tree} defines a simple tree and the
-definition \lstinline{test3} pretty prints that tree.
-
-\begin{figure}
-\begin{lstlisting}
-sealed trait PTree[A]
-case class Branch[A](x : A, l : PTree[A], r : PTree[A])
-  extends PTree[A]
-case class Empty[A] extends PTree[A]
-
-implicit def PTreeInst[A : Show] : Show[PTree[A]] =
-  new Show[PTree[A]] {
-    def show(visitee : PTree[A]) =
-     visitee match {
-        case Branch(x,l,r) =>
-           "Branch(" + implicitly[Show[A]].show(x) +
-           ", " + show(l) + ", " + show(r) + ")"
-   	    case Empty() => "Empty()"
-     }
-}
-\end{lstlisting}
-\caption{Parametrized trees and corresponding \lstinline{Show}
-  instance.}
-\label{fig:ptrees}
-\end{figure}
 
 \paragraph{Recursive Resolution and Compositionality of Instances}
 Another interesting aspect of type classes is that they provide a
@@ -861,13 +836,34 @@ is \lstinline{PTree[A]} and there are two types of nodes:
 \lstinline{Branch} nodes with an element of type \lstinline{A}
 and two branches; and \lstinline{Empty} nodes with no content.
 
+\begin{figure}
+\begin{lstlisting}
+sealed trait PTree[A]
+case class Branch[A](x : A, l : PTree[A], r : PTree[A])
+  extends PTree[A]
+case class Empty[A] extends PTree[A]
+
+implicit def PTreeInst[A : Show] : Show[PTree[A]] =
+  new Show[PTree[A]] {
+    def show(visitee : PTree[A]) = visitee match {
+      case Branch(x,l,r) =>
+        "Branch(" + implicitly[Show[A]].show(x) +
+        ", " + show(l) + ", " + show(r) + ")"
+      case Empty() => "Empty()"
+  }}
+\end{lstlisting}
+\caption{Parametrized trees and corresponding \lstinline{Show}
+  instance.}
+\label{fig:ptrees}
+\end{figure}
+
 Like other types it is possible to define an instance (\lstinline{PTreeInst})
-for the type \lstinline{PTree[A]}. However in order to pretty pretty
+for the type \lstinline{PTree[A]}. However in order to pretty print
 such trees it is necessary to know how to print the elements of type
 \lstinline{A} as well. To accomplish this we require that the
 generic type parameter \lstinline{A} has a \lstinline{Show} instance
 using a context bound.  To print the elements in the
-\lstinline{Branch} case, the instance can be retrieved from the local
+\lstinline{Branch} case, the instance can be retrieved from the implicit
 scope using \lstinline{implicitly} and then used to print the element.
 With this instance it is possible to print trees with integer elements, such as:
 
@@ -885,10 +881,10 @@ val ptree2 : PTree[PTree[Tree]] =
 def test5 = show(ptree2)
 \end{lstlisting}
 
-Here \lstinline{ptree2} has element types of type
-\lstinline{PTree[Tree]}. To print the trees the instance for
-\lstinline{PTree} has to be used twice: one to print values of type
-\lstinline{PTree[PTree[Tree]]}; and another time to print values of
+\noindent Here \lstinline{ptree2} has elements of type
+\lstinline{PTree[Tree]}. To print \lstinline{ptree2} the instance for
+\lstinline{PTree} is used twice: once for values of type
+\lstinline{PTree[PTree[Tree]]}; and another time for values of
 type \lstinline{PTree[Tree]}. In fact it is possible to use
 arbitrarely many instances of the various types (possible multiple
 times) during type-directed resolution, which makes the process very
@@ -910,26 +906,21 @@ it could be mechanically generated.
 %provide a convenient way for some client code to invoke the pretty
 %printing functionality on some values of type \lstinline{T}.
 
-\begin{comment}
-\begin{lstlisting}
-// Adding a show method to an arbitrary
-// object of a certain type
-trait Showable {
- def show() : String
-}
 
-implicit def showWrapper[T : Show](visitee : T) =
- new Showable {
-   def show() = implicitly[Show[T]].show(visitee)
- }
+%\begin{lstlisting}
+%// Adding a show method to an arbitrary
+%// object of a certain type
+%trait Showable {
+% def show() : String
+%}
 
-def test2 = 5.show()
-\end{lstlisting}
-\end{comment}
-
-
-
-
+%implicit def showWrapper[T : Show](visitee : T) =
+% new Showable {
+%  def show() = implicitly[Show[T]].show(visitee)
+% }
+%
+%def test2 = 5.show()
+%\end{lstlisting}
 
 
 % \begin{comment}
@@ -937,7 +928,7 @@ def test2 = 5.show()
 \label{sec:macros}
 
 Scala macros~\cite{Burmako2012, Burmako2013} enable a form of type-safe
-meta-programming. Macros are methods that are invoked at compile time; instead of
+meta-programming. Macros are methods that are invoked at compile time. Instead of
 runtime values, macros operate on and return typed expression trees. In the
 following we provide an overview of macros, type checking, and properties;
 in addition, we introduce quasiquotes as a high-level API
@@ -961,8 +952,8 @@ def assert_impl(c: Context)
 In the above example, the parameters of \verb|assert_impl| are typed
 expression trees, which the body of \verb|assert_impl| operates on, itself
 returning an expression of type \verb|Expr[Unit]|. It is \verb|assert_impl|
-which is expanded and evaluated at compile time; its result is then inlined at
-the call site of \verb|assert| and the inlined result is type-checked.
+which is expanded and evaluated at compile time. Its result is then inlined at
+the call site of \verb|assert| and type-checked.
 Note that expression trees are typed, \ie \verb|assert|'s parameter of type
 \verb|Boolean| corresponds to a typed expression tree of type
 \verb|Expr[Boolean]|.
