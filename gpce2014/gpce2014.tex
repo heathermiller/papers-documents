@@ -1087,17 +1087,17 @@ object Show extends Query[String] {
   def mkTrees[C <: SContext](c: C) = new Trees(c)
 
   class Trees[C <: SContext](override val c: C)
-      extends super.Trees(c) { 
+      extends super.Trees(c) {
     import c.universe._
     type SExpr = c.Expr[String]
 
     def combine(left: SExpr, right: SExpr) =
-      c.Expr(q"$left + $right")
+      reify { left.splice + right.splice }
 
     def delimit(tpe: c.Type) = {
-      val start = tpe.typeSymbol.name.toString + "("
-      (c.Expr(q"$start"), reify(", "), reify(")"))
-    }}
+      val start = constant(tpe.toString + "(")
+      (start, reify(", "), reify(")"))
+    } }
 
   implicit def generate[T]: Show[T] =
     macro genQuery[T, this.type]
