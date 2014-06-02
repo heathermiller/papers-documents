@@ -127,7 +127,11 @@ language=scala,moredelim=[il][\sffamily]{?},mathescape=false,showspaces=false,sh
 %\setlength{\topskip}{0pt}
 %\setlength{\topmargin}{0pt}
 \setlength{\topsep}{0pt}
+%\setlength{\belowcaptionskip}{-40pt}
 %\setlength{\partopsep}{0pt}
+\setlength{\textfloatsep}{10pt plus 1.0pt minus 2.0pt}
+\setlength{\floatsep}{10pt plus 1.0pt minus 2.0pt}
+\setlength{\intextsep}{10pt plus 1.0pt minus 2.0pt}
 
 \begin{document}
 
@@ -967,7 +971,7 @@ val expr: c.Expr[Boolean] = reify {
 }
 \end{lstlisting}
 \noindent
-Here, the body of \verb|reify| consists of regular Scala code; expressions in
+Here, the body of \verb|reify| consists of regular Scala code. Expressions in
 the enclosing scope are spliced into the result expression using the
 \verb|splice| method. Importantly, the code within \verb|reify| is
 type-checked at its definition site. This means, for the above code, Scala's type
@@ -997,20 +1001,20 @@ Quasiquotes are type-checked after they are expanded.
 \subsection{Properties}
 
 \paragraph{Constant Type Signatures} In this work, we focus on one of two macro def
-varieties, so-called ``blackbox'' macros. In this case, the type signature of
+varieties: ``blackbox'' macros. In this case, the type signature of
 the macro provides all information necessary for type-checking all of its
 invocations. That is, the macro does not have to be expanded prior to type-checking.
 This has important software engineering benefits, namely that
 abstract, type-based reasoning about programs is maintained independently of
 the macro's corresponding implementation. This is particularly useful when
-reasoning about the result type of a macro -- for blackbox macros, the
-implementation (and thus expansion) is not required to determine the result
+reasoning about the result type of a macro. For blackbox macros, the
+implementation (and expansion) is not required to determine the result
 type.
 
 \paragraph{Local Expansion} Since macros are simply methods that are invoked
-at compile time, they are expanded and inlined at the user's invocation site.
+at compile time, they are expanded and inlined at invocation site.
 For this reason, we consider macro defs to be ``local compiler extensions.''
-They don't have the ability to change the compiler's global symbol table.
+They cannot change the compiler's global symbol table.
 Thus, they cannot introduce new top-level type definitions.
 
 % - the blackbox principle provides important correctness guarantees:
@@ -1076,27 +1080,6 @@ Thus, they cannot introduce new top-level type definitions.
 % Section 2:
 % explain how to write type classes manually
 
-\section{Basic Self-Assembly}
-\label{sec:basic-self-assembly}
-
-% This is how we can write type classes using the selfassembly library
-% This is quite short!
-% After that we explain how it's actually generated!
-% It's a pattern that generalizes the way one typically writes type classes by hand.
-
-The previous section showed how to write type classes like \verb|Show[T]|
-manually, pointing out a source of significant boilerplate code. In
-section~\ref{sec:basic-usage}, we outline the basic usage of the
-\selfassembly library, which allows defining type classes desired in a way
-where the required boilerplate is generated for you.
-Section~\ref{sec:basic-generation} explains the mechanics of the automatic
-type class generation implemented in the \selfassembly library.
-Section~\ref{sec:customization} outlines how one can customize the generation
-of type classes for specific types.
-
-\subsection{Basic Usage}
-\label{sec:basic-usage}
-
 \begin{figure}
 \centering
 \begin{lstlisting}
@@ -1104,7 +1087,7 @@ object Show extends Query[String] {
   def mkTrees[C <: SContext](c: C) = new Trees(c)
 
   class Trees[C <: SContext](override val c: C)
-      extends super.Trees(c) {
+      extends super.Trees(c) { 
     import c.universe._
     type SExpr = c.Expr[String]
 
@@ -1114,31 +1097,52 @@ object Show extends Query[String] {
     def delimit(tpe: c.Type) = {
       val start = tpe.typeSymbol.name.toString + "("
       (c.Expr(q"$start"), reify(", "), reify(")"))
-    }
-  }
+    }}
 
   implicit def generate[T]: Show[T] =
     macro genQuery[T, this.type]
 }
 \end{lstlisting}
-  \caption{Implementing a type class using \selfassembly}
+  \caption{Implementing the \lstinline{Show} type class using \sselfassembly.}
   \label{fig:basic-usage}
 \end{figure}
 
-The \selfassembly library allows implementing type classes in a way such that
-instances for a large class of types are generated automatically on demand, but at compile time.
-This section introduces the library using the simple \verb|Show| type class
-introduced in Section~\ref{sec:type-classes}. Section~\ref{sec:queries-transformations}
-shows how our approach extends to different forms of type classes, commonly referred to
-as queries and transformations (TODO: cite papers).
+\section{Basic Self-Assembly}
+\label{sec:basic-self-assembly}
 
-\paragraph{Generating Instances for \texttt{Show}} Suppose a user would like
+% This is how we can write type classes using the selfassembly library
+% This is quite short!
+% After that we explain how it's actually generated!
+% It's a pattern that generalizes the way one typically writes type classes by hand.
+
+Section~\ref{sec:background} showed how to write type classes like \verb|Show[T]|
+manually, pointing out a source of significant boilerplate code. In
+section~\ref{sec:basic-usage}, we outline the basic usage of the
+\selfassembly library, which allows defining type classes desired in a way
+where the required boilerplate is automatically generated.
+Section~\ref{sec:basic-generation} explains the mechanics of the automatic
+type class generation implemented in the \selfassembly library.
+Section~\ref{sec:customization} outlines how one can customize the generation
+of type classes for specific types.
+
+\subsection{Basic Usage}
+\label{sec:basic-usage}
+
+The \selfassembly library allows implementing type classes in a way such that
+instances for a large class of types are generated automatically on
+demand at compile time.
+This section introduces the library using the simple \verb|Show| type class
+in Figure~\ref{fig:showtc}. Section~\ref{sec:queries-transformations}
+shows how our approach extends to different forms of type classes, commonly referred to
+as queries and transformations~\cite{SYB}.
+
+\paragraph{Generating Instances for \texttt{Show}} Suppose a user wants
 to provide instances of \verb|Show[T]| for as many
-types as possible. Using \selfassembly it's sufficient to create a singleton
+types as possible. Using \selfassembly we can create a singleton
 object that extends a library-provided trait, and that implements two factory
-methods, \verb|generate| and \verb|mkTrees|, as follows.
+methods, \verb|generate| and \verb|mkTrees|.
 Figure~\ref{fig:basic-usage} shows the \verb|Show| companion object,\footnote{A companion
-object is a singleton object with the same name as a trait...} which extends
+object is a singleton object with the same name as a trait.} which extends
 the \verb|Query| trait. The \verb|mkTrees| factory method, abstract in \verb|Query|,
 creates a new \verb|Trees| instance; \verb|Trees[C]| provides a number of methods that
 are invoked by the \selfassembly library at \emph{compile time} to obtain AST fragments that are
@@ -1191,13 +1195,13 @@ m    ::= & \ldots \\
   \label{fig:type-syntax}
 \end{figure}
 
-We begin by illustrating the general idea of our generation technique through
-a simple example that is itself based solely on closed ADT-style datatypes in
-Scala, which can be described using the grammar in
+We illustrate the general idea of our generation technique through
+a simple example based solely on closed ADT-style datatypes in
+Scala. These datatypes can be described using the grammar in
 Figure~\ref{fig:type-syntax}.\footnote{Case classes are considered to be
 final, even though in the current version of Scala they can technically be
-extended; extension is deprecated, though.} In subsequent sections we show how
-to generalize this view to richer types.
+extended; extension is deprecated, though.} In subsequent sections 
+generalize this view to richer types.
 
 Our treatment is centered on an example, in which, our goal is to
 automatically ``derive'' type class instances that ``show'' information about
