@@ -1128,10 +1128,8 @@ of type classes for specific types.
 \subsection{Basic Usage}
 \label{sec:basic-usage}
 
-The \selfassembly library allows implementing type classes in a way such that
-instances for a large class of types are generated automatically on
-demand at compile time.
-This section introduces the library using the simple \verb|Show| type class
+The \selfassembly library allows implementing type classes instances automatically on
+demand at compile time. This main idea is introduced using the simple \verb|Show| type class
 in Figure~\ref{fig:showtc}. Section~\ref{sec:queries-transformations}
 shows how our approach extends to different forms of type classes, commonly referred to
 as queries and transformations~\cite{SYB}.
@@ -1187,8 +1185,7 @@ $\ba[t]{l@{\hspace{2mm}}l@{\hspace{2mm}}}
 T    ::= & \texttt{sealed trait}~C~\{~\bar{m}~\} \\
 \gap ~|~ & \texttt{case class}~C(v~p_1: D_1, \ldots, v~p_n: D_n)~\{~\bar{m}~\} \\
 \gap     & \texttt{~~extends}~E_1~\texttt{with}~ \ldots ~\texttt{with}~E_m \\
-v    ::= & \texttt{var} \\
-\gap ~|~ & \epsilon \\
+v    ::= & \texttt{var}  ~|~  \epsilon \\
 m    ::= & \ldots \\
 \ea$
   \caption{Grammar for simple datatypes in Scala.}
@@ -1207,22 +1204,26 @@ Our treatment is centered on an example, in which, our goal is to
 automatically ``derive'' type class instances that ``show'' information about
 a given type. Think of it as a \verb|toString| method that traverses the
 structure of a type, and nicely prints information about all of the fields of
-that type.
+that type. We structure our treatment into three distinct steps: 
+\emph{triggering generation}
+(Section~\ref{sec:triggering-generation}); 
+\emph{macro-based generation technique}
+(Section~\ref{sec:macro-based-generation});
+\emph{examples and relation to code in Section~\ref{sec:type-classes}} (Section~\ref{sec:generated-type-class-instances}).
+% (described in the
+%corresponding subsections):
 
-We structure our treatment into three distinct steps (described in the
-corresponding subsections):
+%\begin{enumerate}
+%\item In Section~\ref{sec:triggering-generation}, we show how our generation is
+%      triggered.
 
-\begin{enumerate}
-\item In Section~\ref{sec:triggering-generation}, we show how our generation is
-      triggered.
+%\item In Section~\ref{sec:macro-based-generation}, we explain our macro-based
+%     generation technique.
 
-\item In Section~\ref{sec:macro-based-generation}, we explain our macro-based
-      generation technique.
-
-\item In Section~\ref{sec:generated-type-class-instances}, we show some example
-      type class instances that result from our generation technique, and relate
-      them to the type class pattern introduced in Section~\ref{sec:type-classes}
-\end{enumerate}
+%\item In Section~\ref{sec:generated-type-class-instances}, we show some example
+%      type class instances that result from our generation technique, and relate
+%      them to the type class pattern introduced in Section~\ref{sec:type-classes}
+%\end{enumerate}
 
 \subsubsection{Triggering generation}
 \label{sec:triggering-generation}
@@ -1268,10 +1269,8 @@ def genQuery[T, S](c: Context)
 \noindent
 The evidence parameters \verb|ev1| and \verb|ev2| of type \verb|c.WeakTypeTag[T]| provide
 access to the full static type information of types \verb|T| and \verb|S|.
-
 % The \verb|genQuery| macro inspects this type information to generate a value of
 % the following shape:
-
 % \begin{lstlisting}
 % implicit object $instanceName extends Show[T] {
 %   def show(visitee: T): String = $tree
@@ -1282,8 +1281,7 @@ access to the full static type information of types \verb|T| and \verb|S|.
 % As required, the generated value has type \verb|Show[T]|. Hygiene requires the
 % macro to generate a fresh (term) name \verb|$instanceName|. The actual
 % implementation of the type class (\verb|$tree|) is generated as follows.
-
-First, the macro collects essential information about the types and the type
+First, the macro collects information about the types and the type
 class for which an instance should be generated. Second, the macro creates an
 instance of the user-provided \verb|Trees| class by invoking the
 \verb|mkTrees| factory method. These steps are shown in Figure~\ref{fig:macro-set-up}.
@@ -1292,7 +1290,6 @@ instance of the user-provided \verb|Trees| class by invoking the
 \centering
 \begin{lstlisting}
 trait Query[R] ... {
-
   def mkTrees[C <: Context with Singleton](c: C)
     : Trees[C]
 
@@ -1302,7 +1299,6 @@ trait Query[R] ... {
   def genQuery[T:c.WeakTypeTag, S:c.WeakTypeTag]
     (c: Context): c.Tree = {
     import c.universe._
-
     val tpe = weakTypeOf[T]
     val stpe = weakTypeOf[S]
     val tpeOfTypeClass =
@@ -1318,9 +1314,8 @@ trait Query[R] ... {
   \label{fig:macro-set-up}
 \end{figure}
 
-The body of the type class is generated using the following
-quasiquote:\footnote{For simplicity and not to obscure the presentation we are
-not concerned about hygiene.}
+The body of the type class is generated using:\footnote{For simplicity and clarity of presentation 
+we are not deal with hygiene.}
 
 \begin{lstlisting}
 val acc = c.Expr[R](q"combineResult")
@@ -1335,15 +1330,15 @@ q"""
 \end{lstlisting}
 \noindent
 
-The quasiquote produces an AST which constitutes the implementation of the
+\noindent The quasiquote produces an AST which implements the
 single abstract method of the type class. The AST returns the value of
-\verb|combineResult|, a local variable of type \verb|R|, the type parameter of
-\verb|Query[R]| within which the macro is defined; \verb|R| is the return type
-of the type class method (\eg \verb|String| in the case of \verb|Show|). The
-value of \verb|combineResult| is the result of combining the following pieces:
-first, the initial result returned by the AST \verb|trees.first(tpe)|; second,
+\verb|combineResult|, a local variable of type \verb|R| and the type parameter of
+\verb|Query[R]| within which the macro is defined. \verb|R| is the return type
+of the type class method (\verb|String| in the case of \verb|Show|). The
+value of \verb|combineResult| is the result of combining:
+1) the initial result returned by the AST \verb|trees.first(tpe)|; 2)
 the results returned by nested invocations of the type class on fields;
-finally, the result returned by the AST \verb|trees.last(tpe)|. To obtain
+3) the result returned by the AST \verb|trees.last(tpe)|. To obtain
 those ASTs, the macro utilizes the \verb|trees| instance (of type
 \verb|Trees|) that was constructed in the set-up phase (see
 Figure~\ref{fig:macro-set-up}). Moreover, all these fragments are combined using the AST
@@ -1417,23 +1412,20 @@ The generation technique explained in the previous section produces implicit
 (singleton) objects which correspond to the type class intances portion of the
 type class pattern introduced in Section~\ref{sec:type-classes}.
 
-Let's say the datatype that we'd like to call \verb|show| on is a closed
-ADT for binary trees, which looks like:
-
-\begin{lstlisting}
-sealed trait Tree
-case class Fork(left: Tree, right: Tree)
-  extends Tree
-case class Leaf(elem: Int) extends Tree
-\end{lstlisting}
-\noindent
-
-As one might infer, in order to create type class instances of type
-\verb|Show[Tree]|, one must be able to create type class instances for
-\verb|Tree|'s two subclasses, \verb|Fork|, and \verb|Leaf|. Since both
-\verb|Fork| and \verb|Leaf|.
-
-Note that \verb|Fork| and \verb|Leaf| are each case classes with the general
+Let's say the datatype that we'd like to call \verb|show| is the
+\lstinline{Tree} type on Figure~\ref{fig:trees}.
+%\begin{lstlisting}
+%sealed trait Tree
+%case class Fork(left: Tree, right: Tree)
+% extends Tree
+%case class Leaf(elem: Int) extends Tree
+%\end{lstlisting}
+%\noindent
+In order to create type class instances of type
+\verb|Show[Tree]|, we also create type class instances for
+\verb|Tree|'s two subclasses, \verb|Fork|, and \verb|Leaf|. 
+%Since both \verb|Fork| and \verb|Leaf|.
+\verb|Fork| and \verb|Leaf| are case classes with the general
 shape:
 
 \begin{math}
@@ -1442,18 +1434,18 @@ shape:
 \end{math}
 \noindent
 
-An arbitrary type class instance (implicit singleton object) can be generated
-using the technique described in the previous section which corresponds to the
-arbitrary shape of $C$:
-
-\begin{figure}[h!]
+\begin{figure}
 \centering
 \includegraphics[width=0.87\columnwidth]{basic-generation.pdf}
-\caption{desc.}
+\caption{Basic generation of type classes.}
 \label{fig:basic-generation}
 \end{figure}
 
-As we can see, the implicit object (1) in Figure~\ref{fig:basic-generation} is
+An arbitrary type class instance (implicit singleton object) can be generated
+using the technique described in the previous section.
+Figure~\ref{fig:basic-generation} shows the general structure that is
+generated for an
+arbitrary shape $C$. The implicit object (1) is
 exactly the same as in the manual type class pattern described in
 Section~\ref{sec:type-classes}. (2) is the the implementation of the single
 abstract method of the type class (the \verb|show| method of the \verb|Show|
