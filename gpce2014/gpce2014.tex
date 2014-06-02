@@ -244,7 +244,7 @@ framework for Scala to \texttt{self-assembly}.
 
 
 In programming, many different types of values often require similar
-functionality. For example it is common to use methods (or
+functionality. For example, it is common to use methods (or
 functions) that compare two values for equality or produce a pretty
 printed string representation of a value.
 Since the need to add functionality ubiquitously across types is so pervasive,
@@ -257,7 +257,7 @@ designs can co-exist for ensuring that many types get some
 generic functionality.
 For example, in Java, every object always has a few
 methods; \lstinline{toString}, \lstinline{equals},
-\lstinline{clone} and \lstinline{hashCode}.
+\lstinline{clone}, and \lstinline{hashCode}.
 These methods provide a simple default implementation, however,
 it is common to have to override them to achieve desired functionality.
 Serialization, on the other hand, is also an ubiquitously needed
@@ -359,7 +359,7 @@ programming}~\cite{GP}, where generic functions can be defined by
 inspecting the structure of types. A goal of DGP is static
 \emph{type-safety}. That is, if we define a generic function, then it
 should be possible to type-check the definition of the generic
-function. Any type errors should be reported at compile-time and in
+function. Any type errors should be reported at compile time and in
 terms of the generic function code (but not in terms of generated
 code, for example). The use of Scala's type-safe macro
 system in our approach allows us to preserve the type-safety goal of
@@ -391,9 +391,9 @@ significantly shorter. We have also implemented various other
 generic functions such as type-safe equality, pretty printing, and
 a scaling transformation.
 
-Finally we also show a different application of LLEs: \emph{generic
-  properties}. In \selfassembly it is also possible to define some
-types of static program analysis, which guarantee that a certain
+Finally, we also show a different application of LLEs: \emph{generic
+  properties}. In \selfassembly it is possible to define some
+forms of static program analysis, which guarantee that a certain
 property holds. In particular we have implemented an
 \emph{immutability checker}. If a class is immutable, the immutability
 checker will generate a type class instance for that class that
