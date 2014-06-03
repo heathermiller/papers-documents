@@ -194,8 +194,8 @@ language=scala,moredelim=[il][\sffamily]{?},mathescape=false,showspaces=false,sh
   users to define \emph{generic operations} or \emph{properties} that
   operate over a large class of types. With LLEs it is possible, for
   example, for users to define their own Java-style automatic
-  serialization mechanism; or implement simple forms of static program
-  analysis like an \emph{immutability checker}. However unlike
+  serialization mechanism; or implement simple forms of custom pluggable type
+  system extensions like an \emph{immutability checker}. However unlike
   language built-in mechanisms (such as Java serialization),
   LLEs are \emph{user-definable}, \emph{multi-purpose} (they can be used to define
   various forms of generic functionality), and \emph{highly customizable and
@@ -512,8 +512,8 @@ addition, the use of self-assembly led to a significant reduction in code
 size, and improved code clarity.
 
 Finally, we also show a different application of LLEs: \emph{generic
-properties}. In \selfassembly it is possible to define some forms of static
-program analysis, which guarantee that a certain property, \eg deep
+properties}. In \selfassembly it is possible to define some forms of lightweight static
+checking, which guarantee that a certain property, \eg deep
 immutability, holds. In this case, if a class is immutable, the immutability
 checker generates a type class instance for that class, which certifies that
 property.
@@ -2458,7 +2458,7 @@ The example also shows that it is possible to add custom type class instances
 manually (in the example, for types \verb|Int| and \verb|String|). In general,
 this means that the checks of the generic property can be overridden for
 specific types. While providing an escape hatch (\eg in situations where
-static analysis is not powerful enough to prove a desired property for
+lightweight static checking is not powerful enough to prove a desired property for
 some type), this capability can also be used to subvert the checking of the
 generic property, of course. However, existing type checking of the Scala
 compiler remains unaffected in all cases.
