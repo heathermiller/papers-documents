@@ -172,7 +172,7 @@ language=scala,moredelim=[il][\sffamily]{?},mathescape=false,showspaces=false,sh
 % Blending Language Extension and Datatype Generic Programming via Generative Self-Assembly
 % Lightweight Language Extension and Datatype Generic Programming, All-in-One
 
-\title{Self-Assembly: Lightweight Language Extension and Datatype Generic Programming, All-in-One}
+\title{Self-Assembly: Lightweight Language Extension and Datatype Generic Programming, All-in-One!}
 % \subtitle{Subtitle Text, if any}
 
 \authorinfo{Heather Miller}
@@ -474,8 +474,8 @@ and because they are so specialized, typically require no boilerplate to
 programmers. However this is done at the cost of customizability and
 extensibility. On the other hand,
 with type class-based approaches, one must contend with an enormous amount of
-boilerplate or pay a non-negligible performance penalty\footnote{some
-approaches trade type-safety for performance~\cite{TemplateYourBoilerplate}};
+boilerplate or pay a non-negligible performance penalty\footnote{Some
+approaches trade type-safety for performance~\cite{TemplateYourBoilerplate}.};
 in all cases, however, type class-based approaches offer no way to statically
 restrict runtime behavior. Perhaps most important for mainstream languages is
 the lack of support for pervasively used object-oriented features such as
@@ -569,12 +569,13 @@ In summary the contributions of this paper are:
   support features present in production OO languages, including
   subtyping, object identity, and generics.
 
-\item {\bf An approach supporting both generic functions and generic
-  properties.} \selfassembly enables lightweight forms of program
-  analysis to guarantee that certain static properties hold at
-  runtime, \eg immutability.\footnote{Bruno: I think here you should
-    only claim generic properties; DGP/generic-functions are already
-    claimed in previous bullet point.}
+\item {\bf Support for generic
+  properties.} \selfassembly enables lightweight pluggable type system extensions
+  to guarantee that certain static properties hold at
+  runtime, \eg immutability.
+  % \footnote{Bruno: I think here you should
+  %   only claim generic properties; DGP/generic-functions are already
+  %   claimed in previous bullet point.}
 
 \item {\bf The \selfassembly library}, a complete and full-featured
   implementation of our technique in and for Scala.
