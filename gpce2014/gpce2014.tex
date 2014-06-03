@@ -38,6 +38,7 @@
 \usepackage{comment}
 \usepackage{mdwlist}
 \usepackage{booktabs}
+\usepackage{setspace}
 
 \lstdefinelanguage{Scala}%
 {morekeywords={abstract,case,catch,char,class,%
@@ -191,7 +192,7 @@ language=scala,moredelim=[il][\sffamily]{?},mathescape=false,showspaces=false,sh
 \begin{abstract}
 
   In this paper we show a general mechanism, called \sselfassembly,
-  for doing \emph{lightweight language extensions} (LLEs). LLEs allow
+  for \emph{lightweight language extensions} (LLEs). LLEs allow
   users to define \emph{generic operations} or \emph{properties} that
   operate over a large class of types. With LLEs it is possible, for
   example, for users to define their own Java-style automatic
@@ -2225,7 +2226,7 @@ transformations share a substantial number of generic building blocks.
 In this section we show how our approach supports the definition of
 lightweight pluggable type system extensions that go beyond object-oriented DGP as
 discussed in the previous sections. In particular, the \selfassembly library
-allows defining generic type-based properties that can be type-checked by the
+allows defining generic type-based properties that can be checked by the
 existing Scala type checker.
 
 % An important characteristic of the self-assembly pattern and library is that
@@ -2537,14 +2538,14 @@ generic query invokes for all types encountered in a traversal is overridden
 to invoke the user-defined \verb|check| method. Otherwise, \verb|delimit| only
 returns trivial expression trees, since they are (essentially) unused.
 
-
+% \vspace{-2mm}
 \section{Implementation and Case Study}
 
 We have implemented our approach in the \selfassembly Scala
 library.\footnote{See \url{https://github.com/phaller/selfassembly}.} The
 library has been developed and tested using the current stable release of
 Scala version 2.11. No extension of the Scala language or compiler is required
-by the library. The library comprises around 1,150 LOC.
+by the library. The library is comprised of $\approx1,150$ LOC.
 
 % \paragraph{Implemented Generic Functions}
 
@@ -2567,7 +2568,7 @@ already about 90\% of the features of the original; notably, subtyping, object
 identity, separate compilation, and pluggable pickle formats. Currently, the
 port lacks picklers based on run-time reflection.
 
-\vspace{-1mm}
+% \vspace{-1mm}
 \begin{table}[h!]
 \centering
 \begin{tabular}{l c c }
@@ -2577,10 +2578,11 @@ port lacks picklers based on run-time reflection.
 Scala/Pickling & $<1\%$ & $56\%$  \\
 \bottomrule % Bottom horizontal line
 \end{tabular}
-\vspace{0.5em}
+% \vspace{0.5em}
 % \mbox{\centering{\bf Legend:}~~~~$\CIRCLE$: Heavy Use~~~~$\LEFTcircle$: Light Use~~~~$\Circle$: No Use}
 \caption{Results of porting Scala/Pickling to \selfassembly} % Table caption, can be commented out if no caption is required
 \label{tab:results} % A label for referencing this table elsewhere, references are used in text as \ref{label}
+% \vspace{-1mm}
 \end{table}
 
 In terms of efficiency, \selfassembly compares favorably to the original
@@ -2594,6 +2596,7 @@ type class instance generation by about 56\%.
 % Report on examples implemented. Report on port of scala-pickling to \selfassembly and percentage of functionality
 % achieved already and how much the code size was reduced and improved in terms of structure.
 
+% \vspace{-2mm}
 \section{Related Work}
 \label{sec:related-work}
 
@@ -2650,6 +2653,7 @@ need to make such trade-off because we use Scala's type-safe macros.
 In contrast to \selfassembly none of the functional DGP approaches
 deal with OO features like subtyping or object identity.
 
+% \vspace{-1mm}
 \paragraph{DGP in OO Languages} Adaptive Object-Oriented Programming
 (AOOP)~\cite{DemeterBook} can be considered a DGP approach. In AOOP
 there is a domain-specific language for selecting parts of a structure
@@ -2679,8 +2683,8 @@ features like subtyping or object identity. Moreover all approaches
 are based on run-time type representations, which is in contrast to
 our compile-time approach.
 
+% \vspace{-1mm}
 \paragraph{Pluggable Type Systems and Language Extensions}
-
 There are several approaches for providing pluggable type system extensions
 for statically-typed OO languages~\cite{DietlChecker, PapiChecker,
 SemanticTypeQualifiers}, but unlike \sselfassembly, they do not provide DGP
@@ -2693,9 +2697,10 @@ LMS~\cite{LMS}): however, rather than providing staged expressions that are
 type-checked by the host language, we piggy-back on a macro system for the
 definition of new type relations. Implicit macros generate type class
 instances, which, in turn, refine type-checking of {\em unstaged} programs in
-the host language. Furthermore, \selfassembly also doesn't require any
-extensions to the host language at all, we use the standard Scala 2.11
-distribution.
+the host language. Furthermore, \selfassembly doesn't require any
+extensions to the host language.
+%, we use the standard Scala 2.11
+% distribution.
 
 
 %\paragraph{Run-time Reflection} DGP shares some goals with
@@ -2711,9 +2716,10 @@ distribution.
 % \cite{Pickling}
 % \cite{SYB}
 
+% \vspace{-2mm}
 \section{Conclusion}
 
-This paper shows a general mechanism, called \sselfassembly, for doing
+This paper shows a general mechanism, called \sselfassembly, for
 lightweight language extensions. This mechanism has the extensibility
 and customization advantages of type classes; and it has the automatic
 implementation advantages of mechanisms like Java's serialization
@@ -2737,8 +2743,14 @@ serialization framework for Scala.
 
 % We recommend abbrvnat bibliography style.
 
+\begin{spacing}{0.9}
 \bibliographystyle{abbrvnat}
 \bibliography{bib}
+\end{spacing}
+
+% \vspace{-2mm}
+% \bibliographystyle{abbrvnat}
+% \bibliography{bib}
 
 % \bibliographystyle{abbrvnat}
 
