@@ -893,7 +893,7 @@ Provided that an \lstinline{implicit} value of type
 \lstinline{IntInstance} from Figure~\ref{fig:showtc}), the second
 parameter is automatically inferred by the compiler.
 
-\paragraph{Context Bounds} Type classes are pervasivaly used in
+\paragraph{Context Bounds} Type classes are pervasively used in
 Scala. Because of this Scala offers an alternative convinient syntax sugar called
 \emph{context bounds}. Context bounds allows code using type classes to be
 written more compactly and arguably more intuitively. With context
@@ -1085,7 +1085,7 @@ Macro defs are methods that are transparently loaded by
 the compiler and executed (or expanded) during compilation. A macro is defined
 like any normal method, but it is linked using the \verb|macro| keyword to an
 additional method that provides its implementation, which operates on
-expression trees. Example:
+expression trees. 
 \begin{lstlisting}
 def assert(x: Boolean, msg: String): Unit =
   macro assert_impl
@@ -1406,17 +1406,18 @@ def genQuery[T:c.WeakTypeTag, S:c.WeakTypeTag]
 \end{lstlisting}
 \noindent
 Note that in this declaration, the type parameters \verb|T| and \verb|S| are annotated with
-so-called \emph{context bounds} \verb|c.WeakTypeTag|. Context bounds are an
-alternative way of adding synthetic implicit parameters:
-
-\begin{lstlisting}
-def genQuery[T, S](c: Context)
-  (implicit ev1: c.WeakTypeTag[T],
-            ev2: c.WeakTypeTag[S]): c.Tree = ...
-\end{lstlisting}
-\noindent
-The evidence parameters \verb|ev1| and \verb|ev2| of type \verb|c.WeakTypeTag[T]| provide
-access to the full static type information of types \verb|T| and \verb|S|.
+\emph{context bounds} \verb|c.WeakTypeTag|. 
+%Context bounds are an
+%alternative way of adding synthetic implicit parameters:
+%
+%\begin{lstlisting}
+%def genQuery[T, S](c: Context)
+%  (implicit ev1: c.WeakTypeTag[T],
+%            ev2: c.WeakTypeTag[S]): c.Tree = ...
+%\end{lstlisting}
+%\noindent
+%The evidence parameters \verb|ev1| and \verb|ev2| of type \verb|c.WeakTypeTag[T]| provide
+%access to the full static type information of types \verb|T| and \verb|S|.
 % The \verb|genQuery| macro inspects this type information to generate a value of
 % the following shape:
 % \begin{lstlisting}
