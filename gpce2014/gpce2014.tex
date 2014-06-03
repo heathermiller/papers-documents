@@ -705,7 +705,7 @@ be omitted if, for each parameter of that list, there is exactly one value of
 the right type in the {\em implicit scope}. The implicit scope is an
 adaptation of the regular variable scope. Imported implicits, or implicits
 declared in an enclosing scope are contained in the implicit scope of a method
-invocation. 
+invocation.
 
 \begin{lstlisting}
     implicit val out = System.out
@@ -714,7 +714,7 @@ invocation.
 
 In the above example, the implicit val \term{out} is in the implicit scope of
 the invocation of \term{log}. Since \term{out} has the right type, it is automatically
-selected as an implicit argument. 
+selected as an implicit argument.
 
 %\todo Maybe we should change this example? It's out of Bruno's paper, and he's
 %on the committee, he'll probably review our paper.
@@ -880,7 +880,7 @@ written more compactly and arguably more intuitively. With context
 bounds, instead of writting \lstinline{ishow} we could write:
 
 \begin{lstlisting}
-def show[T : Show](v : T) = 
+def show[T : Show](v : T) =
   implicitly[Show[T]].show(v)
 \end{lstlisting}
 
@@ -1027,7 +1027,7 @@ needed in both instances is quite similar and it follows a common
 pattern: for each case the constructor name and parameters are
 printed. Therefore code tends to be quite similar across instances. This
 code can be viewed as a form of boilerplate since we could hope that
-it could be mechanically generated. 
+it could be mechanically generated.
 
 %Both \lstinline{ishow} and \lstinline{show}
 %provide a convenient way for some client code to invoke the pretty
@@ -1332,12 +1332,12 @@ Our treatment is centered on an example, in which, our goal is to
 automatically ``derive'' type class instances that ``show'' information about
 a given type. Think of it as a \verb|toString| method that traverses the
 structure of a type, and nicely prints information about all of the fields of
-that type. We structure our treatment into three distinct steps: 
-\emph{triggering generation}
-(Section~\ref{sec:triggering-generation}); 
-\emph{macro-based generation technique}
-(Section~\ref{sec:macro-based-generation});
-\emph{examples and relation to code in Section~\ref{sec:type-classes}} (Section~\ref{sec:generated-type-class-instances}).
+that type.
+
+We structure our treatment into three distinct steps:
+(1) in Section~\ref{sec:triggering-generation}, we show how our generation is triggered;
+(2) in Section~\ref{sec:macro-based-generation}, we explain our macro-based generation technique;
+(3) in Section~\ref{sec:generated-type-class-instances}, we show some example type class instances that result from our generation technique, and relate them to the type class pattern introduced in Section~\ref{sec:type-classes}.
 % (described in the
 %corresponding subsections):
 
@@ -1353,7 +1353,7 @@ that type. We structure our treatment into three distinct steps:
 %      them to the type class pattern introduced in Section~\ref{sec:type-classes}
 %\end{enumerate}
 
-\subsubsection{Triggering generation}
+\subsubsection{Triggering Generation}
 \label{sec:triggering-generation}
 
 To be able to generate suitable instances for all possible types for which
@@ -1374,7 +1374,7 @@ object Show extends Query[String] {
 Thus, the implicit lookup mechanism inserts an invocation of the macro method
 \verb|genQuery|.
 
-\subsubsection{Macro-based generation}
+\subsubsection{Macro-Based Generation}
 \label{sec:macro-based-generation}
 
 Being a macro, \verb|genQuery| returns an abstract syntax
@@ -1444,7 +1444,7 @@ trait Query[R] ... {
 
 The body of the type class is generated using:
 \begin{lstlisting}
-val tpe = weakTypeOf[T] // see Fig. 6
+val tpe = weakTypeOf[T] // see Fig. 5
 ...
 val (first, separator, last) =
   trees.delimit(tpe)
@@ -1458,7 +1458,7 @@ Figure~\ref{fig:macro-set-up}). Calling \verb|delimit| returns three expressions
 (``delimiters'') of type \verb|Expr[R]| based on the reified type \verb|tpe|. Recall
 that \verb|tpe| corresponds to type parameter \verb|T|, which is the type for
 which the macro generates a type class instance. The \verb|fieldsExpr| method
-creates an \verb|Expr[R]| by folding the \verb|Expr[R]|'s obtained for each field
+creates an \verb|Expr[R]| by folding the \verb|Expr[R]|s obtained for each field
 (see below) using the user-overridden \verb|combine| method:
 
 \begin{lstlisting}
@@ -1559,15 +1559,19 @@ Let's say the datatype that we'd like to call \verb|show| is the
 %\noindent
 In order to create type class instances of type
 \verb|Show[Tree]|, we also create type class instances for
-\verb|Tree|'s two subclasses, \verb|Fork|, and \verb|Leaf|. 
+\verb|Tree|'s two subclasses, \verb|Fork|, and \verb|Leaf|.
 %Since both \verb|Fork| and \verb|Leaf|.
 \verb|Fork| and \verb|Leaf| are case classes with the general
 shape:
 
-\begin{math}
-\texttt{case class}~C(p_1: D_1, \ldots, p_n: D_n)~\{~\bar{m}~\} \\
-\texttt{~~~~~extends}~E_1~\texttt{with}~ \ldots ~\texttt{with}~E_m
-\end{math}
+\begin{lstlisting}
+case class C(p_1: D_1, ..., p_n: D_n)
+  extends E_1 with ... with E_m { ... }
+\end{lstlisting}
+% \begin{math}
+% \texttt{case class}~C(p_1: D_1, \ldots, p_n: D_n)~\{~\bar{m}~\} \\
+% \texttt{~~~~~extends}~E_1~\texttt{with}~ \ldots ~\texttt{with}~E_m
+% \end{math}
 \noindent
 
 \begin{figure}
@@ -1581,15 +1585,15 @@ An arbitrary type class instance (implicit singleton object) can be generated
 using the technique described in the previous section.
 Figure~\ref{fig:basic-generation} shows the general structure that is
 generated for an
-arbitrary shape $C$. The implicit object (1) is
+arbitrary shape \verb|C|. The implicit object (1) is
 exactly the same as in the manual type class pattern described in
 Section~\ref{sec:type-classes}. (2) is the the implementation of the single
 abstract method of the type class (the \verb|show| method of the \verb|Show|
-trait). (3) is the result of expanding the \verb|implicitlyTree| invocation
-shown in Figure~\ref{fig:macro-field-value}. (4) corresponds to the
-accumulation logic which itself results from the expansion of
-\verb|combineResult| shown in Figure~\ref{fig:macro-combine-result}. Finally,
-(5) corresponds to the expansion of \verb|trees.first| and \verb|trees.last|
+trait). (3) is the result of expanding the \verb|implicitly| invocation within
+the method \verb|fieldValueExpr| above. (4) corresponds to the
+accumulation logic which itself results from the fold of \verb|paramFields| above
+(to simplify the presentation we use the \verb|result| accumulator variable instead of a deeply nested tree).
+Finally, (5) corresponds to \verb|first| and \verb|last|
 in the body of the macro-generated implementation of \verb|Show|'s single
 abstract method, \verb|show|.
 
