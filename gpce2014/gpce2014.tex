@@ -572,7 +572,7 @@ In summary the contributions of this paper are:
   subtyping, object identity, and generics.
 
 \item {\bf Support for generic
-  properties.} \selfassembly enables lightweight pluggable type system extensions
+  properties.} \selfassembly enables \\lightweight pluggable type system extensions
   to guarantee that certain static properties hold at
   runtime, \eg immutability.
   % \footnote{Bruno: I think here you should
@@ -1009,7 +1009,7 @@ and two branches; and \lstinline{Empty} nodes with no content.
 \begin{figure}
 \begin{lstlisting}
 sealed trait PTree[A]
-case class Branch[A](x : A, l : PTree[A], r : PTree[A])
+case class Branch[A](x: A, l: PTree[A], r: PTree[A])
   extends PTree[A]
 case class Empty[A] extends PTree[A]
 
@@ -1145,7 +1145,7 @@ of the high-level user-written code.
 Due to limitations in the reify API, we use quasiquotes (typechecked during
 macro expansion) to circumvent the above type-checking in a small trusted core
 of \sselfassembly, shielded from users. However, we never lose soundness,
-since, unlike MetaML~\cite{MetaML}, all splicing is done at compile time, and
+since, unlike \\MetaML~\cite{MetaML}, all splicing is done at compile time, and
 generated expressions are always re-type-checked after expansion.
 
 % However, the use of \verb|reify| is not
