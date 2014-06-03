@@ -2580,7 +2580,7 @@ type class instance generation by about 56\%.
 \section{Related Work}
 \label{sec:related-work}
 
-This section discusses related work.
+% This section discusses related work.
 
 %%Our work is distinctive from previous work in various ways.  Firstly,
 %%when compared to existing DGP approaches, it supports challenging OO
@@ -2662,7 +2662,23 @@ features like subtyping or object identity. Moreover all approaches
 are based on run-time type representations, which is in contrast to
 our compile-time approach.
 
-\paragraph{Compile-time Meta-Programming}
+\paragraph{Pluggable Type Systems and Language Extensions}
+
+There are several approaches for providing pluggable type system extensions
+for statically-typed OO languages~\cite{DietlChecker, PapiChecker,
+SemanticTypeQualifiers}, but unlike \sselfassembly, they do not provide DGP
+capabilities. Furthermore, \selfassembly provides LLEs, which can cannot
+extend program syntax (like, \eg SugarJ~\cite{SugarJ}) or change Scala's
+built-in type checking.
+
+Our approach is in some sense complementary to staging for embedded DSLs (\eg,
+LMS~\cite{LMS}): however, rather than providing staged expressions that are
+type-checked by the host language, we piggy-back on a macro system for the
+definition of new type relations. Implicit macros generate type class
+instances, which, in turn, refine type-checking of {\em unstaged} programs in
+the host language. Furthermore, \selfassembly also doesn't require any
+extensions to the host language at all, we use the standard Scala 2.11
+distribution.
 
 
 %\paragraph{Run-time Reflection} DGP shares some goals with
@@ -2674,9 +2690,9 @@ our compile-time approach.
 %compile-time they are reported in terms of generated code instead of
 %the original code.
 
-\cite{TemplateYourBoilerplate}
-\cite{Pickling}
-\cite{SYB}
+% \cite{TemplateYourBoilerplate}
+% \cite{Pickling}
+% \cite{SYB}
 
 \section{Conclusion}
 
