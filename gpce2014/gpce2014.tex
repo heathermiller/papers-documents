@@ -1902,7 +1902,7 @@ to strings.
 Concrete instances of a classtype, such as \verb|Person| in
 Figure~\ref{fig:class-hierarchy}, in general have subtypes (dynamically). One approach to
 account for subtypes is by building the logic for all possible subtypes into
-the type class instance for the supertype, like it is shown in
+the type class instance for the supertype, like is shown in
 Figure~\ref{fig:trees} in Section~\ref{sec:pretty-printing-complex}.
 However, such an approach does not support open class hierarchies, where new subclasses can be
 added in additional compilation units.
@@ -2000,9 +2000,8 @@ identities as discussed further below.}
 case _ => {
   val reg$1 = implicitly[Registry[Show]]
   val lookup$2: Option[Show[_]] = reg$1.get(clazz)
-  lookup$2.get
-          .asInstanceOf[Show[Person]]
-          .show(visitee)
+  lookup$2.get.asInstanceOf[Show[Person]]
+              .show(visitee)
 }
 \end{lstlisting}
 
@@ -2042,7 +2041,7 @@ instances are slightly more verbose to define, although the implementation of
 \verb|apply| can typically be a trivial forwarder.
 
 For example, consider the \verb|Show[T]| type class, now extending
-\verb|Queryable[T, R]|:
+\verb|Queryable[T, String]|:
 \begin{lstlisting}
 trait Show[T] extends Queryable[T, String] {
   def show(visitee: T): String
@@ -2077,7 +2076,7 @@ implicit object CShowInstance extends Show[C] {
 Note that an invocation of \verb|show| is treated as a \emph{top-level
 invocation} forwarding to \verb|apply| passing an empty set of visited
 objects. Crucially, when applying the type class instances for the class
-parameters of $C$, instead of invoking \verb|show| directly, we invoke
+parameters of \verb|C|, instead of invoking \verb|show| directly, we invoke
 \verb|apply| passing the \verb|visited| set extended with the current object
 (\verb|visitee|).
 
