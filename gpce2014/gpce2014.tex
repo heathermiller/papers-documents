@@ -37,6 +37,7 @@
 \usepackage{todonotes}
 \usepackage{comment}
 \usepackage{mdwlist}
+\usepackage{booktabs}
 
 \lstdefinelanguage{Scala}%
 {morekeywords={abstract,case,catch,char,class,%
@@ -2545,30 +2546,46 @@ library has been developed and tested using the current stable release of
 Scala version 2.11. No extension of the Scala language or compiler is required
 by the library. The library comprises around 1,150 LOC.
 
-\paragraph{Implemented Generic Functions}
+% \paragraph{Implemented Generic Functions}
 
-Using \sselfassembly, we have implemented the following type classes (with
-corresponding generic functions) known from the literature: \verb|Eq|
-(type-safe equality), \verb|Show| (pretty printing), \verb|Scale| (scaling
-transformation), and \verb|Pickler|/\\\verb|Unpickler| (type-safe serialization).
+% Using \sselfassembly, we have implemented the following type classes (with
+% corresponding generic functions) known from the literature: \verb|Eq|
+% (type-safe equality), \verb|Show| (pretty printing), \verb|Scale| (scaling
+% transformation), and \verb|Pickler|/\\\verb|Unpickler| (type-safe serialization).
 
 \paragraph{Case Study: Scala Pickling}
 
-To evaluate both expressivity and performance, we have ported an
-industrial-strength serialization framework, called Scala/Pickling~\cite{Pickling}, to \sselfassembly.
+To evaluate both expressivity and performance, we have ported an industrial-
+strength serialization framework, called Scala/Pickling~\cite{Pickling}, to
+\sselfassembly\footnote{\url{https://github.com/phaller/selfassembly/tree/master/src/main/scala/selfassembly/examples/pickling}}.
 
 Scala/Pickling is a popular open-source project; on the social code
-hosting platform GitHub, the project has more than 360 ``stars''.\footnote{The
-Scala language project has about 2,500 ``stars.''} To achieve the reportedly
-high performance, Scala/Pickling leverages macros for compile-time code
+hosting platform GitHub, the project has more than 360 ``stars''.
+To achieve its high performance, Scala/Pickling leverages macros for compile-time code
 generation. Our port of Scala/Pickling to \selfassembly supports
 already about 90\% of the features of the original; notably, subtyping, object
 identity, separate compilation, and pluggable pickle formats. Currently, the
 port lacks picklers based on run-time reflection.
 
-In terms of efficiency,  \selfassembly compares favorably to the original
+\vspace{-1mm}
+\begin{table}[h!]
+\centering
+\begin{tabular}{l c c }
+\toprule % Top horizontal line
+\textbf{Framework} & \textbf{Performance Change} & \textbf{LOC reduction} \\ % Column names row
+\midrule % In-table horizontal line
+Scala/Pickling & $<1\%$ & $56\%$  \\
+\bottomrule % Bottom horizontal line
+\end{tabular}
+\vspace{0.5em}
+% \mbox{\centering{\bf Legend:}~~~~$\CIRCLE$: Heavy Use~~~~$\LEFTcircle$: Light Use~~~~$\Circle$: No Use}
+\caption{Results of porting Scala/Pickling to \selfassembly} % Table caption, can be commented out if no caption is required
+\label{tab:results} % A label for referencing this table elsewhere, references are used in text as \ref{label}
+\end{table}
+
+In terms of efficiency, \selfassembly compares favorably to the original
 library: execution time of the ``Evactor'' benchmark~\cite{Pickling} remains
-within 1\% of the execution time of Scala/Pickling. At the same time,
+within 1\% of Scala/Pickling. At the same time,
 the \sselfassembly-based code is significantly simpler, shorter, and more
 maintainable. The use of \selfassembly reduced the code size for macro-based
 type class instance generation by about 56\%.
