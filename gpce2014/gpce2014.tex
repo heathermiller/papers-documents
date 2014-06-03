@@ -2176,11 +2176,11 @@ Scala/Pickling~\cite{Pickling}). Interestingly, the implementations of queries a
 transformations share a substantial number of generic building blocks.
 
 
-\section{Generic Properties: Meta-Programming and Type Classes for Language Extensions}
+\section{Generic Properties: Lightweight Pluggable Type System Extensions}
 \label{sec:language-extensions}
 
 In this section we show how our approach supports the definition of
-lightweight language extensions that go beyond object-oriented DGP as
+lightweight pluggable type system extensions that go beyond object-oriented DGP as
 discussed in the previous sections. In particular, the \selfassembly library
 allows defining generic type-based properties that can be type-checked by the
 existing Scala type checker.
@@ -2200,7 +2200,7 @@ the library, users also have (a) access to full static type information and
 generic type properties.
 
 The enabled language extensions are lightweight in the sense that they cannot
-extend the existing syntax or change Scala’s existing type-checking. Instead,
+extend the existing syntax or change Scala's existing type-checking. Instead,
 they can be thought of as pluggable type system
 extensions~\cite{PluggableTypes} in that without changing the existing
 typechecker, additional properties can be checked. As a result, our approach
@@ -2245,15 +2245,15 @@ enable the definition of deeper structural properties.
 \paragraph{Defining Unary Type Relations via Type Classes}
 
 Using implicits a unary type relation can be defined in Scala using an arbitrary generic
-type constructor, say, $TC$. A type $T$ can de declared to be an element of this
-relation, by defining an {\em implicit} of type $TC[T]$:
+type constructor, say, \verb|TC|. A type \verb|T| can be declared to be an element of this
+relation, by defining an {\em implicit} of type \verb|TC[T]|:
 
 \begin{lstlisting}
 implicit val tct = new TC[T] {}
 \end{lstlisting}
 \noindent
 This way, an arbitrary {\em bounded} unary type relation can be defined. The
-membership of a type $U$ in the relation $TC$ can be checked by requiring evidence
+membership of a type \verb|U| in the relation \verb|TC| can be checked by requiring evidence
 for it using an implicit parameter:
 
 \begin{lstlisting}
@@ -2261,13 +2261,13 @@ def m[U](implicit ev: TC[U]): ...
 \end{lstlisting}
 \noindent
 (Classes, and thereby constructors, can also have such implicit parameters.)
-Only if there exists an implicit value of type $TC[U]$ can an invocation
+Only if there exists an implicit value of type \verb|TC[U]| can an invocation
 of method \verb|m[U]| be type-checked.
 
 Polymorphic implicit methods allow defining a certain class of unbounded type
-relations by returning values of type $TC[V]$ for an arbitrary type $V$ that satisfies
+relations by returning values of type \verb|TC[V]| for an arbitrary type \verb|V| that satisfies
 given type bounds. For example, the following implicit method declares all types that
-are equal to or subtypes of type \verb|Person| to be elements of relation $TC$:
+are equal to or subtypes of type \verb|Person| to be elements of relation \verb|TC|:
 
 \begin{lstlisting}
 implicit def belowPerson[S <: Person]: TC[S] =
@@ -2303,7 +2303,8 @@ relations (such as the immutable property):
 \paragraph{Safety}
 Static meta-programming has a reputation for being ad-hoc, untyped, and
 ``anything-goes.'' However, in our approach the use of macros is fairly
-restricted. First, the used macro system is type-safe, and macro
+restricted. First, we restrict ourselves to a type-safe subset of Scala's macro system
+(except for a small trusted core), and macro
 implementations are guaranteed to conform to their type signatures. As a result,
 these macros are easy to reason about and are well-behaved citizens in the tooling
 ecosystem. Second, and perhaps most importantly, the \selfassembly library
@@ -2480,7 +2481,7 @@ trait Property[R] extends AcyclicQuery[R] {
     def check(tpe: c.Type): Unit
     override def delimit(tpe: c.Type) = {
       check(tpe)
-      (c.Expr(q"{}"), c.Expr(q"{}"), c.Expr(q"{}"))
+      (reify({}), reify({}), reify({}))
     }
     ...
   } }
