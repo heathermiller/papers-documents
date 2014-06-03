@@ -1467,7 +1467,7 @@ if (paramFields.size < 2)
 else
   paramFields.tail.foldLeft(first) { (acc, sym) =>
     val withSep = trees.combine(acc, separator)
-    trees.combine(withSep, fieldValueExpr(sym))
+    trees.combine(withSep, fieldValue(sym))
   }
 \end{lstlisting}
 
@@ -1476,13 +1476,13 @@ For example, Figure~\ref{fig:basic-usage} shows that the definition of
 code concatenates the string values of all fields separated with
 \verb|separator|.
 
-The expression tree \verb|fieldValueExpr(sym)| is obtained as follows. For
+The expression tree \verb|fieldValue(sym)| is obtained as follows. For
 each field declared in type \verb|tpe|, the following subexpression is
 generated:
 \begin{lstlisting}
 val symTp = sym.typeSignatureIn(tpe)
 val fieldName = sym.name.toString.trim
-trees.fieldValueExpr(fieldName,
+trees.fieldValueExpr(visitee, fieldName,
   symTp, tpeOfTypeClass)
 \end{lstlisting}
 
