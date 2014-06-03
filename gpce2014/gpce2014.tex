@@ -196,16 +196,17 @@ language=scala,moredelim=[il][\sffamily]{?},mathescape=false,showspaces=false,sh
   example, for users to define their own Java-style automatic
   serialization mechanism; or implement simple forms of static program
   analysis like an \emph{immutability checker}. However unlike
-  language built-in mechanisms (such as the Java serialization
-  mechanism), LLEs are \emph{user-definable}, \emph{multi-purpose} (they can be used to define
+  language built-in mechanisms (such as Java serialization),
+  LLEs are \emph{user-definable}, \emph{multi-purpose} (they can be used to define
   various forms of generic functionality), and \emph{highly customizable and
-  extensible}.  The key idea, inspired by existing datatype-generic
+  extensible}. The key idea, inspired by existing datatype-generic
   programming approaches, is to provide programmers with a generic
-  mechanism for doing automatic implementations of \emph{type classes}
-  using a \emph{type-safe} macro mechanism. We implemented our
-  technique as a library, \sselfassembly, for Scala, and evaluated its
+  mechanism for providing automatic implementations of \emph{type classes}.
+  We implemented our technique as a library, \sselfassembly, for Scala, and evaluated its
   practicality by migrating a full-featured industrial-strength
-  serialization framework.
+  serialization framework, Scala/Pickling, keeping the same
+  published performance numbers while reducing the code size for
+  type class instance generation by 56\%.
 
 \begin{comment}
 Often generic programming and language extension are at odds with one another.
