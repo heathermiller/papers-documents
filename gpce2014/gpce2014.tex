@@ -1057,9 +1057,7 @@ it could be mechanically generated.
 Scala macros~\cite{Burmako2012, Burmako2013} enable a form of type-safe
 meta-programming. Macros are methods that are invoked at compile time. Instead of
 runtime values, macros operate on and return typed expression trees. In the
-following we provide an overview of macros, type checking, and properties;
-in addition, we introduce quasiquotes as a high-level API
-for working with expression trees.
+following we provide an overview of macros, type checking, and properties.
 
 \subsection{Definition}
 
@@ -1078,15 +1076,15 @@ def assert_impl(c: Context)
 \noindent
 In the above example, the parameters of \verb|assert_impl| are typed
 expression trees, which the body of \verb|assert_impl| operates on, itself
-returning an expression of type \verb|Expr[Unit]|. It is \verb|assert_impl|
-which is expanded and evaluated at compile time. Its result is then inlined at
-the call site of \verb|assert| and type-checked.
+returning an expression of type \verb|Expr[Unit]|. \verb|assert_impl|
+is evaluated at compile time, and its result is inlined at
+the call site of \verb|assert|.
 Note that expression trees are typed, \ie \verb|assert|'s parameter of type
 \verb|Boolean| corresponds to a typed expression tree of type
 \verb|Expr[Boolean]|.
 
-There are two choices available for building expression
-trees: (a) via \verb|reify| and (b) via quasiquotes (see below):
+In the type-safe subset of macros that we consider in this paper,
+expression trees are built using \verb|reify|/\verb|splice|:
 \begin{lstlisting}
 val expr: c.Expr[Boolean] = reify {
   if (x.splice > 10) x.splice
@@ -1098,27 +1096,35 @@ Here, the body of \verb|reify| consists of regular Scala code. Expressions in
 the enclosing scope are spliced into the result expression using the
 \verb|splice| method. Importantly, the code within \verb|reify| is
 type-checked at its definition site. This means, for the above code, Scala's type
-checker reports a type error, not in terms of the generated code, but in terms
-of the high-level typed expression trees. However, the use of \verb|reify| is not
-enforceable in the current system; the API allows creating typed expressions
-using trees that are not type-checked prior to expansion (see the following example).
+checker reports type errors not in terms of the generated code, but in terms
+of the high-level user-written code.
 
-However, by using \verb|reify|/\verb|splice| to construct expression trees,
-users have the option to enable type checking expression trees at their place
-of definition; in this case, {\em type errors are reported in terms of the
-constructed expression trees}.
+Due to limitations in the reify API, we use quasiquotes (typechecked during
+macro expansion) to circumvent the above type-checking in a small trusted core
+of \sselfassembly, shielded from users. However, we never lose soundness,
+since, unlike MetaML~\cite{MetaML}, all splicing is done at compile time, and
+generated expressions are always re-type-checked after expansion.
 
-An alternative to working with \verb|reify|/\verb|splice| are quasiquotes.
-Quasiquotes simplify working with expression trees. They allow splicing trees
-similar to Scala's standard string interpolation:
-\begin{lstlisting}
-def assert_impl(c: Context)
-  (x: c.Expr[Boolean], msg: c.Expr[String]):
-                            c.Expr[Unit] =
-  c.Expr[Unit](q"if (!$x) error($msg)")
-\end{lstlisting}
-\noindent
-Quasiquotes are type-checked after they are expanded.
+% However, the use of \verb|reify| is not
+% enforceable in the current system; the API allows creating typed expressions
+% using trees that are not type-checked prior to expansion (see the following example).
+
+% However, by using \verb|reify|/\verb|splice| to construct expression trees,
+% users have the option to enable type checking expression trees at their place
+% of definition; in this case, {\em type errors are reported in terms of the
+% constructed expression trees}.
+
+% An alternative to working with \verb|reify|/\verb|splice| are quasiquotes.
+% Quasiquotes simplify working with expression trees. They allow splicing trees
+% similar to Scala's standard string interpolation:
+% \begin{lstlisting}
+% def assert_impl(c: Context)
+%   (x: c.Expr[Boolean], msg: c.Expr[String]):
+%                             c.Expr[Unit] =
+%   c.Expr[Unit](q"if (!$x) error($msg)")
+% \end{lstlisting}
+% \noindent
+% Quasiquotes are type-checked after they are expanded.
 
 
 \subsection{Properties}
