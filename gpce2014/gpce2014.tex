@@ -1444,92 +1444,100 @@ trait Query[R] ... {
   \label{fig:macro-set-up}
 \end{figure}
 
-The body of the type class is generated using:\footnote{For simplicity and clarity of presentation 
-we are not deal with hygiene.}
+The body of the type class is generated using:
+\begin{lstlisting}
+val tpe = weakTypeOf[T] // see Fig. 6
+...
+val (first, separator, last) =
+  trees.delimit(tpe)
+val body = trees.combine(
+  fieldsExpr(first, separator), last)
+\end{lstlisting}
+
+To create the result expression, the macro utilizes the \verb|trees| instance
+(of type \verb|Trees|) that we initialize in the set-up phase (see
+Figure~\ref{fig:macro-set-up}). Calling \verb|delimit| returns three expressions
+(``delimiters'') of type \verb|Expr[R]| based on the reified type \verb|tpe|. Recall
+that \verb|tpe| corresponds to type parameter \verb|T|, which is the type for
+which the macro generates a type class instance. The \verb|fieldsExpr| method
+creates an \verb|Expr[R]| by folding the \verb|Expr[R]|'s obtained for each field
+(see below) using the user-overridden \verb|combine| method:
 
 \begin{lstlisting}
-val acc = c.Expr[R](q"combineResult")
-val postfixTree = c.Expr[R](q"postfix")
-q"""
-  var combineResult: $qresTpe = ${trees.first(tpe)}
-  ..$fieldTrees // (list of trees)
-  val postfix: $qresTpe = ${trees.last(tpe)}
-  combineResult = ${trees.combine(acc, postfixTree)}
-  combineResult
-"""
+if (paramFields.size < 2)
+  ...
+else
+  paramFields.tail.foldLeft(first) { (acc, sym) =>
+    val withSep = trees.combine(acc, separator)
+    trees.combine(withSep, fieldValueExpr(sym))
+  }
 \end{lstlisting}
-\noindent
 
-\noindent The quasiquote produces an AST which implements the
-single abstract method of the type class. The AST returns the value of
-\verb|combineResult|, a local variable of type \verb|R| and the type parameter of
-\verb|Query[R]| within which the macro is defined. \verb|R| is the return type
-of the type class method (\verb|String| in the case of \verb|Show|). The
-value of \verb|combineResult| is the result of combining:
-1) the initial result returned by the AST \verb|trees.first(tpe)|; 2)
-the results returned by nested invocations of the type class on fields;
-3) the result returned by the AST \verb|trees.last(tpe)|. To obtain
-those ASTs, the macro utilizes the \verb|trees| instance (of type
-\verb|Trees|) that was constructed in the set-up phase (see
-Figure~\ref{fig:macro-set-up}). Moreover, all these fragments are combined using the AST
-returned by \verb|trees.combine(acc, postfixTree)|.
+For example, Figure~\ref{fig:basic-usage} shows that the definition of
+\verb|combine| for \verb|Show| is just string concatenation. As a result, this
+code concatenates the string values of all fields separated with
+\verb|separator|.
 
-The list of ASTs \verb|fieldTrees| is obtained as follows. For each field
-declared in type \verb|tpe|, the following subtree is generated:
-
-\begin{figure}
-\centering
+The expression tree \verb|fieldValueExpr(sym)| is obtained as follows. For
+each field declared in type \verb|tpe|, the following subexpression is
+generated:
 \begin{lstlisting}
 val symTp = sym.typeSignatureIn(tpe)
 val fieldName = sym.name.toString.trim
-val valueTree = trees.fieldValueTree(fieldName,
-                  symTp, tpeOfTypeClass)
-val next = c.Expr[R](q"res")
-val sepTree =
-  if (isFirst) { isFirst = false; q"" }
-  else q"combineResult =
-    ${trees.combine(acc,
-                    trees.separator).tree}"
-q"""
-  $sepTree
-  val res: $qresTpe = $valueTree
-  combineResult = ${trees.combine(acc, next).tree}
-"""
-\end{lstlisting}
-  \caption{desc.}
-  \label{fig:macro-combine-result}
-\end{figure}
-
-Of all these subtrees,
-\verb|trees.fieldValueTree(fieldName, symTp, tpeOfTypeClass)| is most interesting.
-It expands to a nested look-up of a type class instance for the field, as well as
-an invocation of the type class method. Figure~\ref{fig:macro-field-value} shows its implementation.
-The AST returned by \verb|implicitlyTree(tpe, tpeOfTypeClass)| is expanded as follows,
-obtaining a type class instance for the current field:
-\begin{lstlisting}
-val instType = appliedType(tpeOfTypeClass, tpe)
-q"implicitly[$instType]"
+trees.fieldValueExpr(fieldName,
+  symTp, tpeOfTypeClass)
 \end{lstlisting}
 
-
-\begin{figure}
-\centering
+The invocation of \verb|fieldValueExpr| expands to (a) a nested look-up of a
+type class instance for the field, and (b) an invocation of the type class
+method:
 \begin{lstlisting}
-def fieldValueTree(name: String, tpe: c.Type,
-                   tpeOfTypeClass: c.Type): c.Tree = {
-  val instTree   = q"inst"
-  val fieldTree  = q"value"
-  val invokeTree = invoke(instTree, fieldTree)
+def fieldValueExpr(visitee: c.Expr[T], name: String,
+  tpe: c.Type, tpeOfTypeClass: c.Type): c.Expr[R] =
+c.Expr[R](
   q"""
-    val inst = ${implicitlyTree(tpe, tpeOfTypeClass)}
-    val value = visitee.${TermName(name)}
-    $invokeTree
-  """
-}
+    implicitly[${appliedType(tpeOfTypeClass, tpe)}]
+      .apply($visitee.${TermName(name)})
+  """)
 \end{lstlisting}
-  \caption{Nested implicit look-ups of instances}
-  \label{fig:macro-field-value}
-\end{figure}
+
+The syntax \verb|q"""..."""| indicates the use of a quasiquote to create an
+{\em untyped} tree that is cast to an \verb|Expr[R]|, effectively forming part
+of a small trusted core of \sselfassembly. The main reason for creating an
+untyped tree at this point is that the value of field ``name'' is obtained
+using only the field's name--the selection \verb|$visitee.${TermName(name)}|
+must fundamentally be untyped. It is clear, though, that the result will be of
+type \verb|R|, since that's the result type of all type class instances of
+type \verb|tpeOfTypeClass|.
+
+
+% Figure~\ref{fig:macro-field-value} shows its implementation. The AST
+% returned by \verb|implicitlyTree(tpe, tpeOfTypeClass)| is expanded as follows,
+% obtaining a type class instance for the current field of type \verb|fieldTpe|:
+% \begin{lstlisting}
+% val instType = appliedType(tpeOfTypeClass, fieldTpe)
+% q"implicitly[$instType]"
+% \end{lstlisting}
+
+
+% \begin{figure}
+% \centering
+% \begin{lstlisting}
+% def fieldValueTree(name: String, tpe: c.Type,
+%                    tpeOfTypeClass: c.Type): c.Tree = {
+%   val instTree   = q"inst"
+%   val fieldTree  = q"value"
+%   val invokeTree = invoke(instTree, fieldTree)
+%   q"""
+%     val inst = ${implicitlyTree(tpe, tpeOfTypeClass)}
+%     val value = visitee.${TermName(name)}
+%     $invokeTree
+%   """
+% }
+% \end{lstlisting}
+%   \caption{Nested implicit look-ups of instances}
+%   \label{fig:macro-field-value}
+% \end{figure}
 
 
 
