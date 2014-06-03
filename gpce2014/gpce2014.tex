@@ -420,13 +420,16 @@ compiler/runtime-integrated approaches such as Java's serialization are typicall
 customize. For example, it is not possible to adapt Java serialization to work
 with other formats (such as JSON or XML).
 
-An alternative approach to deal with functionality defined over a
-large set of types is to use \emph{type classes}~\cite{WadlerTypeClasses}. 
+Library-based approaches to generic programming which require \emph{type
+classes}~\cite{WadlerTypeClasses} as a language feature are a lot more
+flexible.
+% An alternative approach to deal with functionality defined over a
+% large set of types is to use \emph{type classes}~\cite{WadlerTypeClasses}.
 %Library-based approaches like those using type
-%classes~\cite{WadlerTypeClasses} are a lot more flexible. 
+%classes~\cite{WadlerTypeClasses} are a lot more flexible.
 Type classes provide a mechanism where a certain functionality can be captured in an interface.
 When programmers need certain types of values to support a given
-functionality, they can implement an \emph{instance} of a type class. 
+functionality, they can implement an \emph{instance} of a type class.
 Type classes support \emph{retroactive
 extensibility}~\cite{RetroactiveExtensibility}; functionality can be
 implemented \emph{after} the type or class has been defined. This is in
@@ -440,7 +443,7 @@ them~\cite{Oliveira2010,ScalaCollections,Pickling}.
 
 Type classes are more general than built-in mechanisms like Java
 serialization, since any functionality (including serialization) can be
-modelled as a type class.
+modeled as a type class.
 However, an approach based on type classes is not without challenges. To
 provide functionality across a large number of types, users are
 required to implement many type class instances manually. To reduce this vast amount of
@@ -450,19 +453,26 @@ DGP is an advanced form of \emph{generic programming}~\cite{GP}, where generic
 functions can be defined by inspecting the structure of types. For this,
 library-based approaches typically introduce run-time type representations.
 However, those come with a significant performance
-penalty~\cite{TemplateYourBoilerplate}. While there are efforts to use
-compiler inlining optimizations~\cite{OptimizingDGP}, it's difficult to
-predict when they'll kick-in, so normal programmers cannot rely on
-them. \footnote{BRUNO: I think there is too much detail here
-  discussing the limitations of DGP. Reader need to be aware that
-  there are library-based approaches...}
+penalty~\cite{TemplateYourBoilerplate}. Moreover, the vast majority of DGP approaches
+has been developed for Haskell, and are thus fundamentally limited when ported to
+mainstream OO languages, due to their lack of support for subtyping or object identity.
 
-Language integrated approaches (such as Java serialization) and approaches like type classes, are at
+% While there are efforts to use
+% compiler inlining optimizations~\cite{OptimizingDGP}, it's difficult to
+% predict when they'll kick-in, so normal programmers cannot rely on
+% them.
+% \footnote{BRUNO: I think there is too much detail here
+%   discussing the limitations of DGP. Reader need to be aware that
+%   there are library-based approaches...}
+
+
+These compiler-based and library-based approaches using type classes are at
+% Language integrated approaches (such as Java serialization) and approaches like type classes, are at
 odds with one another. One the one hand, language-integrated approaches can be
 more powerful in the sense that they can do a great deal of static analysis,
 and because they are so specialized, typically require no boilerplate to
 programmers. However this is done at the cost of customizability and
-extensibility.On the other hand,
+extensibility. On the other hand,
 with type class-based approaches, one must contend with an enormous amount of
 boilerplate or pay a non-negligible performance penalty\footnote{some
 approaches trade type-safety for performance~\cite{TemplateYourBoilerplate}};
@@ -470,11 +480,12 @@ in all cases, however, type class-based approaches offer no way to statically
 restrict runtime behavior. Perhaps most important for mainstream languages is
 the lack of support for pervasively used object-oriented features such as
 subtyping and object identity, which so far have not been addressed except for
-specialized functionality~\cite{Pickling}.\footnote{BRUNO: Two important
-  points here -- restricting run-time behaviour (properties), and lack
-of support for OO features -- are mentioned in passing in a couple of
-sentences. I don't think this exposes well these ideas and why they
-are important/relevant.}
+specialized functionality~\cite{Pickling}.
+% \footnote{BRUNO: Two important
+%   points here -- restricting run-time behaviour (properties), and lack
+% of support for OO features -- are mentioned in passing in a couple of
+% sentences. I don't think this exposes well these ideas and why they
+% are important/relevant.}
 
 In this paper, we attempt to strike a sweet spot in the design space. Our
 approach is guided by the following principles:
@@ -496,17 +507,22 @@ approach is guided by the following principles:
      analysis capabilities should be supported.
 \end{itemize}
 
-In our previous work on Scala/Pickling~\cite{Pickling}, we achieved all of these goals, except for
-generality.\footnote{BRUNO: I am not sure if this is a good way to promote this
-  work. It essentially gives the impression that only generic
-  properties are a contribution of this work: all the rest has been
-  done already by Scala/Pickling. It even makes it look
-  like as generic functions were already accounted for in Scala
-  Pickling (since you talk about generic functions in the previous
-  bullet points).} Scala/Pickling is a hybrid library/compile time-based
-serialization framework. It's based on type classes which are generated and
-composed at compile time, based on type signatures. The approach was
-successful. Due to its compile-time properties, serialization code is fast and
+
+In our previous work on Scala/Pickling~\cite{Pickling}, we sought to achieve
+many of these goals for one particular application: serialization.
+% In our previous work on Scala/Pickling~\cite{Pickling}, we achieved all of these goals, except for
+% generality.
+% \footnote{BRUNO: I am not sure if this is a good way to promote this
+%   work. It essentially gives the impression that only generic
+%   properties are a contribution of this work: all the rest has been
+%   done already by Scala/Pickling. It even makes it look
+%   like as generic functions were already accounted for in Scala
+%   Pickling (since you talk about generic functions in the previous
+%   bullet points).}
+Scala/Pickling is based on type classes which are generated and
+composed at compile time, according to their type signatures.
+% The approach was successful.
+Due to its compile-time properties, serialization code is fast and
 inlined, without requiring any boilerplate. Due to the fact that it is
 completely based upon type classes, flexibility and extensibility come for
 free. However, the approach is specialized on providing type class instances
@@ -528,6 +544,8 @@ upon self-assembly. Importantly, the refactoring preserves its high
 performance, flexibility, customization, and absence of boilerplate. In
 addition, the use of self-assembly led to a significant reduction in code
 size, and improved code clarity.
+% Importantly, this migration ensures \selfassembly is
+% flexible enough to be adopted on a large scale in a production setting.
 
 Finally, we also show a different application of LLEs: \emph{generic
 properties}. In \selfassembly it is possible to define some forms of lightweight static
@@ -546,11 +564,6 @@ In summary the contributions of this paper are:
   code generation, provides high performance. It allows defining
   generic functions in a statically type-safe way.
 
-\item {\bf The \selfassembly library}, a complete and full-featured
-  implementation of our technique in and for Scala.
-  The library includes several auxiliary definitions, such as
-  generic queries and transformations, that help define new LLEs.
-
 \item {\bf A full-featured DGP approach for OOP.} \selfassembly
   enables the definition of datatype-generic functions that
   support features present in production OO languages, including
@@ -562,6 +575,13 @@ In summary the contributions of this paper are:
   runtime, \eg immutability.\footnote{Bruno: I think here you should
     only claim generic properties; DGP/generic-functions are already
     claimed in previous bullet point.}
+
+\item {\bf The \selfassembly library}, a complete and full-featured
+  implementation of our technique in and for Scala.
+  The library includes several auxiliary definitions, such as
+  generic queries and transformations, that help define new LLEs.
+  Importantly, \selfassembly doesn't require any extension to the
+  language or compiler.
 
 \item {\bf A case study on basing Scala/Pickling on \sselfassembly.}
   We evaluate the expressivity and performance of \selfassembly by
@@ -1085,7 +1105,7 @@ Macro defs are methods that are transparently loaded by
 the compiler and executed (or expanded) during compilation. A macro is defined
 like any normal method, but it is linked using the \verb|macro| keyword to an
 additional method that provides its implementation, which operates on
-expression trees. 
+expression trees.
 \begin{lstlisting}
 def assert(x: Boolean, msg: String): Unit =
   macro assert_impl
@@ -1406,7 +1426,7 @@ def genQuery[T:c.WeakTypeTag, S:c.WeakTypeTag]
 \end{lstlisting}
 \noindent
 Note that in this declaration, the type parameters \verb|T| and \verb|S| are annotated with
-\emph{context bounds} \verb|c.WeakTypeTag|. 
+\emph{context bounds} \verb|c.WeakTypeTag|.
 %Context bounds are an
 %alternative way of adding synthetic implicit parameters:
 %
@@ -2663,11 +2683,11 @@ This paper shows a general mechanism, called \sselfassembly, for doing
 lightweight language extensions. This mechanism has the extensibility
 and customization advantages of type classes; and it has the automatic
 implementation advantages of mechanisms like Java's serialization
-mechanism.  The key idea is to provide 
+mechanism.  The key idea is to provide
 automatic implementations of type classes using type-safe macros.
 This allows programmers to define their own generic
 functionality, such as serialization, pretty printing, or equality;
-and it also allows the definition of generic properties such as 
+and it also allows the definition of generic properties such as
 immutability checking. To demonstrate the usefulness of \selfassembly
 in practice, we implemented an industry-ready
 serialization framework for Scala.
