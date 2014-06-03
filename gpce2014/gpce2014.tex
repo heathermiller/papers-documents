@@ -1309,25 +1309,23 @@ type class instances do not have to be defined manually.
 % We start with a simplified view of types in Scala. In subsequent sections we
 % show how to generalize this view to richer types.
 
-\begin{figure}
-  \centering
-$\ba[t]{l@{\hspace{2mm}}l@{\hspace{2mm}}}
-T    ::= & \texttt{sealed trait}~C~\{~\bar{m}~\} \\
-\gap ~|~ & \texttt{case class}~C(v~p_1: D_1, \ldots, v~p_n: D_n)~\{~\bar{m}~\} \\
-\gap     & \texttt{~~extends}~E_1~\texttt{with}~ \ldots ~\texttt{with}~E_m \\
-v    ::= & \texttt{var}  ~|~  \epsilon \\
-m    ::= & \ldots \\
-\ea$
-  \caption{Grammar for simple datatypes in Scala.}
-  \label{fig:type-syntax}
-\end{figure}
+% \begin{figure}
+%   \centering
+% $\ba[t]{l@{\hspace{2mm}}l@{\hspace{2mm}}}
+% T    ::= & \texttt{sealed trait}~C~\{~\bar{m}~\} \\
+% \gap ~|~ & \texttt{case class}~C(v~p_1: D_1, \ldots, v~p_n: D_n)~\{~\bar{m}~\} \\
+% \gap     & \texttt{~~extends}~E_1~\texttt{with}~ \ldots ~\texttt{with}~E_m \\
+% v    ::= & \texttt{var}  ~|~  \epsilon \\
+% m    ::= & \ldots \\
+% \ea$
+%   \caption{Grammar for simple datatypes in Scala.}
+%   \label{fig:type-syntax}
+% \end{figure}
 
 We illustrate the general idea of our generation technique through
 a simple example based solely on closed ADT-style datatypes in
-Scala. These datatypes can be described using the grammar in
-Figure~\ref{fig:type-syntax}.\footnote{Case classes are considered to be
-final, even though in the current version of Scala they can technically be
-extended; extension is deprecated, though.} In subsequent sections 
+Scala. Such datatypes consist of either sealed traits or
+case classes extending such traits. In subsequent sections, we
 generalize this view to richer types.
 
 Our treatment is centered on an example, in which, our goal is to
@@ -2000,8 +1998,8 @@ case _ => {
 \subsection{Object Identity}\label{sec:oo-object-identity}
 
 In object-oriented languages like Scala, it is important to take \emph{object
-identity} into account. Simple datatypes as shown in
-Figure~\ref{fig:type-syntax} already permit cycles in object graphs via re-assignable
+identity} into account. Simple datatypes such as case classes
+already permit cycles in object graphs via re-assignable
 fields (using the \verb|var| modifier). It is therefore important to keep
 track of objects that have already been visited to avoid infinite recursion.
 
