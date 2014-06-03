@@ -197,7 +197,7 @@ language=scala,moredelim=[il][\sffamily]{?},mathescape=false,showspaces=false,sh
   operate over a large class of types. With LLEs it is possible, for
   example, for users to define their own Java-style automatic
   serialization mechanism; or implement simple forms of custom pluggable type
-  system extensions like an \emph{immutability checker}. However unlike
+  system extensions like an immutability checker. However unlike
   language built-in mechanisms (such as Java serialization),
   LLEs are \emph{user-definable}, \emph{multi-purpose} (they can be used to define
   various forms of generic functionality), and \emph{highly customizable and
@@ -476,12 +476,12 @@ and because they are so specialized, typically require no boilerplate to
 programmers. However this is done at the cost of customizability and
 extensibility. On the other hand,
 with type class-based approaches, one must contend with an enormous amount of
-boilerplate or pay a non-negligible performance penalty\footnote{Some
-approaches trade type-safety for performance~\cite{TemplateYourBoilerplate}.};
+boilerplate or pay a non-negligible performance penalty;\footnote{Some
+approaches trade type-safety for performance~\cite{TemplateYourBoilerplate}.}
 in all cases, however, type class-based approaches offer no way to statically
 restrict runtime behavior. Perhaps most important for mainstream languages is
 the lack of support for pervasively used object-oriented features such as
-subtyping and object identity, which so far have not been addressed except for
+subtyping and object identity, which so far have not been addressed, except for
 specialized functionality~\cite{Pickling}.
 % \footnote{BRUNO: Two important
 %   points here -- restricting run-time behaviour (properties), and lack
