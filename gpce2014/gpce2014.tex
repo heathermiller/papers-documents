@@ -190,7 +190,6 @@ language=scala,moredelim=[il][\sffamily]{?},mathescape=false,showspaces=false,sh
 \maketitle
 
 \begin{abstract}
-
   In this paper we show a general mechanism, called \sselfassembly,
   for \emph{lightweight language extensions} (LLEs). LLEs allow
   users to define \emph{generic operations} or \emph{properties} that
@@ -210,26 +209,24 @@ language=scala,moredelim=[il][\sffamily]{?},mathescape=false,showspaces=false,sh
   published performance numbers while reducing the code size for
   type class instance generation by 56\%.
 
-\begin{comment}
-Often generic programming and language extension are at odds with one another.
-Language extensions often require no special set-up to apply some generic
-functionality across types, though at the cost of customizability and
-generality. Generic programming techniques on the other hand enable
-flexibility and extensibility but at the cost of concision; such techniques
-often require \emph{some} boilerplate. In this paper, we present a technique
-we call ``self-assembly'' designed to achieve the best of both worlds;
-retroactive extensibility that is general across types, without the
-boilerplate of type class-based approaches. Furthermore, since it's a
-compile-time technique, the self-assembly technique goes beyond traditional datatype
-generic programming, by additionally providing ways to do lightweight static
-checking, such as defining custom pluggable type system extensions. Due to
-these powerful static capabilities, our approach additionally deals with oft
-left-out concerns of object-oriented languages such as subtyping and object
-identity in the context of datatype generic programming. We've implemented our
-technique as a library, \texttt{self-assembly}, for Scala, and evaluate its
-practicality by migrating a full-featured industrial-strength serialization
-framework for Scala to \texttt{self-assembly}.
-\end{comment}
+% Often generic programming and language extension are at odds with one another.
+% Language extensions often require no special set-up to apply some generic
+% functionality across types, though at the cost of customizability and
+% generality. Generic programming techniques on the other hand enable
+% flexibility and extensibility but at the cost of concision; such techniques
+% often require \emph{some} boilerplate. In this paper, we present a technique
+% we call ``self-assembly'' designed to achieve the best of both worlds;
+% retroactive extensibility that is general across types, without the
+% boilerplate of type class-based approaches. Furthermore, since it's a
+% compile-time technique, the self-assembly technique goes beyond traditional datatype
+% generic programming, by additionally providing ways to do lightweight static
+% checking, such as defining custom pluggable type system extensions. Due to
+% these powerful static capabilities, our approach additionally deals with oft
+% left-out concerns of object-oriented languages such as subtyping and object
+% identity in the context of datatype generic programming. We've implemented our
+% technique as a library, \texttt{self-assembly}, for Scala, and evaluate its
+% practicality by migrating a full-featured industrial-strength serialization
+% framework for Scala to \texttt{self-assembly}.
 \end{abstract}
 
 % \category{CR-number}{subcategory}{third-level}
