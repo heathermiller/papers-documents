@@ -484,7 +484,7 @@ approach is guided by the following principles:
      analysis capabilities should be supported.
 \end{itemize}
 
-In our previous work on Scala/Pickling, we achieved all of these goals, except for
+In our previous work on Scala/Pickling~\cite{Pickling}, we achieved all of these goals, except for
 generality. Scala/Pickling is a hybrid library/compile time-based
 serialization framework. It's based on type classes which are generated and
 composed at compile time, based on type signatures. The approach was
@@ -1309,25 +1309,23 @@ type class instances do not have to be defined manually.
 % We start with a simplified view of types in Scala. In subsequent sections we
 % show how to generalize this view to richer types.
 
-\begin{figure}
-  \centering
-$\ba[t]{l@{\hspace{2mm}}l@{\hspace{2mm}}}
-T    ::= & \texttt{sealed trait}~C~\{~\bar{m}~\} \\
-\gap ~|~ & \texttt{case class}~C(v~p_1: D_1, \ldots, v~p_n: D_n)~\{~\bar{m}~\} \\
-\gap     & \texttt{~~extends}~E_1~\texttt{with}~ \ldots ~\texttt{with}~E_m \\
-v    ::= & \texttt{var}  ~|~  \epsilon \\
-m    ::= & \ldots \\
-\ea$
-  \caption{Grammar for simple datatypes in Scala.}
-  \label{fig:type-syntax}
-\end{figure}
+% \begin{figure}
+%   \centering
+% $\ba[t]{l@{\hspace{2mm}}l@{\hspace{2mm}}}
+% T    ::= & \texttt{sealed trait}~C~\{~\bar{m}~\} \\
+% \gap ~|~ & \texttt{case class}~C(v~p_1: D_1, \ldots, v~p_n: D_n)~\{~\bar{m}~\} \\
+% \gap     & \texttt{~~extends}~E_1~\texttt{with}~ \ldots ~\texttt{with}~E_m \\
+% v    ::= & \texttt{var}  ~|~  \epsilon \\
+% m    ::= & \ldots \\
+% \ea$
+%   \caption{Grammar for simple datatypes in Scala.}
+%   \label{fig:type-syntax}
+% \end{figure}
 
 We illustrate the general idea of our generation technique through
 a simple example based solely on closed ADT-style datatypes in
-Scala. These datatypes can be described using the grammar in
-Figure~\ref{fig:type-syntax}.\footnote{Case classes are considered to be
-final, even though in the current version of Scala they can technically be
-extended; extension is deprecated, though.} In subsequent sections 
+Scala. Such datatypes consist of either sealed traits or
+case classes extending such traits. In subsequent sections, we
 generalize this view to richer types.
 
 Our treatment is centered on an example, in which, our goal is to
@@ -2008,8 +2006,8 @@ case _ => {
 \subsection{Object Identity}\label{sec:oo-object-identity}
 
 In object-oriented languages like Scala, it is important to take \emph{object
-identity} into account. Simple datatypes as shown in
-Figure~\ref{fig:type-syntax} already permit cycles in object graphs via re-assignable
+identity} into account. Simple datatypes such as case classes
+already permit cycles in object graphs via re-assignable
 fields (using the \verb|var| modifier). It is therefore important to keep
 track of objects that have already been visited to avoid infinite recursion.
 
@@ -2171,7 +2169,7 @@ val scaled = gscale(obj)
 The \verb|genTransform| macro is based on traversals similar to those of
 generic queries. However, the crucial difference is that the macro generates
 code to {\em clone} visited objects (based on techniques used in
-scala-pickling~\cite{Pickling}). Interestingly, the implementations of queries and
+Scala/Pickling~\cite{Pickling}). Interestingly, the implementations of queries and
 transformations share a substantial number of generic building blocks.
 
 
@@ -2511,20 +2509,20 @@ transformation), and \verb|Pickler|/\\\verb|Unpickler| (type-safe serialization)
 \paragraph{Case Study: Scala Pickling}
 
 To evaluate both expressivity and performance, we have ported an
-industrial-strength serialization framework, called \verb|scala-pickling|~\cite{Pickling}, to \sselfassembly.
+industrial-strength serialization framework, called Scala/Pickling~\cite{Pickling}, to \sselfassembly.
 
-\verb|scala-pickling| is a popular open-source project; on the social code
+Scala/Pickling is a popular open-source project; on the social code
 hosting platform GitHub, the project has more than 360 ``stars''.\footnote{The
 Scala language project has about 2,500 ``stars.''} To achieve the reportedly
-high performance, \verb|scala-pickling| leverages macros for compile-time code
-generation. Our port of \verb|scala-pickling| to \selfassembly supports
+high performance, Scala/Pickling leverages macros for compile-time code
+generation. Our port of Scala/Pickling to \selfassembly supports
 already about 90\% of the features of the original; notably, subtyping, object
 identity, separate compilation, and pluggable pickle formats. Currently, the
 port lacks picklers based on run-time reflection.
 
 In terms of efficiency,  \selfassembly compares favorably to the original
 library: execution time of the ``Evactor'' benchmark~\cite{Pickling} remains
-within 1\% of the execution time of \verb|scala-pickling|. At the same time,
+within 1\% of the execution time of Scala/Pickling. At the same time,
 the \sselfassembly-based code is significantly simpler, shorter, and more
 maintainable. The use of \selfassembly reduced the code size for macro-based
 type class instance generation by about 56\%.
