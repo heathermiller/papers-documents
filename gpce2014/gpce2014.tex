@@ -2659,7 +2659,18 @@ our compile-time approach.
 
 \section{Conclusion}
 
-
+This paper shows a general mechanism, called \sselfassembly, for doing
+lightweight language extensions. This mechanism has the extensibility
+and customization advantages of type classes; and it has the automatic
+implementation advantages of mechanisms like Java's serialization
+mechanism.  The key idea is to provide 
+automatic implementations of type classes using type-safe macros.
+This allows programmers to define their own generic
+functionality, such as serialization, pretty printing, or equality;
+and it also allows the definition of generic properties such as 
+immutability checking. To demonstrate the usefulness of \selfassembly
+in practice, we has been used to implement an industry-ready
+serialization framework.
 
 % \appendix
 % \section{Appendix Title}
