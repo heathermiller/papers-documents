@@ -2535,7 +2535,7 @@ generic query invokes for all types encountered in a traversal is overridden
 to invoke the user-defined \verb|check| method. Otherwise, \verb|delimit| only
 returns trivial expression trees, since they are (essentially) unused.
 
-% \vspace{-2mm}
+\vspace{-2.2mm}
 \section{Implementation and Case Study}
 
 We have implemented our approach in the \selfassembly Scala
@@ -2593,7 +2593,7 @@ type class instance generation by about 56\%.
 % Report on examples implemented. Report on port of scala-pickling to \selfassembly and percentage of functionality
 % achieved already and how much the code size was reduced and improved in terms of structure.
 
-% \vspace{-2mm}
+\vspace{-2mm}
 \section{Related Work}
 \label{sec:related-work}
 
@@ -2637,15 +2637,23 @@ inlining is not very predictable and some generic functions do not
 optimize well.
 
 Approaches that use meta-programming techniques like Template
-Haskell~\cite{TemplateYourBoilerplate} to do DGP are closest to our work.
-The use of Template Haskell to do
-DGP is very often motivated by performance considerations, to avoid the
-costs of run-time type representations. However Template Haskell is an
-\emph{untyped} macro system. Therefore approaches using Template
-Haskell trade some type-safety for performance. Although type-errors
-are still detected at compile-time, they are now given in terms of the
-generated code instead of the macro code. In \selfassembly we do not
-need to make such trade-off because we use Scala's type-safe macros.
+Haskell (TH)~\cite{TemplateYourBoilerplate} to do DGP are closest to our work.
+The use of TH is very often motivated by performance considerations, to avoid the
+costs of run-time type representations.
+However, published proposals using TH are based on its {\em untyped} macro
+system. (TH itself has recently been upgraded to allow type-safe macros.)
+Although type errors are still detected at compile time even using the untyped
+system, they are given in terms of the generated code instead of the macro
+code. In \selfassembly we do not need to make such a trade-off, because we
+only use the type-safe subset of Scala’s macros (apart from a small, internal
+trusted core, as is common in DGP approaches).
+
+% However Template Haskell is an
+% \emph{untyped} macro system. Therefore approaches using Template
+% Haskell trade some type-safety for performance. Although type-errors
+% are still detected at compile-time, they are now given in terms of the
+% generated code instead of the macro code. In \selfassembly we do not
+% need to make such trade-off because we use Scala's type-safe macros.
 
 In contrast to \selfassembly none of the functional DGP approaches
 deal with OO features like subtyping or object identity.
