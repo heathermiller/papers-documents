@@ -1545,11 +1545,11 @@ type \verb|tpeOfTypeClass|.
 \label{sec:generated-type-class-instances}
 
 The generation technique explained in the previous section produces implicit
-(singleton) objects which correspond to the type class intances portion of the
+(singleton) objects which correspond to the type class instances portion of the
 type class pattern introduced in Section~\ref{sec:type-classes}.
 
-Let's say the datatype that we'd like to call \verb|show| is the
-\lstinline{Tree} type on Figure~\ref{fig:trees}.
+Let's say the datatype that we'd like to call \verb|show| on is the
+\lstinline{Tree} type in Figure~\ref{fig:trees}.
 %\begin{lstlisting}
 %sealed trait Tree
 %case class Fork(left: Tree, right: Tree)
@@ -1557,9 +1557,9 @@ Let's say the datatype that we'd like to call \verb|show| is the
 %case class Leaf(elem: Int) extends Tree
 %\end{lstlisting}
 %\noindent
-In order to create type class instances of type
+In order to create a type class instance of type
 \verb|Show[Tree]|, we also create type class instances for
-\verb|Tree|'s two subclasses, \verb|Fork|, and \verb|Leaf|.
+\verb|Tree|'s two subclasses, \verb|Fork| and \verb|Leaf|.
 %Since both \verb|Fork| and \verb|Leaf|.
 \verb|Fork| and \verb|Leaf| are case classes with the general
 shape:
@@ -1587,7 +1587,7 @@ Figure~\ref{fig:basic-generation} shows the general structure that is
 generated for an
 arbitrary shape \verb|C|. The implicit object (1) is
 exactly the same as in the manual type class pattern described in
-Section~\ref{sec:type-classes}. (2) is the the implementation of the single
+Section~\ref{sec:type-classes}. (2) is the implementation of the single
 abstract method of the type class (the \verb|show| method of the \verb|Show|
 trait). (3) is the result of expanding the \verb|implicitly| invocation within
 the method \verb|fieldValueExpr| above. (4) corresponds to the
@@ -1830,7 +1830,7 @@ others.
 
 A cornerstone of the design of \selfassembly is its support for features of mainstream
 OO languages. The following Section~\ref{sec:oo-sub} explains how our approach supports
-{\em subtyping polymorphism} in the context of open class hierarchies (Section~\ref{sec:oo-sub-open})
+subtyping polymorphism in the context of open class hierarchies (Section~\ref{sec:oo-sub-open})
 and separate compilation (Section~\ref{sec:oo-sub-sep}). In Section~\ref{sec:oo-object-identity}
 we discuss how \selfassembly handles cyclic object graphs, which are easily created
 using mutable objects with identity.
