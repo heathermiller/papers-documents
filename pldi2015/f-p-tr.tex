@@ -1,0 +1,240 @@
+% acmtr.tex
+% revised 1/20/97
+% updated 06/01/01
+% $Header: acmtr.tex,v 1.5 2/14/96 11:07:57 boyland Exp $
+
+\documentclass[acmtocl]{acmtrans2m}
+%&t&{\tt #}&
+%&v&\verb|#|&
+
+\acmVolume{2}
+\acmNumber{3}
+\acmYear{01}
+\acmMonth{09}
+
+\usepackage[usenames,dvipsnames]{color}
+\usepackage{graphicx}
+\usepackage{subfig}
+
+
+\newcommand{\BibTeX}{{\rm B\kern-.05em{\sc i\kern-.025em b}\kern-.08em
+    T\kern-.1667em\lower.7ex\hbox{E}\kern-.125emX}}
+\newcommand{\smbox}[1]{\mbox{\scriptsize #1}}
+
+%%% Width of all Gnuplot figures
+\newlength{\gnuplotWidth}
+\setlength{\gnuplotWidth}{.98\columnwidth}
+
+%%% Where figures are located
+\graphicspath{{include/}}
+
+\definecolor{HeatherBlue}{rgb}{0,0,0.75}
+
+
+\markboth{\textcolor{Red}{Miller and Haller}}{\textcolor{Red}{A Framework for Large-Scale Distributed Processing}}
+
+\title{{\color{Red}A Framework for Large-Scale Distributed Machine Learning}}
+\author{\textcolor{Red}{HEATHER MILLER}\\\'{E}cole Polytechnique F\'{e}d\'{e}rale de Lausanne \and
+\textcolor{Red}{PHILIPP HALLER}\\\'{E}cole Polytechnique F\'{e}d\'{e}rale de Lausanne, and Stanford University}
+
+% Abstract
+\begin{abstract}
+{\bf Abstract} This proposal describes the development of a new open-source framework for implementing distributed machine learning algorithms. Our aim is a system that allows researchers and practitioners to quickly and easily implement (and experiment with) their algorithms in a parallel or distributed setting. The framework will provide parallelization, distribution, and fault tolerance through high-level concurrency abstractions. Furthermore, the project raises many important research questions, including but not limited to, fault-tolerant communication in the context of large-scale distributed systems, classification of algorithms parallelizable by our framework, and high-level correctness guarantees provided by the framework.
+
+%In a nutshell: A Framework for Distributed Machine Learning (... or other types of Analysis/Processing- i.e. Olivier/Ali/Reza's work on reconstruction in tomography). Goal: Implementation of a state-of-the-art framework/abstraction for distributing/parallelizing ML/optimization-type algorithms (amongst others). There is a lot of theory to work on (concurrently w/ implementation) related to stuff we face in sensor networks- because essentially, the goal is to break down the process of solving some general ML algorithm over many nodes (each assigned simple, identical tasks), which must communicate in a synchronized and reliable way. Loss/fault-tolerance is a big area of concern here. It's really interesting to discover all of the overlap with sensor networks
+\end{abstract}
+
+\category{}{Research Agenda}{January 2011}%
+
+%for implementing distributed algorithms in the areas of machine learning, optimization, and statistics.
+
+
+\begin{document}
+
+
+%\setcounter{page}{111}
+%
+%\begin{bottomstuff}
+%\end{bottomstuff}
+\maketitle
+
+
+\section{Introduction}
+%
+%Data sets are growing, machine learning a viable and lucrative approach to managing the information glut- Machine Learning (ML) provides high-level conceptual/semantic answer given large data set. Practically, this is very useful- industrial examples? Way of providing meaning to data.
+%
+%Meanwhile, physical bottlenecks reached in the fabrication of processors, causing manufacturers to achieve performance gains through multicore architectures. At the same time, large-scale data sets require the resources of clusters to keep the problems tractable. While software is facing a shift to parallel and distributed architectures, the ML community is left in the dark, with scant effort made to adjust to this ongoing global change in hardware, because the field is composed of entrenched procedural programmers, incapable of drastically changing a paradigm for solving computational problems that they've developed over the lifetime of their careers and since the inception of the field. Yet, at the same time, this paradigmatic shift is essential to find a way to manage these new types of problems which are coming to dominate the field (new data sets are growing in size and complexity).
+
+The computational problems we are are facing are getting more complex as the size and number of data sets increase. At the same time, physical bottlenecks in the fabrication of processors have resulted in parallel hardware that we have to exploit for increasing performance. Even though software is readily facing this shift, fields like Machine Learning (ML) remain left in the dark, with scant efforts made to adjust to this global change in hardware. Yet, this paradigmatic shift is essential to find a way to manage these new types of problems which are coming to dominate the field.
+
+As it stands, there is an impedance mismatch between the development of state-of-the-art ML algorithms and the systems used in industry to process web-scale data. Enabling sophisticated ML algorithms to be rapidly developed and deployed for processing these enormous data sets could result in a new class of data processing applications. Thus enabling both progress in ML research as well as drastically simplifying the transfer of research results from academia to practice.
+
+{\bf Goal of this research:} We are aiming to build a bridge by developing a high-level framework which enables the ML community to take advantage of parallel and distributed architectures to scale their efforts with scaling data. Our framework aims to make two principal contributions;
+
+\begin{enumerate}
+
+\item \textbf{\textit{An elegant abstraction}} which conceptually facilitates the transition from sequential designs to efficient parallel algorithms, for ML experts.
+
+\item \textbf{\textit{An implementation}} of this framework which handles and hides from the user the ``nitty-gritty" parallelization/distribution details, such as communication protocols, fault-tolerance, partitioning and distribution of data, so that users in various communities with little experience in distributed/parallel programming can fully utilize parallel/distributed architectures.
+
+\end{enumerate}
+
+%Such a framework Facilitate the task of porting sequential designs to the parallel and distributed case, eliminating the need to consider low-level parallel/distributed implementation details such that non-experts. Framework automates the task of efficient distribtion and routing, provides communication protocols.
+
+In pursuit of these goals, we aim to support two important scenarios,
+
+\begin{enumerate}
+
+\item \textbf{\textit{The Parallel Case}}, or multicore case, considers single machines which utilize one or more processors, where each processor consists of multiple cores accessing shared memory (shown in Figure \ref{subfig:parcase}). Solutions had in this case are of immense benefit to users in the academic community in several fields including but not limited to, Computer Vision, Bioinformatics, Computational Photography, Medical Imaging, Robotics.
+
+\item \textbf{\textit{The Distributed Case}}, or cloud/cluster case is an extension of the parallel case. Clusters support scaling computing and storage resources by connecting many multicore machines using a high-speed network. Typically, the network is partitioned into {\em racks} comprised of several interconnected multicore machines. Data links between machines inside the same rack provide higher bandwidth and lower latency than inter-rack data links. Figure \ref{subfig:distcase}. Given this topology, we aim to employ advanced protocols for {\em routing} and {\em data aggregation} inspired by ongoing work in sensor networks.
+%Web-scale problems faced by a large number industrial users, such as social networking services. Scientific community can benefit immensely from cloud services- processing could be greatly optimized, drastically reducing processing time.
+\end{enumerate}
+
+\begin{figure}
+    \centering
+    \subfloat[]{\label{subfig:parcase} \includegraphics[width=0.2\gnuplotWidth]{parallelcase}} \hfil
+    \subfloat[]{\label{subfig:distcase}\includegraphics[width=0.8\gnuplotWidth]{distributedcase}}\hfil
+    \caption{(a) {\bf the Parallel Case}, one multicore machine. (b) {\bf the Distributed Case}, multiple networked multicore machines-- in a local cluster or a cloud. Purple arrows represent intra-rack interconnected data links (faster), while red arrows represent inter-rack data links (slower).}
+    \label{fig:parvsdist}
+\end{figure}
+
+\subsection{Previous Work}
+Very recently, there have been several isolated efforts to simply parallelize one of many trendy ML algorithms~\cite{Bornschein2010,Nikolova2010,Louppe2010}-- but this isn't helpful to the community as a whole. There has been almost no effort made to develop a unifying framework to facilitate the translation of a general classs of ML algorithms to the parallel/distributed scenario. The handful which exist have attempted to capitalize on the success of Google's MapReduce framework~\cite{ChuKLYBNO06,PandaHBB09}, a functional abstraction pioneered by Google to concurrently process large datasets on large clusters of commodity machines \cite{Dean-Ghemawat08}, but in doing so have provided the insight that MapReduce isn't well-suited to ML tasks. Rather than being a simple two-step abstraction, using Mapreduce for Statistical Query Model ML tasks \cite{Kearns1998} requires that many MapReduce instances be linked together in a pipeline, often an impossible task in a ML scenario where termination of an algorithm depends upon a convergence condition.
+
+To the best of our knowledge, only two efforts have been undertaken in relationship to our goal; an internal effort at Google, which now handles an estimated 20\% of Google's data processing needs known as Pregel~\cite{MalewiczABDHLC09}, and an open source effort undertaken by the Select Lab at CMU (a group with expertise in algorithms in ML, rather than Parallel/Distributed Systems). While both offer appreciable results, they each suffer from numerous limitations.
+
+Pregel was designed for ``processing on a graph," which often includes data processing tasks that are simpler than general ML tasks. Furthermore, it is designed to support only graph-based algorithms. Much of the research in ML is centered around algorithms which are not graph-based. As a result, going from a prototype to a production-ready system often requires a very complex algorithmic redesign--a huge productivity loss. Finally, Pregel is a closed system, which was designed for the Google infrastructure.
+
+Like Pregel, GraphLab provides a graph-based API to the programmer. In contrast to Pregel, its reference implementation is open-source, which enables external contributions. Currently, the biggest problem with GraphLab is that it was not designed for clusters or clouds, its initial version only supported multi-core systems. Consequently, its support for distribution, fault tolerance, and distributed data is either non-existent or very hard to add to the system without a complete redesign.
+
+While these are appreciable efforts, they simply aren't suitable for bridging the gap and achieving widespread adoption. To develop a widely adoptable, robust, and usable system, different design criteria must underly the development of the framework.
+
+%These just aren't sufficient. By making sophisticated research more easily accessible/applicable to web-scale applications, for example, a whole host of novel applications could arise.
+%By building a bridge between it could introduce a whole host of new applications-
+%To develop a widely adoptable, robust, usable system, a different design criteria must underly the development of the framework. We believe that it is necessary to revisit some fundamental design goals.
+
+%With the limitations of the previous systems in mind, we have . While these attempts are indeed promising, they have raised a number of design initiatives imperative to the development of a more flexible and usable alternative--- in the next section, we describe in detail these goals.
+
+\section{Design Goals}
+
+To address the limitations of previous works while building upon their strengths, the design of our framework is guided by several goals,
+\begin{enumerate}
+\item {\bf \em Ease of use}: facilitating the transition from sequential to parallel by hiding issues of parallelism and data distribution from the user.
+\item {\bf \em Fault tolerance}: ensuring reliable operation on clusters of unreliable commodity machines.
+\item {\bf \em Scalability}: smoothly scaling to large problems and clusters.
+\item {\bf \em Flexible data access}: supporting data structures common in ML/DP.
+\item {\bf \em Composability}: maximum flexibility for users' applications through modular composition of reusable components.
+\end{enumerate}
+
+\subsection{Ease of Use}
+
+To enable ML experts to quickly prototype and experiment with new algorithms, the user interface should be centered around (a) update functions and (b) convergence/termination conditions. The effort required to parallelize a sequential solution should be minimal.
+
+While the designers of Pregel claim that it is easy to use, because it has been adopted by several teams within Google, the framework isnÕt geared towards more complicated tasks which arise in ML applications, but rather simpler processing tasks. GraphLab, on the other hand, is more flexible and specifically suited to ML tasks, but is significantly more difficult to use than even MapReduce.
+
+\subsection{Fault Tolerance}
+
+In large-scale systems with hundreds or thousands of servers, faults are common. A typical cloud infrastructure used to process large-scale industrial data sets, such as the one powering Google's search engine, is composed of a large number of commodity machines which are unreliable. Consequently, it is essential to provide mechanisms to handle failures of these machines in order for any system to be acceptable for adoption in industrial scenarios~\cite{ChangDGHWBCFG08}. A key component of reliable systems is replication, avoiding central, single points of failure in the design. The design of our framework is guided by the principle of avoiding centralized components wherever possible, inspired by ideas in sensor networks, and using high-level abstractions to provide monitoring and fault management.
+
+Compared to our design, GraphLab was not designed with fault tolerance in mind. Its multi-core version does not provide any mechanism whatsoever for handling failures. Consequently, it is ill-suited for scaling applications to clusters and clouds. Some of its components are inherently centralized, such as the Shared Data Table (SDT), which makes it very difficult if not impossible to provide the required level of fault tolerance.
+
+Pregel, on the other hand, does provide mechanisms to handle faults, since it was designed for data processing on large-scale clusters. However, even Pregel centralizes certain components such as aggregators. As a result, they (a) either decrease the level of fault tolerance if they are not replicated, or (b) their replication consumes additional network bandwidth (for synchronizing the replicas) which decreases overall system throughput. In our framework, we aim to decentralize data aggregation using algorithms inspired by ongoing work on sensor networks.
+
+\subsection{Scalability}
+
+A key challenge in building applications that process large data sets is scale. Techniques suitable for smaller data sets, such as shared-memory data structures, become bottlenecks as applications are distributed on clusters and must be replaced by more scalable alternatives, which typically requires architectural changes of a system~\cite{DeCandia07}.
+
+Previous frameworks either build upon abstractions which inherently require a shared memory (for instance, GraphLab), or have not been designed to support sophisticated machine learning applications. For example, it is very challenging to distribute certain machine learning algorithms, such as tree ensemble learning, using MapReduce~\cite{PandaHBB09}. Similarly, it is not clear whether Google's Pregel system is suitable for machine learning applications; so far, it has only been evaluated using much simpler data processing tasks.
+
+Our framework is intended to support a wide variety of data processing tasks, ranging from large-scale signal reconstruction to complex machine learning on web-scale graphs. Using actors as the concurrency model encourages the use of small, independent computations distributed across servers. Actors can be inexpensively replicated among computers using techniques which have been developed in the context of Erlang~\cite{erlang-book}, and which are fully supported in Scala~\cite{HallerO09}.
+
+\subsection{Flexible Data Access}
+A majority of ML applications consider data that isnÕt intrinsically represented by a graph. A limitation common to both Pregel and GraphLab is both frameworksÕ inability to cope with these data types which are more familiar to those in the scientific computing community. By not supporting data structures other than graphs, a large proportion of potential use cases are dissuaded by the additional overhead required to transform their data into graphs.
+
+We aim to provide support for data types more commonly used in scientific computing applications, by incorporating OptiML \cite{Chafi11}, an effort to design a Scala-based domain specific language (DSL) for ML underway at the Pervasive Parallelism Lab at Stanford University. A major design goal of OptiML is to make straightfoward MATLAB-like syntax available to the user while implicitly extracting task parallelism out of MATLAB data structures, which is suitable for the muticore case, but does not scale to clusters. Additionally, OptiML does not have support for graph-based learning algorithms.
+
+We will extend this to not only extract parallelism but to also partition the data into graphs (used to distribute computation on the cluster) by jointly using the data provided by the user, as well as the code patterns used to access their data.
+
+\subsection{Composability}
+Composability is the idea that it is possible to allow for complex behavior by aggregating simpler behaviors. In holding composability to be an essential component of our systemÕs design, we have ensured that our framework is inherently more flexible than previous approaches. Our approach to composability is based on the functional programming paradigm which, in contrast to previous systems, is fully supported by the Scala programming language.
+
+The success of MapReduce, for example, is in part due to its use of the functional style; conceptually it offers a new paradigm for solving common programming problems, which has drastically improved productivity, code understanding and re-usability.
+
+By combining message-passing with the functional style, we can dramatically increase the flexibility of our framework compared to previous attempts.
+
+%recombinant components that can be selected and assembled in various combinations to satisfy specific user requirements.
+%
+%allow ML to be expressed in a hierarchical way. Algs implemented in . Allows users to do more complex things by providing a more flexible framework than previous efforts. Users are not limited
+%
+%Composability: compose ML algs in a modular way using functional programming techniques. The success of MapReduce is in part due to the functional style; conceptually it offers new paradigm for solving common programming problems- which has drastically improved productivity, code understanding and reusability. By combining message-passing with functional style, we can dramatically increase the flexibility of our framework compared to previous attempts.
+%
+%As the goal of this research effort is to bridge two largely separated communities (the distributed computing and scientific computing-minded community), many design decisions were made to .  one goal of our efforts is to paradigmatically unify two modes of thought in the data processing, analysis, and machine learning world-- unify thinking via graphs, enable both modes of thought to be used in our framework.
+%Bullet-style list of goals, given limitations section set up above.
+%Adopters throughout the process, both academic and potentially industrial.
+
+\section{Plan of Action}
+
+%Moreover, we are working on a new open-source Scala framework for implementing distributed machine learning algorithms. Our aim is a system that allows researchers and practitioners to quickly and easily implement (and experiment with) a large class of parallel machine learning algorithms. The framework will provide parallelization, distribution, and fault tolerance through the actor model of concurrency [10]. This allows us to leverage the research and experience gained in Philipp Haller's Ph.D. thesis at EPFL [4], as well as the robustness and scalability of the industrial-strength Akka actors framework [5]. As a first step, we are implementing the essence of Pregel's parallel programming model as a DSL in Scala. We plan to present our preliminary results at the 2011 Scala workshop [9].
+
+\subsection{Short-Term}
+
+As a first step, we are experimenting with parallelizing (the multi-core case) several ML algorithms using the actor model as well as functional programming techniques. To start, we will focus on two graph-based problems; PageRank \& Belief Propagation, in the parallel scenario, using a 16-core machine.
+
+{\bf \em Scala Workshop 2011} We aim to submit these preliminary results, entitled {\em Distributing Machine Learning- Functionally}, to the 2011 Scala Workshop.
+
+We believe that it's essential to participate in the Scala Workshop because it is the only venue where industrial users of Scala come together who are looking for solutions to large-scale problems they experience in practice ({\em i.e.,} LinkedIn, Twitter) This is essential to the design process of our framework, as it is the only opportunity to gather the feedback required to ensure that it's adoptable by industry users. Furthermore, by involving potential industrial adopters in the design loop, we ensure ensure the framework is being considered for adoption in future iterations.
+
+{\bf \em Semester Projects} we have designed two semester projects, one to be carried out at the Programming Methods Laboratory (LAMP) at EPFL, and the other to be carried out at LCAV.
+\begin{itemize}
+\item {\bf \em LAMP:} Goal: Implementation and experimention with cluster/cloud-based machine learning algorithms in Scala. Tasks include working with a local cluster as well as Amazon EC2 (cloud) instances for running distributed Scala programs. Algorithms should be parallelized using the (Java-based) Hadoop framework and Scala-based actors.
+\item {\bf \em LCAV:} Running machine learning algorithms on clusters requires efficient and robust protocols for routing in the presence of failures. The goals of this project are to evaluate different routing schemes for distributed computing, and to develop a framework to simulate fault scenarios. 20\% Research and Design, 50\% Implementation in Java/Scala, 30\% Practical experiments. Requirements: knowledge of Java (some Scala knowledge desirable but not required).
+\end{itemize}
+
+
+\subsection{Long-Term}
+
+\begin{enumerate}
+\item $[\mbox{\bf throughout February}]$ Begin with the multi-core case. Experiment with a subset of popular ML algorithms for parallel operation. Contribution to Scala Workshop 2011: Novel ways of parallelizing ML tasks using actors and functional programming.
+
+\item $[\mbox{\bf March -- May}]$ Integration of routing and aggregation techniques, inspired by sensor networks.
+
+\item $[\mbox{\bf June -- August}]$ Extension of the parallel runtime system (Delite), which OptiML is based upon, to the distributed case.
+
+\item $[\mbox{\bf September -- October}]$ Mapping of certain classes of algorithms to our generic framework.
+
+\item $[\mbox{\bf November -- December}]$ Extend OptiML to graph-based algorithms.
+
+\end{enumerate}
+
+
+\section{Implementation}
+EPFL provides a unique subset of resources for implementation unmatched elsewhere.
+
+In the context of Scala and Scala-based actor frameworks \cite{HallerO09,Akka} we are in the best position to design a system with excellent scalability and fault tolerance properties. First, by designing our system from the start with distribution and fault tolerance in mind, we will remove critical limitations from efforts like GraphLab. Additionally, we will achieve significant productivity gains through domain-specific languages (DSLs) \cite{ChafiDMRSHOO10} for machine learning. In a collaborative effort between EPFL and Stanford, we are developing the OptiML DSL \cite{Chafi11} which is embedded in the Scala programming language \cite{Odersky-Spoon-Venners08}. Currently, it supports domain-guided parallelization of MATLAB-like programs on multi-core processors, in most cases surpassing the performance of parallel MATLAB code. In contrast to Pregel and GraphLab, OptiML supports matrix-based machine learning algorithms. Our plan is to extend OptiML and its parallel run-time system to support parallelization for clusters and clouds.
+
+We believe that the Scala programming language is ideally suited to carry out the proposed research. First, its support for embedding DSLs \cite{ChafiDMRSHOO10} makes it easy to experiment with programming APIs that are easy to use and that allow automatic parallelization on and mapping to heterogeneous hardware, such as multi-cores, GPUs, and clusters. Scala's integration of functional and object-oriented programming will enable innovations on the side of programmer productivity. Second, we have extensive experience with concurrent and parallel programming. Philipp's thesis work on concurrent programming with actors \cite{HallerThesis} (nominated for an EPFL doctorate award), will provide many of the fundamental tools and techniques that we will use to support large-scale parallelism.
+
+
+%\section{Expected Contributions}
+%\begin{enumerate}
+%\item Distributed/Parallel framework
+%\item Theoretical
+%\item Discover new ways to parallelize algorithms in general.
+%\end{enumerate}
+
+%\section{For Vetterli Proposal...}
+%Could include the 9 questions for choosing research projects (Tomorrow's Professor). A lot of theoretical questions  which need to be answered--- given the design of such an abstraction, which subset of ML/optimization problems can one possibly solve for?
+
+
+\bibliographystyle{acmtrans}
+\bibliography{bib}
+\begin{received}
+Prepared January 2011
+\end{received}
+
+
+
+\end{document}
+
+
