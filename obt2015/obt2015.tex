@@ -1,56 +1,75 @@
-% acmtr.tex
-% revised 1/20/97
-% updated 06/01/01
-% $Header: acmtr.tex,v 1.5 2/14/96 11:07:57 boyland Exp $
-
-\documentclass[acmtocl]{acmtrans2m}
-%&t&{\tt #}&
-%&v&\verb|#|&
-
-\acmVolume{2}
-\acmNumber{3}
-\acmYear{01}
-\acmMonth{09}
-
-\usepackage[usenames,dvipsnames]{color}
-\usepackage{graphicx}
-\usepackage{subfig}
-
-
-\newcommand{\BibTeX}{{\rm B\kern-.05em{\sc i\kern-.025em b}\kern-.08em
-    T\kern-.1667em\lower.7ex\hbox{E}\kern-.125emX}}
-\newcommand{\smbox}[1]{\mbox{\scriptsize #1}}
-
-%%% Width of all Gnuplot figures
-\newlength{\gnuplotWidth}
-\setlength{\gnuplotWidth}{.98\columnwidth}
-
-%%% Where figures are located
-\graphicspath{{include/}}
-
-\definecolor{HeatherBlue}{rgb}{0,0,0.75}
+%-----------------------------------------------------------------------------
+%
+%               Template for sigplanconf LaTeX Class
+%
+% Name:         sigplanconf-template.tex
+%
+% Purpose:      A template for sigplanconf.cls, which is a LaTeX 2e class
+%               file for SIGPLAN conference proceedings.
+%
+% Guide:        Refer to "Author's Guide to the ACM SIGPLAN Class,"
+%               sigplanconf-guide.pdf
+%
+% Author:       Paul C. Anagnostopoulos
+%               Windfall Software
+%               978 371-2316
+%               paul@windfall.com
+%
+% Created:      15 February 2005
+%
+%-----------------------------------------------------------------------------
 
 
-\markboth{\textcolor{Red}{Miller and Haller}}{\textcolor{Red}{Open Artifacts}}
+\documentclass{sigplanconf}
 
-\title{{\color{Red}Open Artifacts}}
-\author{\textcolor{Red}{HEATHER MILLER}\\EPFL \and
-\textcolor{Red}{PHILIPP HALLER}\\Typesafe, Switzerland}
+% The following \documentclass options may be useful:
 
-% Abstract
-% \begin{abstract}
-% {\bf Abstract} unnecessary
-% \end{abstract}
+% preprint      Remove this option only once the paper is in final form.
+% 10pt          To set in 10-point type instead of 9-point.
+% 11pt          To set in 11-point type instead of 9-point.
+% authoryear    To obtain author/year citation style instead of numeric.
 
-% \category{}{Research Agenda}{January 2011}%
+\usepackage{amsmath}
+\usepackage{etoolbox}
+\makeatletter
+\patchcmd{\maketitle}{\@copyrightspace}{}{}{}
+\makeatother
+
 
 \begin{document}
 
+\special{papersize=8.5in,11in}
+\setlength{\pdfpageheight}{\paperheight}
+\setlength{\pdfpagewidth}{\paperwidth}
 
-%\setcounter{page}{111}
-%
-%\begin{bottomstuff}
-%\end{bottomstuff}
+% \conferenceinfo{CONF 'yy}{Month d--d, 20yy, City, ST, Country}
+% \copyrightyear{20yy}
+% \copyrightdata{978-1-nnnn-nnnn-n/yy/mm}
+% \doi{nnnnnnn.nnnnnnn}
+
+% Uncomment one of the following two, if you are not going for the
+% traditional copyright transfer agreement.
+
+%\exclusivelicense                % ACM gets exclusive license to publish,
+                                  % you retain copyright
+
+%\permissiontopublish             % ACM gets nonexclusive license to publish
+                                  % (paid open-access papers,
+                                  % short abstracts)
+
+\titlebanner{banner above paper title}        % These are ignored unless
+\preprintfooter{short description of paper}   % 'preprint' option specified.
+
+\title{Open Artifacts}
+% \subtitle{Subtitle Text, if any}
+
+\authorinfo{Heather Miller}
+           {EPFL}
+           {heather.miller@epfl.ch}
+\authorinfo{Philipp Haller}
+           {KTH Royal Institute of Technology}
+           {philipp.haller@a3.epfl.ch}
+
 \maketitle
 
 
@@ -130,7 +149,7 @@ research results that are accompanied by ``open artifacts''?
 
 Most modern OSS projects are hosted on social code platforms, such as GitHub,
 BitBucket, and others.\footnote{Open-source variants
-[GitLab,Launchpad,Gitorious] of social code platforms allow universities,
+(GitLab, Launchpad, Gitorious) of social code platforms allow universities,
 labs, or individuals to host the necessary infrastructure on their own
 servers.} Besides offering version-controlled source repositories, these
 platforms offer many additional features:
@@ -152,8 +171,8 @@ requests, comments), even across projects hosted on the same platform.
 By leveraging these and related features, the management of third-party
 contributions can be simplified significantly for both contributors and
 maintainers. Code reviews enable detailed discussions about proposed changes
-and extensions. Continuous integration features enable the (typically cloud-
-hosted) infrastructure to run automated builds and tests for each change set
+and extensions. Continuous integration features enable the (typically cloud-hosted)
+infrastructure to run automated builds and tests for each change set
 or commit, even before it is incorporated (``merged'') into the mainline
 source tree.
 
@@ -175,12 +194,19 @@ discussed and addressed conveniently through follow-up commits.
 
 Adopting some of the above-mentioned aspects of mainstream OSS development
 could result in a number of benefits for academic research and collaboration:
-it is easier to compare with prior work, and to build on it, if that work is
+
+\begin{enumerate}
+
+\item it is easier to compare with prior work, and to build on it, if that work is
 developed in the open, with easily reproducible builds and build scripts;
-third-party improvements can be incorporated easily upstream, thereby
-increasing the value of the original artifact, and its reusability; open,
-reusable artifacts can be the starting point for fruitful research
-collaborations.
+
+\item third-party improvements can be incorporated easily upstream, thereby
+increasing the value of the original artifact, and its reusability;
+
+\item open, reusable artifacts can be the starting point for bootstrapping on
+existing research projects, and even for fruitful research collaborations.
+
+\end{enumerate}
 
 We have two suggestions for achieving these benefits (at least, partially)
 through minor adjustments of both paper review processes and AE processes:
@@ -210,14 +236,11 @@ contribute positively to both scientific progress and the software community
 at large.
 
 
-\bibliographystyle{acmtrans}
+% We recommend abbrvnat bibliography style.
+
+\bibliographystyle{abbrvnat}
 \bibliography{bib}
-% \begin{received}
-% Prepared January 2011
-% \end{received}
 
-
+% The bibliography should be embedded for final submission.
 
 \end{document}
-
-
