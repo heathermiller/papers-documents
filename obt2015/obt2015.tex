@@ -54,17 +54,160 @@
 \maketitle
 
 
-\section{Introduction}
+Open source software (OSS) development is more successful today than it has
+ever been. It has enabled research projects such as LLVM and Apache Spark to
+``escape the lab" and create thriving open-source communities with large
+numbers of industrial contributors (for example, developers from over 50
+companies have contributed to the development of Apache Spark). Conversely,
+companies like Twitter and Netflix are developing core components of their
+software stacks as popular open-source projects that are reused by numerous
+other companies and organizations.
 
-yeah.
+Does the PL research community not strive for some of the same goals, namely,
+that our work is reused and built upon by many others? (This practice would
+result in ``citations for free''!)
+
+In this talk we argue that adopting tools and methodologies of modern OSS
+development practices (that go far beyond public version control systems)
+would enable much greater reusability and extensibility of published software
+artifacts. Furthermore, our proposal could make researchers more productive by
+significantly reducing the effort required to build upon previously published
+artifacts.
+
+In recent years, leading PL conferences (POPL, PLDI, OOPSLA, ECOOP, and
+others) have introduced artifact evaluation (AE)
+processes.\footnote{http://www.artifact-eval.org/} While AE processes are an
+important step towards increasing the reproducibility of PL
+research~\cite{Vitek14}, they are not without issues. We argue that the
+current generation of AE processes (a) gives away a lot of potential to
+encourage truly reusable research artifacts, and (b) tends to accommodate
+poorly-developed artifacts, which, as a result, are relevant to only a small
+audience; at the same time, the evaluation of such artifacts requires a
+significant time investment by the AE committee (AEC).
+
+Meanwhile, following decades of development on OSS, big for-profit companies
+like Microsoft and Oracle are pressured into joining the OSS movement in order
+to stay competitive. Besides offering social benefits with respect to the
+developer community, the OSS community has developed tools and methodologies
+whose effectiveness in terms of enabling growth and adoption is measurable.
+
+Our own experience with the AE processes of two major PL conferences (POPL and
+OOPSLA) on both sides of the reviewing process has shown us, though, that many
+of the principles that, arguably, make OSS development so successful are
+largely ignored when producing and evaluating artifacts, in effect making them
+much less valuable than they could be, both for the academic community and
+society at large.
+
+Why do we ignore decades worth of work on reproducibility and openness that is
+at the heart of a thriving industry?
+
+Active OSS projects are often characterized by a vivid, organically evolving
+environment of people being inspired by one another and building off of each
+other's work. Arguably, such an environment is something we strive for in
+academia, too. Unfortunately, in reality it is often hard to reuse and build
+upon the software artifacts of others. Moreover, the visibility of software
+artifacts remains limited if they are only available from academic web pages.
+In contrast, OSS development thrives in part thanks to centralized software
+directories such as Hackage and GitHub which make it easy to find or stumble
+upon interesting OSS projects and packages. Social features of popular code
+hosting platforms reinforce such aspects.
+
+In contrast, it is surprisingly common for artifacts submitted in the context
+of the AE processes of major conferences to be bundled as virtual machine
+images. Virtual machine images reduce the effort to get artifacts to run on
+machines of AEC members. At the same time, they enable and, to some extent,
+even encourage researchers to avoid or neglect aspects of their artifacts that
+would allow others to reuse them. To put it bluntly: by providing a virtual
+machine image, not even the build of an artifact has to be repeatable! Virtual
+machines are problematic for another reason: benchmark results often cannot be
+reproduced faithfully due to interference with process scheduling, memory
+access, and others. On the other hand, artifacts that need a carefully-tuned
+environment like a new OS kernel may only be practical using virtual machines.
+
+Why don't we follow the trends in OSS development and thereby (a) resolve some
+of the above-mentioned issues, and (b) significantly increase the impact of
+research results that are accompanied by ``open artifacts''?
+
+Most modern OSS projects are hosted on social code platforms, such as GitHub,
+BitBucket, and others.\footnote{Open-source variants
+[GitLab,Launchpad,Gitorious] of social code platforms allow universities,
+labs, or individuals to host the necessary infrastructure on their own
+servers.} Besides offering version-controlled source repositories, these
+platforms offer many additional features:
 
 \begin{enumerate}
 
-\item \textbf{\textit{An elegant abstraction}} which conceptually facilitates the transition from sequential designs to efficient parallel algorithms, for ML experts.
+\item Features for managing third-party
+contributions (so-called ``pull requests'').
 
-\item \textbf{\textit{An implementation}} of this framework which handles and hides from the user the ``nitty-gritty" parallelization/distribution details, such as communication protocols, fault-tolerance, partitioning and distribution of data, so that users in various communities with little experience in distributed/parallel programming can fully utilize parallel/distributed architectures.
+\item Code reviews.
+
+\item References between different project assets (issues, pull
+requests, comments), even across projects hosted on the same platform.
+
+\item Social networking: followers, stars, watchers.
 
 \end{enumerate}
+
+By leveraging these and related features, the management of third-party
+contributions can be simplified significantly for both contributors and
+maintainers. Code reviews enable detailed discussions about proposed changes
+and extensions. Continuous integration features enable the (typically cloud-
+hosted) infrastructure to run automated builds and tests for each change set
+or commit, even before it is incorporated (``merged'') into the mainline
+source tree.
+
+As a result, standard open-source culture is such that:
+
+\begin{enumerate}
+
+\item projects can be forked or taken over;
+
+\item discovery and understanding of bug reports is greatly facilitated by
+connecting tickets, changesets, branches, etc. through cross references, and
+integrating them into open discussions;
+
+\item issues or regressions caused by third-party contributions are often
+quickly discovered through continuous integration; moreover, they can be
+discussed and addressed conveniently through follow-up commits.
+
+\end{enumerate}
+
+Adopting some of the above-mentioned aspects of mainstream OSS development
+could result in a number of benefits for academic research and collaboration:
+it is easier to compare with prior work, and to build on it, if that work is
+developed in the open, with easily reproducible builds and build scripts;
+third-party improvements can be incorporated easily upstream, thereby
+increasing the value of the original artifact, and its reusability; open,
+reusable artifacts can be the starting point for fruitful research
+collaborations.
+
+We have two suggestions for achieving these benefits (at least, partially)
+through minor adjustments of both paper review processes and AE processes:
+
+First, supplementary material submitted together with research papers could be
+allowed to evolve if hosted on a social code platform. Authors should not be
+penalized for improving their supplementary material between the time of paper
+submission and the time when reviewers chose to look at the material (if
+desired). This would encourage authors to continue to improve their
+supplementary material in the weeks and months following the initial
+submission. Furthermore, it would encourage people to develop artifacts in a
+reproducible way from the start, as opposed to quickly throwing together an
+artifact in the typically short time between paper notification and artifact
+submission. This would also encourage a more disciplined process for building
+and developing artifacts.
+
+Second, AE processes could be adjusted in several ways. Clear preference
+should be given to artifacts hosted in social code platforms rather than
+artifacts provided in the form of virtual machine images. Calls for artifacts
+could suggest to authors to host setup instructions and tutorials directly on
+their projects' platforms via wikis or other means. Furthermore, if awards for
+best artifacts are given out, they should be given only in exceptional cases
+to artifacts based on VM images.
+
+Collectively, we believe that these directions have the potential to
+contribute positively to both scientific progress and the software community
+at large.
 
 
 \bibliographystyle{acmtrans}
