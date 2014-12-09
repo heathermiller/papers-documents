@@ -24,7 +24,7 @@
 \usepackage{mdwlist}
 \usepackage{booktabs}
 \usepackage{setspace}
-% \usepackage{times}
+\usepackage{times}
 
 \newcommand{\ie}{{\em i.e.,~}}
 \newcommand{\eg}{{\em e.g.,~}}
@@ -89,6 +89,12 @@
   morestring=[b]',%
   showstringspaces=false%
 }[keywords,comments,strings]%
+
+\setmainfont[
+  Ligatures=TeX,
+  SmallCapsFont={TeX Gyre Termes},
+  SmallCapsFeatures={Letters=SmallCaps},
+]{Times New Roman}
 
 \lstset{tabsize=2,
 basicstyle=\ttfamily\fontsize{9pt}{1em}\selectfont,
