@@ -11,20 +11,68 @@
 %% Provide a definition to \subparagraph to keep titlesec happy
 \let\subparagraph\paragraph
 %% Load titlesec
-\usepackage[compact]{titlesec}
+% \usepackage[compact]{titlesec}
 %% Revert \subparagraph to the llncs definition
-\let\subparagraph\llncssubparagraph
-\usepackage{makeidx}  % allows for indexgeneration
+% \let\subparagraph\llncssubparagraph
+\usepackage{listings,xspace}
+\usepackage{amsmath}
+\usepackage{fontspec}
+\usepackage{xcolor}
 \usepackage{url}
 \usepackage{todonotes}
-\usepackage{listings}
-\usepackage{fontspec}
-\usepackage{fancyvrb}
+\usepackage{comment}
+\usepackage{mdwlist}
+\usepackage{booktabs}
+\usepackage{setspace}
 % \usepackage{times}
 
 \newcommand{\ie}{{\em i.e.,~}}
 \newcommand{\eg}{{\em e.g.,~}}
 \newcommand{\etc}{{\em etc}}
+
+\newcommand{\term}[1]{\mbox{\texttt{#1}}}
+\newcommand{\itl}[1]{\mbox{\textit{#1}}}
+
+% commas and semicolons
+\newcommand{\comma}{,\,}
+\newcommand{\commadots}{\comma \ldots \comma}
+\newcommand{\semi}{;\mbox{;};}
+\newcommand{\semidots}{\semi \ldots \semi}
+
+% spacing
+\newcommand{\gap}{\quad\quad}
+\newcommand{\biggap}{\quad\quad\quad}
+\newcommand{\nextline}{\\ \\}
+\newcommand{\htabwidth}{0.5cm}
+\newcommand{\tabwidth}{1cm}
+\newcommand{\htab}{\hspace{\htabwidth}}
+\newcommand{\tab}{\hspace{\tabwidth}}
+\newcommand{\linesep}{\ \hrulefill \ \smallskip}
+
+% figures
+\newcommand{\figurebox}[1]
+        {\fbox{\begin{minipage}{\textwidth} #1 \medskip\end{minipage}}}
+\newcommand{\twofig}[3]
+        {\begin{figure*}[t]#3\ \hrulefill\
+        \caption{\label{#1}#2}\end{figure*}}
+\newcommand{\boxfig}[3]
+        {\begin{figure*}\figurebox{#3\caption{\label{#1}#2}}\end{figure*}}
+\newcommand{\figref}[1]
+        {Figure~\ref{#1}}
+
+% arrays
+\newcommand{\ba}{\begin{array}}
+\newcommand{\ea}{\end{array}}
+\newcommand{\bda}{\[\ba}
+\newcommand{\eda}{\ea\]}
+\newcommand{\ei}{\end{array}}
+\newcommand{\bcases}{\left\{\begin{array}{ll}}
+\newcommand{\ecases}{\end{array}\right.}
+
+
+\newcommand{\selfassembly}{\texttt{self-assembly~}}
+\newcommand{\Selfassembly}{\texttt{Self-assembly~}}
+\newcommand{\sselfassembly}{\texttt{self-assembly}}
 
 \lstdefinelanguage{Scala}%
 {morekeywords={abstract,case,catch,char,class,%
@@ -50,7 +98,7 @@ numbers=left, numberstyle=\scriptsize\color{gray}\ttfamily, language=scala,mored
 
 \begin{document}
 
-\VerbatimFootnotes
+% \VerbatimFootnotes
 \setmonofont[Scale=0.8,BoldFont={Consolas Bold}]{Consolas}
 
 %
@@ -58,7 +106,7 @@ numbers=left, numberstyle=\scriptsize\color{gray}\ttfamily, language=scala,mored
 
 \title{Self-Assembly}
 % \subtitle{A Foundation for Lambdas in the Age of Concurrency and Distribution}
-\titlerunning{\hspace{-0.9cm} Spores: A Type-Based Foundation for Closures in the Age of Concurrency \& Distribution}  % abbreviated title (for running head)
+\titlerunning{Self-Assembly}  % abbreviated title (for running head)
 %                                     also used for the TOC unless
 %                                     \toctitle is used
 %
@@ -83,127 +131,2552 @@ and
 
 \setlength{\abovecaptionskip}{0pt}
 \setlength{\belowcaptionskip}{0pt}
-\authorrunning{\hspace{-3cm} H. Miller, P. Haller, and B. C. D. S. Oliveira} % abbreviated author list (for running head)
+\authorrunning{H. Miller, P. Haller, and B. C. D. S. Oliveira} % abbreviated author list (for running head)
 
 \maketitle              % typeset the title of the contribution
 
 \begin{abstract}
+  In this paper we show a general mechanism, called \sselfassembly,
+  for \emph{lightweight language extensions} (LLEs). LLEs allow
+  users to define \emph{generic operations} or \emph{properties} that
+  operate over a large class of types. With LLEs it is possible, for
+  example, for users to define their own Java-style automatic
+  serialization mechanism; or implement simple forms of custom pluggable type
+  system extensions like an immutability checker. However unlike
+  language built-in mechanisms (such as Java serialization),
+  LLEs are \emph{user-definable}, \emph{multi-purpose} (they can be used to define
+  various forms of generic functionality), and \emph{highly customizable and
+  extensible}. The key idea, inspired by existing datatype-generic
+  programming approaches, is to provide programmers with a generic
+  mechanism for providing automatic implementations of \emph{type classes}.
+  We implemented our technique as a library, \sselfassembly, for Scala, and evaluated its
+  practicality by migrating a full-featured industrial-strength
+  serialization framework, Scala/Pickling, keeping the same
+  published performance numbers while reducing the code size for
+  type class instance generation by 56\%.
 
-Functional programming (FP) is regularly touted as the way forward for bringing
-parallel, concurrent, and distributed programming to the mainstream. The
-popularity of the rationale behind this viewpoint has even led to a number of
-object-oriented (OO) programming languages outside the Smalltalk tradition
-adopting functional features such as lambdas and thereby function closures.
-However, despite this established viewpoint of FP as an enabler, reliably
-distributing function closures over a network, or using them in concurrent
-environments nonetheless remains a challenge across FP and OO languages.
-This paper takes a step towards more principled distributed and concurrent
-programming by introducing a new closure-like abstraction and type system,
-called {\em spores}, that can guarantee closures to be serializable, thread-safe,
-or even have custom user-defined properties. Crucially, our system is
-based on the principle of encoding type information corresponding to captured
-variables in the type of a spore.
-We prove our type system sound, implement our approach for Scala, evaluate
-its practicality through a small empirical study, and show the power of these
-guarantees through a case analysis of real-world distributed and concurrent
-frameworks that this safe foundation for closures facilitates.
+% Often generic programming and language extension are at odds with one another.
+% Language extensions often require no special set-up to apply some generic
+% functionality across types, though at the cost of customizability and
+% generality. Generic programming techniques on the other hand enable
+% flexibility and extensibility but at the cost of concision; such techniques
+% often require \emph{some} boilerplate. In this paper, we present a technique
+% we call ``self-assembly'' designed to achieve the best of both worlds;
+% retroactive extensibility that is general across types, without the
+% boilerplate of type class-based approaches. Furthermore, since it's a
+% compile-time technique, the self-assembly technique goes beyond traditional datatype
+% generic programming, by additionally providing ways to do lightweight static
+% checking, such as defining custom pluggable type system extensions. Due to
+% these powerful static capabilities, our approach additionally deals with oft
+% left-out concerns of object-oriented languages such as subtyping and object
+% identity in the context of datatype generic programming. We've implemented our
+% technique as a library, \texttt{self-assembly}, for Scala, and evaluate its
+% practicality by migrating a full-featured industrial-strength serialization
+% framework for Scala to \texttt{self-assembly}.
 
-% == 150-word abstract for the submission page ==
-% Functional programming is regularly touted as the way forward for bringing
-% parallel, concurrent, and distributed programming to the mainstream. The
-% popularity of the rationale behind this viewpoint (immutable data transformed
-% by function application) has even lead to a number of object-oriented
-% programming languages adopting functional features such as lambdas and thereby
-% function closures. However, despite this established viewpoint of FP as an
-% enabler, reliably distributing closures over a network, or using them in
-% concurrent environments nonetheless remains a challenge across FP and OO
-% languages. This paper takes a step towards more principled distributed and
-% concurrent programming by introducing a new closure-like abstraction and type
-% system, called spores, that can guarantee closures to be serializable, thread-
-% safe, or even have custom user-defined properties. Crucially, our system is
-% based on the principle of encoding type information corresponding to captured
-% variables in the type of a spore. We prove our type system sound, implement
-% our approach for Scala, and show the power of these guarantees through a case
-% analysis of real-world distributed/concurrent frameworks that this safe
-% foundation for migratable closures facilitates.
-
-\keywords{closures, functions, distributed programming, concurrent programming, type systems}
+% \keywords{closures, functions, distributed programming, concurrent programming, type systems}
 \end{abstract}
 %
-\vspace{-3mm}
+
 \section{Introduction}
 
-% The traditional view of software development as being focused on a program running
-% on a single machine, interacting directly with the user, has become largely
-% obsolete.
+% In programming, many different types of values often require similar
+% functionality. For example, it is common to use methods (or
+% functions) that compare two values for equality or produce a pretty
+% printed string representation of a value.
+% Since the need to add functionality ubiquitously across types is so pervasive,
+% it is advantageous to have some programming language support
+% that facilitates defining functions over a large class of types.
 
-% Whether we consider a cluster of hundreds of commodity machines
-% churning through a massive data-parallel job, or a smartphone interacting with
-% a social network, all are ``distributed'' jobs, and all share the need to
-% interact in typically asynchronous, reactive ways with other clients or
-% services.
+% Solutions to this problem across programming languages are varied.
+% Even when considering a single language, various different
+% designs can co-exist for ensuring that many types get some
+% generic functionality.
+% For example, in Java, every object always has a few
+% methods; \lstinline{toString}, \lstinline{equals},
+% \lstinline{clone}, and \lstinline{hashCode}.
+% % Since they're normal methods, they can be overridden by users when the default implementation isn't good enough.
+% These methods provide a simple default implementation, however,
+% it is common to have to override them to achieve desired functionality.
+% Serialization, on the other hand, is also an ubiquitously needed
+% functionality, but unlike the above, Java
+% does not ensure that serialization functionality exists for every type.
+% Instead, serialization in Java is opt-in; if a class
+% implements a \lstinline{Serializable} interface then instances of
+% that class are automatically serializable by the JVM.
+% % While these approaches are convenient in that they require
+% % little or no boilerplate from the user, they're built into the
+% % language or runtime, and are thus difficult or impossible to extend.
 
-With the growing trend towards cloud computing, mobile applications, and big data,
-distributed programming has entered the mainstream. Popular paradigms in software
-engineering such as software as a service (SaaS), RESTful services, or the rise
-of a multitude of systems for big data processing and interactive
-analytics, evidence this trend.
+% % While these
+% % This is
+% % quite convenient because the programmer does not have to write any
+% % code for doing serialization. Still there is other functionality
+% % that also makes sense in a large class of types for which Java
+% % provides no special support.
 
-Meanwhile, at the same time, functional programming has been undeniably
-gaining traction in recent years, as is evidenced by the ongoing trend of
-traditionally object-oriented or imperative languages being extended with
-functional features, such as lambdas in \mbox{Java 8}~\cite{JavaLambdas},
-C++11~\cite{CplusplusLambas}, and Visual Basic 9~\cite{Meijer}, the perceived
-importance of functional programming in general empirical studies on software
-developers~\cite{PLAdoption}, and the popularity of functional
-programming massively online open courses (MOOCs)~\cite{ICSEMOOC}.
+% Another approach to providing similar functionality for a large class
+% of types is to use type classes~\cite{WadlerTypeClasses}. Type classes provide a
+% mechanism where a certain functionality can be captured in an
+% interface. When programmers need certain types of values to support a
+% given functionality, they can implement an \emph{instance} of a type
+% class.
 
+% A notable feature of type classes is their support for
+% \emph{retroactive extensibility}~\cite{RetroactiveExtensibility}.
+% Retroactive extensibility means that functionality can be implemented
+% \emph{after} the type or class has been defined. This is in contrast
+% with conventional OO programming, where all methods (such as
+% \lstinline{toString} or \lstinline{equals}) should be implemented
+% together with the definition of the class. A major benefit of
+% retroactive extensibility is flexibility and possibility for
+% customizing behavior. As a result, several authors have argued for the
+% software engineering benefits of using type
+% classes~\cite{RetroactiveExtensibility,Oliveira2010}.
+% Because of the flexibility and extensibility of type classes, Scala has
+% embraced them~\cite{Oliveira2010,ScalaCollections,Pickling}.
+
+% % Due to the flexibility and extensibility of type classes,
+% % Scala provides some language
+% % features that help using type classes more effectively. Today, type
+% % class inspired designs are used by various libraries~\cite{}.  Type
+% % classes solve the problem of defining some functionality for a large
+% % class of types elegantly.
+
+% However there is still space for improvement. Consider again the way
+% serialization is done in Java. Java's support
+% for serialization is built-in to the compiler and JVM, freeing the
+% programmer from having to write any serialization boilerplate code at all.
+% Type classes, on the other hand, while more flexible, require the programmer
+% to define the serialization code for each class manually.
+% One could also imagine mechanisms similar to serialization could also be useful for
+% providing operations such as \lstinline{equals} or
+% \lstinline{toString}. It would be advantageous
+% if it were possible to automatically provide sensible implementations
+% of these operations per type!
+
+% % While built-in \emph{language extensions} like Java
+% % serialization are very convenient, they are also quite
+% % inflexible. There are two essential problems:
+% % , they're built into the
+% % language or runtime, and are thus difficult or impossible to extend.
+
+% While built-in \emph{language extensions} like Java
+% serialization solve this inconvenience by requiring
+% little or no boilerplate from the user, they are also quite
+% inflexible. There are two essential problems:
+
+% \begin{itemize*}
+% \item {\bf Lack of Customization:} Serialization
+%   is built-in to the language and runtime. Thus, programmers using the
+%   language cannot control or customize how serialization works. For
+%   example, it is not possible to adapt the serialization mechanism to
+%   work with other formats (such as JSON or XML).
+% \item {\bf Lack of Generality:} The serialization mechanism only
+%   works for a specific functionality: serialization. However, as we
+%   have argued, similar language extensions would make sense for other types
+%   of operations.
+% \end{itemize*}
+
+% This paper shows a general mechanism, called \sselfassembly, for doing \emph{lightweight
+%   language extensions} (LLEs). This mechanism solves both problems and
+% provides the best of two worlds: it has the extensibility and
+% customization advantages of type classes; and it has the automatic
+% implementation advantages of Java's serialization mechanism.  The key
+% idea is to provide a generic mechanism for doing automatic
+% implementations of type classes. This mechanism allows programmers
+% to define their own generic functionality, such as serialization,
+% pretty printing, or equality.
+
+% \Selfassembly uses Scala's \emph{type-safe macro
+%   system}~\cite{Burmako2012, Burmako2013} and it allows generating \emph{efficient} code~\cite{Pickling}.  It
+% is inspired by existing approaches to \emph{datatype-generic
+%   programming} (DGP)~\cite{ComparingGPHaskellRodriquez,
+%   ComparingGPHaskellHinze}. DGP is an advanced form of \emph{generic
+% programming}~\cite{GP}, where generic functions can be defined by
+% inspecting the structure of types. A goal of DGP is static
+% \emph{type-safety}. That is, if we define a generic function, then it
+% should be possible to type-check the definition of the generic
+% function. Any type errors should be reported at compile time and in
+% terms of the generic function code (but not in terms of generated
+% code, for example). The use of Scala's type-safe macro
+% system in our approach allows us to preserve the type-safety goal of
+% DGP, while, at the same time, supporting the definition of efficient
+% generic functions.  As we discuss in detail in Section~\ref{sec:related-work}, defining
+% generic functions that combine type-safety and efficiency is quite
+% challenging with other approaches.
+
+% Another distinctive feature of \selfassembly is the support for OO
+% features when defining generic functions. The vast majority of DGP
+% approaches have been developed for Haskell. Haskell is a purely
+% functional language, with considerable differences to OO languages.
+% In particular, Haskell has no \emph{subtyping} or a
+% notion similar to \emph{object identity}. As a result, directly porting
+% DGP approaches developed for Haskell is limiting because these
+% approaches cannot deal with subtyping or object identity.
+% \Selfassembly provides the necessary mechanisms to allow
+% the definition of generic functions with both subtyping and object identity.
+
+% Using \sselfassembly, we ported a full-featured serialization
+% framework for Scala~\cite{Pickling} as a generic function (or LLE). The
+% framework is full-featured in that it handles all object-oriented
+% concerns, such as subtyping polymorphism, object identity, and
+% advanced features of the type system. In contrast to the original
+% implementation, which was developed in an ad-hoc way, the new
+% implementation reuses all the generic infrastructure of
+% \texttt{self-assembly}. As a result, the code for the serialization framework is
+% significantly shorter. We have also implemented various other
+% generic functions such as type-safe equality, pretty printing, and
+% a scaling transformation.
+
+% Finally, we also show a different application of LLEs: \emph{generic
+%   properties}. In \selfassembly it is possible to define some
+% forms of static program analysis, which guarantee that a certain
+% property holds. In particular we have implemented an
+% \emph{immutability checker}. If a class is immutable, the immutability
+% checker will generate a type class instance for that class that
+% certifies that property. It then becomes possible to
+% define functions that work only on types that are certified to be
+% immutable.  The immutability checker is defined with just a few lines
+% of code similarly to a generic function.
+
+Defining functionality that should apply to a large set of types is a common
+problem faced by both language designers and normal users.
+One common approach is to provide specialized functionality across
+arbitrary types at the level of the compiler or runtime. For example, in Java,
+every object is synthetically provided with a few methods;
+\lstinline{toString}, \lstinline{equals}, \lstinline{clone}, and
+\lstinline{hashCode}. Serialization, on the other hand, is also an
+ubiquitously needed functionality, but unlike the above, Java does not ensure
+that serialization functionality exists for every type. Instead, serialization
+in Java is opt-in; if a class implements a \lstinline{Serializable} interface
+then instances of that class are automatically serializable by the JVM. While
+compiler/runtime-integrated approaches such as Java's serialization are typically easy to use
+(no boilerplate required), they are inflexible and are often impossible to
+customize. For example, it is not possible to adapt Java serialization to work
+with other formats (such as JSON or XML).
+
+Library-based approaches to generic programming which require \emph{type
+classes}~\cite{WadlerTypeClasses} as a language feature are a lot more
+flexible.
+% An alternative approach to deal with functionality defined over a
+% large set of types is to use \emph{type classes}~\cite{WadlerTypeClasses}.
+%Library-based approaches like those using type
+%classes~\cite{WadlerTypeClasses} are a lot more flexible.
+Type classes provide a mechanism where a certain functionality can be captured in an interface.
+When programmers need certain types of values to support a given
+functionality, they can implement an \emph{instance} of a type class.
+Type classes support \emph{retroactive
+extensibility}~\cite{RetroactiveExtensibility}; functionality can be
+implemented \emph{after} the type or class has been defined. This is in
+contrast with conventional OO programming, where all methods (such as
+\lstinline{toString} or \lstinline{equals}) are implemented together with the
+definition of the class. Retroactive extensibility enables flexibility and the
+possibility to customize behavior. As a result, several authors have argued
+for the software engineering benefits of using type
+classes~\cite{RetroactiveExtensibility,Oliveira2010}, and Scala has embraced
+them~\cite{Oliveira2010,ScalaCollections,Pickling}.
+
+Type classes are more general than built-in mechanisms like Java
+serialization, since any functionality (including serialization) can be
+modeled as a type class.
+However, an approach based on type classes is not without challenges. To
+provide functionality across a large number of types, users are
+required to implement many type class instances manually. To reduce this vast amount of
+boilerplate, there have been a number of proposals for \emph{datatype-generic
+programming} (DGP)~\cite{ComparingGPHaskellRodriquez, ComparingGPHaskellHinze}.
+DGP is an advanced form of \emph{generic programming}~\cite{GP}, where generic
+functions can be defined by inspecting the structure of types. For this,
+library-based approaches typically introduce run-time type representations.
+However, those come with a significant performance
+penalty~\cite{TemplateYourBoilerplate}. Moreover, the vast majority of DGP approaches
+has been developed for Haskell, and are thus fundamentally limited when ported to
+mainstream OO languages, due to their lack of support for subtyping or object identity.
+
+% While there are efforts to use
+% compiler inlining optimizations~\cite{OptimizingDGP}, it's difficult to
+% predict when they'll kick-in, so normal programmers cannot rely on
+% them.
+% \footnote{BRUNO: I think there is too much detail here
+%   discussing the limitations of DGP. Reader need to be aware that
+%   there are library-based approaches...}
+
+
+These compiler-based and library-based approaches using type classes are at
+% Language integrated approaches (such as Java serialization) and approaches like type classes, are at
+odds with one another. On the one hand, language-integrated approaches can be
+more powerful in the sense that they can do a great deal of static analysis,
+and because they are so specialized, typically require no boilerplate to
+programmers. However this is done at the cost of customizability and
+extensibility. On the other hand,
+with type class-based approaches, one must contend with an enormous amount of
+boilerplate or pay a non-negligible performance penalty;\footnote{Some
+approaches trade type-safety for performance~\cite{TemplateYourBoilerplate}.}
+in all cases, however, type class-based approaches offer no way to statically
+restrict runtime behavior. Perhaps most important for mainstream languages is
+the lack of support for pervasively used object-oriented features such as
+subtyping and object identity, which so far have not been addressed, except for
+specialized functionality~\cite{Pickling}.
+% \footnote{BRUNO: Two important
+%   points here -- restricting run-time behaviour (properties), and lack
+% of support for OO features -- are mentioned in passing in a couple of
+% sentences. I don't think this exposes well these ideas and why they
+% are important/relevant.}
+
+In this paper, we attempt to strike a sweet spot in the design space. Our
+approach is guided by the following principles:
+
+\begin{itemize}
+\item\textbf{Extensibility and customizability}. Like for type class-based
+     approaches, retroactive extensibility and type-based customization
+     should be supported.
+
+\item\textbf{Little boilerplate}. Like language-integrated approaches, usage
+     of generic code should \emph{feel} built-in. Users shouldn't have to define
+     type class instances or provide a lot of scaffolding.
+
+\item\textbf{Performance}. Generic functions written by library authors or library
+     users should have the same or better performance than approaches with
+     compiler/runtime support.
+
+\item\textbf{Generality}. In addition to generic functions, lightweight static
+     analysis capabilities should be supported.
+\end{itemize}
+
+
+In our previous work on Scala/Pickling~\cite{Pickling}, we sought to achieve
+many of these goals for one particular application: serialization.
+% In our previous work on Scala/Pickling~\cite{Pickling}, we achieved all of these goals, except for
+% generality.
+% \footnote{BRUNO: I am not sure if this is a good way to promote this
+%   work. It essentially gives the impression that only generic
+%   properties are a contribution of this work: all the rest has been
+%   done already by Scala/Pickling. It even makes it look
+%   like as generic functions were already accounted for in Scala
+%   Pickling (since you talk about generic functions in the previous
+%   bullet points).}
+Scala/Pickling is based on type classes which are generated and
+composed at compile time, according to their type signatures.
+% The approach was successful.
+Due to its compile-time properties, serialization code is fast and
+inlined, without requiring any boilerplate. Due to the fact that it is
+completely based upon type classes, flexibility and extensibility come for
+free. However, the approach is specialized on providing type class instances
+for only the \verb|Pickling| type class. Other type classes or generic
+functions are not supported.
+
+In this paper, we present self-assembly, a general technique for
+\emph{lightweight language extensions} (LLEs). LLEs allow users to define
+generic operations or properties that operate over a large class of types.
+Importantly, the technique supports many features of mainstream OO languages
+such as subtyping, object identity, and separate compilation. So far, these
+features have been missing in existing approaches for DGP; in addition, we
+also support these features for generic properties.
+
+We additionally provide a library, also called \sselfassembly, for Scala, which
+embodies this technique. To validate our approach, we migrated the full-featured,
+industrial-strength Scala/Pickling\footnote{\url{https://github.com/scala/pickling}} framework to be based
+upon self-assembly. Importantly, the refactoring preserves its high
+performance, flexibility, customization, and absence of boilerplate. In
+addition, the use of self-assembly led to a significant reduction in code
+size, and improved code clarity.
+% Importantly, this migration ensures \selfassembly is
+% flexible enough to be adopted on a large scale in a production setting.
+
+Finally, we also show a different application of LLEs: \emph{generic
+properties}. In \selfassembly it is possible to define some forms of lightweight static
+checking, which guarantee that a certain property, \eg deep
+immutability, holds. In this case, if a class is immutable, the immutability
+checker generates a type class instance for that class, which certifies that
+property.
+
+In summary the contributions of this paper are:
+
+\begin{itemize*}
+
+\item {\bf Self-Assembly}, a general technique for LLEs that requires
+  little boilerplate; shares the extensibility and customizability
+  properties of type classes; and, due to compile-time
+  code generation, provides high performance. It allows defining
+  generic functions in a statically type-safe way.
+
+\item {\bf A full-featured DGP approach for OOP.} \selfassembly
+  enables the definition of datatype-generic functions that
+  support features present in production OO languages, including
+  subtyping, object identity, and generics.
+
+\item {\bf Support for generic
+  properties.} \selfassembly enables \\lightweight pluggable type system extensions
+  to guarantee that certain static properties hold at
+  runtime, \eg immutability.
+  % \footnote{Bruno: I think here you should
+  %   only claim generic properties; DGP/generic-functions are already
+  %   claimed in previous bullet point.}
+
+\item {\bf The \selfassembly library}, a complete and full-featured
+  implementation of our technique in and for Scala.
+  The library includes several auxiliary definitions, such as
+  generic queries and transformations, that help define new LLEs.
+  Importantly, \selfassembly doesn't require any extension to the
+  language or compiler.
+
+\item {\bf A case study on basing Scala/Pickling on \sselfassembly.}
+  We evaluate the expressivity and performance of \selfassembly by
+  porting a full-featured serialization framework, keeping the same
+  published performance numbers while reducing the code size for
+  type class instance generation by 56\%.
+
+%the pattern isn't only good for standard DGP (that also happens
+%  to be statically inlined and is faster than other DGP approaches),
+% but since it's based on type classes generated at compile-time, it's
+% possible to extend the language and compiler in a number of (local
+% but) powerful ways (for example, transitive immutability checking)
+% using this generative pattern.
+
+
+%\item to reduce the amount of boilerplate for those wanting to use
+% this generative pattern, we also provide a library for
+%  query/transformation-based generic programming that can also be used
+%  for these lightweight language.
+
+\end{itemize*}
+
+% Programming often requires the definition of similar methods (or
+% functions) for different types of values. Some of these methods are so
+% common that certain languages simply assume that every value supports
+% them.
+
+% %% even if sometimes, for particular objects, the method in
+% %%question does not make sense
+
+% Very often the definition of such methods follows a common
+% pattern. and some languages provide default implementations...
+
+% Section 1:
+%    - Programming requires many similar methods: toString, clone,
+%       serialization ...
+%    - A language can help by proving an implementation mechanism
+%      (example serialization in Java), but this can be inflexible:
+%      sometimes cannot override behaviour; cannot define an alternative
+%      generic behaviour.
+%    - DGP aims at allowing a flexible mechanism to do user-defined
+%    generic functions;
+%    - DGP explored extensibly in Haskell and Purely Functional
+%    Programming.
+%    - Much less work on OO languages. OO languages have challenges
+%     that do not exist in pure languages like Haskell: Subtyping,
+%     object graphs, general mutability
+%    - How to do generic programming in OO languages
+%    - Our solution using Scala macros to generate type class instances
+%    - Making DGP efficient with macros (generating instances at compile
+%    time). Treating type classes as first class entities
+%    (double-check)?
+%    - Case study: industrial strength serialization framework
+
+% Section 2: Type Classes and the Boilerplate Problem
+%   - What are type classes? (also introduce implicits)
+%   - Show type class
+%   - 3 instances: Int, List and Tree
+%   - note that there is a similar pattern going on.
+
+% Section 3: Basic selfassembly
+%   - Show how to use the library to generate the instances and solve
+%   the problem in Section 2; (What does the user have todo with your library?)
+%   - Show how to define the ``generic function'' (What if a user wants to
+%   define his own generic function?)
+%   - explain the mechanisms involved (example, macros)
+%   - Query Pattern? (here or somewhere else)?
+
+% Section 4: Selfassembly for OO features
+%   - Explain problem of object identity
+%   - Subtyping
+%   - Mutability? (Is this an issue?)
+
+% Section 5: Language extensions with the selfassembly Library
+%   - Show some more general patterns
+
+% ...
+
+% Section (n-1): Implementation and Case studies
+%   - Tell about the implementation
+%   - Tell about what generic functions have been implemented
+%      and plans for more functionality
+
+% Section n: Related work
+%    - DGP in Haskell
+%    - DGP in OO languages
+%    - Compile-time reflection
+
+% Question: What's meant by language extensions?
+% quesries \& transformations (in the sense of SyB?)
+
+% Question: How about producer generic functions? Example deserialize?
+
+% Question: ``can use these generative techniques to extend the compiler and type system in local but powerful ways.''?
+
+
+% full of d\'ej\`a vu moments. When a programmer writtes
+% a new program, it is very likely that some similar pattern or
+% functionality that
+
+\begin{comment}
+The text of the paper begins here.~\cite{ComparingGPHaskellRodriquez, ComparingGPHaskellHinze, ScalaGenericProgrammers, RepLib, OOGP}
+
+Implicits are a huge deal, because they provide \textbf{extensibility.} Users can easily customize generated code by making use of implicits in Scala.
+
+
+Contributions.
+
+Implicits and macros powerful tools for doing generative programming. In fact, so powerful, that we can do more than inlined and performant datatype generic programming. We can use these generative techniques to extend the compiler and type system in local but powerful ways.
+
+\begin{itemize}
+\item library
+\item pattern
+\end{itemize}
+
+We first describe what we call the ``self-assembly pattern'' -- a
+technique for combining implicits and macros to generate complex in
+Section~\ref{sec:self-assembly-pattern} to generate type class
+instances.
+\end{comment}
+
+\section{Type Classes and a Boilerplate Problem}
+% \label{sec:type-classes-and-boilerplate-problem}
+\label{sec:background}
+
+This section provides an introduction to type classes~\cite{WadlerTypeClasses} and
+reviews how to encode them in Scala using implicits and conventional
+OO features~\cite{Oliveira2010}.  This section also observes that type
+class instances for various types tend to require code that follows
+a common pattern. The pattern can be viewed as a source of code
+boilerplate, since similar code needs to be repeated throughout several
+definitions. The remainder of the paper aims at showing how
+to capture the pattern as reusable code and generate type class
+instances automatically from that code.
+
+
+%\subsection{Singletons}
+% \label{sec:singletons}
+%
+% ...
+%
+% \paragraph{Companion Objects} ...
+% \end{comment}
+
+\subsection{Implicits}
+\label{sec:implicits}
+
+In Scala, it is possible to select values
+automatically based on type. These capabilities are enabled when using the
+\term{implicit} keyword. For example, a method \term{log} with multiple
+parameter lists may annotate their last parameter list using the
+\term{implicit} keyword.%%\footnote{Example taken from~\cite{Oliveira2010}.}
 
 \begin{lstlisting}
-class MyCoolRddApp {
-  val log = new Log(...)
-  def shift(p: Int): Int = ...
-  ...
-  def work(rdd: RDD[Int]) {
-    rdd.map(x => x + shift(x)).reduce(...)
-  }
+def log(msg: String)(implicit o: PrintStream) =
+  o.println(msg)
+\end{lstlisting}
+
+This means that in an invocation of \term{log}, the implicit argument list may
+be omitted if, for each parameter of that list, there is exactly one value of
+the right type in the {\em implicit scope}. The implicit scope is an
+adaptation of the regular variable scope. Imported implicits, or implicits
+declared in an enclosing scope are contained in the implicit scope of a method
+invocation.
+
+\begin{lstlisting}
+    implicit val out = System.out
+    log("Does not compute!")
+\end{lstlisting}
+
+In the above example, the implicit val \term{out} is in the implicit scope of
+the invocation of \term{log}. Since \term{out} has the right type, it is automatically
+selected as an implicit argument.
+
+%\todo Maybe we should change this example? It's out of Bruno's paper, and he's
+%on the committee, he'll probably review our paper.
+
+%\todo Talk about how we use implicit values in our framework here.
+
+\begin{comment}
+\paragraph{Implicit Conversions.} Implicit conversions can be thought of as
+methods which, like implicit parameters, can be implicitly selected (\ie
+invoked) based upon their type, and whether or not they are present in
+implicit scope. As with implicit parameters, implicit conversions also carry
+the \term{implicit} keyword before their declaration.
+
+\begin{lstlisting}
+ implicit def intWrapper(x: Int): Message =
+    new Message {
+      def message: String = "secret message!"
+    }
+\end{lstlisting}
+
+In the example above, assuming there exists an abstract class \term{Message}
+with abstract method \term{message}, the implicit conversion
+\term{intWrapper} will be triggered when a method called \term{message}
+is called on an \term{Int}. That is, simply calling
+\term{39.message} will result in ``secret message!'' being
+returned. Since the implicit conversion has the effect of adding a
+``new'' method to type \term{Int}, \term{message} is typically called an
+{\em extension method}. In our framework we use implicit conversions,
+for example, for adding a \term{pickle} method to arbitrary objects.
+\end{comment}
+
+% cite Adriaan's and Bruno's OOPSLA paper. Where? How?
+% Example of a type class: maybe Ordering type class of std lib?
+% Include info on importing implicit values, and implicit resolution by scoping.
+% Example of a plain implicit parameter: could use implicit ExecutionContext in futures
+
+% \subsection{Reflection}
+% \label{sec:reflection}
+
+% Reflection is the ability of a program to inspect, and possibly even modify
+% itself at runtime. Before Scala 2.10, Scala did not have any reflection
+% capabilities of its own. Instead, one could use Java reflection which provided
+% basic but limited runtime reflection capabilities. In Scala 2.10, a new
+% reflection library was introduced not only to address the shortcomings of
+% Java's runtime reflection on Scala-specific and generic types, but to also add
+% a more powerful toolbox of general reflective capabilities to Scala. Along
+% with full-featured runtime reflection for Scala types and generics, Scala 2.10
+% also ships with compile-time reflection capabilities, in the form of macros
+% (covered in Section \ref{sec:macros}), as well as the ability to reify Scala
+% expressions into abstract syntax trees.
+
+% \paragraph{TypeTags.} One aspect of runtime reflection that was introduced in
+% Scala 2.10 is the notion of \verb|TypeTag|s. As with other JVM languages,
+% Scala's types are erased at compile time. \verb|TypeTag|s can be thought of as
+% objects which carry along all type information available at compile time, to
+% runtime. As we will see, \verb|TypeTag|s will prove to be invaluable in
+% situations where precise type information would otherwise not be available at runtime.
+
+% \paragraph{Unified Runtime/Compile-time Reflection API.} Another important
+% aspect of Scala's reflection library is the one-to-one correspondence between
+% Scala Reflection's compile-time (\ie macros) and runtime APIs. Each API is
+% parameterized on a so-called \verb|Universe|, an object which serves as the
+% entry point to Scala reflection, and which provides all principal concepts
+% used in reflection, such as \verb|Type|s, \verb|Tree|s, and
+% \verb|Annotation|s. Depending on the task at hand, the choice between runtime
+% and compile-time reflection is as easy as selecting either a compile-time or a
+% runtime \verb|Universe|. As we will see, this enables maximum code
+% reuse in that a fallback runtime pickler generation mechanism can be achieved
+% by simply reusing the code for static generation, and parameterizing it on a
+% runtime \verb|Universe|.
+
+\subsection{Type Classes}
+\label{sec:type-classes}
+
+Type classes are a language mechanism that provide a disciplined
+alternative to ad-hoc polymorphism. They have been popularized by
+Haskell.  Type classes allow functions to be defined over a set of
+types.  If values of a type \lstinline{T} should provide a certain
+functionality then that functionality can be specified as an
+\emph{instance} of a type class.
+
+\begin{figure}
+\begin{lstlisting}
+trait Show[T] {def show(visitee : T) : String}
+
+implicit object IntInstance extends Show[Int] {
+  def show(o : Int) = o.toString()
+}
+\end{lstlisting}
+\caption{\lstinline{Show} type class and corresponding instance for
+  integers.}
+\label{fig:showtc}
+\end{figure}
+
+In Scala type classes can be implemented using a combination of
+standard OO features (traits, classes and objects) and implicits~\cite{Oliveira2010}.
+The Scala encoding of type classes is essentially a \emph{design pattern}~\cite{Gamma95}:
+instead of having built-in language concepts for type classes, Scala
+uses general language features to model type classes.
+A type class is simply an interface that provides operations
+over one (or more) generic types. Such interfaces can be modeled
+as traits in Scala. An example of a type class is shown in
+Figure~\ref{fig:showtc}. The trait \lstinline{Show[T]} models a type
+class that provides pretty printing functionality for some type
+\lstinline{T} via a method \lstinline{show}.
+
+The main conceptual difference between standard OO methods and
+type-class methods is that the later are provided \emph{externally} to
+objects. Suppose that we wanted to add pretty printing
+functionality to integers. To do this we create an instance of
+the type class \lstinline{Show} where the generic type parameter \lstinline{T} is
+instantiated to \lstinline{Int}. The \lstinline{object IntInstance} in
+Figure~\ref{fig:showtc} models such instance in
+Scala using regular objects. In that object, the \lstinline{show}
+method takes an argument \lstinline{o} of type \lstinline{Int} an
+invokes the \lstinline{toString()} method on \lstinline{o}.
+%%To use the pretty printing functionality in client code we could create
+%%a method \lstinline{eshow}:
+
+%%begin{lstlisting}
+%%// explicitly taking instance argument
+%%def eshow[T](o : T)(showT : Show[T]) = showT.show(o)
+%%\end{lstlisting}
+
+%%This method takes an object \lstinline{o} of some generic type \lstinline{T} and
+%%an instance \lstinline{showT} of type \lstinline{Show[T]} and applies
+%%the \lstinline{show} method in \lstinline{showT} to \lstinline{o}.
+%%With \lstinline{eshow} we could
+
+\paragraph{Type-Directed Resolution of Instances} An interesting
+aspect of type classes is that instances can be automatically
+determined using a type-directed resolution mechanism. This
+type-directed resolution mechanism allows type classes
+to be used from client code through a mechanism similar to
+overloading. This is achieved in Scala using an implicit
+parameter:
+
+\begin{lstlisting}
+def ishow[T](v : T)(implicit showT : Show[T]) =
+  showT.show(v)
+\end{lstlisting}
+
+In \lstinline{ishow} the idea is that the method takes two parameters,
+with the last of these (\lstinline{showT}) being implicit. As we have
+seen in Section~\ref{sec:implicits} this means that the second
+parameter can be automatically determined by the compiler.  For
+example if we wanted to use \lstinline{show} on integers we could
+simply write a program such as:
+
+\begin{lstlisting}
+def test1 = ishow(5)
+\end{lstlisting}
+
+Provided that an \lstinline{implicit} value of type
+\lstinline{Show[Int]} is in the implicit scope (for example
+\lstinline{IntInstance} from Figure~\ref{fig:showtc}), the second
+parameter is automatically inferred by the compiler.
+
+\paragraph{Context Bounds} Type classes are pervasively used in
+Scala. Because of this Scala offers an alternative convinient syntax sugar called
+\emph{context bounds}. Context bounds allows code using type classes to be
+written more compactly and arguably more intuitively. With context
+bounds, instead of writting \lstinline{ishow} we could write:
+
+\begin{lstlisting}
+def show[T : Show](v : T) =
+  implicitly[Show[T]].show(v)
+\end{lstlisting}
+
+The idea of context bounds comes from the fact that type classes can
+also be seen as a generic programming mechanism~\cite{GP}, which allows
+generic parameters to be constrained. In this case the type of
+\lstinline{show} can be read as a generic method where the generic
+type argument must be an instance of \lstinline{Show}.
+A small problem with context bounds there is no parameter name to be used in the
+definition of \lstinline{show}. However, it is possible to
+\emph{query} the implicit scope for a value of a certain type
+using a simple auxiliary method called \lstinline{implicitly}:
+
+\begin{lstlisting}
+def implicitly[T](implicit x : T) : T = x
+\end{lstlisting}
+
+This precludes the need for having to have the name of the implicit
+argument in hand in order to use it.
+From the client perspective, using \lstinline{show} is similar to
+using \lstinline{ishow}.
+
+\subsection{Pretty Printing Complex Structures}\label{sec:pretty-printing-complex}
+
+\begin{figure}
+\begin{lstlisting}
+sealed trait Tree
+case class Fork(left : Tree, right : Tree)
+  extends Tree
+case class Leaf(elem : Int) extends Tree
+
+implicit object TreeInst extends Show[Tree] {
+ def show(visitee : Tree) : String = visitee match {
+   case Fork(l,r) =>
+    "Fork(" + show(l) + ", " + show(r) + ")"
+   case Leaf(x) => "Leaf(" + x.toString() + ")"
+ }}
+\end{lstlisting}
+\caption{Trees of integers and corresponding \lstinline{Show}
+  instance.}
+\label{fig:trees}
+\end{figure}
+
+Of course it is also possible to apply type classes to more complex
+structures. For example consider a simple type of binary trees with
+integers at the leafs. Figure~\ref{fig:trees} shows how to model such
+trees in Scala using \emph{case classes}~\cite{Match} and \emph{sealed
+  traits}. The keyword \lstinline{sealed} in Scala means that the
+trait can only be implemented by definitions in the existing
+compilation unit.
+Together with case classes this allows modeling \emph{algebraic
+  datatypes}, which are a well-know concept from functional programming.
+The \lstinline{Tree} trait is the type of trees. The case class
+\lstinline{Fork} models the binary nodes of the tree, wheres the case
+class \lstinline{Leaf} models the leafs containing an integer value.
+
+To define pretty printing for \lstinline{Tree} using the
+\lstinline{Show} type class we create an \lstinline{object TreeInst}.
+This object provides a definition for the
+\lstinline{show} method that pattern matches on the
+two tree constructors (cases) of \lstinline{Tree}. The implementation
+of the two cases is unremarcable: both cases print the
+constructors names and the arguments.
+
+A simple test program illustrating the use of \lstinline{TreeInst}
+is shown next. The value \lstinline{tree} defines a simple tree and the
+definition \lstinline{test3} pretty prints that tree.
+
+\begin{lstlisting}
+val tree : Tree = Fork(Fork(Leaf(3),Leaf(4)),Leaf(5))
+def test3 = show(tree)
+\end{lstlisting}
+
+\paragraph{Recursive Resolution and Compositionality of Instances}
+Another interesting aspect of type classes is that they provide a
+highly compositional way to define instances.
+Lets consider a variant of trees, shown in Figure~\ref{fig:ptrees}, which is
+parametrized by some element type \lstinline{A}. The type these trees
+is \lstinline{PTree[A]} and there are two types of nodes:
+\lstinline{Branch} nodes with an element of type \lstinline{A}
+and two branches; and \lstinline{Empty} nodes with no content.
+
+\begin{figure}
+\begin{lstlisting}
+sealed trait PTree[A]
+case class Branch[A](x: A, l: PTree[A], r: PTree[A])
+  extends PTree[A]
+case class Empty[A] extends PTree[A]
+
+implicit def PTreeInst[A : Show] : Show[PTree[A]] =
+  new Show[PTree[A]] {
+    def show(visitee : PTree[A]) = visitee match {
+      case Branch(x,l,r) =>
+        "Branch(" + implicitly[Show[A]].show(x) +
+        ", " + show(l) + ", " + show(r) + ")"
+      case Empty() => "Empty()"
+  }}
+\end{lstlisting}
+\caption{Parametrized trees and corresponding \lstinline{Show}
+  instance.}
+\label{fig:ptrees}
+\end{figure}
+
+Like other types it is possible to define an instance (\lstinline{PTreeInst})
+for the type \lstinline{PTree[A]}. However in order to pretty print
+such trees it is necessary to know how to print the elements of type
+\lstinline{A} as well. To accomplish this we require that the
+generic type parameter \lstinline{A} has a \lstinline{Show} instance
+using a context bound.  To print the elements in the
+\lstinline{Branch} case, the instance can be retrieved from the implicit
+scope using \lstinline{implicitly} and then used to print the element.
+With this instance it is possible to print trees with integer elements, such as:
+
+\begin{lstlisting}
+val ptree : PTree[Int] = Branch(5,Empty,Empty)
+def test4 = show(ptree)
+\end{lstlisting}
+
+However, more interestingly, it is also possible to print trees where
+for any element type that has a \lstinline{Show} instance. For example:
+
+\begin{lstlisting}
+val ptree2 : PTree[PTree[Tree]] =
+  Branch(Branch(tree,Empty,Empty),Empty,Empty)
+def test5 = show(ptree2)
+\end{lstlisting}
+
+\noindent Here \lstinline{ptree2} has elements of type
+\lstinline{PTree[Tree]}. To print \lstinline{ptree2} the instance for
+\lstinline{PTree} is used twice: once for values of type
+\lstinline{PTree[PTree[Tree]]}; and another time for values of
+type \lstinline{PTree[Tree]}. In fact it is possible to use
+arbitrarely many instances of the various types (possible multiple
+times) during type-directed resolution, which makes the process very
+compositional. This is possible because the type-directed resolution
+mechanism is recursive.
+
+\subsection{A Boilerplate Problem}
+
+Although type classes are nice, they often require similar code for
+different instances. For example consider the two instances
+in Figures~\ref{fig:trees} and~\ref{fig:ptrees}. The code that is
+needed in both instances is quite similar and it follows a common
+pattern: for each case the constructor name and parameters are
+printed. Therefore code tends to be quite similar across instances. This
+code can be viewed as a form of boilerplate since we could hope that
+it could be mechanically generated.
+
+%Both \lstinline{ishow} and \lstinline{show}
+%provide a convenient way for some client code to invoke the pretty
+%printing functionality on some values of type \lstinline{T}.
+
+
+%\begin{lstlisting}
+%// Adding a show method to an arbitrary
+%// object of a certain type
+%trait Showable {
+% def show() : String
+%}
+
+%implicit def showWrapper[T : Show](visitee : T) =
+% new Showable {
+%  def show() = implicitly[Show[T]].show(visitee)
+% }
+%
+%def test2 = 5.show()
+%\end{lstlisting}
+
+
+% \begin{comment}
+\section{Type-Safe Meta-Programming in Scala}
+\label{sec:macros}
+
+Scala macros~\cite{Burmako2012, Burmako2013} enable a form of type-safe
+meta-programming. Macros are methods that are invoked at compile time. Instead of
+runtime values, macros operate on and return typed expression trees. In the
+following we provide an overview of macros, type checking, and properties.
+
+\subsection{Definition}
+
+Macro defs are methods that are transparently loaded by
+the compiler and executed (or expanded) during compilation. A macro is defined
+like any normal method, but it is linked using the \verb|macro| keyword to an
+additional method that provides its implementation, which operates on
+expression trees.
+\begin{lstlisting}
+def assert(x: Boolean, msg: String): Unit =
+  macro assert_impl
+def assert_impl(c: Context)
+  (x: c.Expr[Boolean], msg: c.Expr[String]):
+                            c.Expr[Unit] = ...
+\end{lstlisting}
+\noindent
+In the above example, the parameters of \verb|assert_impl| are typed
+expression trees, which the body of \verb|assert_impl| operates on, itself
+returning an expression of type \verb|Expr[Unit]|. \verb|assert_impl|
+is evaluated at compile time, and its result is inlined at
+the call site of \verb|assert|.
+Note that expression trees are typed, \ie \verb|assert|'s parameter of type
+\verb|Boolean| corresponds to a typed expression tree of type
+\verb|Expr[Boolean]|.
+
+In the type-safe subset of macros that we consider in this paper,
+expression trees are built using \verb|reify|/\verb|splice|:
+\begin{lstlisting}
+val expr: c.Expr[Boolean] = reify {
+  if (x.splice > 10) x.splice
+  else true
 }
 \end{lstlisting}
 \noindent
-In this example, the closure \verb|(x => x + shift(x))| is passed to the
-\verb|map| method of the distributed collection \verb|rdd| which requires
-serializing the closure (as, in Spark, parts of the data structure reside on
-different machines). However, calling \verb|shift| inside the closure invokes
-a method on the enclosing object \verb|this|. Thus, the closure is capturing,
-and must therefore serialize, \verb|this|. If \verb|Log|, a field of
-\verb|this|, is not serializable, this will fail at runtime.
+Here, the body of \verb|reify| consists of regular Scala code. Expressions in
+the enclosing scope are spliced into the result expression using the
+\verb|splice| method. Importantly, the code within \verb|reify| is
+type-checked at its definition site. This means, for the above code, Scala's type
+checker reports type errors not in terms of the generated code, but in terms
+of the high-level user-written code.
 
-In fact, closures suffer not only from the problems shown in these two
-examples; there are numerous more hazards that manifest {\em across
-programming paradigms}. To provide a glimpse, closure-related hazards
-related to concurrency and distribution include:
+Due to limitations in the reify API, we use quasiquotes (typechecked during
+macro expansion) to circumvent the above type-checking in a small trusted core
+of \sselfassembly, shielded from users. However, we never lose soundness,
+since, unlike \\MetaML~\cite{MetaML}, all splicing is done at compile time, and
+generated expressions are always re-type-checked after expansion.
+
+% However, the use of \verb|reify| is not
+% enforceable in the current system; the API allows creating typed expressions
+% using trees that are not type-checked prior to expansion (see the following example).
+
+% However, by using \verb|reify|/\verb|splice| to construct expression trees,
+% users have the option to enable type checking expression trees at their place
+% of definition; in this case, {\em type errors are reported in terms of the
+% constructed expression trees}.
+
+% An alternative to working with \verb|reify|/\verb|splice| are quasiquotes.
+% Quasiquotes simplify working with expression trees. They allow splicing trees
+% similar to Scala's standard string interpolation:
+% \begin{lstlisting}
+% def assert_impl(c: Context)
+%   (x: c.Expr[Boolean], msg: c.Expr[String]):
+%                             c.Expr[Unit] =
+%   c.Expr[Unit](q"if (!$x) error($msg)")
+% \end{lstlisting}
+% \noindent
+% Quasiquotes are type-checked after they are expanded.
 
 
+\subsection{Properties}
+
+\paragraph{Constant Type Signatures} In this work, we focus on one of two macro def
+varieties: ``blackbox'' macros. In this case, the type signature of
+the macro provides all information necessary for type-checking all of its
+invocations. That is, the macro does not have to be expanded prior to type-checking.
+This has important software engineering benefits, namely that
+abstract, type-based reasoning about programs is maintained independently of
+the macro's corresponding implementation. This is particularly useful when
+reasoning about the result type of a macro. For blackbox macros, the
+implementation (and expansion) is not required to determine the result
+type.
+
+\paragraph{Local Expansion} Since macros are simply methods that are invoked
+at compile time, they are expanded and inlined at invocation site.
+For this reason, we consider macro defs to be ``local compiler extensions.''
+They cannot change the compiler's global symbol table.
+Thus, they cannot introduce new top-level type definitions.
+
+% - the blackbox principle provides important correctness guarantees:
+% - for reasoning about the types of a program, it is not necessary to
+%   expand macro invocations, since expansions cannot change the resulting types.
+% - this also means that user-provided expression that are inserted in an expansion
+%   cannot affect type-checking of the resulting code.
+% - thus, high-level type-based reasoning remains unaffected by potentially-erroneous
+%   macro expansions.
+
+% - for these reasons they're much more principled than approaches like TH.
+
+% As we will see, these macros defs, coupled with implicits in Scala enable the
+% boilerplate-free type class instance synthesis.
+
+
+
+
+% - full description of macros
+% - how are things type-checked: when, what happens when there are errors
+% - footnote: whitebox macros are another form of macros which ...
+% - interactions, important details
+
+% don't have access to mutate symbol table
+% - for these reasons they're much more principled than approaches like TH.
+
+% - quasi-quotes, splicing trees
+
+
+
+
+% It is also important to note that implicit defs as described earlier
+% in Section \ref{sec:implicits} can be implemented as macros.
+
+% Scala pickling framework at the pickling use-
+% site.
+
+% \paragraph{Macro Annotations.} Unlike macro defs, macro annotations are capable
+% of {\em adding members} to classes which carry their annotation.
+
+% \begin{lstlisting}
+% @withNewToString
+% class D { ... }
+% \end{lstlisting}
+
+% The \verb|withNewToString| annotation is defined using a standard class
+% definition by extending a special \verb|MacroAnnotation| marker trait, and by
+% implementing a special \verb|transform| method as a macro:
+
+% \begin{lstlisting}
+% class withNewToString extends MacroAnnotation {
+%   def transform = macro transform_impl
+%   def transform_impl = { ... }
+% }
+% \end{lstlisting}
+
+% The \verb|transform| macro implementation is passed the AST of the annotated class
+% definition (the AST of ``\verb|class D { ... }|''), and returns a possibly changed AST
+% as the new class definition (which could have added members, changed
+% constructor parameters etc.)
+% \end{comment}
+
+% Section 2:
+% explain how to write type classes manually
+
+\begin{figure}
+\centering
+\begin{lstlisting}
+object Show extends Query[String] {
+  def mkTrees[C <: SContext](c: C) = new Trees(c)
+
+  class Trees[C <: SContext](override val c: C)
+      extends super.Trees(c) {
+    import c.universe._
+    type SExpr = c.Expr[String]
+
+    def combine(left: SExpr, right: SExpr) =
+      reify { left.splice + right.splice }
+
+    def delimit(tpe: c.Type) = {
+      val start = constant(tpe.toString + "(")
+      (start, reify(", "), reify(")"))
+    } }
+
+  implicit def generate[T]: Show[T] =
+    macro genQuery[T, this.type]
+}
+\end{lstlisting}
+  \caption{Implementing the \lstinline{Show} type class using \sselfassembly.}
+  \label{fig:basic-usage}
+\end{figure}
+
+\section{Basic Self-Assembly}
+\label{sec:basic-self-assembly}
+
+% This is how we can write type classes using the selfassembly library
+% This is quite short!
+% After that we explain how it's actually generated!
+% It's a pattern that generalizes the way one typically writes type classes by hand.
+
+Section~\ref{sec:background} showed how to write type classes like \verb|Show[T]|
+manually, pointing out a source of significant boilerplate code. In
+section~\ref{sec:basic-usage}, we outline the basic usage of the
+\selfassembly library, which allows defining type classes desired in a way
+where the required boilerplate is automatically generated.
+Section~\ref{sec:basic-generation} explains the mechanics of the automatic
+type class generation implemented in the \selfassembly library.
+Section~\ref{sec:customization} outlines how one can customize the generation
+of type classes for specific types.
+
+\subsection{Basic Usage}
+\label{sec:basic-usage}
+
+The \selfassembly library allows implementing type classes instances automatically on
+demand at compile time. This main idea is introduced using the simple \verb|Show| type class
+in Figure~\ref{fig:showtc}. Section~\ref{sec:queries-transformations}
+shows how our approach extends to different forms of type classes, commonly referred to
+as queries and transformations~\cite{SYB}.
+
+\paragraph{Generating Instances for \texttt{Show}} Suppose a user wants
+to provide instances of \verb|Show[T]| for as many
+types as possible. Using \selfassembly we can create a singleton
+object that extends a library-provided trait, and that implements two factory
+methods, \verb|generate| and \verb|mkTrees|.
+Figure~\ref{fig:basic-usage} shows the \verb|Show| companion object,\footnote{A companion
+object is a singleton object with the same name as a trait.} which extends
+the \verb|Query| trait. The \verb|mkTrees| factory method, abstract in \verb|Query|,
+creates a new \verb|Trees| instance; \verb|Trees[C]| provides a number of methods that
+are invoked by the \selfassembly library at \emph{compile time} to obtain AST fragments that are
+inlined in the generated code. The \verb|Show| type class converts objects to
+strings; thus, the query has to define how to assemble result strings, based
+on an associative combination operator (\verb|combine|), begin/end delimiters
+(\verb|first|/\verb|last|), and a separator.
+As mentioned in Section~\ref{sec:macros}, the syntax \verb|reify { ... }|
+creates a typed expression based on Scala code. \verb|left.splice| splices the
+expression \verb|left| into the result expression. The compiler type-checks
+\verb|reify| blocks at their definition site.
+
+Apart from implementing a subclass of \verb|Trees[C]|, the \verb|Show|
+singleton object also needs to define a generic implicit method (here,
+\verb|generate|) that invokes the generation macro \verb|genQuery|. The
+\verb|genQuery| macro is provided by our library.\footnote{The type argument
+\texttt{this.type} is the type of the enclosing singleton object; it is passed
+to \texttt{genQuery} to identify the type class and the \texttt{mkTrees}
+method that should be used by the library to generate instances.}
+
+\paragraph{Result} With the \verb|Show| singleton object defined as in Figure~\ref{fig:basic-usage}
+it is no longer necessary for the user to define a type class instance for every single type manually.
+Instead, whenever an instance of type, say, \verb|Show[MyClass]|, is required
+(typically, using an implicit parameter), Scala's type checker automatically inserts
+a call to the \emph{implicit def} \verb|generate[MyClass]|; this implicit def generates a
+suitable implementation of the searched type class instance on-the-fly. As a result,
+type class instances do not have to be defined manually.
+
+\subsection{Generation Mechanism}\label{sec:basic-generation}
+
+% high-level overview of the pattern. macros generate calls to
+% \\\verb|implicitly[T]| and generate the bodies of implicit objects. the
+% macro also inspects the type and based on that, generates nested
+% \verb|implicitly[S]| calls. these calls are resolved either using regular
+% implicits, or by expanding the implicit macro recursively.
+
+% We start with a simplified view of types in Scala. In subsequent sections we
+% show how to generalize this view to richer types.
+
+% \begin{figure}
+%   \centering
+% $\ba[t]{l@{\hspace{2mm}}l@{\hspace{2mm}}}
+% T    ::= & \texttt{sealed trait}~C~\{~\bar{m}~\} \\
+% \gap ~|~ & \texttt{case class}~C(v~p_1: D_1, \ldots, v~p_n: D_n)~\{~\bar{m}~\} \\
+% \gap     & \texttt{~~extends}~E_1~\texttt{with}~ \ldots ~\texttt{with}~E_m \\
+% v    ::= & \texttt{var}  ~|~  \epsilon \\
+% m    ::= & \ldots \\
+% \ea$
+%   \caption{Grammar for simple datatypes in Scala.}
+%   \label{fig:type-syntax}
+% \end{figure}
+
+We illustrate the general idea of our generation technique through
+a simple example based solely on closed ADT-style datatypes in
+Scala. Such datatypes consist of either sealed traits or
+case classes extending such traits. In subsequent sections, we
+generalize this view to richer types.
+
+Our treatment is centered on an example, in which, our goal is to
+automatically ``derive'' type class instances that ``show'' information about
+a given type. Think of it as a \verb|toString| method that traverses the
+structure of a type, and nicely prints information about all of the fields of
+that type.
+
+We structure our treatment into three distinct steps:
+(1) in Section~\ref{sec:triggering-generation}, we show how our generation is triggered;
+(2) in Section~\ref{sec:macro-based-generation}, we explain our macro-based generation technique;
+(3) in Section~\ref{sec:generated-type-class-instances}, we show some example type class instances that result from our generation technique, and relate them to the type class pattern introduced in Section~\ref{sec:type-classes}.
+% (described in the
+%corresponding subsections):
+
+%\begin{enumerate}
+%\item In Section~\ref{sec:triggering-generation}, we show how our generation is
+%      triggered.
+
+%\item In Section~\ref{sec:macro-based-generation}, we explain our macro-based
+%     generation technique.
+
+%\item In Section~\ref{sec:generated-type-class-instances}, we show some example
+%      type class instances that result from our generation technique, and relate
+%      them to the type class pattern introduced in Section~\ref{sec:type-classes}
+%\end{enumerate}
+
+\subsubsection{Triggering Generation}
+\label{sec:triggering-generation}
+
+To be able to generate suitable instances for all possible types for which
+\verb|Show[T]| can be defined, we put an implicit macro into the companion
+object of \verb|Show[T]|. The fact that the implicit macro is inside the
+companion object means that whenever an instance \verb|Show[S]| is requested,
+Scala's implicit lookup mechanism searches the members of the companion object
+\verb|Show| where it finds the implicit macro:
+
+\begin{lstlisting}
+object Show extends Query[String] {
+  ...
+  implicit def generate[T]: Show[T] =
+    macro genQuery[T, this.type]
+}
+\end{lstlisting}
+\noindent
+Thus, the implicit lookup mechanism inserts an invocation of the macro method
+\verb|genQuery|.
+
+\subsubsection{Macro-Based Generation}
+\label{sec:macro-based-generation}
+
+Being a macro, \verb|genQuery| returns an abstract syntax
+tree instead of a (runtime) value. It is declared as follows:
+
+\begin{lstlisting}
+def genQuery[T:c.WeakTypeTag, S:c.WeakTypeTag]
+    (c: Context): c.Tree = ...
+\end{lstlisting}
+\noindent
+Note that in this declaration, the type parameters \verb|T| and \verb|S| are annotated with
+\emph{context bounds} \verb|c.WeakTypeTag|.
+%Context bounds are an
+%alternative way of adding synthetic implicit parameters:
+%
+%\begin{lstlisting}
+%def genQuery[T, S](c: Context)
+%  (implicit ev1: c.WeakTypeTag[T],
+%            ev2: c.WeakTypeTag[S]): c.Tree = ...
+%\end{lstlisting}
+%\noindent
+%The evidence parameters \verb|ev1| and \verb|ev2| of type \verb|c.WeakTypeTag[T]| provide
+%access to the full static type information of types \verb|T| and \verb|S|.
+% The \verb|genQuery| macro inspects this type information to generate a value of
+% the following shape:
+% \begin{lstlisting}
+% implicit object $instanceName extends Show[T] {
+%   def show(visitee: T): String = $tree
+% }
+% $instanceName
+% \end{lstlisting}
+% \noindent
+% As required, the generated value has type \verb|Show[T]|. Hygiene requires the
+% macro to generate a fresh (term) name \verb|$instanceName|. The actual
+% implementation of the type class (\verb|$tree|) is generated as follows.
+First, the macro collects information about the types and the type
+class for which an instance should be generated. Second, the macro creates an
+instance of the user-provided \verb|Trees| class by invoking the
+\verb|mkTrees| factory method. These steps are shown in Figure~\ref{fig:macro-set-up}.
+
+\begin{figure}
+\centering
+\begin{lstlisting}
+trait Query[R] ... {
+  def mkTrees[C <: Context with Singleton](c: C)
+    : Trees[C]
+
+  abstract class Trees[C <: Context with Singleton]
+    (override val c: C) extends super.Trees(c) { }
+
+  def genQuery[T:c.WeakTypeTag, S:c.WeakTypeTag]
+    (c: Context): c.Tree = {
+    import c.universe._
+    val tpe = weakTypeOf[T]
+    val stpe = weakTypeOf[S]
+    val tpeOfTypeClass =
+      stpe.typeSymbol.asClass.companion.asType
+          .asClass.toTypeConstructor
+    val qresTpe =
+      tpeOfTypeClass.decls.head.asMethod.returnType
+
+    val trees = mkTrees[c.type](c)
+    ...
+\end{lstlisting}
+  \caption{Macro-based generation: set-up}
+  \label{fig:macro-set-up}
+\end{figure}
+
+The body of the type class is generated using:
+\begin{lstlisting}
+val tpe = weakTypeOf[T] // see Fig. 5
+...
+val (first, separator, last) =
+  trees.delimit(tpe)
+val body = trees.combine(
+  fieldsExpr(first, separator), last)
+\end{lstlisting}
+
+To create the result expression, the macro utilizes the \verb|trees| instance
+(of type \verb|Trees|) that we initialize in the set-up phase (see
+Figure~\ref{fig:macro-set-up}). Calling \verb|delimit| returns three expressions
+(``delimiters'') of type \verb|Expr[R]| based on the reified type \verb|tpe|. Recall
+that \verb|tpe| corresponds to type parameter \verb|T|, which is the type for
+which the macro generates a type class instance. The \verb|fieldsExpr| method
+creates an \verb|Expr[R]| by folding the \verb|Expr[R]|s obtained for each field
+(see below) using the user-overridden \verb|combine| method:
+
+\begin{lstlisting}
+if (paramFields.size < 2)
+  ...
+else
+  paramFields.tail.foldLeft(first) { (acc, sym) =>
+    val withSep = trees.combine(acc, separator)
+    trees.combine(withSep, fieldValue(sym))
+  }
+\end{lstlisting}
+
+For example, Figure~\ref{fig:basic-usage} shows that the definition of
+\verb|combine| for \verb|Show| is just string concatenation. As a result, this
+code concatenates the string values of all fields separated with
+\verb|separator|.
+
+The expression tree \verb|fieldValue(sym)| is obtained as follows. For
+each field declared in type \verb|tpe|, the following subexpression is
+generated:
+\begin{lstlisting}
+val symTp = sym.typeSignatureIn(tpe)
+val fieldName = sym.name.toString.trim
+trees.fieldValueExpr(visitee, fieldName,
+  symTp, tpeOfTypeClass)
+\end{lstlisting}
+
+The invocation of \verb|fieldValueExpr| expands to (a) a nested look-up of a
+type class instance for the field, and (b) an invocation of the type class
+method:
+\begin{lstlisting}
+def fieldValueExpr(visitee: c.Expr[T], name: String,
+  tpe: c.Type, tpeOfTypeClass: c.Type): c.Expr[R] =
+c.Expr[R](
+  q"""
+    implicitly[${appliedType(tpeOfTypeClass, tpe)}]
+      .apply($visitee.${TermName(name)})
+  """)
+\end{lstlisting}
+
+The syntax \verb|q"""..."""| indicates the use of a quasiquote to create an
+{\em untyped} tree that is cast to an \verb|Expr[R]|, effectively forming part
+of a small trusted core of \sselfassembly. The main reason for creating an
+untyped tree at this point is that the value of field ``name'' is obtained
+using only the field's name--the selection \verb|$visitee.${TermName(name)}|
+must fundamentally be untyped. It is clear, though, that the result will be of
+type \verb|R|, since that's the result type of all type class instances of
+type \verb|tpeOfTypeClass|.
+
+
+% Figure~\ref{fig:macro-field-value} shows its implementation. The AST
+% returned by \verb|implicitlyTree(tpe, tpeOfTypeClass)| is expanded as follows,
+% obtaining a type class instance for the current field of type \verb|fieldTpe|:
+% \begin{lstlisting}
+% val instType = appliedType(tpeOfTypeClass, fieldTpe)
+% q"implicitly[$instType]"
+% \end{lstlisting}
+
+
+% \begin{figure}
+% \centering
+% \begin{lstlisting}
+% def fieldValueTree(name: String, tpe: c.Type,
+%                    tpeOfTypeClass: c.Type): c.Tree = {
+%   val instTree   = q"inst"
+%   val fieldTree  = q"value"
+%   val invokeTree = invoke(instTree, fieldTree)
+%   q"""
+%     val inst = ${implicitlyTree(tpe, tpeOfTypeClass)}
+%     val value = visitee.${TermName(name)}
+%     $invokeTree
+%   """
+% }
+% \end{lstlisting}
+%   \caption{Nested implicit look-ups of instances}
+%   \label{fig:macro-field-value}
+% \end{figure}
+
+
+
+% All methods are the \verb|Trees| class are provided by the library, although some of these methods are abstract
+
+\subsubsection{Generated Type Class Instances}
+\label{sec:generated-type-class-instances}
+
+The generation technique explained in the previous section produces implicit
+(singleton) objects which correspond to the type class instances portion of the
+type class pattern introduced in Section~\ref{sec:type-classes}.
+
+Let's say the datatype that we'd like to call \verb|show| on is the
+\lstinline{Tree} type in Figure~\ref{fig:trees}.
+%\begin{lstlisting}
+%sealed trait Tree
+%case class Fork(left: Tree, right: Tree)
+% extends Tree
+%case class Leaf(elem: Int) extends Tree
+%\end{lstlisting}
+%\noindent
+In order to create a type class instance of type
+\verb|Show[Tree]|, we also create type class instances for
+\verb|Tree|'s two subclasses, \verb|Fork| and \verb|Leaf|.
+%Since both \verb|Fork| and \verb|Leaf|.
+\verb|Fork| and \verb|Leaf| are case classes with the general
+shape:
+
+\begin{lstlisting}
+case class C(p_1: D_1, ..., p_n: D_n)
+  extends E_1 with ... with E_m { ... }
+\end{lstlisting}
+% \begin{math}
+% \texttt{case class}~C(p_1: D_1, \ldots, p_n: D_n)~\{~\bar{m}~\} \\
+% \texttt{~~~~~extends}~E_1~\texttt{with}~ \ldots ~\texttt{with}~E_m
+% \end{math}
+\noindent
+
+\begin{figure}
+\centering
+\includegraphics[width=0.87\columnwidth]{basic-generation.pdf}
+\caption{Basic generation of type classes.}
+\label{fig:basic-generation}
+\end{figure}
+
+An arbitrary type class instance (implicit singleton object) can be generated
+using the technique described in the previous section.
+Figure~\ref{fig:basic-generation} shows the general structure that is
+generated for an
+arbitrary shape \verb|C|. The implicit object (1) is
+exactly the same as in the manual type class pattern described in
+Section~\ref{sec:type-classes}. (2) is the implementation of the single
+abstract method of the type class (the \verb|show| method of the \verb|Show|
+trait). (3) is the result of expanding the \verb|implicitly| invocation within
+the method \verb|fieldValueExpr| above. (4) corresponds to the
+accumulation logic which itself results from the fold of \verb|paramFields| above
+(to simplify the presentation we use the \verb|result| accumulator variable instead of a deeply nested tree).
+Finally, (5) corresponds to \verb|first| and \verb|last|
+in the body of the macro-generated implementation of \verb|Show|'s single
+abstract method, \verb|show|.
+
+
+
+% To understand the self-assembly pattern, we use the following example.
+% Given an ADT for binary trees storing \verb|Int|s modeled as follows:
+
+% In this example, our goal is to automatically ``derive'' type class instances
+% that ``show'' information about a given type. Think of it as a \verb|toString|
+% method that traverses the structure of a type, and nicely prints information
+% about all of the fields of that type.
+
+% The \verb|Show| type class should look like this:
+
+% \begin{lstlisting}
+% trait Show[T] {
+%   def show(visitee: T): String
+% }
+% \end{lstlisting}
+% \noindent
+
+% And let's say the datatype that we'd like to call \verb|show| on is a closed
+% ADT for binary trees, which looks like:
+
+% \begin{lstlisting}
+% sealed trait Tree
+% case class Fork(left: Tree, right: Tree)
+%   extends Tree
+% case class Leaf(elem: Int) extends Tree
+% \end{lstlisting}
+% \noindent
+% % The goal of the self-assembly pattern is to derive type class instances of a
+% % given type class for all supported datatypes (for now, the types in
+% % Figure~\ref{fig:type-syntax}).
+
+% In order to automatically derive a type class instance of type
+% \verb|Show[Tree]|, the pattern assumes that the type class has:
+
+% \begin{itemize}
+% \item exactly one type parameter, and
+% \item a single abstract method with a single parameter of generic type, a return type that does not depend on the generic type, and which is a monoid.
+% \end{itemize}
+
+% This is all satisfied for trait \verb|Show| shown above. As one might infer,
+% in order to create type class instances of type \verb|Show[Tree]|, one must be
+% able to create type class instances for \verb|Tree|'s two subclasses,
+% \verb|Fork|, and \verb|Leaf|. Since both \verb|Fork| and \verb|Leaf|.
+
+% As per section~\ref{sec:type-classes}, each type class instance is implemented
+% using an implicit (singleton) object. Each of these is generated using the
+% same generic (macro-based) generation mechanism.
+
+% An example of one such implicit object is shown below:
+
+% % Automatic generation of type class instances parameterized on different
+% % datatypes can be achieved using the pattern shown in
+% % Figure~\ref{fig:basic-generation}.
+
+% \begin{figure}[h!]
+% \centering
+% \includegraphics[width=0.87\columnwidth]{basic-generation.pdf}
+% \caption{desc.}
+% \label{fig:basic-generation}
+% \end{figure}
+
+% The basic steps that this algorithm takes are as follows (each numbered step
+% corresponds to the numbers shown in the figure):
+
+
+% % Therefore, we need to define a case
+% % class that matches the same shape as both \verb|Fork| and \verb|Leaf|:
+
+% % \begin{math}
+% % \texttt{case class}~C(p_1: D_1, \ldots, p_n: D_n)~\{~\bar{m}~\} \\
+% % \texttt{~~~~~extends}~E_1~\texttt{with}~ \ldots ~\texttt{with}~E_m
+% % \end{math}
+
+
+% \begin{enumerate}
+% \item Definition of an \emph{implicit object} that extends the type of the
+%       type class instance (\eg \verb|Show[Tree]|) we'd like to generate. Note here that
+
+% \item
+% \end{enumerate}
+
+
+% % The following is one such example,
+
+% % The pattern assumes that the type class has the
+% % following shape:
+% % Importantly, for now we only consider type classes with a single type
+% % parameter. Moreover, the type class is supposed to have a single (abstract)
+% % method that has a single parameter of the generic type and some return type
+% % that (a) does not depend on the generic type, and (b) is a monoid.
+
+% % \begin{lstlisting}
+% % implicit object CShowInstance extends Show[C] {
+% %   def show(visitee: C): String = {
+% %     var result = "C("
+
+% %     val inst_1 = implicitly[Show[D1]]
+% %     result += inst_1.show(visitee.p_1)
+% %     ...
+% %     val inst_n = implicitly[Show[DN]]
+% %     result += inst_n.show(visitee.p_n)
+% %     result += ")"
+% %   }
+% % }
+% % \end{lstlisting}
+% % \noindent
+
+% Given a type class, say \verb|Show[T]|, and a datatype, say \verb|Tree|, the
+% self-assembly pattern systematically derives a type class instance
+% \verb|Show[Tree]|. Applying the pattern requires the following steps:
+
+% \begin{enumerate}
+
+% \item Definition of an \emph{implicit object} that extends the type of the
+%       type class instance (\eg \verb|Show[Tree]|) we'd like to generate.
+
+% \item An implementation of the abstract method, within the implicit object,
+%       which provides (implicitly looked-up) instances of the type the type class instance is parameterized
+%       upon.
+
+% \item Implicit look-up of instances for the components of the type.
+
+% \item Implementation of the type class according to the shape of the type
+%       using the component instances.
+
+% \item Introducing the implicit object into the right scope, so that implicit
+%       search locates it.
+
+% \end{enumerate}
+% \noindent
+% In the following we elaborate on each step.
+
+% \paragraph{Case classes} First, we consider a datatype whose declaration has the shape:
+
+% \begin{math}
+% \texttt{case class}~C(p_1: D_1, \ldots, p_n: D_n)~\{~\bar{m}~\} \\
+% \texttt{~~~~~extends}~E_1~\texttt{with}~ \ldots ~\texttt{with}~E_m
+% \end{math}
+
+% The first step is the definition of an implicit object extending
+% \verb|Show[C]|:
+
+% \begin{lstlisting}
+% implicit object CShowInstance extends Show[C] {
+%   def show(visitee: C): String = ...
+% }
+% \end{lstlisting}
+% \noindent
+% We derive an implementation of the \verb|show| method by looking up type class
+% instances for each of the class parameters $p_i$ of $C$. Since type class
+% instances are declared as implicit values in Scala, we can use the following
+% method \verb|implicitly| to look up type class instances:
+
+% \begin{lstlisting}
+% def implicitly[T](implicit e: T): T = e
+% \end{lstlisting}
+% \noindent
+% Thus, an invocation \verb|implicitly[Show[D_i]]| returns an instance of
+% \verb|Show| for type \verb|D_i|.\footnote{The \texttt{implicitly} method is
+% defined in the \texttt{Predef} singleton object in Scala's standard library.}
+
+% Using \verb|implicitly| we can implement the type class instance as follows.
+% For each class parameter $p_i$ of $C$, we obtain the corresponding type class
+% instance (of type \verb|Show[D_i]|), and use it to obtain a result of type
+% \verb|String|. Since \verb|String| is a monoid, we can reduce the results
+% obtained for all parameters into a single \verb|String|:
+
+% \begin{lstlisting}
+% var result: String = ""
+% val inst_1 = implicitly[Show[D_1]]
+% result = result + inst_1.show(visitee.p_1)
+% ...
+% val inst_n = implicitly[Show[D_n]]
+% result = result + inst_n.show(visitee.p_n)
+% \end{lstlisting}
+% \noindent
+% Making the \verb|CShowInstance| object \verb|implicit| enables support for
+% \emph{recursive types:} if one of the types $D_i = C$, then the corresponding
+% invocation \verb|implicitly[Show[D_i]]| simply returns \verb|CShowInstance|.
+
+% \paragraph{Traits} The next step is creating instances for (abstract) traits of the following
+% shape:
+% \begin{math}
+% \texttt{sealed trait}~D~\{~\bar{m}~\}
+% \end{math}
+
+% Concrete instances of this type have subtypes (dynamically) which are case
+% classes (according to our initial simplified view). Therefore, the type class
+% instance for $D$ performs a dynamic dispatch to select a specific instance
+% based on the runtime classtype of the object that the type class is applied
+% to (\verb|visitee|):
+
+% \begin{lstlisting}
+% implicit object DShowInstance extends Show[D] {
+%   def show(visitee: D): String =
+%     visitee match {
+%       case null => ...
+%       case v1: C1 =>
+%         implicitly[Show[C1]].show(v1)
+%       ...
+%       case vn: Cn =>
+%         implicitly[Show[Cn]].show(vn)
+%     }
+% }
+% \end{lstlisting}
+% \noindent
+% The classtypes \verb|C1|, ..., \verb|Cn| are all subclasses of trait \verb|D|;
+% since \verb|D| is sealed, there cannot be other subclasses.
+
+
+
+% \subsection{Generation using macros}
+% Suppose the goal is to automatically generate type class instances for a type class \verb|Show[T]|.
+
+
+\subsection{Customization}
+\label{sec:customization}
+
+Generation as provided by \selfassembly is convenient, but in some cases it is desirable
+to have full control over the type class instances for specific types (one strength of the
+type class pattern as introduced in Section~\ref{sec:type-classes}). When using the
+\selfassembly library, customization is still possible. It is sufficient to define
+custom instances for selected types manually; these custom instances are then transparently
+picked up and chosen in place of automatically-generated ones. It is even possible to
+use Scala's scoping and implicit precedence rules to prioritize certain instances over
+others.
+
+\section{Self-Assembly for Object Orientation}\label{sec:oo}
+
+A cornerstone of the design of \selfassembly is its support for features of mainstream
+OO languages. The following Section~\ref{sec:oo-sub} explains how our approach supports
+subtyping polymorphism in the context of open class hierarchies (Section~\ref{sec:oo-sub-open})
+and separate compilation (Section~\ref{sec:oo-sub-sep}). In Section~\ref{sec:oo-object-identity}
+we discuss how \selfassembly handles cyclic object graphs, which are easily created
+using mutable objects with identity.
+
+
+\subsection{Subtyping}\label{sec:oo-sub}
+
+Object-oriented languages like Java or Scala enable the definition of a
+\emph{subtyping relation} based on class hierarchies. Given the pervasive use
+of subtyping in typical object-oriented programs, our approach is designed to
+account for \emph{subtyping polymorphism}. In addition, we provide mechanisms
+that enable the object-oriented features even in a setting where
+modules/packages are separately compiled.
+
+\subsubsection{Open Hierarchies}\label{sec:oo-sub-open}
+
+Classes defined in languages like Java are by default ``open,'' which means
+that they can have an unbounded number of subclasses spread across several
+compilation units. By contrast, \emph{final classes} cannot have subclasses at
+all. In addition, \emph{sealed classes} in Scala can only have subclasses
+defined within the same compilation unit.
+
+\begin{figure}
+\centering
+\begin{lstlisting}
+// File PersonA.scala:
+abstract class Person {
+  def name: String
+  def age: Int
+}
+case class Employee(n: String, a: Int, s: Int)
+  extends Person {
+  def name = n
+  def age = a
+}
+
+// File PersonB.scala:
+case class Firefighter(n: String, a: Int, s: Int)
+  extends Person {
+  def name = n
+  def age = a
+  def since = s
+}
+\end{lstlisting}
+  \caption{Open class hierarchy}
+  \label{fig:class-hierarchy}
+\end{figure}
+
+Our approach enables the generation of type class instances even for open
+classes. For example, consider the class hierarchy shown in
+Figure~\ref{fig:class-hierarchy}. The \selfassembly library can automatically generate
+an instance for type \verb|Person|:
+
+\begin{lstlisting}
+val em = Employee("Dave", 35, 80000)
+val ff = Firefighter("Jim", 40, 2004)
+val inst = implicitly[Show[Person]]
+println(inst.show(em))
+// prints: Employee(Dave, 35, 80000)
+println(inst.show(ff))
+// prints: Firefighter(Jim, 40, 2004)
+\end{lstlisting}
+\noindent
+Note that we are using the same \verb|Show| instance to convert both objects
+to strings.
+
+\paragraph{Generation}
+
+Concrete instances of a classtype, such as \verb|Person| in
+Figure~\ref{fig:class-hierarchy}, in general have subtypes (dynamically). One approach to
+account for subtypes is by building the logic for all possible subtypes into
+the type class instance for the supertype, like is shown in
+Figure~\ref{fig:trees} in Section~\ref{sec:pretty-printing-complex}.
+However, such an approach does not support open class hierarchies, where new subclasses can be
+added in additional compilation units.
+
+To support open class hierarchies, the generation of type class instances for
+open classes adds a {\em dispatch step}. For a class like \verb|Person| in
+Figure~\ref{fig:class-hierarchy}, a dynamic dispatch is generated to select a
+specific type class instance based on the runtime classtype of the object that the type
+class is applied to (\verb|visitee|):\footnote{Simplified; handling of \texttt{null} values is omitted for simplicity.}
+
+\begin{lstlisting}
+implicit object PersonInst extends Show[Person] {
+  def show(visitee: Person): String =
+    visitee match {
+      case v1: Employee =>
+        implicitly[Show[Employee]].show(v1)
+      case v2: Firefighter =>
+        implicitly[Show[Firefighter]].show(v2)
+    }
+}
+\end{lstlisting}
+
+% Concrete instances of this type have subtypes (dynamically) which are case
+% classes (according to our initial simplified view). Therefore, the type class
+% instance for $D$ performs a dynamic dispatch to select a specific instance
+% based on the runtime classtype of the object that the type class is applied
+% to (\verb|visitee|):
+
+% \begin{lstlisting}
+% implicit object DShowInstance extends Show[D] {
+%   def show(visitee: D): String =
+%     visitee match {
+%       case null => ...
+%       case v1: C1 =>
+%         implicitly[Show[C1]].show(v1)
+%       ...
+%       case vn: Cn =>
+%         implicitly[Show[Cn]].show(vn)
+%     }
+% }
+% \end{lstlisting}
+% \noindent
+% The classtypes \verb|C1|, ..., \verb|Cn| are all subclasses of trait \verb|D|;
+% since \verb|D| is sealed, there cannot be other subclasses.
+
+
+\subsubsection{Separate Compilation}\label{sec:oo-sub-sep}
+
+To support subtyping polymorphism not only across different compilation units,
+but also across separately-compiled modules,\footnote{The Scala ecosystem distributes modules in separate ``JAR files'' typically.}
+\selfassembly provides \emph{dynamic instance registries}. In the case of
+separately-compiled modules, subclasses for which we would like to generate
+instances are in general only discovered at link time. To be able to discover
+such subclasses, \selfassembly allows registering generated instances
+with an \emph{instance registry} at runtime. A reference to such an
+instance registry can then be shared across separately-compiled modules.
+
+For example, module A could create a registry and populate it with a number of
+instances:
+\begin{lstlisting}
+implicit val reg = new SimpleRegistry[Show]
+reg.register(classOf[Employee],
+             implicitly[Show[Employee]])
+reg.register(classOf[Firefighter],
+             implicitly[Show[Firefighter]])
+...
+\end{lstlisting}
+\noindent
+Note that the registry \verb|reg| is defined as an \emph{implicit value;} as we
+explain in the following, this is required to enable registry look-ups when
+dispatching to type class instances based on runtime types.
+
+With the instance registry set up in this way, another separately-compiled
+module B is then able to dispatch to instances registered by module A:
+
+\begin{lstlisting}
+implicit val localReg = getRegistryFrom(moduleA)
+localReg.register(classOf[Judge],
+                  implicitly[Show[Judge]])
+...
+\end{lstlisting}
+\noindent
+Importantly, when module B invokes the \verb|show| method of an instance
+\verb|instP| of type \verb|Show[Person]|, passing an object with dynamic type
+\verb|Employee|, the generated instance \verb|instP| dispatches to the correct
+type class instance of type \verb|Show[Employee]| through a look-up in
+registry \verb|localReg|.
+
+\paragraph{Generation}
+
+To enable registry look-ups, we augment the dispatch logic with a default
+case:\footnote{Minimally simplified; the actual code also keeps track of object
+identities as discussed further below.}
+\begin{lstlisting}
+case _ => {
+  val reg$1 = implicitly[Registry[Show]]
+  val lookup$2: Option[Show[_]] = reg$1.get(clazz)
+  lookup$2.get.asInstanceOf[Show[Person]]
+              .show(visitee)
+}
+\end{lstlisting}
+
+
+\subsection{Object Identity}\label{sec:oo-object-identity}
+
+In object-oriented languages like Scala, it is important to take \emph{object
+identity} into account. Simple datatypes such as case classes
+already permit cycles in object graphs via re-assignable
+fields (using the \verb|var| modifier). It is therefore important to keep
+track of objects that have already been visited to avoid infinite recursion.
+
+To enable the detection of cycles in object graphs, we keep track of all
+``visited'' objects during the object graph traversal performed by a type
+class instance. However, it is not sufficient to maintain a single, global set
+of visited objects, since implementations of one type class might depend on
+other type classes; different type class instances could therefore interfere
+with each other when accessing the same global set (yielding nonsensical
+results). Thus, it is preferable to pass this set of visited objects on the
+call stack. With the mechanics introduced so far, this is not possible.
+
+To enable passing an additional context (the set of visited objects) on the call stack,
+we require type classes to extend \\\verb|Queryable[T, R]|:
+
+\begin{lstlisting}
+trait Queryable[T, R] {
+  def apply(visitee: T, visited: Set[Any]): R
+}
+\end{lstlisting}
+\noindent
+The \verb|Queryable[T, R]| trait declares an \verb|apply| method with an
+additional \verb|visited| parameter (compared to the trait of the type class),
+which is passed the set of visited objects. This extra method allows us to
+distinguish between top-level invocations of type class methods and inner
+invocations (of \verb|apply|). The only downside is that custom type class
+instances are slightly more verbose to define, although the implementation of
+\verb|apply| can typically be a trivial forwarder.
+
+For example, consider the \verb|Show[T]| type class, now extending
+\verb|Queryable[T, String]|:
+\begin{lstlisting}
+trait Show[T] extends Queryable[T, String] {
+  def show(visitee: T): String
+}
+\end{lstlisting}
+\noindent
+A type class instance for integers can be implemented as follows:
+\begin{lstlisting}
+implicit val intHasShow = new Show[Int] {
+  def show(visitee: Int): String = "" + x
+  def apply(visitee: Int, visited: Set[Any]) =
+    show(visitee)
+}
+\end{lstlisting}
+\noindent
+Note that the implementation of \verb|apply| is trivial.
+
+\paragraph{Generation}
+
+To enable the detection of cycles in object graphs it is necessary to
+adapt the implementation of the implicit object as follows.
+
+\begin{lstlisting}
+implicit object CShowInstance extends Show[C] {
+  def show(visitee: C): String =
+    apply(visitee, Set[Any]())
+  def apply(visitee: C, visited: Set[Any]) =
+    ...
+}
+\end{lstlisting}
+\noindent
+Note that an invocation of \verb|show| is treated as a \emph{top-level
+invocation} forwarding to \verb|apply| passing an empty set of visited
+objects. Crucially, when applying the type class instances for the class
+parameters of \verb|C|, instead of invoking \verb|show| directly, we invoke
+\verb|apply| passing the \verb|visited| set extended with the current object
+(\verb|visitee|).
+
+\begin{lstlisting}
+var result: String = ""
+if (!visited(visitee.p_1)) {
+  val inst_1 = implicitly[Show[D_1]]
+  result = result +
+   inst_1.apply(visitee.p_1, visited + visitee)
+}
+...
+if (!visited(visitee.p_n)) {
+  val inst_n = implicitly[Show[D_n]]
+  result = result +
+   inst_n.apply(visitee.p_n, visited + visitee)
+}
+\end{lstlisting}
+\noindent
+
+
+\section{Transformations}\label{sec:queries-transformations}
+
+The library provides a set of traits for expressing generic functions that are
+either (a) queries or (b) transformations. Basically, a query generates type
+class instances that traverse an object graph and return a single result of a
+possibly different type. In contrast, a transformation generates type class
+instances that perform a deep copy of an object graph, applying
+transformations to objects of selected types. While
+Sections~\ref{sec:basic-self-assembly}-\ref{sec:oo} were focussed on generic
+queries, this section provides an overview of generic transformations.
+
+% We first introduce generic transformations by means of a typical example.
+% Subsequently, we discuss the infrastructure provided by \selfassembly to
+% define  generic transformations; finally, we show key parts of the
+% implementation of \selfassembly.
+
+\paragraph{Example}
+Suppose we would like to express a generic transformation,
+which clones object graphs, except for subobjects of a certain type, which
+are transformed. An example for such a transformation is a generic ``scale''
+function that scales all integers in an object graph by a given factor.
+The \selfassembly library lets us write the ``scale'' function in two steps:
+first, the definition of a suitable type class; second, the implementation of
+a subclass of the library-provided \verb|Transform| class. A suitable type
+class is easily defined:
+\begin{lstlisting}
+trait Scale[T] extends Queryable[T, T] {
+  def scale(visitee: T): T
+}
+\end{lstlisting}
+\noindent
+Note that the input and output types of \verb|Queryable| are the same in this
+case, since \verb|scale| transforms any input object into an
+object of the same type. The actual transformation is defined as follows:
+\begin{lstlisting}
+object Scale extends Transform {
+  def mkTrees[C <: SContext](c: C) = new Trees(c)
+
+  class Trees[C <: SContext](override val c: C)
+    extends super.Trees(c)
+
+  implicit def generate[T]: Scale[T] =
+    macro genTransform[T, this.type]
+}
+\end{lstlisting}
+\noindent
+This transformation is not very interesting yet: it simply creates a deep
+clone of the input object. To specify how, in our case, integers are scaled,
+it is necessary to define a custom type class instance:
+\begin{lstlisting}
+def intScale(factor: Int) = new Scale[Int] {
+  def scale(x: Int) = x * factor
+  def apply(x: Int, visited: Set[Any]) = scale(x)
+}
+implicit val intInst = intScale(myFactor)
+\end{lstlisting}
+\noindent
+For convenience, we can introduce a generic \verb|gscale| function:
+
+\begin{lstlisting}
+def gscale[T](obj: T)(implicit inst: Scale[T]): T =
+  inst.scale(obj)
+\end{lstlisting}
+\noindent
+\verb|gscale| is then invoked as follows:
+\begin{lstlisting}
+implicit val inst = intScale(10)
+val scaled = gscale(obj)
+\end{lstlisting}
+
+
+\paragraph{Transformations in \selfassembly}
+The \verb|genTransform| macro is based on traversals similar to those of
+generic queries. However, the crucial difference is that the macro generates
+code to {\em clone} visited objects (based on techniques used in
+Scala/Pickling~\cite{Pickling}). Interestingly, the implementations of queries and
+transformations share a substantial number of generic building blocks.
+
+
+\section{Generic Properties: Lightweight Pluggable Type System Extensions}
+\label{sec:language-extensions}
+
+In this section we show how our approach supports the definition of
+lightweight pluggable type system extensions that go beyond object-oriented DGP as
+discussed in the previous sections. In particular, the \selfassembly library
+allows defining generic type-based properties that can be checked by the
+existing Scala type checker.
+
+% An important characteristic of the self-assembly pattern and library is that
+% it is a {\em compile-time} generic programming pattern. In addition to having
+% access to query and transformation facilities provided by the library, users
+% also have access to full type information and Scala's meta-programming API,
+% enabling one to generatively define {\em lightweight language extensions}.
+% beyond runtime datatype generic programming patterns.
+
+The key to support both object-oriented DGP and type properties is the fact
+that our approach is based on generic programming {\em at compile time}. In
+addition to having access to query and transformation facilities provided by
+the library, users also have (a) access to full static type information and
+(b) Scala's meta-programming API, enabling one to generatively define such
+generic type properties.
+
+The enabled language extensions are lightweight in the sense that they cannot
+extend the existing syntax or change Scala's existing type-checking. Instead,
+they can be thought of as pluggable type system
+extensions~\cite{PluggableTypes} in that without changing the existing
+typechecker, additional properties can be checked. As a result, our approach
+supports extensions such as (transitive) type-based immutability checking,
+which goes beyond standard DGP.
+
+% refine existing typechecking
+
+% Like before, the patterns we are going to discuss are implemented in our
+% \selfassembly library. Beyond providing re-usable abstractions, our library
+% also serves as a layer between Scala’s macro system and users wishing to
+% define type-system extensions. In this way, the library enforces a principled
+% use of macros\todo{we probably need to qualify this...}, in addition to the
+% typed expression trees discussed in Section~\ref{where we use Expr[String] the
+% first time}.
+
+In the following Section~\ref{sec:genprop-definition}, we first provide a more
+precise definition of the supported generic properties.
+Section~\ref{sec:genprop-example} presents a complete example of a non-trivial generic
+property, immutable types. Finally, in Section~\ref{sec:genprop-implementation}, we discuss
+key aspects of our implementation in the \selfassembly library.
+
+
+% Section 6.1 introduces our approach using the example of a type-based property for checking deep immutability. Section 6.2 explains the general pattern implemented in \selfassembly.
+
+\subsection{Generic Properties: Definition}
+\label{sec:genprop-definition}
+
+The generic properties supported in \selfassembly are unary type relations.
+Oliveira et al.~\cite{Oliveira2010} show how to define custom type relations
+in Scala using implicits (see Section~\ref{sec:implicits}). However, unary
+type relations defined using implicits are incapable of expressing properties
+that depend on structural type information that's inaccessible through simple
+type bounds. Our approach builds on Oliveira et al.'s foundation, and extends
+it to deep structural type information using type-safe meta-programming.
+
+In the following, we summarize the definition of type relations using
+implicits and present a high-level overview of our extensions. We then show
+how \selfassembly is augmented with meta-programming facilities in order to
+enable the definition of deeper structural properties.
+
+\paragraph{Defining Unary Type Relations via Type Classes}
+
+Using implicits a unary type relation can be defined in Scala using an arbitrary generic
+type constructor, say, \verb|TC|. A type \verb|T| can be declared to be an element of this
+relation, by defining an {\em implicit} of type \verb|TC[T]|:
+
+\begin{lstlisting}
+implicit val tct = new TC[T] {}
+\end{lstlisting}
+\noindent
+This way, an arbitrary {\em bounded} unary type relation can be defined. The
+membership of a type \verb|U| in the relation \verb|TC| can be checked by requiring evidence
+for it using an implicit parameter:
+
+\begin{lstlisting}
+def m[U](implicit ev: TC[U]): ...
+\end{lstlisting}
+\noindent
+(Classes, and thereby constructors, can also have such implicit parameters.)
+Only if there exists an implicit value of type \verb|TC[U]| can an invocation
+of method \verb|m[U]| be type-checked.
+
+Polymorphic implicit methods allow defining a certain class of unbounded type
+relations by returning values of type \verb|TC[V]| for an arbitrary type \verb|V| that satisfies
+given type bounds. For example, the following implicit method declares all types that
+are equal to or subtypes of type \verb|Person| to be elements of relation \verb|TC|:
+
+\begin{lstlisting}
+implicit def belowPerson[S <: Person]: TC[S] =
+  new TC[S] {}
+\end{lstlisting}
+\noindent
+However, without meta-programming the domain of the relation can only be
+restricted using type bounds; this is not enough for rich properties such as
+immutability since it requires deep checking to determine whether fields are
+re-assignable or not.
+
+\paragraph{More Powerful Type Relations via Type-Safe Meta-Programming}
+
+We extend the above-described type class-based approach so as to be able to
+define relations that take deep structural type information into account. Our
+approach provides the following benefits for library authors defining new type
+relations (such as the immutable property):
+
+\begin{enumerate}
+\item Library authors are provided with a safe, read-only view of the static
+      type info corresponding to types we test for membership in the relation.
+      The provided type information is not restricted to subtyping tests, rather,
+      all functionality for analyzing type information is provided by Scala's
+      meta-programming API.
+
+\item Boilerplate for library authors is minimized using the generation approach
+      that we outlined in Section~\ref{sec:macro-based-generation}. Analogous to
+      queries and transformations, the \selfassembly library provides a set of
+      reusable abstractions, in turn making the generation mechanism easily
+      accessible to library authors.
+\end{enumerate}
+
+\paragraph{Safety}
+Static meta-programming has a reputation for being ad-hoc, untyped, and
+``anything-goes.'' However, in our approach the use of macros is fairly
+restricted. First, we restrict ourselves to a type-safe subset of Scala's macro system
+(except for a small trusted core), and macro
+implementations are guaranteed to conform to their type signatures. As a result,
+these macros are easy to reason about and are well-behaved citizens in the tooling
+ecosystem. Second, and perhaps most importantly, the \selfassembly library
+encapsulates all code generation capabilities internally; library authors
+defining new generic properties are provided with only a very restricted API.
+The API is limited to a read-only view of static type information and the
+possibility to define a predicate on this information controlling type class
+instance generation.
+
+
+% - macros limited to blackbox... (can be thought of like methods, integrate with tools and stuff)
+% - macros are typed, they confirm to their type signature
+% - anything that we can do with macros that could be adverse, or otherwise undesirable
+%   we prevent users from doing it, because we don't give them the capability through our library.
+
+
+% Given that our approach is based on static meta-programming, there is a
+% concern that an excess of flexibility could make it impossible to guarantee
+% that user-defined type relations are ``safe.''
+
+
+% Acknowledging this concern, the
+% \selfassembly library encapsulates all code generation capabilities
+% internally; library authors defining new generic properties are provided with
+% only a very restricted API. The API is limited to a read-only view of static
+% type information and the possibility to define a predicate on this information
+% controlling type class instance generation.
+
+
+% users don't have the ability to generate any code by themselves. however,
+% because the generation is fully encapsulated in the library, it's safer?
+% it's what people call a ``trusted codebase''. it's not verified, and we
+% don't establish its safety.
+
+% reviewers might be wondering:
+% - how safe and good is this macro-based approach? it's like a big ugly hammer.
+%   of course you can do anything with it. you can also do anything by rewriting
+%   bytecode. it doesn't mean that it's a good approach though.
+
+% points we wanted to make at one point:
+% - template haskell and other competing approaches
+% - performance?
+% - more principled than other meta-programming approaches?
+
+
+
+
+% In our approach, it is possible to define relations that take deep
+% structural type information into account
+
+% by generating implicit instances
+% based on the properties of {\em type tags;} user-defined properties inspect
+% such type tags at compile time. A type tag (which is part of Scala’s
+% meta-programming API) provides access to the full static type
+% information that is otherwise only accessible to the compiler. As a result,
+% the type relations that our library supports are:
+
+% - simpler
+% - more powerful
+
+% \begin{itemize}
+% \item unbounded (since it’s possible to generate instances for an unbounded number of types), and
+% \item based on deep structural type information.
+% \end{itemize}
+
+
+\subsection{Example: Immutable Types}\label{sec:genprop-example}
+
+% In the following section we will discuss one such example, a type property for
+% deep immutability.
+
+% Basically, the idea is that macros enable (a) inspecting the full static type
+% information and (b) generating arbitrary terms (locally). This can be
+% exploited to derive rich type-based properties such as deep immutability.
+
+This section presents a complete example of a generic property as defined by a
+library author using \texttt{self-assembly}: a type property for deep immutability. The
+implementation of this property is shown in Figure~\ref{fig:immutable}.
+
+% For example, deep immutability can be expressed as shown in
+% Figure~\ref{fig:immutable} (executable code using the \selfassembly library).
+
+\begin{figure}
+\centering
+\begin{lstlisting}
+trait Immutable[T] {}
+
+object Immutable extends Property[Unit] {
+  def mkTrees[C <: Context with Singleton](c: C) =
+    new Trees(c)
+
+  class Trees[C <: Context with Singleton]
+    (override val c: C) extends super.Trees(c) {
+    def check(tpe: c.Type): Unit = {
+      import c.universe._
+
+      if (tpe.typeSymbol.isClass &&
+          !tpe.typeSymbol.asClass.isFinal &&
+          !tpe.typeSymbol.asClass.isCaseClass) {
+        c.abort(c.enclosingPosition, """instances
+of non-final or non-case class not
+guaranteed to be immutable""")
+      } else {
+        // if tpe has var, abort
+        val allAccessors =
+          tpe.decls collect {
+            case sym: MethodSymbol
+              if sym.isAccessor ||
+              sym.isParamAccessor => sym }
+        val varGetters =
+          allAccessors collect {
+            case sym if sym.isGetter &&
+              sym.accessed != NoSymbol &&
+              sym.accessed.asTerm.isVar => sym }
+        if (varGetters.nonEmpty)
+          c.abort(c.enclosingPosition,
+                  "not immutable")
+      }
+    }
+  }
+
+  implicit def generate[T]: Immutable[T] =
+    macro genQuery[T, this.type]
+
+  implicit val intIsImm: Immutable[Int] =
+    new Immutable[Int] {}
+
+  implicit val stringIsImm: Immutable[String] =
+    new Immutable[String] {}
+}
+\end{lstlisting}
+  \caption{Deep immutability checking using \selfassembly}
+  \label{fig:immutable}
+\end{figure}
+
+The goal of the defined generic property is to traverse the full structure of
+a given type, and to ensure (a) that there are no re-assignable fields and (b)
+that all field types satisfy this property recursively. Therefore, the property
+is guaranteed {\em transitively} (all reachable objects are immutable). To
+guard against subclasses with re-assignable fields, the implementation assumes
+references of non-final class type potentially refer to mutable objects.
+
+Elements like trait \verb|Property| and the \verb|genQuery| macro are provided
+by the library. The idea is that when the \verb|genQuery| macro derives an
+instance of \verb|Immutable[T]| it (a) creates an instance of class
+\verb|Trees| at compile time, and (b) uses this to check that type $T$
+(accessible at compile time as \verb|tpe|) does not contain re-assignable
+fields (\verb|var|s) and it is possible to derive \verb|Immutable| instances
+for all its fields (in turn guaranteeing that they are all deeply immutable).
+
+The example also shows that it is possible to add custom type class instances
+manually (in the example, for types \verb|Int| and \verb|String|). In general,
+this means that the checks of the generic property can be overridden for
+specific types. While providing an escape hatch (\eg in situations where
+lightweight static checking is not powerful enough to prove a desired property for
+some type), this capability can also be used to subvert the checking of the
+generic property, of course. However, existing type checking of the Scala
+compiler remains unaffected in all cases.
+
+
+\subsection{Generic Properties as Implemented in \selfassembly}
+\label{sec:genprop-implementation}
+
+The \selfassembly library implements generic properties as extensions of
+generic queries. Note that library authors defining new type properties are
+not exposed to the implementation discussed in the following.
+
+Let us consider a sketch of \texttt{self-assembly}'s implementation of the simple generic
+\verb|Property| trait used in the previous example:
+\begin{lstlisting}
+trait Property[R] extends AcyclicQuery[R] {
+  abstract class Trees[C <: SContext]
+    (override val c: C) extends super.Trees(c) {
+    def check(tpe: c.Type): Unit
+    override def delimit(tpe: c.Type) = {
+      check(tpe)
+      (reify({}), reify({}), reify({}))
+    }
+    ...
+  } }
+\end{lstlisting}
+\noindent
+The trait introduces a new abstract \verb|check| method that must be
+implemented by the library author who wishes to define concrete properties
+such as \verb|Immutable[T]| above. Moreover, the \verb|delimit| method that the
+generic query invokes for all types encountered in a traversal is overridden
+to invoke the user-defined \verb|check| method. Otherwise, \verb|delimit| only
+returns trivial expression trees, since they are (essentially) unused.
+
+\vspace{-2.2mm}
+\section{Implementation and Case Study}
+
+We have implemented our approach in the \selfassembly Scala
+library.\footnote{See \url{https://github.com/phaller/selfassembly}.} The
+library has been developed and tested using the current stable release of
+Scala version 2.11. No extension of the Scala language or compiler is required
+by the library. The library is comprised of $\approx1,150$ LOC.
+
+% \paragraph{Implemented Generic Functions}
+
+% Using \sselfassembly, we have implemented the following type classes (with
+% corresponding generic functions) known from the literature: \verb|Eq|
+% (type-safe equality), \verb|Show| (pretty printing), \verb|Scale| (scaling
+% transformation), and \verb|Pickler|/\\\verb|Unpickler| (type-safe serialization).
+
+\paragraph{Case Study: Scala Pickling}
+
+To evaluate both expressivity and performance, we have ported an industrial-
+strength serialization framework, called Scala/Pickling~\cite{Pickling}, to
+\sselfassembly\footnote{\url{https://github.com/phaller/selfassembly/tree/master/src/main/scala/selfassembly/examples/pickling}}.
+
+Scala/Pickling is a popular open-source project; on the social code
+hosting platform GitHub, the project has more than 360 ``stars''.
+To achieve its high performance, Scala/Pickling leverages macros for compile-time code
+generation. Our port of Scala/Pickling to \selfassembly supports
+already about 90\% of the features of the original; notably, subtyping, object
+identity, separate compilation, and pluggable pickle formats. Currently, the
+port lacks picklers based on run-time reflection.
+
+% \vspace{-1mm}
+\begin{table}[h!]
+\centering
+\begin{tabular}{l c c }
+\toprule % Top horizontal line
+\textbf{Framework} & \textbf{Performance Change} & \textbf{LOC reduction} \\ % Column names row
+\midrule % In-table horizontal line
+Scala/Pickling & $<1\%$ & $56\%$  \\
+\bottomrule % Bottom horizontal line
+\end{tabular}
+% \vspace{0.5em}
+% \mbox{\centering{\bf Legend:}~~~~$\CIRCLE$: Heavy Use~~~~$\LEFTcircle$: Light Use~~~~$\Circle$: No Use}
+\caption{Results of porting Scala/Pickling to \selfassembly} % Table caption, can be commented out if no caption is required
+\label{tab:results} % A label for referencing this table elsewhere, references are used in text as \ref{label}
+% \vspace{-1mm}
+\end{table}
+
+In terms of efficiency, \selfassembly compares favorably to the original
+library: execution time of the ``Evactor'' benchmark~\cite{Pickling} remains
+within 1\% of Scala/Pickling. At the same time,
+the \sselfassembly-based code is significantly simpler, shorter, and more
+maintainable. The use of \selfassembly reduced the code size for macro-based
+type class instance generation by about 56\%.
+
+
+% Report on examples implemented. Report on port of scala-pickling to \selfassembly and percentage of functionality
+% achieved already and how much the code size was reduced and improved in terms of structure.
+
+\vspace{-2mm}
+\section{Related Work}
+\label{sec:related-work}
+
+% This section discusses related work.
+
+%%Our work is distinctive from previous work in various ways.  Firstly,
+%%when compared to existing DGP approaches, it supports challenging OO
+%%features such as subtyping or object identity.  Secondly \selfassembly
+%%builds on a type-safe macro mechanism. While there are some DGP approaches
+%%that use macro mechanisms too, these mechnisms tend to be untyped.
+%%Finally our work is more general than DGP in that it also allows the
+%%definition of generic properties like immutability checking.
+%%In what follows we discuss related work in more detail.
+
+\paragraph{DGP in Functional Languages}
+The idea of DGP originated in the Functional Programming community.
+There are several approaches for writing datatype-generic
+programs. Early approaches were based on programming languages with
+built-in support for DGP. These approaches include PolyP~\cite{PolyPJansson},
+and Generic Haskell~\cite{GenericHaskell}. Later approaches were
+based on small language extensions for general purpose languages like
+Haskell. Examples include Scrap Your Boilerplate~\cite{SYB}, Template
+Haskell~\cite{template-haskell} and Generic Clean~\cite{GenericClean}.
+
+More recently, researchers have realized that by using advanced type
+system features DGP could be implemented directly as
+libraries. Extensive surveys of various approaches to DGP in Haskell
+(mostly focused on libraries) document various
+approaches~\cite{ComparingGPHaskellRodriquez,ComparingGPHaskellHinze}. A
+large majority of these library based approaches use \emph{run-time}
+type representations, as well as, isomorphisms that convert between
+specific datatypes and generic type representations. Without further
+optimizations this has a significant impact on performance. To improve
+performance several approaches use techniques such as
+partial-evaluation~\cite{DGPPartial} or inlining~\cite{OptimizingDGP}.
+Approaches based on partial-evaluation require language support, which
+makes them more difficult to adopt. Inlining is simpler to adopt since
+it is readily available in many compilers.  Good results optimizing
+some generic functions have been reported in the GHC compiler. However
+inlining is not very predictable and some generic functions do not
+optimize well.
+
+Approaches that use meta-programming techniques like Template
+Haskell (TH)~\cite{TemplateYourBoilerplate} to do DGP are closest to our work.
+The use of TH is very often motivated by performance considerations, to avoid the
+costs of run-time type representations.
+However, published proposals using TH are based on its {\em untyped} macro
+system. (TH itself has recently been upgraded to allow type-safe macros.)
+Although type errors are still detected at compile time even using the untyped
+system, they are given in terms of the generated code instead of the macro
+code. In \selfassembly we do not need to make such a trade-off, because we
+only use the type-safe subset of Scala’s macros (apart from a small, internal
+trusted core, as is common in DGP approaches).
+
+% However Template Haskell is an
+% \emph{untyped} macro system. Therefore approaches using Template
+% Haskell trade some type-safety for performance. Although type-errors
+% are still detected at compile-time, they are now given in terms of the
+% generated code instead of the macro code. In \selfassembly we do not
+% need to make such trade-off because we use Scala's type-safe macros.
+
+In contrast to \selfassembly none of the functional DGP approaches
+deal with OO features like subtyping or object identity.
+
+% \vspace{-1mm}
+\paragraph{DGP in OO Languages} Adaptive Object-Oriented Programming
+(AOOP)~\cite{DemeterBook} can be considered a DGP approach. In AOOP
+there is a domain-specific language for selecting parts of a structure
+that should be visited. This is useful to do traversals on complex
+structures and focus only on the interesting parts of the structure
+relevant for computing the final output.  DJ is an implementation of
+AOOP for Java using reflection~\cite{DJ}. More recently, inspired by
+AOOP, DemeterF~\cite{OOGP} improved on previous approaches by providing support for
+safe traversals, generics and data-generic function generation.
+Compared to \selfassembly most AOOP approaches are not type-safe. Only in
+DemeterF a custom type system was designed to ensure type-safety of
+generic functions. However DemeterF requires a new language and it
+is unclear wether issues like object identity are considered, since
+they take a more functional approach than other AOOP approaches.
+DemeterF is a language approach to DGP (much like Generic Haskell, for
+example); whereas we view \selfassembly as a library based approach.
+
+There has also been some work porting existing functional DGP
+approaches to Scala.  Moors et al.~\cite{OODGPMoors} did a port of
+``origami''-based DGP~\cite{DGPGibbons}. Oliveira and
+Gibbons~\cite{ScalaGenericProgrammers} picked up on this line of work
+and have shown how several other DGP approaches can be ported and
+improved in Scala. In particular they have shown some approaches that
+for doing DGP with type classes, which has a similar flavour to
+\sselfassembly.  However none of these ports attempt to deal with OO
+features like subtyping or object identity. Moreover all approaches
+are based on run-time type representations, which is in contrast to
+our compile-time approach.
+
+% \vspace{-1mm}
+\paragraph{Pluggable Type Systems and Language Extensions}
+There are several approaches for providing pluggable type system extensions
+for statically-typed OO languages~\cite{DietlChecker, PapiChecker,
+SemanticTypeQualifiers}, but unlike \sselfassembly, they do not provide DGP
+capabilities. Furthermore, \selfassembly provides LLEs, which can cannot
+extend program syntax (like, \eg SugarJ~\cite{SugarJ}) or change Scala's
+built-in type checking.
+
+Our approach is in some sense complementary to staging for embedded DSLs (\eg,
+LMS~\cite{LMS}): however, rather than providing staged expressions that are
+type-checked by the host language, we piggy-back on a macro system for the
+definition of new type relations. Implicit macros generate type class
+instances, which, in turn, refine type-checking of {\em unstaged} programs in
+the host language. Furthermore, \selfassembly doesn't require any
+extensions to the host language.
+%, we use the standard Scala 2.11
+% distribution.
+
+
+%\paragraph{Run-time Reflection} DGP shares some goals with
+%reflection.
+%Run-time reflection mechanisms (as the one in Java) are
+%not type-safe (type-errors can occur at run-time), so they cannot be
+%used as a DGP mechanism. Moreover, some compile-time meta-programming
+%techniques are untyped: although type-errors are reported at
+%compile-time they are reported in terms of generated code instead of
+%the original code.
+
+% \cite{TemplateYourBoilerplate}
+% \cite{Pickling}
+% \cite{SYB}
+
+% \vspace{-2mm}
 \section{Conclusion}
-\label{sec:conclusion}
-\vspace{-1mm}
 
-We've presented a type-based foundation for closures, called spores, designed
-to avoid various hazards that arise particularly in concurrent or distributed
-settings. We have presented a flexible type system for spores which enables
-composability of differently-constrained spores as well as custom user-defined
-type constraints. We formalize and present a full soundness proof, as well as
-an implementation of our approach in Scala.
+This paper shows a general mechanism, called \sselfassembly, for
+lightweight language extensions. This mechanism has the extensibility
+and customization advantages of type classes; and it has the automatic
+implementation advantages of mechanisms like Java's serialization
+mechanism.  The key idea is to provide
+automatic implementations of type classes using type-safe macros.
+This allows programmers to define their own generic
+functionality, such as serialization, pretty printing, or equality;
+and it also allows the definition of generic properties such as
+immutability checking. To demonstrate the usefulness of \selfassembly
+in practice, we implemented an industry-ready
+serialization framework for Scala.
 
-A key takeaway of our approach is that including type information of captured
-variables in the type of the spore enables a number of previously impossible
-opportunities, including but not limited to controlled capture in concurrent,
-distributed, and other arbitrary scenarios where closures must be
-controlled.
 
-Finally, we demonstrate the practicality of our approach through an
-empirical study, and show that converting non-trivial
-programs to use spores requires relatively little effort.
+
+
 
 \bibliographystyle{abbrv}
 \bibliography{bib}
