@@ -1,0 +1,211 @@
+% This is LLNCS.DEM the demonstration file of
+% the LaTeX macro package from Springer-Verlag
+% for Lecture Notes in Computer Science,
+% version 2.4 for LaTeX2e as of 16. April 2010
+%
+\documentclass[runningheads]{llncs}
+%
+
+%% Save the class definition of \subparagraph
+\let\llncssubparagraph\subparagraph
+%% Provide a definition to \subparagraph to keep titlesec happy
+\let\subparagraph\paragraph
+%% Load titlesec
+\usepackage[compact]{titlesec}
+%% Revert \subparagraph to the llncs definition
+\let\subparagraph\llncssubparagraph
+\usepackage{makeidx}  % allows for indexgeneration
+\usepackage{url}
+\usepackage{todonotes}
+\usepackage{listings}
+\usepackage{fontspec}
+\usepackage{fancyvrb}
+% \usepackage{times}
+
+\newcommand{\ie}{{\em i.e.,~}}
+\newcommand{\eg}{{\em e.g.,~}}
+\newcommand{\etc}{{\em etc}}
+
+\lstdefinelanguage{Scala}%
+{morekeywords={abstract,case,catch,char,class,%
+    def,else,extends,final,%
+    if,import,%
+    match,module,new,null,object,override,package,private,protected,%
+    public,return,super,this,throw,trait,try,type,val,var,with,implicit,%
+    macro,sealed,%
+  },%
+  sensitive,%
+  morecomment=[l]//,%
+  morecomment=[s]{/*}{*/},%
+  morestring=[b]",%
+  morestring=[b]',%
+  showstringspaces=false%
+}[keywords,comments,strings]%
+
+\lstset{tabsize=2,
+basicstyle=\ttfamily\fontsize{9pt}{1em}\selectfont,
+commentstyle=\itshape\rmfamily,
+numbers=left, numberstyle=\scriptsize\color{gray}\ttfamily, language=scala,moredelim=[il][\sffamily]{?},mathescape=false,showspaces=false,showstringspaces=false,xleftmargin=15pt,escapechar=@, morekeywords=[1]{let,fn,val},deletekeywords={for},classoffset=0,belowskip=\smallskipamount
+}
+
+\begin{document}
+
+\VerbatimFootnotes
+\setmonofont[Scale=0.8,BoldFont={Consolas Bold}]{Consolas}
+
+%
+\mainmatter              % start of the contributions
+
+\title{Self-Assembly}
+% \subtitle{A Foundation for Lambdas in the Age of Concurrency and Distribution}
+\titlerunning{\hspace{-0.9cm} Spores: A Type-Based Foundation for Closures in the Age of Concurrency \& Distribution}  % abbreviated title (for running head)
+%                                     also used for the TOC unless
+%                                     \toctitle is used
+%
+\author{Heather Miller \and Philipp Haller$^{1}$
+\and Bruno C. D. S. Oliveira}
+
+%%% list of authors for the TOC (use if author list has to be modified)
+\tocauthor{Heather Miller, Philipp Haller,$^{1}$ and Bruno C. D. S. Oliveira}
+
+% \institute{EPFL and Typesafe, Inc$^{1}$\\
+
+\institute{EPFL and Typesafe, Inc.$^{1}$\\
+\texttt{heather.miller@epfl.ch}
+and
+\texttt{phaller@kth.se}
+and
+\texttt{bruno@cs.hku.hk}$^{1}$}
+
+% \institute{EPFL, Switzerland\\
+% \and
+% Typesafe, Switzerland}
+
+\setlength{\abovecaptionskip}{0pt}
+\setlength{\belowcaptionskip}{0pt}
+\authorrunning{\hspace{-3cm} H. Miller, P. Haller, and B. C. D. S. Oliveira} % abbreviated author list (for running head)
+
+\maketitle              % typeset the title of the contribution
+
+\begin{abstract}
+
+Functional programming (FP) is regularly touted as the way forward for bringing
+parallel, concurrent, and distributed programming to the mainstream. The
+popularity of the rationale behind this viewpoint has even led to a number of
+object-oriented (OO) programming languages outside the Smalltalk tradition
+adopting functional features such as lambdas and thereby function closures.
+However, despite this established viewpoint of FP as an enabler, reliably
+distributing function closures over a network, or using them in concurrent
+environments nonetheless remains a challenge across FP and OO languages.
+This paper takes a step towards more principled distributed and concurrent
+programming by introducing a new closure-like abstraction and type system,
+called {\em spores}, that can guarantee closures to be serializable, thread-safe,
+or even have custom user-defined properties. Crucially, our system is
+based on the principle of encoding type information corresponding to captured
+variables in the type of a spore.
+We prove our type system sound, implement our approach for Scala, evaluate
+its practicality through a small empirical study, and show the power of these
+guarantees through a case analysis of real-world distributed and concurrent
+frameworks that this safe foundation for closures facilitates.
+
+% == 150-word abstract for the submission page ==
+% Functional programming is regularly touted as the way forward for bringing
+% parallel, concurrent, and distributed programming to the mainstream. The
+% popularity of the rationale behind this viewpoint (immutable data transformed
+% by function application) has even lead to a number of object-oriented
+% programming languages adopting functional features such as lambdas and thereby
+% function closures. However, despite this established viewpoint of FP as an
+% enabler, reliably distributing closures over a network, or using them in
+% concurrent environments nonetheless remains a challenge across FP and OO
+% languages. This paper takes a step towards more principled distributed and
+% concurrent programming by introducing a new closure-like abstraction and type
+% system, called spores, that can guarantee closures to be serializable, thread-
+% safe, or even have custom user-defined properties. Crucially, our system is
+% based on the principle of encoding type information corresponding to captured
+% variables in the type of a spore. We prove our type system sound, implement
+% our approach for Scala, and show the power of these guarantees through a case
+% analysis of real-world distributed/concurrent frameworks that this safe
+% foundation for migratable closures facilitates.
+
+\keywords{closures, functions, distributed programming, concurrent programming, type systems}
+\end{abstract}
+%
+\vspace{-3mm}
+\section{Introduction}
+
+% The traditional view of software development as being focused on a program running
+% on a single machine, interacting directly with the user, has become largely
+% obsolete.
+
+% Whether we consider a cluster of hundreds of commodity machines
+% churning through a massive data-parallel job, or a smartphone interacting with
+% a social network, all are ``distributed'' jobs, and all share the need to
+% interact in typically asynchronous, reactive ways with other clients or
+% services.
+
+With the growing trend towards cloud computing, mobile applications, and big data,
+distributed programming has entered the mainstream. Popular paradigms in software
+engineering such as software as a service (SaaS), RESTful services, or the rise
+of a multitude of systems for big data processing and interactive
+analytics, evidence this trend.
+
+Meanwhile, at the same time, functional programming has been undeniably
+gaining traction in recent years, as is evidenced by the ongoing trend of
+traditionally object-oriented or imperative languages being extended with
+functional features, such as lambdas in \mbox{Java 8}~\cite{JavaLambdas},
+C++11~\cite{CplusplusLambas}, and Visual Basic 9~\cite{Meijer}, the perceived
+importance of functional programming in general empirical studies on software
+developers~\cite{PLAdoption}, and the popularity of functional
+programming massively online open courses (MOOCs)~\cite{ICSEMOOC}.
+
+
+\begin{lstlisting}
+class MyCoolRddApp {
+  val log = new Log(...)
+  def shift(p: Int): Int = ...
+  ...
+  def work(rdd: RDD[Int]) {
+    rdd.map(x => x + shift(x)).reduce(...)
+  }
+}
+\end{lstlisting}
+\noindent
+In this example, the closure \verb|(x => x + shift(x))| is passed to the
+\verb|map| method of the distributed collection \verb|rdd| which requires
+serializing the closure (as, in Spark, parts of the data structure reside on
+different machines). However, calling \verb|shift| inside the closure invokes
+a method on the enclosing object \verb|this|. Thus, the closure is capturing,
+and must therefore serialize, \verb|this|. If \verb|Log|, a field of
+\verb|this|, is not serializable, this will fail at runtime.
+
+In fact, closures suffer not only from the problems shown in these two
+examples; there are numerous more hazards that manifest {\em across
+programming paradigms}. To provide a glimpse, closure-related hazards
+related to concurrency and distribution include:
+
+
+\section{Conclusion}
+\label{sec:conclusion}
+\vspace{-1mm}
+
+We've presented a type-based foundation for closures, called spores, designed
+to avoid various hazards that arise particularly in concurrent or distributed
+settings. We have presented a flexible type system for spores which enables
+composability of differently-constrained spores as well as custom user-defined
+type constraints. We formalize and present a full soundness proof, as well as
+an implementation of our approach in Scala.
+
+A key takeaway of our approach is that including type information of captured
+variables in the type of the spore enables a number of previously impossible
+opportunities, including but not limited to controlled capture in concurrent,
+distributed, and other arbitrary scenarios where closures must be
+controlled.
+
+Finally, we demonstrate the practicality of our approach through an
+empirical study, and show that converting non-trivial
+programs to use spores requires relatively little effort.
+
+\bibliographystyle{abbrv}
+\bibliography{bib}
+
+\end{document}
