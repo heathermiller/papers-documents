@@ -142,7 +142,7 @@ and
 \maketitle              % typeset the title of the contribution
 
 \begin{abstract}
-  In this paper we show a general mechanism, called \sselfassembly,
+  In this paper we show a general technique, called \sselfassembly,
   for \emph{lightweight language extensions} (LLEs). LLEs allow
   users to define \emph{generic operations} or \emph{properties} that
   operate over a large class of types. With LLEs it is possible, for
@@ -442,8 +442,8 @@ approach is guided by the following principles:
      type class instances or provide a lot of scaffolding.
 
 \item\textbf{Performance}. Generic functions written by library authors or library
-     users should have the same or better performance than approaches with
-     compiler/runtime support.
+     users should have the same or better performance as language-integrated
+     approaches with compiler/runtime support.
 
 \item\textbf{Generality}. In addition to generic functions, lightweight static
      analysis capabilities should be supported.
@@ -464,9 +464,9 @@ many of these goals for one particular application: serialization.
 Scala/Pickling is based on type classes which are generated and
 composed at compile time, according to their type signatures.
 % The approach was successful.
-Due to its compile-time properties, serialization code is fast and
-inlined, without requiring any boilerplate. Due to the fact that it is
-completely based upon type classes, flexibility and extensibility come for
+Since Scala/Pickling happens a majority at compile-time, serialization code is
+fast and inlined, without requiring any boilerplate. Due to the fact that it
+is completely based upon type classes, flexibility and extensibility come for
 free. However, the approach is specialized on providing type class instances
 for only the \verb|Pickling| type class. Other type classes or generic
 functions are not supported.
