@@ -16,6 +16,7 @@
 % \let\subparagraph\llncssubparagraph
 \usepackage{listings,xspace}
 \usepackage{amsmath}
+\usepackage{amssymb}
 \usepackage{fontspec}
 \usepackage{xcolor}
 \usepackage{url}
@@ -25,6 +26,8 @@
 \usepackage{booktabs}
 \usepackage{setspace}
 \usepackage{times}
+\usepackage{mathpartir}
+% \usepackage{wasysym}
 
 % Member sequences
 \newcommand{\seq}[1]{\overline{#1}}
@@ -53,6 +56,7 @@
 
 % spacing
 \newcommand{\gap}{\quad\quad}
+\newcommand{\andalso}{\quad\quad}
 \newcommand{\biggap}{\quad\quad\quad}
 \newcommand{\nextline}{\\ \\}
 \newcommand{\htabwidth}{0.5cm}
@@ -2110,6 +2114,99 @@ e   & ::=   x~|~e.f~|~e.m[\seq{T}](\seq{e})(\seq{e'})  & \mbox{expression}
   \caption{Core language syntax}
   \label{fig:syntax}
 \end{figure}
+
+\begin{figure*}[ht!]
+  \centering
+\begin{mathpar}
+\inferrule[\textsc{F-Top}]
+{ \textit{fields}(\top)=\epsilon
+}{}
+
+\inferrule[\textsc{F-Class}]
+{ \texttt{class}~C[\seq{X<:N}](\seq{f:T})(\texttt{implicit}~\seq{g:T})~\texttt{extends}~N(\seq{h})~\{\ldots\} \\
+  \textit{fields}([\seq{T}/\seq{X}]N) = \seq{f':U}
+}
+{ \textit{fields}(C[\seq{T}]) = \seq{f':U},[\seq{T}/\seq{X}]~\seq{f:T}
+}
+
+\inferrule[\textsc{MT-Class}]
+{ \texttt{class}~C[\seq{X<:N}](\seq{f:T})(\texttt{implicit}~\seq{g:T})~\texttt{extends}~N(\seq{h})~\{\seq{M}\} \\
+  \texttt{def}~m[\seq{Y<:P}](\seq{x:U})(\texttt{implicit}~\seq{y:S}):U=e\in\seq{M}
+}
+{ \textit{mtype}(m,C[\seq{T}])=[\seq{T}/\seq{X}]([\seq{Y<:P}](\seq{U})(\seq{S})\Rightarrow U))
+}
+
+\inferrule[\textsc{MT-Super}]
+{ \texttt{class}~C[\seq{X<:N}](\seq{f:T})(\texttt{implicit}~\seq{g:T})~\texttt{extends}~N(\seq{h})~\{\seq{M}\} \\
+  m\notin\seq{M}
+}
+{ \textit{mtype}(m,C[\seq{T}]) = \textit{mtype}(m, [\seq{T}/\seq{X}]N)
+}
+
+\inferrule[\textsc{MB-Class}]
+{ \texttt{class}~C[\seq{X<:N}](\seq{f:T})(\texttt{implicit}~\seq{g:T})~\texttt{extends}~N(\seq{h})~\{\seq{M}\} \\
+  \texttt{def}~m[\seq{Y<:P}](\seq{x:U})(\texttt{implicit}~\seq{y:S}):U=e_o\in\seq{M}
+}
+{ \textit{mbody}(m[\seq{V}],C[\seq{T}])=(\seq{x})(\seq{y}).[\seq{T}/X][\seq{V}/Y]e_o
+}
+
+\inferrule[\textsc{MB-Super}]
+{ \texttt{class}~C[\seq{X<:N}](\seq{f:T})(\texttt{implicit}~\seq{g:T})~\texttt{extends}~N(\seq{h})~\{\seq{M}\} \\
+  m\notin\seq{M}
+}
+{ \textit{mbody}(m[\seq{V}],C[\seq{T}]) = \textit{mbody}(m[\seq{V}], [\seq{T}/\seq{X}]N)
+}
+\end{mathpar}
+  % \vspace{-5mm}
+  \caption{Field Lookup (F), Method Type Lookup (MT), and Method Body Lookup (MB)}
+  \label{fig:lookup}
+  % \vspace{-1mm}
+\end{figure*}
+
+\begin{figure*}[ht!]
+  \centering
+\begin{mathpar}
+\inferrule[\textsc{S-Refl}]
+{ \Delta \vdash T<:T
+}{}
+
+\inferrule[\textsc{S-Trans}]
+{ \Delta \vdash S <: T \\
+  \Delta \vdash T <: U
+}{
+  \Delta \vdash S <: U
+}
+
+\inferrule[\textsc{S-Var}]
+{ \Delta \vdash <: \Delta(X) \\
+}{}
+
+\inferrule[\textsc{S-Class}]
+{ \texttt{class}~C[\seq{X <: N}](\seq{f:T})(\texttt{implicit}~\seq{g:T})~\texttt{extends}~N(\seq{h})~\{\ldots\}
+}{\Delta \vdash C[\seq{T}] <: [\seq{T}/\seq{X}]N}
+
+\inferrule[\textsc{WF-Top}]
+{ \Delta \vdash \top~\mbox{ok}
+}{}
+
+\inferrule[\textsc{WF-Var}]
+{ X \in \textit{dom}(\Delta)
+}{ \Delta \vdash X~\mbox{ok}}
+
+\inferrule[\textsc{WF-Class}]
+{ \textit{mods}~\texttt{class}~C[\seq{X <: N}](\seq{f:T})(\texttt{implicit}~\seq{g:T})~\texttt{extends}~N(\seq{h})~\{\ldots\} \\
+  \Delta \vdash \seq{T}~\mbox{ok} \\
+  \Delta \vdash \seq{T} <: [\seq{T}/\seq{X}]\seq{N} \\
+  \texttt{implicit} \notin \textit{mods} \\
+  \{ \texttt{sealed}, \texttt{final} \} \nsubseteq \textit{mods}
+}{ \Delta \vdash C[\seq{T}]~\mbox{ok}}
+
+\end{mathpar}
+  % \vspace{-5mm}
+  \caption{Subtyping (S) and Well-formedness (WF)}
+  \label{fig:subtyping-well-formedness}
+  % \vspace{-1mm}
+\end{figure*}
 
 
 \section{Transformations}\label{sec:queries-transformations}
