@@ -26,6 +26,18 @@
 \usepackage{setspace}
 \usepackage{times}
 
+% Member sequences
+\newcommand{\seq}[1]{\overline{#1}}
+
+% arrays
+\newcommand{\ba}{\begin{array}}
+\newcommand{\ea}{\end{array}}
+\newcommand{\bda}{\[\ba}
+\newcommand{\eda}{\ea\]}
+\newcommand{\ei}{\end{array}}
+\newcommand{\bcases}{\left\{\begin{array}{ll}}
+\newcommand{\ecases}{\end{array}\right.}
+
 \newcommand{\ie}{{\em i.e.,~}}
 \newcommand{\eg}{{\em e.g.,~}}
 \newcommand{\etc}{{\em etc}}
@@ -59,16 +71,6 @@
         {\begin{figure*}\figurebox{#3\caption{\label{#1}#2}}\end{figure*}}
 \newcommand{\figref}[1]
         {Figure~\ref{#1}}
-
-% arrays
-\newcommand{\ba}{\begin{array}}
-\newcommand{\ea}{\end{array}}
-\newcommand{\bda}{\[\ba}
-\newcommand{\eda}{\ea\]}
-\newcommand{\ei}{\end{array}}
-\newcommand{\bcases}{\left\{\begin{array}{ll}}
-\newcommand{\ecases}{\end{array}\right.}
-
 
 \newcommand{\selfassembly}{\texttt{self-assembly~}}
 \newcommand{\Selfassembly}{\texttt{Self-assembly~}}
@@ -2079,6 +2081,36 @@ if (!visited(visitee.p_n)) {
 }
 \end{lstlisting}
 \noindent
+
+
+\section{Formalization}\label{sec:formalization}
+
+\begin{figure}[ht!]
+  \centering
+
+  $\ba[t]{l@{\hspace{2mm}}ll}
+T   & ::=     X~|~N                                 & \mbox{type} \\
+% \\ & \\
+N   & ::=     C[\seq{T}]                            & \mbox{non-variable type} \\
+% \\ & \\
+L   & ::=     mod^{*}~\texttt{class}~C[\seq{X<:N}](\seq{f:T})(\texttt{implicit}~\seq{g:T}) & \mbox{class definition}
+\\
+ & \gap ~\texttt{extends}~N(\seq{h})~\{~\seq{M}~\} & \\
+% \\ & \\
+M   & ::=     mod^{*}~\texttt{def}~m[\seq{X<:N}](\seq{x:T})(\texttt{implicit}~\seq{y:T}) & \mbox{method definition} \\
+% \\ & \\
+mod & ::=   \texttt{sealed}~|~\texttt{final}~|~\texttt{implicit}  & \mbox{modifier} \\
+% \\ & \\
+e   & ::=   x~|~e.f~|~e.m[\seq{T}](\seq{e})(\seq{e'})  & \mbox{expression}
+\\
+& \gap ~~|~\texttt{new}~N(\seq{e})(\seq{e'})~|~\texttt{implicitly}[T] &
+\ea$
+
+  \vspace{1mm}
+  \caption{Core language syntax}
+  \label{fig:syntax}
+  \vspace{1mm}
+\end{figure}
 
 
 \section{Transformations}\label{sec:queries-transformations}
