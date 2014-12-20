@@ -2166,6 +2166,23 @@ e   & ::=   x~|~e.f~|~e.m[\seq{T}](\seq{e})~|~\texttt{implicitly}[T]  & \mbox{ex
 \begin{figure*}[ht!]
   \centering
 \begin{mathpar}
+\inferrule[]
+{ \textit{fields}(\top)=\epsilon
+}{}
+
+\inferrule[]
+{ \textit{fields}(\top)=\epsilon
+}{}
+\end{mathpar}
+  % \vspace{-5mm}
+  \caption{Field Lookup (F), Method Type Lookup (MT), and Method Body Lookup (MB)}
+  \label{fig:lookup}
+  % \vspace{-1mm}
+\end{figure*}
+
+\begin{figure*}[ht!]
+  \centering
+\begin{mathpar}
 \inferrule[\textsc{S-Refl}]
 { \Delta \vdash T<:T
 }{}
