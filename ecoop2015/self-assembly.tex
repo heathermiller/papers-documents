@@ -2285,6 +2285,17 @@ e   & ::=   x~|~e.f~|~e.m[\seq{T}](\seq{e})~|~e.m[\seq{T}](\seq{e})(\seq{e'})~|~
   I ; \Delta ; \Gamma \vdash \texttt{new} C[\seq{V}](\seq{e})\{ \seq{M}\} : C[\seq{V}]
 }
 
+\inferrule[\textsc{T-New-Ex}]
+{ \Delta \vdash C[\seq{V}]~\mbox{ok} \\
+  \textit{fields}(C[\seq{V}]) = \seq{f: T} \\
+  I; \Delta; \Gamma \vdash \seq{e}: \seq{S} \\
+  \Delta \vdash \seq{S} <: \seq{T} \\
+  I; \Delta ; \Gamma \vdash \seq{e'} : \seq{S'} \\
+  \Delta \vdash \seq{S'} <: [\seq{V}/\seq{X}]\seq{U} \\
+  \texttt{class}~C[\seq{X <: N}](\ldots)(\texttt{implicit}~\seq{g : U}) \ldots
+}{
+  I ; \Delta ; \Gamma \vdash \texttt{new}~C[\seq{V}](\seq{e})(\seq{e'}) : C[\seq{V}]
+}
 
 \end{mathpar}
   \caption{Typing rules}
