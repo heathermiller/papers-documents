@@ -2105,9 +2105,9 @@ M   & ::=     mod^{*}~\texttt{def}~m[\seq{X<:N}](\seq{x:T})(\texttt{implicit}~\s
 % \\ & \\
 mod & ::=   \texttt{sealed}~|~\texttt{final}~|~\texttt{implicit}  & \mbox{modifier} \\
 % \\ & \\
-e   & ::=   x~|~e.f~|~e.m[\seq{T}](\seq{e})~|~\texttt{implicitly}[T]  & \mbox{expression}
+e   & ::=   x~|~e.f~|~e.m[\seq{T}](\seq{e})~|~e.m[\seq{T}](\seq{e})(\seq{e'})~|~\texttt{implicitly}[T]  & \mbox{expression}
 \\
-& \gap ~~|~\texttt{new}~N(\seq{e})~|~\texttt{new}~N(\seq{e})~\{~\seq{M}~\} &
+& \gap ~~|~\texttt{new}~N(\seq{e})~|~\texttt{new}~N(\seq{e})(\seq{e'})~|~\texttt{new}~N(\seq{e})~\{~\seq{M}~\} &
 \ea$
 
   \vspace{3mm}
@@ -2242,17 +2242,25 @@ e   & ::=   x~|~e.f~|~e.m[\seq{T}](\seq{e})~|~\texttt{implicitly}[T]  & \mbox{ex
 
 \inferrule[\textsc{T-Invk}]
 { I ; \Delta ; \Gamma \vdash e_0 : T_0 \quad mtype(m, bound_{\Delta}(T_0)) = [\seq{Y <: P}](\seq{U})(\seq{S}) \Rightarrow U \\
-  \Delta \vdash \seq{V}~ok \quad \Delta \vdash \seq{V} <: [\seq{V}/\seq{Y}]\seq{P} \quad I ; \Delta ; \Gamma \vdash \seq{e} : \seq{U'} \\
-  \Delta \vdash \seq{U'} <: [\seq{V}/\seq{Y}]\seq{U} \quad [\seq{V}/\seq{Y}]\seq{S} = \seq{S'} \quad I\langle\seq{S'}\rangle \vdash \seq{V}
+  \Delta \vdash \seq{V}~ok \quad \Delta \vdash \seq{V} <: [\seq{V}/\seq{Y}]\seq{P} \quad I ; \Delta ; \Gamma \vdash \seq{e} : \seq{U'} \quad \Delta \vdash \seq{U'} <: [\seq{V}/\seq{Y}]\seq{U} \\
+   \quad [\seq{V}/\seq{Y}]\seq{S} = \seq{S'} \quad \Gamma ; I \vdash \seq{p} : \seq{S'}
 }{
   I ; \Delta ; \Gamma \vdash e_0.m [\seq{V}](\seq{e}) : [\seq{V}/\seq{Y}]U
+}
+
+\inferrule[\textsc{T-Invk-Ex}]
+{ I ; \Delta ; \Gamma \vdash e_0 : T_0 \quad mtype(m, bound_{\Delta}(T_0)) = [\seq{Y <: P}](\seq{U})(\seq{S}) \Rightarrow U \\
+  \Delta \vdash \seq{V}~ok \quad \Delta \vdash \seq{V} <: [\seq{V}/\seq{Y}]\seq{P} \quad I ; \Delta ; \Gamma \vdash \seq{e} : \seq{U'} \quad \Delta \vdash \seq{U'} <: [\seq{V}/\seq{Y}]\seq{U} \\
+  I ; \Delta ; \Gamma \vdash \seq{e'} : \seq{S'} \quad \Delta \vdash \seq{S'} <: [\seq{V}/\seq{Y}]\seq{S}
+}{
+  I ; \Delta ; \Gamma \vdash e_0.m [\seq{V}](\seq{e})(\seq{e'}) : [\seq{V}/\seq{Y}]U
 }
 
 \inferrule[\textsc{T-New}]
 { \Delta \vdash C[\seq{V}]~ok \quad fields(C[\seq{V}]) = \seq{f : T} \\
   I ; \Delta ; \Gamma \vdash \seq{e} : \seq{S} \quad \Delta \vdash \seq{S} <: \seq{T} \\
   \texttt{class}~C[\seq{X <: N}](\ldots)(\texttt{implicit}~\seq{g : U})~\ldots \\
-  [\seq{V}/\seq{X}]\seq{U} = \seq{U'} \quad I\langle\seq{U'}\rangle \vdash \seq{v}
+  [\seq{V}/\seq{X}]\seq{U} = \seq{U'} \quad \Gamma ; I \vdash \seq{p} : \seq{U'}
 }{
   I ; \Delta ; \Gamma \vdash \texttt{new}~C[\seq{V}](\seq{e}) : C[\seq{V}]
 }
