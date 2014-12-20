@@ -2209,6 +2209,52 @@ e   & ::=   x~|~e.f~|~e.m[\seq{T}](\seq{e})~|~\texttt{implicitly}[T]  & \mbox{ex
 \end{figure*}
 
 
+\begin{figure*}[ht]
+  \centering
+\begin{mathpar}
+
+\inferrule[\textsc{T-Var}]
+{ I ; \Delta ; \Gamma \vdash x : \Gamma(x)
+}{}
+
+\inferrule[\textsc{T-Field}]
+{ I ; \Delta ; \Gamma \vdash e_0 : T_0 \quad fields(bound_{\Delta}(T_0)) = \seq{f : T}
+}{
+  I ; \Delta ; \Gamma \vdash e_0.f_i : T_i
+}
+
+\inferrule[\textsc{T-Invk}]
+{ I ; \Delta ; \Gamma \vdash e_0 : T_0 \quad mtype(m, bound_{\Delta}(T_0)) = [\seq{Y <: P}](\seq{U})(\seq{S}) \Rightarrow U \\
+  \Delta \vdash \seq{V}~ok \quad \Delta \vdash \seq{V} <: [\seq{V}/\seq{Y}]\seq{P} \quad I ; \Delta ; \Gamma \vdash \seq{e} : \seq{U'} \\
+  \Delta \vdash \seq{U'} <: [\seq{V}/\seq{Y}]\seq{U} \quad [\seq{V}/\seq{Y}]\seq{S} = \seq{S'} \quad I\langle\seq{S'}\rangle \vdash \seq{V}
+}{
+  I ; \Delta ; \Gamma \vdash e_0.m [\seq{V}](\seq{e}) : [\seq{V}/\seq{Y}]U
+}
+
+\inferrule[\textsc{T-New}]
+{ \Delta \vdash C[\seq{V}]~ok \quad fields(C[\seq{V}]) = \seq{f : T} \\
+  I ; \Delta ; \Gamma \vdash \seq{e} : \seq{S} \quad \Delta \vdash \seq{S} <: \seq{T} \\
+  \texttt{class}~C[\seq{X <: N}](\ldots)(\texttt{implicit}~\seq{g : U})~\ldots \\
+  [\seq{V}/\seq{X}]\seq{U} = \seq{U'} \quad I\langle\seq{U'}\rangle \vdash \seq{v}
+}{
+  I ; \Delta ; \Gamma \vdash \texttt{new}~C[\seq{V}](\seq{e}) : C[\seq{V}]
+}
+
+\inferrule[\textsc{T-Method}]
+{ \Delta = \seq{X <: N}, \seq{Y <: P} \quad \Delta \vdash \seq{T}, \seq{S}, T, P~ok \\
+  \texttt{class}~C[\seq{X <: N}](\seq{f : U})(\texttt{implicit}~\seq{g : V})~\texttt{extends}~N(\seq{h}) \{ \ldots \} \\
+  I = \seq{IVal(g, V)}, \seq{IVal(y, S)}, implicitDefs(C[\seq{X <: N}]) \\
+  I ; \Delta ; \seq{x : T}, \texttt{this} : C[\seq{X}] \vdash e_0 : S \quad \Delta \vdash S <: T
+}{
+  \texttt{def}~m[\seq{Y <: P}](\seq{x : T})(\texttt{implicit}~\seq{y : S}) : T = e_0~\text{OK}~\text{IN}~C[\seq{X <: N}]
+}
+
+\end{mathpar}
+  \caption{Typing rules}
+  \label{fig:typing-rules}
+\end{figure*}
+
+
 \section{Transformations}\label{sec:queries-transformations}
 
 The library provides a set of traits for expressing generic functions that are
