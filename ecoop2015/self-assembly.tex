@@ -2097,17 +2097,17 @@ T   & ::=     X~|~N                                 & \mbox{type} \\
 % \\ & \\
 N   & ::=     C[\seq{T}]                            & \mbox{non-variable type} \\
 % \\ & \\
-L   & ::=     mod^{*}~\texttt{class}~C[\seq{X<:N}](\seq{f:T})(\texttt{implicit}~\seq{g:T}) & \mbox{class definition}
+L   & ::=     mod^{*}~\texttt{class}~C[\seq{X<:N}](\seq{f:T})(\texttt{implicit}~\seq{g:S}) & \mbox{class definition}
 \\
  & \gap ~\texttt{extends}~N(\seq{h})~\{~\seq{M}~\} & \\
 % \\ & \\
-M   & ::=     mod^{*}~\texttt{def}~m[\seq{X<:N}](\seq{x:T})(\texttt{implicit}~\seq{y:T}) & \mbox{method definition} \\
+M   & ::=     mod^{*}~\texttt{def}~m[\seq{X<:N}](\seq{x:T})(\texttt{implicit}~\seq{y:S}) = e & \mbox{method definition} \\
 % \\ & \\
 mod & ::=   \texttt{sealed}~|~\texttt{final}~|~\texttt{implicit}  & \mbox{modifier} \\
 % \\ & \\
-e   & ::=   x~|~e.f~|~e.m[\seq{T}](\seq{e})(\seq{e'})  & \mbox{expression}
+e   & ::=   x~|~e.f~|~e.m[\seq{T}](\seq{e})~|~\texttt{implicitly}[T]  & \mbox{expression}
 \\
-& \gap ~~|~\texttt{new}~N(\seq{e})(\seq{e'})~|~\texttt{implicitly}[T] &
+& \gap ~~|~\texttt{new}~N(\seq{e})~|~\texttt{new}~N(\seq{e})~\{~\seq{M}~\} &
 \ea$
 
   \vspace{3mm}
@@ -2195,7 +2195,7 @@ e   & ::=   x~|~e.f~|~e.m[\seq{T}](\seq{e})(\seq{e'})  & \mbox{expression}
 }
 
 \inferrule[\textsc{S-Var}]
-{ \Delta \vdash <: \Delta(X) \\
+{ \Delta \vdash X <: \Delta(X) \\
 }{}
 
 \inferrule[\textsc{S-Class}]
