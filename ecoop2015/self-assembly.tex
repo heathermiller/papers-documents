@@ -2268,11 +2268,23 @@ e   & ::=   x~|~e.f~|~e.m[\seq{T}](\seq{e})~|~e.m[\seq{T}](\seq{e})(\seq{e'})~|~
 \inferrule[\textsc{T-Method}]
 { \Delta = \seq{X <: N}, \seq{Y <: P} \quad \Delta \vdash \seq{T}, \seq{S}, T, P~ok \\
   \texttt{class}~C[\seq{X <: N}](\seq{f : U})(\texttt{implicit}~\seq{g : V})~\texttt{extends}~N(\seq{h}) \{ \ldots \} \\
-  I = \seq{IVal(g, V)}, \seq{IVal(y, S)}, implicitDefs(C[\seq{X <: N}]) \\
+  I = \seq{IVal(g, V)}, \seq{IVal(y, S)}, \textit{implicitDefs}(C[\seq{X <: N}]) \\
   I ; \Delta ; \seq{x : T}, \texttt{this} : C[\seq{X}] \vdash e_0 : S \quad \Delta \vdash S <: T
 }{
   \texttt{def}~m[\seq{Y <: P}](\seq{x : T})(\texttt{implicit}~\seq{y : S}) : T = e_0~\text{OK}~\text{IN}~C[\seq{X <: N}]
 }
+
+\inferrule[\textsc{T-New-Anon}]
+{ \texttt{class}~C[\seq{X <: N}](\seq{f : T})(\texttt{implicit}~\seq{g : S}) \ldots \{ \seq{M'}  \} \\
+  I ; \Delta ; \Gamma \vdash \seq{e} : \seq{T'}\\
+  \Delta \vdash \seq{T'} <: \seq{T} \\
+  [\seq{v}/\seq{X}]\seq{S} = \seq{S'} \\
+  \Gamma ; I \vdash \seq{p} : \seq{S'} \\
+  \forall~\texttt{def}~m[\seq{Y} <: \seq{P}](\seq{x: U})(\texttt{implicit}~\seq{y: U'}): R = e \in \seq{M} .~\texttt{override}(m, C[\seq{V}], [\seq{Y} <: \seq{P}](\seq{U})(\seq{U'}) \Rightarrow R)
+}{
+  I ; \Delta ; \Gamma \vdash \texttt{new} C[\seq{V}](\seq{e})\{ \seq{M}\} : C[\seq{V}]
+}
+
 
 \end{mathpar}
   \caption{Typing rules}
