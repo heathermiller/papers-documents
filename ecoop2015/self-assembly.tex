@@ -16,6 +16,8 @@
 % \let\subparagraph\llncssubparagraph
 \usepackage{listings,xspace}
 \usepackage{amsmath}
+\usepackage[inference]{semantic}
+\usepackage{verbatimbox}
 \usepackage{amssymb}
 \usepackage{fontspec}
 \usepackage{xcolor}
@@ -2294,6 +2296,48 @@ e   & ::=   x~|~e.f~|~e.m[\seq{T}](\seq{e})~|~e.m[\seq{T}](\seq{e})(\seq{e'})~|~
 \end{mathpar}
   \caption{Typing rules}
   \label{fig:typing-rules}
+\end{figure*}
+
+
+\begin{myverbbox}[\small]{\vappbody}
+U.combine(
+  U.combine(
+    U.start(T),
+    combinedFieldResults(T, x, U)
+  )
+)
+\end{myverbbox}
+
+\begin{figure*}[h]
+  \centering
+\begin{mathpar}
+
+\inferrule[\textsc{R-Gen}]
+{ \texttt{generate}[TC[T]](U) \leadsto \texttt{new}~TC[T]~\{~\texttt{def}~apply(x: T): R = applyBody(T, x, U)~\}
+}{}
+
+% \texttt{U.combine(} \\
+%   ~\texttt{U.combine(} \\
+%   ~~\texttt{U.start(T)}, \\
+%   ~~combinedFieldResults(T, x, U) \\
+%   ~) \\
+%   )
+
+\inferrule[\textsc{R-App}]
+{ applyBody(T, x, U) \leadsto \vappbody
+}{}
+
+
+% \inference[\textsc{R-App}]{
+%   \valph
+% }{
+%   test
+% }
+
+
+\end{mathpar}
+  \caption{Rewriting rules}
+  \label{fig:rewriting-rules}
 \end{figure*}
 
 
