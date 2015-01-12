@@ -1,0 +1,168 @@
+\documentclass[english]{lni}
+\let\ifpdf\relax
+
+\IfFileExists{latin1.sty}{\usepackage{latin1}}{\usepackage{isolatin1}}
+
+\usepackage{graphicx}
+
+\author{
+	Heather Miller$^*$, Philipp Haller$^\dagger$ \\
+	\\
+	EPFL, Switzerland$^*$ \\
+	KTH Royal Institute of Technology, Sweden$^\dagger$ \\
+	heather.miller@epfl.ch \\
+	phaller@kth.se
+}
+\title{A Type-Based Foundation for Closure-Passing in the Age of Concurrency and Distribution}
+\begin{document}
+\maketitle
+
+% \begin{abstract}
+% Short summary or overview of the contribution in this paper. text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text.
+% \end{abstract}
+
+\vspace{-10mm}
+\section{Motivation}
+\vspace{-4mm}
+With the growing trend towards decentralized computing --cloud computing,
+mobile applications, and big data--distributed programming has entered the
+mainstream. Meanwhile, at the same time, functional programming has been
+undeniably gaining traction in recent years, as is evidenced by the ongoing
+trend of traditionally object-oriented or imperative languages being extended
+with functional features, such as lambdas in \mbox{Java 8}~\cite{JavaLambdas},
+C++11~\cite{CplusplusLambas}, and Visual Basic 9~\cite{Meijer}, the perceived
+importance of functional programming in general empirical studies on software
+developers~\cite{PLAdoption}, and the popularity of functional programming
+massively online open courses (MOOCs)~\cite{ICSEMOOC}.
+
+One reason for the rise in popularity of functional programming languages and
+features within object-oriented communities is the basic philosophy of
+transforming immutable data by applying first-class functions, and the
+observation that this functional style simplifies reasoning about data in
+parallel, concurrent, and distributed code. Distributed data-parallel
+frameworks like MapReduce~\cite{MapReduce} and Spark~\cite{Spark} are designed
+around functional patterns where closures are transmitted across cluster nodes
+to large-scale persistent datasets. As a result of the ``big data''
+revolution, these frameworks have become very popular, in turn further
+highlighting the need to be able to reliably and safely serialize and transmit
+closures over the network.
+
+However, for both object-oriented and functional languages, there still exist
+numerous hurdles at the language-level for even these most basic functional
+building blocks, closures, to overcome in order to be reliable and easy to
+reason about in a concurrent or distributed setting.
+
+Closure-related hazards related to concurrency and distribution include: (1)
+accidental capture of non-serializable variables (including \verb|this|); (2)
+language-specific compilation schemes, creating implicit references to objects
+that are not serializable; (3) transitive references that inadvertently hold
+on to excessively large object graphs, creating memory leaks; (4) capturing
+references to mutable objects, leading to race conditions in a concurrent
+setting; (5) unknowingly accessing object members that are not constant such
+as methods, which in a distributed setting can have logically different
+meanings on different machines.
+
+\vspace{-7mm}
+\section{Spores}
+\vspace{-5mm}
+We take a step towards more principled {\em function-passing style}
+by introducing a type-based foundation for closures, called {\em spores}.
+Spores are a closure-like abstraction and type system which is designed to
+avoid typical hazards of closures. By including type information of captured
+variables in the type of a spore, we enable the expression of type-based
+constraints for captured variables, making spores safer to use in a concurrent
+or distributed setting. We show that this approach can be made practical by
+automatically synthesizing refinement types using macros, and by leveraging
+local type inference. Using type-based constraints, spores allow expressing a
+variety of ``safe'' closures.
+
+To express safe closures with transitive properties such as guaranteed
+serializability, or closures capturing only deeply immutable types, spores
+support type constraints based on type classes which enforce transitive
+properties. In addition, implicit macros in Scala enable integration with type
+systems that enforce transitive properties using generics or annotated types.
+Spores also support user-defined type constraints. Finally, by principle of a
+type-based approach, spores can potentially benefit from optimization, further
+safety via type system extensions, and verification opportunities.
+
+% A spore is a closure with a specific shape that dictates how the environment
+% of a spore is declared, as well as a refined type indicating what the spore
+% captures. Syntactically, a spore consists of two parts:
+
+% \begin{itemize}
+% \item {\bf the spore header}, composed of a list of value definitions.
+% \item {\bf the spore body} (sometimes referred to as the ``spore closure''), a regular closure.
+% \end{itemize}
+
+% \begin{figure}[h!]
+% \centering
+% \includegraphics{syntax}
+% \caption{The syntactic shape of a spore.}
+% \label{fig:spore-shape}
+% \end{figure}
+
+% The characteristic property of a spore is that the {\em spore body} is only
+% allowed to access its parameter, the values in the spore header, as well as
+% top-level singleton objects (public, global state). In particular, the spore
+% closure is not allowed to capture variables in the environment. Only an
+% expression on the right-hand side of a value definition in the spore header is
+% allowed to capture variables.
+
+% By enforcing this shape, the environment of a spore is always declared
+% explicitly in the spore header, which avoids accidentally capturing
+% problematic references.
+
+% \begin{figure}[h!]
+% \centering
+% \includegraphics{type}
+% \caption{The syntactic shape of a spore.}
+% \label{fig:spore-shape}
+% \end{figure}
+
+\vspace{-7mm}
+\section{Formalization and Type System}
+\vspace{-5mm}
+In our accompanying publication~\cite{spores} and tech report~\cite{sporestr},
+we present a formalization of spores with type constraints in the context of a
+standard, typed lambda calculus with records, and prove soundness of the type
+system.{}
+
+\vspace{-7mm}
+\section{Empirical Studies}
+\vspace{-5mm}
+We evaluate the practicality and the benefits of using spores as an
+alternative to normal closures in Scala. Our evaluation has two parts. In the
+first part, we measure the impact of introducing spores in existing programs.
+In the second part, we evaluate the utility and the syntactic overhead of
+spores in a large code base of applications based on the Apache Spark
+framework for big data analytics.
+
+\vspace{-5mm}
+\paragraph{Using Spores Instead of Closures}
+We analyzed a number of real Scala programs, taken from three categories: (1)
+general, closure-heavy code, taken from the exercises of the popular MOOC on
+Functional Programming, (2) parallel applications based on Scala's parallel
+collections, and (3) distributed applications based on the Apache Spark. Our
+results showed that of all closures, 90\% could be converted without extra
+effort. For those that had to be manually changed into spores, only 1.4 LOC
+had to be changed. This suggests that programs using closures in non-trivial
+ways can typically be converted to using spores with little effort, even if
+the used APIs do not use spore types.
+
+\vspace{-5mm}
+\paragraph{Spores and Apache Spark}
+To evaluate both benefit and overhead of using spores in larger, distributed
+applications, we studied the codebases of 7 noteworthy open-source
+applications using Apache Spark. Our results showed that of all closures
+passed to \verb|RDD|'s \verb|map| method, about 67.2\% do not capture any
+variable; these closures could be automatically converted to spores. The
+remaining 32.8\% of closures that do capture variables, capture on average
+1.39 variables. This indicates that unchecked patterns for serializable
+closures are widespread in real applications, and that benefiting from static
+guarantees provided by spores would require only little syntactic overhead.
+
+\bibliography{bib}
+
+
+
+\end{document}
