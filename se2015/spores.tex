@@ -24,23 +24,26 @@
 \vspace{-10mm}
 \section{Motivation}
 \vspace{-4mm}
-With the growing trend towards decentralized computing --cloud computing,
+With the growing trend towards decentralized computing--cloud computing,
 mobile applications, and big data--distributed programming has entered the
 mainstream. Meanwhile, at the same time, functional programming has been
-undeniably gaining traction in recent years, as is evidenced by the ongoing
-trend of traditionally object-oriented or imperative languages being extended
-with functional features, such as lambdas in \mbox{Java 8}~\cite{JavaLambdas},
-C++11~\cite{CplusplusLambas}, and Visual Basic 9~\cite{Meijer}, the perceived
-importance of functional programming in general empirical studies on software
-developers~\cite{PLAdoption}, and the popularity of functional programming
-massively online open courses (MOOCs)~\cite{ICSEMOOC}.
+gaining traction, as is evidenced by the ongoing
+trend of traditionally imperative, object-oriented languages being extended
+with functional features, such as lambdas in \mbox{Java 8}, C++ 11, and Visual
+Basic 9, the perceived importance of functional programming in empirical
+studies on software developers, and the popularity of functional programming
+massively online open courses (MOOCs).\footnote{In the interest
+of space, references are omitted from this extended abstract, and are found
+in the paper: Heather Miller, Philipp Haller, and Martin Odersky. Spores: A
+Type-Based Foundation for Closures in the Age of Concurrency and Distribution.
+In ECOOP, volume 8586, LNCS, pages 308--333. Springer, 2014.}
 
 One reason for the rise in popularity of functional programming languages and
 features within object-oriented communities is the basic philosophy of
 transforming immutable data by applying first-class functions, and the
 observation that this functional style simplifies reasoning about data in
 parallel, concurrent, and distributed code. Distributed data-parallel
-frameworks like MapReduce~\cite{MapReduce} and Spark~\cite{Spark} are designed
+frameworks like MapReduce and Spark are designed
 around functional patterns where closures are transmitted across cluster nodes
 to large-scale persistent datasets. As a result of the ``big data''
 revolution, these frameworks have become very popular, in turn further
@@ -48,7 +51,7 @@ highlighting the need to be able to reliably and safely serialize and transmit
 closures over the network.
 
 However, for both object-oriented and functional languages, there still exist
-numerous hurdles at the language-level for even these most basic functional
+numerous hurdles for even these most basic functional
 building blocks, closures, to overcome in order to be reliable and easy to
 reason about in a concurrent or distributed setting.
 
@@ -59,8 +62,10 @@ that are not serializable; (3) transitive references that inadvertently hold
 on to excessively large object graphs, creating memory leaks; (4) capturing
 references to mutable objects, leading to race conditions in a concurrent
 setting; (5) unknowingly accessing object members that are not constant such
-as methods, which in a distributed setting can have logically different
-meanings on different machines.
+as methods, leading to semantic inconsistencies when closures are distributed.
+
+% which in a distributed setting can have logically different
+% meanings on different machines.
 
 \vspace{-7mm}
 \section{Spores}
@@ -122,10 +127,10 @@ safety via type system extensions, and verification opportunities.
 \vspace{-7mm}
 \section{Formalization and Type System}
 \vspace{-5mm}
-In our accompanying publication~\cite{spores} and tech report~\cite{sporestr},
+In our accompanying publication and technical report,
 we present a formalization of spores with type constraints in the context of a
 standard, typed lambda calculus with records, and prove soundness of the type
-system.{}
+system.
 
 \vspace{-7mm}
 \section{Empirical Studies}
@@ -141,27 +146,26 @@ framework for big data analytics.
 \paragraph{Using Spores Instead of Closures}
 We analyzed a number of real Scala programs, taken from three categories: (1)
 general, closure-heavy code, taken from the exercises of the popular MOOC on
-Functional Programming, (2) parallel applications based on Scala's parallel
-collections, and (3) distributed applications based on the Apache Spark. Our
-results showed that of all closures, 90\% could be converted without extra
-effort. For those that had to be manually changed into spores, only 1.4 LOC
+Functional Programming Principles in Scala, (2) parallel applications based on Scala's parallel
+collections, and (3) distributed applications based on Apache Spark. Our
+results show that of all closures, 90\% could be converted without extra
+effort. For those that had to be manually changed into spores, on average only 1.4 LOC
 had to be changed. This suggests that programs using closures in non-trivial
-ways can typically be converted to using spores with little effort, even if
-the used APIs do not use spore types.
+ways can typically be converted to using spores with little effort.
 
 \vspace{-5mm}
 \paragraph{Spores and Apache Spark}
 To evaluate both benefit and overhead of using spores in larger, distributed
 applications, we studied the codebases of 7 noteworthy open-source
-applications using Apache Spark. Our results showed that of all closures
-passed to \verb|RDD|'s \verb|map| method, about 67.2\% do not capture any
+applications using Apache Spark. Our results show that of all closures
+passed to the \verb|map| method of Spark's \verb|RDD| type, about 67.2\% do not capture any
 variable; these closures could be automatically converted to spores. The
 remaining 32.8\% of closures that do capture variables, capture on average
 1.39 variables. This indicates that unchecked patterns for serializable
 closures are widespread in real applications, and that benefiting from static
 guarantees provided by spores would require only little syntactic overhead.
 
-\bibliography{bib}
+% \bibliography{bib}
 
 
 
