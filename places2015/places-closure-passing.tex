@@ -170,7 +170,7 @@ and Scoobi\footnote{See \url{http://nicta.github.io/scoobi/}} build on functiona
 language features in order to provide high-level, declarative APIs.
 
 However, these programming systems suffer from several problems that
-negatively affect their usage, maintainance, and optimization:
+negatively affect their usage, maintenance, and optimization:
 
 \begin{itemize}
 
@@ -180,7 +180,7 @@ negatively affect their usage, maintainance, and optimization:
 
 \item Typically, only high-level user-facing abstractions are statically
       typed. The absence of static types in lower layers of the system makes
-      \emph{maintainance} tasks, such as code refactorings, more difficult.
+      \emph{maintenance} tasks, such as code refactorings, more difficult.
 
       % Static types are quickly lost in deeper layers of the system,
       % which complicates its \emph{maintainance}. For example, code refactorings
@@ -318,11 +318,10 @@ The invocation of \verb|send| kicks off the following sequence of actions:
 \item A ``send'' control message is sent to the node where \verb|ref2|'s silo is located.
 \item Since \verb|ref2| is derived from \verb|ref1|, \verb|ref1|'s silo is located on the same node. Thus, the runtime demands
       \verb|ref1| to be materialized; once this is done, spore \verb|s| is applied, populating \verb|ref2|'s silo (on the same node).
-\item Once \verb|ref2|'s silo is materialized, its data is sent to the master node, completing the \verb|fut| future.
+\item Once \verb|ref2|'s silo is materialized, its data is sent to the node executing the \verb|send|, completing \verb|fut|.
 \end{enumerate}
 \noindent
-Note that since a \verb|send| operation sends the data of a silo to the master
-node, it should only be invoked on silos containing small bits of data.
+Note that since a \verb|send| operation sends the data of a silo across the network, it should only be invoked on silos containing small bits of data.
 
 \paragraph{pumpTo}
 
@@ -352,7 +351,7 @@ silo that was created at \verb|Place p|.
 Although conceptually related, the \verb|Emitter| and the \verb|BuilderFactory| address two
 separate issues: the \verb|Emitter| provides a way to output elements from the source
 silo; the \verb|BuilderFactory| provides a way to input data into a newly created
-silo at the destination. Both abstractions are explained in more detail below.
+silo at the destination.
 
 An \verb|Emitter| is a simple trait which allows the spore parameter \verb|fun| of \verb|pumpTo| to
 emit zero, one, or multiple values per element of a silo's collection, using an
