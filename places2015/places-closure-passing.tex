@@ -455,12 +455,14 @@ is developed using the current stable Scala release 2.11.
 
 We have used our implementation to measure the impact of
 compile-time-generated serializers~\cite{MillerHBO13} on end-to-end application
-performance. In our benchmark application, a group of 4 silos is distributed
+performance. We ran our experiments on a 2.3 GHz Intel Core i7
+with 16 GB RAM under Mac OS X 10.9.5 using Java HotSpot Server 1.8.0-b132.
+In our benchmark application, a group of 4 silos is distributed
 across 4 different nodes/JVMs. The silos are first transformed using
 \emph{map}, and then using \emph{groupBy}. For an input size of 100'000 ``person''
 records, the use of compile-time-generated serializers resulted in
-an overall speedup of about 48\% (experiment run on a 2.3 GHz Intel Core i7
-with 16 GB RAM under Mac OS X 10.9.5 using Java HotSpot Server 1.8.0-b132).
+an overall speedup of about 48\% with respect to the same system but without using
+compile-time-generated serializers.
 
 
 \section{Related Work}
