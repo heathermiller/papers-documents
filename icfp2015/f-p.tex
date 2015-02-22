@@ -53,8 +53,8 @@
                                   % (paid open-access papers,
                                   % short abstracts)
 
-\titlebanner{banner above paper title}        % These are ignored unless
-\preprintfooter{short description of paper}   % 'preprint' option specified.
+% \titlebanner{banner above paper title}        % These are ignored unless
+% \preprintfooter{short description of paper}   % 'preprint' option specified.
 
 \title{Function-Passing Style: Typed, Distributed Functional Programming}
 % \subtitle{Subtitle Text, if any}
@@ -83,6 +83,33 @@ This is the text of the abstract.
 % keyword1, keyword2
 
 \section{Introduction}
+
+Data-centric systems, and systems for ``big data'' on the rise. As a matter of fact, services and systems that are simply ``connected'' to others are on the rise. The trend is called ``microservices'' and a piece of software that a user might perceive as a single piece of software might be made up of dozens of such microservices--complex applications are composed of small, independent processes communicating with each other using language-agnostic APIs.
+This is the landscape of modern software development.
+These are all distributed applications.
+programming languages remain firmly rooted in a single-machine design. Developers of services and systems pushing the envelope today are distributed; they must either synchronize with.
+
+We design module systems, etc, for maximum reuse and productivity, we go as
+far as we can to demonstrate their power. But we often . Some of these
+concerns have been affectionately referred to as the ``awkward
+squad''~\cite{spj} by PL research, and they are concerns that are central to
+contemporary software development.
+
+Functional programming brings value to distributed systems builders. The
+success of popular Spark can be attributed to functional ideas.
+
+However, beyond Spark's interface, .
+
+We refer to the model as {\em function-passing}, and .
+
+
+
+
+
+
+
+
+
 
 We design a programming model in such a way that we can ``maximize'' static
 types, and with it enable type-specialized picklers (statically generated),
@@ -168,28 +195,29 @@ for babyspark then the interpolation will be much more precise.
 Adapt this model for streaming computation. This would take coming up with a
 solution to null out references in the {\em lineage}. This would make it possible to instantiate and populate new silos to handle incoming data.
 
-\appendix
-\section{Appendix Title}
+% \appendix
+% \section{Appendix Title}
 
-This is the text of the appendix, if you need one.
+% This is the text of the appendix, if you need one.
 
-\acks
+% \acks
 
-Acknowledgments, if needed.
+% Acknowledgments, if needed.
 
 % We recommend abbrvnat bibliography style.
 
 \bibliographystyle{abbrvnat}
 
 % The bibliography should be embedded for final submission.
+\bibliography{bib}
 
-\begin{thebibliography}{}
-\softraggedright
+% \begin{thebibliography}{}
+% \softraggedright
 
-\bibitem[Smith et~al.(2009)Smith, Jones]{smith02}
-P. Q. Smith, and X. Y. Jones. ...reference text...
+% \bibitem[Smith et~al.(2009)Smith, Jones]{smith02}
+% P. Q. Smith, and X. Y. Jones. ...reference text...
 
-\end{thebibliography}
+% \end{thebibliography}
 
 
 \end{document}
