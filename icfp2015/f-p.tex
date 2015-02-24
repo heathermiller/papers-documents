@@ -30,6 +30,202 @@
 % authoryear    To obtain author/year citation style instead of numeric.
 
 \usepackage{amsmath}
+\usepackage{listings,xspace}
+\usepackage{amsthm}
+\usepackage{mdframed}
+\usepackage{xcolor}
+% \usepackage{fontspec}
+\usepackage{graphicx}
+\usepackage{setspace}
+% \usepackage{booktabs}
+\usepackage{wasysym}
+\usepackage{amsthm}
+\usepackage{url}
+
+\usepackage{caption}
+\usepackage{subcaption}
+
+% \usepackage{bcprules}
+% \usepackage{prooftree}
+\usepackage{multicol}
+
+\lstdefinelanguage{Scala}%
+{morekeywords={abstract,case,catch,char,class,%
+    def,else,extends,final,%
+    if,import,%
+    match,module,new,null,object,override,package,private,protected,%
+    public,return,super,this,throw,trait,try,type,val,var,with,implicit,%
+    macro,sealed,%
+  },%
+  sensitive,%
+  morecomment=[l]//,%
+  morecomment=[s]{/*}{*/},%
+  morestring=[b]",%
+  morestring=[b]',%
+  showstringspaces=false%
+}[keywords,comments,strings]%
+
+\lstset{language=Scala,%
+  mathescape=true,%
+  columns=[c]fixed,%
+  basewidth={0.5em, 0.40em},%
+  basicstyle=\tt,%
+  xleftmargin=0.0cm
+}
+
+\theoremstyle{definition}
+\newmdtheoremenv[hidealllines=true,topline=true,bottomline=true,skipabove=\baselineskip,skipbelow=\baselineskip]{defn}{Definition}[section]
+
+\theoremstyle{definition}
+\newmdtheoremenv[hidealllines=true,topline=true,bottomline=true,skipabove=\baselineskip,skipbelow=\baselineskip]{prop}{Property}[section]
+
+% \theoremstyle{nonumberplain}
+% \theoremstyle{definition}
+% \newmdtheoremenv*[hidealllines=true,topline=true,bottomline=true,skipabove=\baselineskip,skipbelow=\baselineskip]{defnn}{Definition}[section]
+\newtheorem*{defn*}{Definition}
+
+% \newtheorem{defn}{Definition}[section]
+% \newenvironment{defn}
+  % {\begin{mdframed}[style=warning]\begin{mdef}}
+  % {\end{mdef}\end{mdframed}}
+
+% comments and notes
+\newcommand{\comment}[1]{}
+\newcommand{\note}[1]{{\bf $\clubsuit$ #1 $\spadesuit$}}
+\newcommand{\ifreport}[1]{#1}
+%\newcommand{\ifreport}[1]{}
+
+\newcommand{\todo}{{\bf \colorbox{red}{\color{white}TODO:}}}
+\newcommand{\ie}{{\em i.e.,~}}
+\newcommand{\eg}{{\em e.g.,~}}
+\newcommand{\term}[1]{\mbox{\texttt{#1}}}
+\newcommand{\itl}[1]{\mbox{\textit{#1}}}
+
+% commas and semicolons
+\newcommand{\comma}{,\,}
+\newcommand{\commadots}{\comma \ldots \comma}
+\newcommand{\semi}{;\mbox{;};}
+\newcommand{\semidots}{\semi \ldots \semi}
+
+% spacing
+\newcommand{\gap}{\quad\quad}
+\newcommand{\biggap}{\quad\quad\quad}
+\newcommand{\nextline}{\\ \\}
+\newcommand{\htabwidth}{0.5cm}
+\newcommand{\tabwidth}{1cm}
+\newcommand{\htab}{\hspace{\htabwidth}}
+\newcommand{\tab}{\hspace{\tabwidth}}
+\newcommand{\linesep}{\ \hrulefill \ \smallskip}
+
+\newcommand{\sectionline}{%
+  \nointerlineskip \vspace{\baselineskip}%
+  \hspace{\fill}\rule{0.5\linewidth}{.7pt}\hspace{\fill}%
+  \par\nointerlineskip \vspace{\baselineskip}
+}
+
+% figures
+\newcommand{\figurebox}[1]
+        {\fbox{\begin{minipage}{\textwidth} #1 \medskip\end{minipage}}}
+\newcommand{\twofig}[3]
+        {\begin{figure*}[t]#3\ \hrulefill\
+        \caption{\label{#1}#2}\end{figure*}}
+\newcommand{\boxfig}[3]
+        {\begin{figure*}\figurebox{#3\caption{\label{#1}#2}}\end{figure*}}
+\newcommand{\figref}[1]
+        {Figure~\ref{#1}}
+
+% arrays
+\newcommand{\ba}{\begin{array}}
+\newcommand{\ea}{\end{array}}
+\newcommand{\bda}{\[\ba}
+\newcommand{\eda}{\ea\]}
+\newcommand{\ei}{\end{array}}
+\newcommand{\bcases}{\left\{\begin{array}{ll}}
+\newcommand{\ecases}{\end{array}\right.}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%   Language abstraction commands     %
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+%% Relations
+% Subtype
+\newcommand{\sub}{<:}
+% Type assignment
+\newcommand{\typ}{:}
+% reduction
+\newcommand{\reduces}{\;\rightarrow\;}
+% well-formedness
+\newcommand{\wf}{\;\mbox{\textbf{wf}}}
+
+%% Operators
+% Type selection
+\newcommand{\tsel}{\#}
+% Function type
+\newcommand{\tfun}{\rightarrow}
+\newcommand{\dfun}[3]{(#1\!:\!#2) \Rightarrow #3}
+% Conjunction
+\newcommand{\tand}{\wedge}
+% Disjunction
+\newcommand{\tor}{\vee}
+% Singleton type suffix
+\newcommand{\sing}{.\textbf{type}}
+
+%% Syntax
+% Header for typing rules
+\newcommand{\judgement}[2]{{\bf #1} \hfill \fbox{#2}}
+% Refinement
+\newcommand{\refine}[2]{\left\{#1 \Rightarrow #2 \right\}}
+% Field definitions
+\newcommand{\ldefs}[1]{\left\{#1\right\}}
+% Member sequences
+\newcommand{\seq}[1]{\overline{#1}}
+% Lambda
+\newcommand{\dabs}[3]{(#1\!:\!#2)\Rightarrow #3}
+\newcommand{\abs}[3]{\lambda #1\!:\!#2.#3}
+% Application
+\newcommand{\app}[2]{#1\;#2}
+% Substitution
+\newcommand{\subst}[3]{[#1/#2]#3}
+% Object creation
+\newcommand{\new}[3]{\textbf{val }#1 = \textbf{new }#2 ;\; #3}
+%\renewcommand{\new}[3]{#1 \leftarrow #2 \,\textbf{in}\, #3}
+% Field declaration
+\newcommand{\Ldecl}[3]{#1 \typ #2..#3}%{#1 \operatorname{>:} #2 \operatorname{<:} #3}
+\newcommand{\ldecl}[2]{#1 \typ #2}
+% Top and Bottom
+\newcommand{\Top}{\top}%{\textbf{Top}}
+\newcommand{\Bot}{\bot}%\textbf{Bot}}
+% Environment extension
+\newcommand{\envplus}[1]{\uplus \{ #1 \}}
+
+\newcommand{\reduction}[4]{#1, #2 \reduces #3, #4}
+\newcommand{\reducebig}[6]{#1, #2, #3 \;\Downarrow\; #4, #5, #6}
+\newcommand{\evaluate}[5]{#1, #2, #3 \;\Downarrow\; #4, #5}
+\newcommand{\evalcap}[8]{#1, #2, #3, #4 \;\Downarrow\; #5, #6, #7, #8}
+\newcommand{\evalcapbreak}[8]{#1, #2, #3, #4 \;\Downarrow\; \\ #5, #6, #7, #8}
+\newcommand{\evalcapfin}[9]{#2, #3, #4, #5 \;\Downarrow_{#1}\; #6, #7, #8, #9}
+
+\newcommand{\sframe}[3]{\langle #1, #2, #3 \rangle}
+\newcommand{\stack}[4]{#1 \sframe {#2} {#3} {#4}}
+\newcommand{\reduce}[4]{#1, #2 \;\longrightarrow\; #3, #4}
+\newcommand{\reducebreak}[4]{#1, #2 \\ \;\longrightarrow\; #3, #4}
+
+\newcommand{\sreduce}[6]{#1, #2, #3 \;\longrightarrow\; #4, #5, #6}
+\newcommand{\sreducebreak}[6]{#1, #2, #3 \\ \;\longrightarrow\; #4, #5, #6}
+\newcommand{\sreducestar}[6]{#1, #2, #3 \;\longrightarrow^{\ast}\; #4, #5, #6}
+\newcommand{\sreducestarbreak}[6]{#1, #2, #3 \\ \;\longrightarrow^{\ast}\; #4, #5, #6}
+
+% misc identifiers
+\newcommand{\dom}{\mbox{\sl dom}}
+\newcommand{\fn}{\mbox{\sl fn}}
+\newcommand{\bn}{\mbox{\sl bn}}
+\newcommand{\sig}{\mbox{\sl sig}}
+\newcommand{\IF}{\mbox{\mathem if}}
+\newcommand{\OTHERWISE}{\mbox{\mathem otherwise}}
+\newcommand{\strongexpand}{\prec\!\!\prec}
+\newcommand{\weakexpand}{\prec}
+\newcommand{\spcomma}{~,~}
+
 
 
 \begin{document}
@@ -84,6 +280,7 @@ This is the text of the abstract.
 
 \section{Introduction}
 
+In mainstream software development, there are two trends on the rise.
 Data-centric systems, and systems for ``big data'' on the rise. As a matter of fact, services and systems that are simply ``connected'' to others are on the rise. The trend is called ``microservices'' and a piece of software that a user might perceive as a single piece of software might be made up of dozens of such microservices--complex applications are composed of small, independent processes communicating with each other using language-agnostic APIs.
 This is the landscape of modern software development.
 These are all distributed applications.
@@ -161,6 +358,18 @@ Illustrations to have:
 \item nice figure
 \item organic evolving model on youtube
 \end{enumerate}
+
+\subsection{Model}
+
+This is the basic model.
+
+\begin{figure}[ht!]
+\includegraphics[width=\columnwidth]{basic-diagram.pdf}
+\caption{Basic model.}\label{fig:basic-diagram}
+\end{figure}
+
+
+Nothing beats a video when something evolves in space in time, so we've also produced a short video to illustrate the model\footnote{\url{https://vimeo.com/120415626}}
 
 \subsection{Evaluation}
 
