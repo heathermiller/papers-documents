@@ -292,29 +292,20 @@ has become largely distributed. Two {\em styles} of distribution
 dominate the current landscape; (1) systems composed of microservices,
  % or designed to be software as a service (SaaS),
 and (2) systems for ``big data'' processing. Names like Netflix, SoundCloud,
-Twitter, have established their competitive offerings by way of one or both of
-these types of systems.
+and Twitter have established their competitive offerings by way of one or
+both of these types of systems.
 
-Microservices are small independent (separately-compiled) services which
-communicate with each other using language-agnostic APIs. ``Big data''-style
-applications typically are those which assume.
-
-The trend is called ``microservices'' and a piece of software that a user
-might perceive as a single piece of software might be made up of dozens of
-such microservices--complex applications are composed of small, independent
-processes communicating with each other using language-agnostic APIs.
-
+Microservices are small, independent (separately-compiled) services running on
+different machines which communicate with each other to together make up a
+single and complex application. ``Big data''-style applications on the other
+hand are typically single applications whose data cannot fit into the memory
+of one machine alone. Such applications are typically singly-compiled, with
+their binaries distributed across a cluster of machines.
 
 Yet, software developers still fumble with low-level RPC frameworks.
 % and sluggish serialization frameworks.
 Mainstream programming languages have traditionally offered little support in
 this space.
-
-In mainstream software development, there are two trends on the rise.
-Data-centric systems, and systems for ``big data'' on the rise. As a matter of fact, services and systems that are simply ``connected'' to others are on the rise. The trend is called ``microservices'' and a piece of software that a user might perceive as a single piece of software might be made up of dozens of such microservices--complex applications are composed of small, independent processes communicating with each other using language-agnostic APIs.
-This is the landscape of modern software development.
-These are all distributed applications.
-programming languages remain firmly rooted in a single-machine design. Developers of services and systems pushing the envelope today are distributed; they must either synchronize with.
 
 We design module systems, etc, for maximum reuse and productivity, we go as
 far as we can to demonstrate their power. But we often . Some of these
