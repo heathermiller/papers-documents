@@ -226,6 +226,9 @@
 \newcommand{\weakexpand}{\prec}
 \newcommand{\spcomma}{~,~}
 
+\makeatletter
+\def\@copyrightspace{\relax}
+\makeatother
 
 
 \begin{document}
@@ -234,10 +237,10 @@
 \setlength{\pdfpageheight}{\paperheight}
 \setlength{\pdfpagewidth}{\paperwidth}
 
-\conferenceinfo{CONF 'yy}{Month d--d, 20yy, City, ST, Country}
-\copyrightyear{20yy}
-\copyrightdata{978-1-nnnn-nnnn-n/yy/mm}
-\doi{nnnnnnn.nnnnnnn}
+% \conferenceinfo{CONF 'yy}{Month d--d, 20yy, City, ST, Country}
+% \copyrightyear{20yy}
+% \copyrightdata{978-1-nnnn-nnnn-n/yy/mm}
+% \doi{nnnnnnn.nnnnnnn}
 
 % Uncomment one of the following two, if you are not going for the
 % traditional copyright transfer agreement.
@@ -279,6 +282,19 @@ This is the text of the abstract.
 % keyword1, keyword2
 
 \section{Introduction}
+
+From the ivory tower, it may not be evident,
+% It might not seem this way from the ivory tower,
+but mainstream software development has become largely distributed. Two trends
+dominate the current landscape; systems composed of (1) microservices,
+ % or designed to be software as a service (SaaS),
+and (2) systems for ``big data''
+processing.
+
+Yet, software developers still fumble with low-level RPC frameworks.
+% and sluggish serialization frameworks.
+Mainstream programming languages have traditionally offered little support in
+this space.
 
 In mainstream software development, there are two trends on the rise.
 Data-centric systems, and systems for ``big data'' on the rise. As a matter of fact, services and systems that are simply ``connected'' to others are on the rise. The trend is called ``microservices'' and a piece of software that a user might perceive as a single piece of software might be made up of dozens of such microservices--complex applications are composed of small, independent processes communicating with each other using language-agnostic APIs.

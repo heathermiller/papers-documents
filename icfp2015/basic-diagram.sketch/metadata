@@ -28,9 +28,10 @@
 		<string>HiraKakuProN-W6</string>
 		<string>Inconsolata</string>
 		<string>TimesNewRomanPS-ItalicMT</string>
+		<string>TimesNewRomanPSMT</string>
 	</array>
 	<key>length</key>
-	<integer>369077</integer>
+	<integer>375963</integer>
 	<key>version</key>
 	<integer>18</integer>
 </dict>
