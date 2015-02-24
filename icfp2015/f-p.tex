@@ -283,13 +283,27 @@ This is the text of the abstract.
 
 \section{Introduction}
 
-From the ivory tower, it may not be evident,
+% From the ivory tower, it may not be evident,
 % It might not seem this way from the ivory tower,
-but mainstream software development has become largely distributed. Two trends
-dominate the current landscape; systems composed of (1) microservices,
+% but
+
+While it might not seem that way at a glance, mainstream software development
+has become largely distributed. Two {\em styles} of distribution
+dominate the current landscape; (1) systems composed of microservices,
  % or designed to be software as a service (SaaS),
-and (2) systems for ``big data''
-processing.
+and (2) systems for ``big data'' processing. Names like Netflix, SoundCloud,
+Twitter, have established their competitive offerings by way of one or both of
+these types of systems.
+
+Microservices are small independent (separately-compiled) services which
+communicate with each other using language-agnostic APIs. ``Big data''-style
+applications typically are those which assume.
+
+The trend is called ``microservices'' and a piece of software that a user
+might perceive as a single piece of software might be made up of dozens of
+such microservices--complex applications are composed of small, independent
+processes communicating with each other using language-agnostic APIs.
+
 
 Yet, software developers still fumble with low-level RPC frameworks.
 % and sluggish serialization frameworks.
