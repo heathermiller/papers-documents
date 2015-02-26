@@ -34,7 +34,7 @@
 \usepackage{amsthm}
 \usepackage{mdframed}
 \usepackage{xcolor}
-% \usepackage{fontspec}
+\usepackage{fontspec}
 \usepackage{graphicx}
 \usepackage{setspace}
 % \usepackage{booktabs}
@@ -239,6 +239,9 @@
 \special{papersize=8.5in,11in}
 \setlength{\pdfpageheight}{\paperheight}
 \setlength{\pdfpagewidth}{\paperwidth}
+
+\setmainfont[Mapping=tex-text]{Times New Roman}
+\setmonofont[Scale=0.8,BoldFont={Consolas Bold}]{Consolas}
 
 \conferenceinfo{CONF 'yy}{Month d--d, 20yy, City, ST, Country}
 \copyrightyear{20yy}
@@ -459,6 +462,136 @@ be serialized and sent to \verb|host|. In each case, the returned SiloRef
 contains its \verb|host| as well as an identifier that uniquely identifies its
 silo on the \verb|host|. To obtain this host-unique identifier, each factory
 method has to communicate with the target \verb|host|.
+
+The type \verb|SiloRef[T]| has the following main operations:
+
+\begin{lstlisting}
+trait SiloRef[T] {
+  def map[S](s: Spore[T, S]): SiloRef[S]
+  def flatMap[S](s: Spore[T, SiloRef[S]]): SiloRef[S]
+  def send(): Future[T]
+}
+\end{lstlisting}
+
+The \verb|map| method takes a spore that is to be applied to the data in the
+silo of the receiver SiloRef. Rather than immediately sending the spore across
+the network, and waiting for the operation to finish, the \verb|map| method is
+\emph{lazy}. Without involving any network communication, it immediately
+returns a SiloRef referring to a new, lazily-created silo. This new SiloRef
+only contains lineage information, namely, a reference to the original
+SiloRef, a reference to the argument spore, and the information that it is the
+result of a \verb|map| invocation. (The \verb|send| method is used to force
+the materialization of the result silo, see below.) For example, given a silo
+with a list of \verb|Person| records, the following application of \verb|map|
+defines a silo containing only the records of adults:
+
+\begin{lstlisting}
+val persons: SiloRef[List[Person]] = ...
+val adults = persons.map(spore { ps => ps.filter(p => p.age >= 18) })
+\end{lstlisting}
+
+Like \verb|map|, the \verb|flatMap| method takes a spore that is to be applied
+to the data in the silo of the receiver SiloRef. However, the crucial
+difference is in the type of the spore argument whose result type is a SiloRef
+in this case. Semantically, the new silo created by \verb|flatMap| is defined
+to contain the data of the silo that the user-defined spore returns. The
+\verb|flatMap| combinator adds expressiveness to our model that is essential
+to express more interesting computation DAGs. For example, consider the
+problem of combining the information contained in two different silos
+(potentially located on different hosts). Suppose the information of a silo
+containing \verb|Vehicle| records should be enriched with other details only
+found in the \verb|adults| silo. In the following, \verb|flatMap| is used to
+create a silo of \verb|(Person, Vehicle)| pairs where the names of person and
+vehicle owner match:
+
+\begin{lstlisting}
+val vehicles: SiloRef[Vehicle] = ...
+// adults that own a vehicle
+val owners = adults.flatMap(spore {
+  val localVehicles = vehicles // spore header
+  ps =>
+    localVehicles.map(spore {
+      val localps = ps // spore header
+      vs =>
+      localps.flatMap(p =>
+        // list of (p, v) for a single person p
+        vs.flatMap { v =>
+          if (v.owner.name == p.name) List((p, v))
+          else List()
+        }
+      )
+    })
+})
+\end{lstlisting}
+
+Note that the spore passed to \verb|flatMap| declares the capturing of the
+\verb|vehicles| SiloRef in its so-called ``spore header''. The spore header
+spans all variable definitions between the spore marker and the parameter list
+of the spore's closure. The spore header defines the variables that the
+spore's closure is allowed to access. Essentially, spores limit the free
+variables of their closure's body to the closure's parameters and the
+variables declared in the spore's header. Within the spore's closure, it is
+necessary to read the data of the \verb|vehicles| silo in addition to the
+\verb|persons| list. This requires calling \verb|map| on \verb|localVehicles|.
+However, \verb|map| returns a SiloRef; thus, invoking \verb|map| on
+\verb|adults| instead of \verb|flatMap| would be impossible, since there would
+be no way to get the data out of the silo returned by
+\verb|localVehicles.map(..)|. With the use of \verb|flatMap|, however, the
+call to \verb|localVehicles.map(..)| creates the final result silo, whose data
+is then also contained in the silo returned by \verb|flatMap|.
+
+Clearly, \verb|map| can be expressed in terms of \verb|flatMap|:
+
+\begin{lstlisting}
+def map[S](s: Spore[T, S]): SiloRef[S] = {
+  this.flatMap(spore {
+    val localSpore = s
+    x =>
+      val res = localSpore(x)
+      SiloRef.fromFun(currentHost)(spore {
+        val localRes = res
+        () => localRes
+      })
+}
+\end{lstlisting}
+
+This should come as no surprise, given that \verb|flatMap| is the monadic bind
+operation on SiloRefs, and \verb|SiloRef.fromFun| is the monadic return
+operation. The reason why \verb|map| is provided as one of the main operations
+of SiloRefs is that direct uses of \verb|map| enable an important optimization
+based on operation fusion. This optimization is explained following the
+discussion of the third main operation of SiloRefs, \verb|send|.
+
+The final operation of SiloRefs is \verb|send|. It forces the lazy computation
+defined by the given SiloRef. Forcing is explicit in our model, because it
+requires sending the lineage to the remote node on which the result silo
+should be created. Given that network communication has a latency several
+orders of magnitude greater than accessing a word in main memory, say, we felt
+an explicit send operation a judicious choice. To enable materialization of
+remote silos to proceed concurrently, the \verb|send| operation immediately
+returns a future. This future is then asynchronously completed with the data
+of the given silo. Since calling \verb|send| will materialize a silo and send
+its data to the current node, \verb|send| should only be called on silos with
+reasonably small data. For example, Figure ?? shows the effect of invoking
+\verb|send| on the \verb|labels| SiloRef from above.
+
+The \verb|send| operation can also be used to simply cache a silo in main
+memory, for example, because the silo is known to be accessed subsequently:
+
+\begin{lstlisting}
+def cache(): Future[Boolean] = this.flatMap(spore {
+  val localDoneSiloRef = DoneSiloRef
+  res => localDoneSiloRef.send()
+}
+\end{lstlisting}
+
+The \verb|cache| method can be provided for convenience. It invokes
+\verb|send| not directly on the given SiloRef (which would transfer all data
+of the silo to the current node); instead, it first uses \verb|flatMap| to
+create a new silo that will be completed with the trivial value (e.g., a
+Boolean constant) of the \verb|DoneSiloRef| singleton object. Essentially,
+invoking \verb|send| on this trivial SiloRef causes the resulting future to be
+completed as soon as \verb|this| SiloRef has been materialized in main memory.
 
 
 \begin{figure}[ht!]
