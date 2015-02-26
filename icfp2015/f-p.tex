@@ -284,7 +284,12 @@
 \maketitle
 
 \begin{abstract}
-This is the text of the abstract.
+Functional ideas have long
+been appearing in the designs of such systems. We present a new programming
+model we refer to as {\em function-passing}. model . We provide an operational
+semantics, an implementation in and for Scala, and a small evaluation of the
+efficiency of our implementation of the model.
+
 \end{abstract}
 
 \category{D.3.3}{Programming Languages}{Language Constructs and Features}
@@ -300,89 +305,118 @@ functions, closures, serialization, concurrency, types, Scala
 
 \section{Introduction}
 
+It's difficult to deny that data-centric programming is growing in importance.
+At the same time, it's no secret that the most successful systems for
+programming with ``big data'' have all adopted functional features;
+Spark~\cite{Spark}, MapReduce~\cite{MapReduce}, and Dryad~\cite{Dryad} are
+just a few. These functional features are often touted to be the key to the
+success of these frameworks, from both the perspective of users and framework
+authors alike. It's not hard to imagine why--a functional, declarative
+interface to data distributed over tens to thousands of nodes is arguably most
+natural to end-users and data scientists. The benefits provided by functional
+programming have also won over framework designers as well--some have noticed
+that immutability, and data transformation via higher-order functions makes it
+much easier, by design, to tackle concerns central to distributed systems such
+as concurrency and fault tolerance.
 
-Functional programming concepts are making inroads in hot up-and-coming
-frameworks for distributed computing and, dare we say it, ``big data.''
-Arguably, MapReduce was one of the first systems to pick up FP concepts,
-albeit outside the context of functional languages. More recent frameworks are
-now also leveraging classical functional language features, such as higher-
-order functions (e.g., Spark). This is a boon for mathematically-oriented data
-analytics and higher-order functions provide flexible abstraction mechanisms.
+% reasoning about data distributed over tens to thousands of nodes
+% a functional, declarative interface for
+% operating on
+% is arguably the
+% most straightforward for end-users.
 
-However, to provide fault tolerance in the context of large-scale distributed
-computing, such frameworks for distribution are built atop of tall stacks of
-code which is typically imperative and untyped, losing most of the benefits
-enjoyed by the users of their high-level APIs. [What's more,] the benefits of
-FP, abstraction, composition, equational reasoning, are seemingly lost by
-engineers building these distributed systems. What makes this problem even
-worse is the fact that coordinating between data shards and doing that in a
-way that is easy to reason about is the wheel that every data-centric
-distributed system keeps reinventing.
+%  -- the declarative, data-centric interface offered by such
+% systems is a boon for mathematically-oriented data analytics.
 
-Fortunately, FP techniques are not only useful for designing good user-facing
-APIs. This paper presents a deep connection between the pillars of FP and one
-of the most important challenges of distributed computing: fault tolerance. To
-this end we present a new programming model for typed distributed functional
-programming. This model aims to:
+Yet, building such systems remains
 
-\begin{itemize}
-\item distill existing fault recovery mechanisms based on lineage to their essence.
-Importantly, this paper shows that there is a direct correspondence between
-the concept of lineage, as it is widely used in distributed systems, and well-known
-pillars of FP. Our distributed programming model is a consequent
-implementation of this correspondence, and demonstrates it in executable form
-in the context of an implementation in and for Scala.
-
-\item improve type-safety at the boundary of serialized and deserialized data.
-Importantly, the design and implementation of our programming model shows that
-even the layer in a distributed system that processes freshly deserialized
-data (typically, this layer sits right on top of the network communication
-layer) can not only be written in a strongly-typed way, but it can even
-leverage performance improvements due to type-specialized serialization.
-\end{itemize}
-
-Our programming model is centered around a new distributed persistent data
-structure, the silo. A silo is a typed container for a single (immutable)
-value. A silo is ``stationary''; it is never moved away from the host on which
-it was created. Computations on silos are expressed using SiloRefs, proxy
-objects representing remote silos. The primary means to operate on a silo is
-by passing a serializable closure to it using a SiloRef. SiloRefs provide a
-standard monadic interface as well as primitives for defining flexible fault
-handling strategies.
-
-To ensure safe and efficient distribution of closures, our model leverages
-both syntactic and type-based restrictions. For instance, closures sent to
-remote silos are required to conform to the restrictions imposed by the so-called
-``spore'' abstraction~\cite{Spores}. Among others, the syntax and
-static semantics of spores guarantees the absence of runtime serialization
-errors due to closure environments that are not serializable.
-
-The specific technical contributions of this paper are:
-
-\begin{itemize}
-\item A new programming model for functional processing of distributed data. By
-leveraging safe serializable closures, it prevents common usage errors of
-other widely-used data analytics stacks.
-
-\item A new model of lineage-based fault recovery based on typed FP. Our approach
-extends the capabilities of existing implementations by supporting type-specialized,
-statically-generated serializers even in the context of
-existentially-quantified types.
-
-\item A complete, distributed implementation of the model in Scala.
-
-\item A validation of spores in the context of distributed programming.
-
-\item Self-describing pickles?
-
-\item An experimental evaluation.
-\end{itemize}
+Our work builds on two previous veins of work--type-safe and performant
+serialization based on functional pickler combinators, and spores, closures
+that are guaranteed to be serializable.
 
 Closely related work here.
 
 Structure. Our approach is to describe our model from a high level,
 elaborating upon key concepts. While focusing on .. over time. We then proceed
 to zoom in and make precise each component of our model in Sections~\ref{}.
+
+
+% Functional programming concepts are making inroads in hot up-and-coming
+% frameworks for distributed computing and, dare we say it, ``big data.''
+% Arguably, MapReduce was one of the first systems to pick up FP concepts,
+% albeit outside the context of functional languages. More recent frameworks are
+% now also leveraging classical functional language features, such as higher-
+% order functions (e.g., Spark). This is a boon for mathematically-oriented data
+% analytics and higher-order functions provide flexible abstraction mechanisms.
+
+% However, to provide fault tolerance in the context of large-scale distributed
+% computing, such frameworks for distribution are built atop of tall stacks of
+% code which is typically imperative and untyped, losing most of the benefits
+% enjoyed by the users of their high-level APIs. [What's more,] the benefits of
+% FP, abstraction, composition, equational reasoning, are seemingly lost by
+% engineers building these distributed systems. What makes this problem even
+% worse is the fact that coordinating between data shards and doing that in a
+% way that is easy to reason about is the wheel that every data-centric
+% distributed system keeps reinventing.
+
+% Fortunately, FP techniques are not only useful for designing good user-facing
+% APIs. This paper presents a deep connection between the pillars of FP and one
+% of the most important challenges of distributed computing: fault tolerance. To
+% this end we present a new programming model for typed distributed functional
+% programming. This model aims to:
+
+% \begin{itemize}
+% \item distill existing fault recovery mechanisms based on lineage to their essence.
+% Importantly, this paper shows that there is a direct correspondence between
+% the concept of lineage, as it is widely used in distributed systems, and well-known
+% pillars of FP. Our distributed programming model is a consequent
+% implementation of this correspondence, and demonstrates it in executable form
+% in the context of an implementation in and for Scala.
+
+% \item improve type-safety at the boundary of serialized and deserialized data.
+% Importantly, the design and implementation of our programming model shows that
+% even the layer in a distributed system that processes freshly deserialized
+% data (typically, this layer sits right on top of the network communication
+% layer) can not only be written in a strongly-typed way, but it can even
+% leverage performance improvements due to type-specialized serialization.
+% \end{itemize}
+
+% Our programming model is centered around a new distributed persistent data
+% structure, the silo. A silo is a typed container for a single (immutable)
+% value. A silo is ``stationary''; it is never moved away from the host on which
+% it was created. Computations on silos are expressed using SiloRefs, proxy
+% objects representing remote silos. The primary means to operate on a silo is
+% by passing a serializable closure to it using a SiloRef. SiloRefs provide a
+% standard monadic interface as well as primitives for defining flexible fault
+% handling strategies.
+
+% To ensure safe and efficient distribution of closures, our model leverages
+% both syntactic and type-based restrictions. For instance, closures sent to
+% remote silos are required to conform to the restrictions imposed by the so-called
+% ``spore'' abstraction~\cite{Spores}. Among others, the syntax and
+% static semantics of spores guarantees the absence of runtime serialization
+% errors due to closure environments that are not serializable.
+
+% The specific technical contributions of this paper are:
+
+% \begin{itemize}
+% \item A new programming model for functional processing of distributed data. By
+% leveraging safe serializable closures, it prevents common usage errors of
+% other widely-used data analytics stacks.
+
+% \item A new model of lineage-based fault recovery based on typed FP. Our approach
+% extends the capabilities of existing implementations by supporting type-specialized,
+% statically-generated serializers even in the context of
+% existentially-quantified types.
+
+% \item A complete, distributed implementation of the model in Scala.
+
+% \item A validation of spores in the context of distributed programming.
+
+% \item Self-describing pickles?
+
+% \item An experimental evaluation.
+% \end{itemize}
 
 \section{Overview of Model}
 
