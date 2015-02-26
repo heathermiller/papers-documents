@@ -46,6 +46,7 @@
 \usepackage{subcaption}
 
 \usepackage{csquotes}
+\usepackage{enumitem}
 
 % \usepackage{bcprules}
 % \usepackage{prooftree}
@@ -415,7 +416,7 @@ the design of distributed systems.
 \vspace{1mm}
 
 \noindent The F-P model consists of three main components:
-\begin{itemize}
+\begin{itemize}[noitemsep]
   \item {\bf Silos:} stationary typed data containers.
   \item {\bf SiloRefs:} references to local or remote Silos.
   \item {\bf Spores:} safe, serializable functions.
@@ -493,10 +494,11 @@ in the following section.
 
 There are four basic primitive operations on SiloRefs that together can be
 used to build the higher-order operations common to popular data-centric
-distributed systems (how to build these higher-order operations is described
-in Section~\ref{sec:higher-order-operations}). These primitives include:
+distributed systems (how to build some of these higher-order operations is
+described in Section~\ref{sec:higher-order-operations}). These primitives
+include:
 
-\begin{itemize}
+\begin{itemize}[noitemsep,nolistsep]
 \item \verb|map|
 \item \verb|flatMap|
 \item \verb|send|
