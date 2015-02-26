@@ -786,7 +786,7 @@ Operations on distributed collections\todo{somehow mention Spark here so it's
 clear what a dist coll is.}~such as \verb|union|, \verb|groupByKey|, or
 \verb|join|, involve multiple data sets, possibly located on different nodes.
 In the following we explain how such operations can be expressed using the
-introduced primitives.
+introduced primitives.\todo{need a more compelling into for PL people}
 
 \paragraph{union}
 The union of two unordered collections stored in two different silos can be
@@ -836,8 +836,40 @@ val combined = SiloRef.flatMap(destPlace, silo12, silo22,
 
 The combined silo contains triples of type \verb|(K, Option[A], Option[B])|.
 Using an additional \verb|map|, the collection can be sorted by key, and adjacent
-triples be combined, yielding a
-\newline \verb|SiloRef[List[(K, (A, B)| as required.
+triples be combined, yielding a \texttt{SiloRef[List[(K, (A, B)} as required.
+
+
+\paragraph{Partitioning and groupByKey}
+
+A \verb|groupByKey| operation on a group of silos containing collections needs
+to create multiple result silos, on each node, with ranges of keys supposed to
+be shipped to destination nodes. These destination nodes are determined using
+a partitioning function. Our goal, concretely:
+
+\begin{lstlisting}
+val groupedSilos = groupByKey(silos)
+\end{lstlisting}
+
+Furthermore, we assume that \verb|silos.size| $= N$ where $N$ is the number of
+nodes, with nodes $N_1$, $N_2$, etc. We assume each silo contains an unordered
+collection of key-value pairs (a multi-map). Then, \verb|groupByKey| can be
+implemented as follows:
+
+\begin{itemize}
+\item For each node $N_i$, the master node creates $N$ SiloRefs.
+
+\item Each node $N_i$ applies a {\em partitioning function}
+(example: \texttt{hash(key) mod N}) to the key-value pairs in its silo,
+yielding $N$ (local) silos.
+
+\item Using \verb|flatMap|, each pair of silos containing keys of the
+same range can be combined and materialized on the right destination node.
+\end{itemize}
+
+
+
+Using pumpTo, each pair of silos containing keys of the same range can be combined and mate-
+rialized on the right destination node.
 
 \section{Related Work}
 
