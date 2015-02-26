@@ -544,7 +544,7 @@ create a silo of \verb|(Person, Vehicle)| pairs where the names of person and
 vehicle owner match:
 
 \begin{lstlisting}
-val vehicles: SiloRef[Vehicle] = ...
+val vehicles: SiloRef[List[Vehicle]] = ...
 // adults that own a vehicle
 val owners = adults.flatMap(spore {
   val localVehicles = vehicles // spore header
@@ -679,17 +679,57 @@ Nothing beats a video when something evolves in space in time, so we've also pro
 
 Besides the primitives discussed so far, the programming model includes
 overloaded variants that enable the definition of flexible fault handling
-semantics. The main principle is to specify fault handlers for \emph{subgraphs
-of computation DAGs}.
+semantics. The main idea is to specify fault handlers for \emph{subgraphs of
+computation DAGs}. Our guiding principle is to make the definition of the
+failure-free path through a computation DAG as simple as possible, while still
+enabling the handling of faults at the fine-granular level of individual
+SiloRefs.
 
-The main principle is to allow code interacting with a SiloRef to
-respond to a failure of the corresponding silo. We say that a silo has failed
-if its host node has become unreachable or unresponsive. In our model,
-failures are detected \emph{lazily} whenever an operation involving a failed
-silo is attempted to be completed. For example, calling \verb|send| on a
-SiloRef pointing to a failed silo would lead to the detection of a failure.
+\paragraph{Defining fault handlers} Fault handlers may be specified whenever
+the lineage of a SiloRef is extended. For this purpose, the introduced
+\verb|map| and \verb|flatMap| primitives are overloaded. For example,
+consider our previous example, but extended with a fault handler:
 
-The definition of fault handling
+\begin{lstlisting}
+val persons: SiloRef[List[Person]] = ...
+val vehicles: SiloRef[List[Vehicle]] = ...
+// copy of `vehicles` on different host `h`
+val vehicles2 = SiloRef.fromFun(h)(spore {
+  val localVehicles = vehicles
+  () => localVehicles
+})
+
+val adults =
+  persons.map(spore { ps => ps.filter(p => p.age >= 18) })
+
+// adults that own a vehicle
+def computeOwners(v: SiloRef[List[Vehicle]]) =
+  spore {
+    val localVehicles = v
+    (ps: List[Person]) => localVehicles.map(...)
+  }
+
+val owners: SiloRef[List[(Person, Vehicle)]] =
+  adults.flatMap(computeOwners(vehicles),
+                 computeOwners(vehicles2))
+\end{lstlisting}
+
+Importantly, in the \verb|flatMap| call on the last line, in addition to
+\verb|computeOwners(vehicles)|, the regular spore argument of \verb|flatMap|,
+\verb|computeOwners(vehicles2)| is passed as an additional argument. The
+second argument registers a \emph{failure handler} for the subgraph of the
+computation DAG starting at \verb|adults|. This means that if during the
+execution of \verb|computeOwners(vehicles)| it is detected that the
+\verb|vehicles| SiloRef has failed, it is checked whether the SiloRef that the
+higher-order combinator was invoked on (in this case, \verb|adults|) has a
+failure handler registered. In that case, the failure handler is used as an
+alternative spore to compute the result of \verb|adults.flatMap(..)|. In this
+example, we specified \verb|computeOwners(vehicles2)| as the failure handler;
+thus, in case \verb|vehicles| has failed, the computation is retried using
+\verb|vehicles2| instead.
+
+
+
 
 
 \section{Higher-Order Operations}
