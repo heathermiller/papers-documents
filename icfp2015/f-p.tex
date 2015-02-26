@@ -510,13 +510,14 @@ covers the semantics of spores or the corresponding publication~\cite{Spores}.
 
 \subsection{Basic Usage}
 
-The only way to interact with silos is through the use of SiloRefs. A SiloRef
-can be thought of as an immutable handle to the remote data contained within a
-corresponding silo. Users interact with this distributed data by applying
-functions to SiloRefs, which are later applied to the data within the
-corresponding silo. As is the case for persistent data structures, when a
-function is applied to a piece of distributed data via a SiloRef, a new
-SiloRef representing the transformed data is returned.
+The only way to interact with distributed data stored in silos is through the
+use of SiloRefs. A SiloRef can be thought of as an immutable handle to the
+remote data contained within a corresponding silo. Users interact with this
+distributed data by applying functions to SiloRefs, which are transmitted over
+the wire and later applied to the data within the corresponding silo. As is
+the case for persistent data structures, when a function is applied to a piece
+of distributed data via a SiloRef, a new SiloRef representing the transformed
+data is returned.
 
 The simplest illustration of the model is shown in Figure~\ref{fig:basic-diagram}
 (time flows vertically from top to bottom). Here, we start with a
