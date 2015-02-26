@@ -504,7 +504,7 @@ For a deeper understanding, see either Appendix~\ref{appendix:spores} which
 covers the semantics of spores or the corresponding publication~\cite{Spores}.
 
 \begin{figure}[t!]
-\includegraphics[width=\columnwidth]{basic-diagram.pdf}
+\centering\includegraphics[width=0.8\columnwidth]{basic-diagram.pdf}
 \caption{Basic model.}\label{fig:basic-diagram}
 \end{figure}
 
@@ -642,7 +642,7 @@ def map[S](s: Spore[T, S]): SiloRef[S] = {
 \end{lstlisting}
 
 This should come as no surprise, given that \verb|flatMap| is the monadic bind
-operation on SiloRefs, and \verb|SiloRef.fromFun| is the monadic return
+operation on SiloRefs, and \verb|SiloRef.fromFun|\todo{fromFun is now introduced later. fix this} is the monadic return
 operation. The reason why \verb|map| is provided as one of the main operations
 of SiloRefs is that direct uses of \verb|map| enable an important optimization
 based on operation fusion. This optimization is explained following the
