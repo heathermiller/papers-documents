@@ -482,8 +482,10 @@ in \verb|Silo[S]| is computed) – the F-P framework queues up operations
 applied to \verb|SiloRef[S]| and applies them when \verb|Silo[S]| is fully
 materialized.
 
-Several different sorts of complicated DAGs can be asynchronously built up
-this way. To do this, however, we need to develop a clearer idea of . We describe these While this is the basic idea, .
+Several vastly different sorts of complicated DAGs can be asynchronously built
+up this way. To do this, however, we need to develop a clearer idea of the
+semantics of the primitive operations available on SiloRefs. We describe these
+in the following section.
 
 
 \subsection{Primitives}
@@ -501,7 +503,7 @@ in Section~\ref{sec:higher-order-operations}). These primitives include:
 \item \verb|cache|
 \end{itemize}
 
-\paragraph{\verb|map|}
+\paragraph{map}
 The \verb|map| method takes a spore that is to be applied to the data in the
 silo of the receiver SiloRef. Rather than immediately sending the spore across
 the network, and waiting for the operation to finish, the \verb|map| method is
@@ -519,7 +521,7 @@ val persons: SiloRef[List[Person]] = ...
 val adults = persons.map(spore { ps => ps.filter(p => p.age >= 18) })
 \end{lstlisting}
 
-\paragraph{\verb|flatMap|}
+\paragraph{flatMap}
 Like \verb|map|, the \verb|flatMap| method takes a spore that is to be applied
 to the data in the silo of the receiver SiloRef. However, the crucial
 difference is in the type of the spore argument whose result type is a SiloRef
@@ -592,7 +594,7 @@ of SiloRefs is that direct uses of \verb|map| enable an important optimization
 based on operation fusion. This optimization is explained following the
 discussion of the third main operation of SiloRefs, \verb|send|.
 
-\paragraph{\verb|send|}
+\paragraph{send}
 The final operation of SiloRefs is \verb|send|. It forces the lazy computation
 defined by the given SiloRef. Forcing is explicit in our model, because it
 requires sending the lineage to the remote node on which the result silo
@@ -616,7 +618,7 @@ def cache(): Future[Boolean] = this.flatMap(spore {
 }
 \end{lstlisting}
 
-\paragraph{\verb|cache|}
+\paragraph{cache}
 The \verb|cache| method can be provided for convenience. It invokes
 \verb|send| not directly on the given SiloRef (which would transfer all data
 of the silo to the current node); instead, it first uses \verb|flatMap| to
