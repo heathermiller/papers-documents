@@ -72,8 +72,15 @@
   columns=[c]fixed,%
   basewidth={0.5em, 0.40em},%
   basicstyle=\tt,%
+  commentstyle=\color{gray}\itshape\ttfamily,
   xleftmargin=0.0cm
 }
+
+% \lstset{tabsize=2,
+% basicstyle=\ttfamily\fontsize{9pt}{1em}\selectfont,
+% commentstyle=\color{gray}\itshape\ttfamily,
+% numbers=left, numberstyle=\scriptsize\color{gray}\ttfamily, language=scala,moredelim=[il][\sffamily]{?},mathescape=false,showspaces=false,showstringspaces=false,xleftmargin=15pt,escapechar=@, morekeywords=[1]{let,fn,val},deletekeywords={for},classoffset=0,belowskip=\smallskipamount
+% }
 
 \theoremstyle{definition}
 \newmdtheoremenv[hidealllines=true,topline=true,bottomline=true,skipabove=\baselineskip,skipbelow=\baselineskip]{defn}{Definition}[section]
