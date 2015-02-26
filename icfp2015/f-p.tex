@@ -482,40 +482,26 @@ in \verb|Silo[S]| is computed) – the F-P framework queues up operations
 applied to \verb|SiloRef[S]| and applies them when \verb|Silo[S]| is fully
 materialized.
 
-Complicated DAGs can be created this way.
+Several different sorts of complicated DAGs can be asynchronously built up
+this way. To do this, however, we need to develop a clearer idea of . We describe these While this is the basic idea, .
 
-\paragraph{Creating Silos}
-Besides a type definition for SiloRef, our framework also provides a companion
-singleton object (Scala's form of modules). The singleton object provides
-factory methods for obtaining SiloRefs referring to silos populated with some
-initial data:\footnote{The given code snippets are minimally simplified for
-clarity. No essential details are omitted.}
 
-\begin{lstlisting}
-object SiloRef {
-  def fromTextFile(host: Host)(file: File): SiloRef[List[String]] = ...
-  def fromFun[T](host: Host)(s: Spore[Unit, T]): SiloRef[T] = ...
-}
-\end{lstlisting}
+\subsection{Primitives}
+\label{sec:primitives}
 
-Each of the factory methods has a \verb|host| parameter that specifies the
-target host (address/port) on which to create the silo. Note that the
-\verb|fromFun| method takes a spore closure as an argument to make sure it can
-be serialized and sent to \verb|host|. In each case, the returned SiloRef
-contains its \verb|host| as well as an identifier that uniquely identifies its
-silo on the \verb|host|. To obtain this host-unique identifier, each factory
-method has to communicate with the target \verb|host|.
+There are four basic primitive operations on SiloRefs that together can be
+used to build the higher-order operations common to popular data-centric
+distributed systems (how to build these higher-order operations is described
+in Section~\ref{sec:higher-order-operations}). These primitives include:
 
-The type \verb|SiloRef[T]| has the following main operations:
+\begin{itemize}
+\item \verb|map|
+\item \verb|flatMap|
+\item \verb|send|
+\item \verb|cache|
+\end{itemize}
 
-\begin{lstlisting}
-trait SiloRef[T] {
-  def map[S](s: Spore[T, S]): SiloRef[S]
-  def flatMap[S](s: Spore[T, SiloRef[S]]): SiloRef[S]
-  def send(): Future[T]
-}
-\end{lstlisting}
-
+\paragraph{\verb|map|}
 The \verb|map| method takes a spore that is to be applied to the data in the
 silo of the receiver SiloRef. Rather than immediately sending the spore across
 the network, and waiting for the operation to finish, the \verb|map| method is
@@ -533,6 +519,7 @@ val persons: SiloRef[List[Person]] = ...
 val adults = persons.map(spore { ps => ps.filter(p => p.age >= 18) })
 \end{lstlisting}
 
+\paragraph{\verb|flatMap|}
 Like \verb|map|, the \verb|flatMap| method takes a spore that is to be applied
 to the data in the silo of the receiver SiloRef. However, the crucial
 difference is in the type of the spore argument whose result type is a SiloRef
@@ -605,6 +592,7 @@ of SiloRefs is that direct uses of \verb|map| enable an important optimization
 based on operation fusion. This optimization is explained following the
 discussion of the third main operation of SiloRefs, \verb|send|.
 
+\paragraph{\verb|send|}
 The final operation of SiloRefs is \verb|send|. It forces the lazy computation
 defined by the given SiloRef. Forcing is explicit in our model, because it
 requires sending the lineage to the remote node on which the result silo
@@ -628,6 +616,7 @@ def cache(): Future[Boolean] = this.flatMap(spore {
 }
 \end{lstlisting}
 
+\paragraph{\verb|cache|}
 The \verb|cache| method can be provided for convenience. It invokes
 \verb|send| not directly on the given SiloRef (which would transfer all data
 of the silo to the current node); instead, it first uses \verb|flatMap| to
@@ -636,11 +625,49 @@ Boolean constant) of the \verb|DoneSiloRef| singleton object. Essentially,
 invoking \verb|send| on this trivial SiloRef causes the resulting future to be
 completed as soon as \verb|this| SiloRef has been materialized in main memory.
 
+
+
+\subsection{Creating Silos}
+\label{sec:creating-silos}
+
+Besides a type definition for SiloRef, our framework also provides a companion
+singleton object (Scala's form of modules). The singleton object provides
+factory methods for obtaining SiloRefs referring to silos populated with some
+initial data:\footnote{The given code snippets are minimally simplified for
+clarity. No essential details are omitted.}
+
+\begin{lstlisting}
+object SiloRef {
+  def fromTextFile(host: Host)(file: File): SiloRef[List[String]] = ...
+  def fromFun[T](host: Host)(s: Spore[Unit, T]): SiloRef[T] = ...
+}
+\end{lstlisting}
+
+Each of the factory methods has a \verb|host| parameter that specifies the
+target host (address/port) on which to create the silo. Note that the
+\verb|fromFun| method takes a spore closure as an argument to make sure it can
+be serialized and sent to \verb|host|. In each case, the returned SiloRef
+contains its \verb|host| as well as an identifier that uniquely identifies its
+silo on the \verb|host|. To obtain this host-unique identifier, each factory
+method has to communicate with the target \verb|host|.
+
+The type \verb|SiloRef[T]| has the following main operations:
+
+\begin{lstlisting}
+trait SiloRef[T] {
+  def map[S](s: Spore[T, S]): SiloRef[S]
+  def flatMap[S](s: Spore[T, SiloRef[S]]): SiloRef[S]
+  def send(): Future[T]
+}
+\end{lstlisting}
+
+
 Nothing beats a video when something evolves in space in time, so we've also produced a short video to illustrate the model\footnote{\url{https://vimeo.com/120415626}}
 
 
-\subsection{Primitives}
-\label{sec:primitives}
+\section{Higher-Order Operations}
+\label{sec:higher-order-operations}
+
 
 \section{Related Work}
 
