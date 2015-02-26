@@ -283,6 +283,132 @@ This is the text of the abstract.
 
 \section{Introduction}
 
+
+Functional programming concepts are making inroads in hot up-and-coming
+frameworks for distributed computing and, dare we say it, ``big data.''
+Arguably, MapReduce was one of the first systems to pick up FP concepts,
+albeit outside the context of functional languages. More recent frameworks are
+now also leveraging classical functional language features, such as higher-
+order functions (e.g., Spark). This is a boon for mathematically-oriented data
+analytics and higher-order functions provide flexible abstraction mechanisms.
+However, to provide fault tolerance in the context of large-scale distributed
+computing, such frameworks for distribution are built atop of tall stacks of
+code which is typically imperative and untyped, losing most of the benefits
+enjoyed by the users of their high-level APIs. [What's more,] the benefits of
+FP, abstraction, composition, equational reasoning, are seemingly lost by
+engineers building these distributed systems.
+
+Fortunately, FP techniques are not only useful for designing good user-facing
+APIs. This paper presents a deep connection between the pillars of FP and one
+of the most important challenges of distributed computing: fault tolerance. To
+this end we present a new programming model for typed distributed functional
+programming. This model aims to:
+
+\begin{itemize}
+\item distill existing fault recovery mechanisms based on lineage to their essence.
+Importantly, this paper shows that there is a direct correspondence between
+the concept of lineage, as it is widely used in distributed systems, and well-known
+pillars of FP. Our distributed programming model is a consequent
+implementation of this correspondence, and demonstrates it in executable form
+in the context of an implementation in and for Scala.
+
+\item improve type-safety at the boundary of serialized and deserialized data.
+Importantly, the design and implementation of our programming model shows that
+even the layer in a distributed system that processes freshly deserialized
+data (typically, this layer sits right on top of the network communication
+layer) can not only be written in a strongly-typed way, but it can even
+leverage performance improvements due to type-specialized serialization.
+\end{itemize}
+
+Our programming model is centered around a new distributed persistent data
+structure, the silo. A silo is a typed container for a single (immutable)
+value. A silo is ``stationary''; it is never moved away from the host on which
+it was created. Computations on silos are expressed using SiloRefs, proxy
+objects representing remote silos. The primary means to operate on a silo is
+by passing a serializable closure to it using a SiloRef. SiloRefs provide both
+a standard monadic interface and data-flow combinators based on single
+assignment.
+
+To ensure safe and efficient distribution of closures, our model leverages
+both syntactic and type-based restrictions. For instance, closures sent to
+remote silos are required to conform to the restrictions imposed by the so-called
+``spore'' abstraction~\cite{Spores}. Among others, the syntax and
+static semantics of spores guarantees the absence of runtime serialization
+errors due to closure environments that are not serializable.
+
+The specific technical contributions of this paper are:
+
+\begin{itemize}
+\item A new programming model for functional processing of distributed data. By
+leveraging safe serializable closures, it prevents common usage errors of
+other widely-used data analytics stacks.
+
+\item A new model of lineage-based fault recovery based on typed FP. Our approach
+extends the capabilities of existing implementations by supporting type-specialized,
+statically-generated serializers even in the context of
+existentially-quantified types.
+
+\item A complete, distributed implementation of the model in Scala.
+
+\item A validation of spores in the context of distributed programming.
+
+\item Self-describing pickles?
+
+\item An experimental evaluation.
+\end{itemize}
+
+
+\section{Overview of Model}
+
+The best way to quickly visualize the F-P model is to think in terms of a
+persistent functional data structure with structural sharing. Then, rather
+than containing pure data, imagine instead that the structure represents a
+directed acyclic graph (DAG) of transformations on distributed data.
+
+Importantly, since this DAG of computations is a persistent data structure
+itself, it is safe to exchange (copies of) subgraphs of a DAG between remote
+nodes. This enables a robust and easy-to-reason-about model of fault
+tolerance. We call subgraphs of a DAG lineages; lineages enable restoring the
+data of failed nodes through re-applying the transformations represented by
+their DAG. This sequence of applications must begin with data available from
+stable storage.
+
+Central to our model is the careful use of laziness. Computations on
+distributed data are never executed eagerly; instead, applying a function to
+distributed data just creates an immutable lineage. To obtain the result of a
+computation, it is necessary to force its lineage. Within our programming
+model, this force operation makes network communication (and thus
+possibilities for latency) explicit, which is considered to be a strength when
+designing distributed systems~\cite{ANoteDistComp}. Deferred evaluation also
+enables optimizing distributed computations through operation fusion, which
+avoids the creation of unnecessary intermediate data structures. This kind of
+optimization is particularly important and effective in distributed
+systems~\cite{FlumeJava}.
+
+{\bf For these reasons, we believe that laziness should be viewed as an enabler in
+the design of distributed systems.}
+
+The F-P model consists of three main components:
+\begin{itemize}
+  \item {\bf Silos:} stationary typed data containers.
+  \item {\bf SiloRefs:} references to local or remote Silos.
+  \item {\bf Spores:} safe, serializable functions.
+\end{itemize}
+
+\paragraph{Silos}
+A silo is a typed data container. It is stationary in the sense that it does
+not move between machines -- it remains on the machine where it was created.
+Data stored in a silo is typically loaded from stable storage, such as a
+distributed file system. A program operating on data stored in a silo can only
+do so using a reference to the silo, a \verb|SiloRef|.
+
+
+
+
+\section{Old}
+
+\subsection{Old Intro}
+
 % From the ivory tower, it may not be evident,
 % It might not seem this way from the ivory tower,
 % but
@@ -319,14 +445,6 @@ success of popular Spark can be attributed to functional ideas.
 However, beyond Spark's interface, .
 
 We refer to the model as {\em function-passing}, and .
-
-
-
-
-
-
-
-
 
 
 We design a programming model in such a way that we can ``maximize'' static
