@@ -226,9 +226,10 @@
 \newcommand{\weakexpand}{\prec}
 \newcommand{\spcomma}{~,~}
 
-\makeatletter
-\def\@copyrightspace{\relax}
-\makeatother
+% hide the copyright box
+% \makeatletter
+% \def\@copyrightspace{\relax}
+% \makeatother
 
 
 \begin{document}
@@ -237,10 +238,10 @@
 \setlength{\pdfpageheight}{\paperheight}
 \setlength{\pdfpagewidth}{\paperwidth}
 
-% \conferenceinfo{CONF 'yy}{Month d--d, 20yy, City, ST, Country}
-% \copyrightyear{20yy}
-% \copyrightdata{978-1-nnnn-nnnn-n/yy/mm}
-% \doi{nnnnnnn.nnnnnnn}
+\conferenceinfo{CONF 'yy}{Month d--d, 20yy, City, ST, Country}
+\copyrightyear{20yy}
+\copyrightdata{978-1-nnnn-nnnn-n/yy/mm}
+\doi{nnnnnnn.nnnnnnn}
 
 % Uncomment one of the following two, if you are not going for the
 % traditional copyright transfer agreement.
@@ -272,15 +273,15 @@
 This is the text of the abstract.
 \end{abstract}
 
-% \category{CR-number}{subcategory}{third-level}
+\category{D.3.3}{Programming Languages}{Language Constructs and Features}
 
 % general terms are not compulsory anymore,
 % you may leave them out
-% \terms
-% term1, term2
+\terms
+Languages, Design
 
-% \keywords
-% keyword1, keyword2
+\keywords
+programming languages, functional programming, distributed programming, serialization, types, Scala
 
 \section{Introduction}
 
