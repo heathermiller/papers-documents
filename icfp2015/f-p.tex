@@ -373,6 +373,10 @@ existentially-quantified types.
 
 Closely related work here.
 
+Structure. Our approach is to describe our model from a high level,
+elaborating upon key concepts. While focusing on .. over time. We then proceed
+to zoom in and make precise each component of our model in Sections~\ref{}.
+
 \section{Overview of Model}
 
 The best way to quickly visualize the F-P model is to think in terms of a
@@ -410,12 +414,13 @@ the design of distributed systems.
 \begin{center}\noindent\rule{8cm}{0.4pt}\end{center}
 \vspace{1mm}
 
-The F-P model consists of three main components:
+\noindent The F-P model consists of three main components:
 \begin{itemize}
   \item {\bf Silos:} stationary typed data containers.
   \item {\bf SiloRefs:} references to local or remote Silos.
   \item {\bf Spores:} safe, serializable functions.
 \end{itemize}
+\vspace{1mm}
 
 \paragraph{Silos}
 A silo is a typed data container. It is stationary in the sense that it does
@@ -448,12 +453,42 @@ types that closures can capture.
 
 \subsection{Basic Usage}
 
-The only way to interact with silos is through the use of SiloRefs. Besides a
-type definition for SiloRef, our framework also provides a companion singleton
-object (Scala's form of modules). The singleton object provides factory
-methods for obtaining SiloRefs referring to silos populated with some initial
-data:\footnote{The given code snippets are minimally simplified for clarity.
-No essential details are omitted.}
+\begin{figure}[th!]
+\includegraphics[width=\columnwidth]{basic-diagram.pdf}
+\caption{Basic model.}\label{fig:basic-diagram}
+\end{figure}
+
+The only way to interact with silos is through the use of SiloRefs. A SiloRef
+can be thought of as an immutable handle to the remote data contained within a
+corresponding silo. Users interact with this distributed data by applying
+functions to SiloRefs, which are later applied to the data within the
+corresponding silo. As is the case for persistent data structures, when a
+function is applied to a piece of distributed data via a SiloRef, a new
+SiloRef representing the transformed data is returned.
+
+The simplest illustration is shown in Figure~\ref{fig:basic-diagram} (time
+flows vertically from top to bottom). Here, we start with a \verb|SiloRef[T]|
+which points to a piece of remote data contained within a \verb|Silo[T]|. When
+the function shown as $\lambda$ of type $T \Rightarrow S$ is applied to
+\verb|SiloRef[T]| and ``forced'' (sent over the wire), a new SiloRef of type
+\verb|SiloRef[S]| is immediately returned. Note that \verb|SiloRef[S]|
+contains a reference to its parent SiloRef, \verb|SiloRef[T]| (This is how
+{\em lineages} are constructed). Meanwhile, the function asynchronously
+travels over the network and is applied to \verb|Silo[T]|, eventually
+producing a new \verb|Silo[S]| containing the data transformed by function
+$\lambda$. This new SiloRef \verb|SiloRef[S]| can be used even before its
+corresponding silo is materialized (\ie before the data in \verb|Silo[S]| is
+computed) – the F-P framework queues up operations applied to
+\verb|SiloRef[S]| and applies them when \verb|Silo[S]| is fully materialized.
+
+Complicated DAGs can be created this way.
+
+\paragraph{Creating Silos}
+Besides a type definition for SiloRef, our framework also provides a companion
+singleton object (Scala's form of modules). The singleton object provides
+factory methods for obtaining SiloRefs referring to silos populated with some
+initial data:\footnote{The given code snippets are minimally simplified for
+clarity. No essential details are omitted.}
 
 \begin{lstlisting}
 object SiloRef {
@@ -599,13 +634,6 @@ create a new silo that will be completed with the trivial value (e.g., a
 Boolean constant) of the \verb|DoneSiloRef| singleton object. Essentially,
 invoking \verb|send| on this trivial SiloRef causes the resulting future to be
 completed as soon as \verb|this| SiloRef has been materialized in main memory.
-
-
-\begin{figure}[ht!]
-\includegraphics[width=\columnwidth]{basic-diagram.pdf}
-\caption{Basic model.}\label{fig:basic-diagram}
-\end{figure}
-
 
 Nothing beats a video when something evolves in space in time, so we've also produced a short video to illustrate the model\footnote{\url{https://vimeo.com/120415626}}
 
