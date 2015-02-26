@@ -466,20 +466,21 @@ corresponding silo. As is the case for persistent data structures, when a
 function is applied to a piece of distributed data via a SiloRef, a new
 SiloRef representing the transformed data is returned.
 
-The simplest illustration is shown in Figure~\ref{fig:basic-diagram} (time
-flows vertically from top to bottom). Here, we start with a \verb|SiloRef[T]|
-which points to a piece of remote data contained within a \verb|Silo[T]|. When
-the function shown as $\lambda$ of type $T \Rightarrow S$ is applied to
-\verb|SiloRef[T]| and ``forced'' (sent over the wire), a new SiloRef of type
-\verb|SiloRef[S]| is immediately returned. Note that \verb|SiloRef[S]|
-contains a reference to its parent SiloRef, \verb|SiloRef[T]| (This is how
-{\em lineages} are constructed). Meanwhile, the function asynchronously
-travels over the network and is applied to \verb|Silo[T]|, eventually
-producing a new \verb|Silo[S]| containing the data transformed by function
-$\lambda$. This new SiloRef \verb|SiloRef[S]| can be used even before its
-corresponding silo is materialized (\ie before the data in \verb|Silo[S]| is
-computed) – the F-P framework queues up operations applied to
-\verb|SiloRef[S]| and applies them when \verb|Silo[S]| is fully materialized.
+The simplest illustration of the model is shown in Figure~\ref{fig:basic-diagram}
+(time flows vertically from top to bottom). Here, we start with a
+\verb|SiloRef[T]| which points to a piece of remote data contained within a
+\verb|Silo[T]|. When the function shown as $\lambda$ of type $T \Rightarrow S$
+is applied to \verb|SiloRef[T]| and ``forced'' (sent over the wire), a new
+SiloRef of type \verb|SiloRef[S]| is immediately returned. Note that
+\verb|SiloRef[S]| contains a reference to its parent SiloRef,
+\verb|SiloRef[T]| (This is how {\em lineages} are constructed). Meanwhile, the
+function asynchronously travels over the network and is applied to
+\verb|Silo[T]|, eventually producing a new \verb|Silo[S]| containing the data
+transformed by function $\lambda$. This new SiloRef \verb|SiloRef[S]| can be
+used even before its corresponding silo is materialized (\ie before the data
+in \verb|Silo[S]| is computed) – the F-P framework queues up operations
+applied to \verb|SiloRef[S]| and applies them when \verb|Silo[S]| is fully
+materialized.
 
 Complicated DAGs can be created this way.
 
