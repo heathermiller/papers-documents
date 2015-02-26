@@ -20,7 +20,7 @@
 %-----------------------------------------------------------------------------
 
 
-\documentclass{sigplanconf}
+\documentclass[preprint]{sigplanconf}
 
 % The following \documentclass options may be useful:
 
@@ -47,6 +47,7 @@
 
 \usepackage{csquotes}
 \usepackage{enumitem}
+\usepackage{todonotes}
 
 % \usepackage{bcprules}
 % \usepackage{prooftree}
@@ -105,7 +106,6 @@
 \newcommand{\ifreport}[1]{#1}
 %\newcommand{\ifreport}[1]{}
 
-\newcommand{\todo}{{\bf \colorbox{red}{\color{white}TODO:}}}
 \newcommand{\ie}{{\em i.e.,~}}
 \newcommand{\eg}{{\em e.g.,~}}
 \newcommand{\term}[1]{\mbox{\texttt{#1}}}
@@ -269,7 +269,8 @@
 % \titlebanner{banner above paper title}        % These are ignored unless
 % \preprintfooter{short description of paper}   % 'preprint' option specified.
 
-\title{Function-Passing Style: A Functional Model of Concurrent Computation for Distributed Systems}
+% \title{Function-Passing Style: A Functional Model of Concurrent Computation for Distributed Systems}
+\title{Function-Passing Style: A Model for Typed, Distributed Functional Programming}
 % \title{Function-Passing Style: Typed, Distributed Functional Programming}
 % \subtitle{Subtitle Text, if any}
 
@@ -399,16 +400,18 @@ their DAG. This sequence of applications must begin with data available from
 stable storage.
 
 Central to our model is the careful use of laziness. Computations on
-distributed data are never executed eagerly; instead, applying a function to
-distributed data just creates an immutable lineage. To obtain the result of a
-computation, it is necessary to force its lineage. Within our programming
-model, this force operation makes network communication (and thus
+distributed data are typically not executed eagerly; instead, applying a
+function to distributed data just creates an immutable lineage. To obtain the
+result of a computation, it is necessary to first ``kick off'' computation, or
+to force its lineage. Within our programming model, this force
+operation\todo{which force operation?} makes network communication (and thus
 possibilities for latency) explicit, which is considered to be a strength when
 designing distributed systems~\cite{ANoteDistComp}. Deferred evaluation also
 enables optimizing distributed computations through operation fusion, which
-avoids the creation of unnecessary intermediate data structures. This kind of
-optimization is particularly important and effective in distributed
-systems~\cite{FlumeJava}.
+avoids the creation of unnecessary intermediate data structures--this is
+efficient in time as well as space. This kind of optimization is particularly
+important and effective in distributed systems~\cite{FlumeJava}.\todo{What
+does this have to do with FlumeJava?}
 
 \vspace{-3mm}
 \begin{center}\noindent\rule{8cm}{0.4pt}\end{center}
@@ -451,11 +454,54 @@ enables accessing the contents of (local or remote) silos from within remote
 computations. We illustrate these primitives in more detail in Section~\ref{sec:primitives}.
 
 \paragraph{Spores}
-Spores are safe closures that are guaranteed to be serializable and thus
-distributable (presented in previous work~\cite{Spores}). They  are a closure-
-like abstraction and type system which gives authors of distributed frameworks
-a principled way of controlling the environment, such as by controlling the
-types that closures can capture.
+
+Spores~\cite{Spores} are safe closures that are guaranteed to be serializable
+and thus distributable. They are a closure-like abstraction and type system
+which gives authors of distributed frameworks a principled way of controlling
+the environment which a closure (provided by client code) can capture. This is
+achieved by (a) enforcing a specific syntactic shape which dictates how the
+environment of a spore is declared, and (b) providing additional type-checking
+to ensure that types being captured have certain properties.
+
+\vspace{3mm}
+\noindent A spore consists of two parts:
+
+\begin{itemize}[noitemsep]
+\item {\bf the spore header}, composed of a list of value definitions.
+\item {\bf the spore body} (sometimes referred to as the “spore closure”), a regular closure.
+\end{itemize}
+
+\noindent This shape is illustrated below.
+
+\vspace{-1mm}
+\begin{figure}[h!]
+\centering\includegraphics[width=0.75\columnwidth]{spore-shape.pdf}
+\end{figure}
+\vspace{-1mm}
+
+The characteristic property of a spore is that the spore body is only allowed
+to access its parameter, the values in the spore header, as well as top-level
+singleton objects (Scala's form of modules). The spore closure is not allowed
+to capture variables other than those declared in the spore header (\ie a
+spore may not capture variables in the environment). By enforcing this shape,
+the environment of a spore is always declared explicitly in the spore header,
+which avoids accidentally capturing problematic references. Moreover,
+importantly for object-oriented languages like Scala, it's no longer possible
+to accidentally capture the \verb|this| reference.
+
+Spores also come with additional type-checking. Type information corresponding
+to captured variables are included in the type of a spore. This enables
+authors of distributed frameworks to customize type-checking of spores to, for
+example, {\em exclude} a certain type from being captured by user-provided
+spores. Authors of distributed frameworks may kick on this type-checking by
+simply including information about excluded types (or other type-based
+properties) in the signature of a method. A concrete example would be to
+ensure that the \verb|map| method on \verb|RDD|s in Spark to accept only
+spores which do not capture \verb|SparkContext| (a non-serializable internal
+framework class).
+
+For a deeper understanding, see either Appendix~\ref{appendix:spores} which
+covers the semantics of spores or the corresponding publication~\cite{Spores}.
 
 \begin{figure}[t!]
 \includegraphics[width=\columnwidth]{basic-diagram.pdf}
@@ -867,8 +913,9 @@ for babyspark then the interpolation will be much more precise.
 Adapt this model for streaming computation. This would take coming up with a
 solution to null out references in the {\em lineage}. This would make it possible to instantiate and populate new silos to handle incoming data.
 
-% \appendix
-% \section{Appendix Title}
+\appendix
+\section{Spores}
+\label{appendix:spores}
 
 % This is the text of the appendix, if you need one.
 
