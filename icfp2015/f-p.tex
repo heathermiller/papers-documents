@@ -305,12 +305,16 @@ albeit outside the context of functional languages. More recent frameworks are
 now also leveraging classical functional language features, such as higher-
 order functions (e.g., Spark). This is a boon for mathematically-oriented data
 analytics and higher-order functions provide flexible abstraction mechanisms.
+
 However, to provide fault tolerance in the context of large-scale distributed
 computing, such frameworks for distribution are built atop of tall stacks of
 code which is typically imperative and untyped, losing most of the benefits
 enjoyed by the users of their high-level APIs. [What's more,] the benefits of
 FP, abstraction, composition, equational reasoning, are seemingly lost by
-engineers building these distributed systems.
+engineers building these distributed systems. What makes this problem even
+worse is the fact that coordinating between data shards and doing that in a
+way that is easy to reason about is the wheel that every data-centric
+distributed system keeps reinventing.
 
 Fortunately, FP techniques are not only useful for designing good user-facing
 APIs. This paper presents a deep connection between the pillars of FP and one
@@ -665,6 +669,24 @@ trait SiloRef[T] {
 
 
 Nothing beats a video when something evolves in space in time, so we've also produced a short video to illustrate the model\footnote{\url{https://vimeo.com/120415626}}
+
+
+\subsection{Fault Handling}
+\label{sec:fault-handling}
+
+Besides the primitives discussed so far, the programming model includes
+overloaded variants that enable the definition of flexible fault handling
+semantics. The main principle is to specify fault handlers for \emph{subgraphs
+of computation DAGs}.
+
+The main principle is to allow code interacting with a SiloRef to
+respond to a failure of the corresponding silo. We say that a silo has failed
+if its host node has become unreachable or unresponsive. In our model,
+failures are detected \emph{lazily} whenever an operation involving a failed
+silo is attempted to be completed. For example, calling \verb|send| on a
+SiloRef pointing to a failed silo would lead to the detection of a failure.
+
+The definition of fault handling
 
 
 \section{Higher-Order Operations}
