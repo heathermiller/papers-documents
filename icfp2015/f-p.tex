@@ -527,18 +527,18 @@ is applied to \verb|SiloRef[T]| and ``forced'' (sent over the wire), a new
 SiloRef of type \verb|SiloRef[S]| is immediately returned. Note that
 \verb|SiloRef[S]| contains a reference to its parent SiloRef,
 \verb|SiloRef[T]| (This is how {\em lineages} are constructed). Meanwhile, the
-function asynchronously travels over the network and is applied to
+function is asynchronously sent over the wire and is applied to
 \verb|Silo[T]|, eventually producing a new \verb|Silo[S]| containing the data
-transformed by function $\lambda$. This new SiloRef \verb|SiloRef[S]| can be
+transformed by function $\lambda$. This new \verb|SiloRef[S]| can be
 used even before its corresponding silo is materialized (\ie before the data
 in \verb|Silo[S]| is computed) – the F-P framework queues up operations
 applied to \verb|SiloRef[S]| and applies them when \verb|Silo[S]| is fully
 materialized.
 
 Several vastly different sorts of complicated DAGs can be asynchronously built
-up this way. To do this, however, we need to develop a clearer idea of the
-semantics of the primitive operations available on SiloRefs. We describe these
-in the following section.
+up this way. Though first, to see how this is possible, we need to develop a
+clearer idea primitive operations available on SiloRefs and their semantics.
+We describe these in the following section.
 
 
 \subsection{Primitives}
@@ -782,6 +782,62 @@ thus, in case \verb|vehicles| has failed, the computation is retried using
 \section{Higher-Order Operations}
 \label{sec:higher-order-operations}
 
+Operations on distributed collections\todo{somehow mention Spark here so it's
+clear what a dist coll is.}~such as \verb|union|, \verb|groupByKey|, or
+\verb|join|, involve multiple data sets, possibly located on different nodes.
+In the following we explain how such operations can be expressed using the
+introduced primitives.
+
+\paragraph{union}
+The union of two unordered collections stored in two different silos can be
+expressed directly using the above \verb|flatMap| primitive.
+
+\paragraph{join}
+Suppose we are given two silos with the following types:
+
+\begin{lstlisting}
+val silo1: SiloRef[List[A]]
+val silo2: SiloRef[List[B]]
+\end{lstlisting}
+
+\noindent as well as two hash functions computing hashes for elements of
+type \verb|A| and \verb|B|, respectively:
+
+\begin{lstlisting}
+val hashA: A => K = ...
+val hashB: B => K = ...
+\end{lstlisting}
+
+The goal is to compute the hash-join of \verb|silo1| and \verb|silo2|:
+
+\begin{lstlisting}
+val hashJoin: SiloRef[List[(K, (A, B))]] = ???
+\end{lstlisting}
+
+To be able to use \verb|flatMap|, the types of the two silos first have to be
+made equal, through initial \verb|map| invocations:
+
+
+\begin{lstlisting}
+val silo12: SiloRef[List[(K, Option[A], Option[B])] =
+      silo1.map { x => (hashA(x), Some(x), None) }
+val silo22: SiloRef[List[(K, Option[A], Option[B])] =
+      silo2.map { x => (hashB(x), None, Some(x)) }
+\end{lstlisting}
+
+Then, we can use \verb|flatMap| to create a new silo (at some destination
+place), which contains the elements of both \verb|silo12| and \verb|silo22|:
+
+\begin{lstlisting}
+val combined = SiloRef.flatMap(destPlace, silo12, silo22,
+                              (elem, emitter) => emitter.emit(elem),
+                              listBuilderFactory[...])
+\end{lstlisting}
+
+The combined silo contains triples of type \verb|(K, Option[A], Option[B])|.
+Using an additional \verb|map|, the collection can be sorted by key, and adjacent
+triples be combined, yielding a
+\newline \verb|SiloRef[List[(K, (A, B)| as required.
 
 \section{Related Work}
 
