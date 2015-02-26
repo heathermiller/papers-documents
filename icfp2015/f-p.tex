@@ -45,6 +45,8 @@
 \usepackage{caption}
 \usepackage{subcaption}
 
+\usepackage{csquotes}
+
 % \usepackage{bcprules}
 % \usepackage{prooftree}
 \usepackage{multicol}
@@ -388,8 +390,15 @@ avoids the creation of unnecessary intermediate data structures. This kind of
 optimization is particularly important and effective in distributed
 systems~\cite{FlumeJava}.
 
-{\bf For these reasons, we believe that laziness should be viewed as an enabler in
-the design of distributed systems.}
+\vspace{-3mm}
+\begin{center}\noindent\rule{8cm}{0.4pt}\end{center}
+\begin{displayquote}
+For these reasons, we believe that laziness should be viewed as an enabler in
+the design of distributed systems.
+\end{displayquote}
+\vspace{-4mm}
+\begin{center}\noindent\rule{8cm}{0.4pt}\end{center}
+\vspace{1mm}
 
 The F-P model consists of three main components:
 \begin{itemize}
@@ -405,7 +414,64 @@ Data stored in a silo is typically loaded from stable storage, such as a
 distributed file system. A program operating on data stored in a silo can only
 do so using a reference to the silo, a \verb|SiloRef|.
 
+\paragraph{SiloRefs}
+Similar to a proxy object, a SiloRef represents, and allows interacting with,
+both local and remote silos. SiloRefs are immutable, storing identifiers to
+locate possibly remote silos. SiloRefs are also typed (\verb|SiloRef[T]|)
+corresponding to the type of their silo's data, leading to well-typed network
+communication. The SiloRef provides three primitive operations/combinators
+(some are lazy, some are not): map, flatMap, and send. map lazily applies a
+user-defined function to data pointed to by the SiloRef, creating in a new
+silo containing the result of this application. Like map, flatMap lazily
+applies a user-defined function to data pointed to by the SiloRef. Unlike map,
+the user-defined function passed to flatMap returns a SiloRef whose contents
+is transferred to the new silo returned by flatMap. Essentially, flatMap
+enables accessing the contents of (local or remote) silos from within remote
+computations. We illustrate these primitives in more detail in Section~\ref{sec:primitives}.
 
+\paragraph{Spores}
+Spores are safe closures that are guaranteed to be serializable and thus
+distributable (presented in previous work~\cite{Spores}). They  are a closure-
+like abstraction and type system which gives authors of distributed frameworks
+a principled way of controlling the environment, such as by controlling the
+types that closures can capture.
+
+\subsection{Basic Usage}
+
+The only way to interact with silos is through the use of SiloRefs. Besides a
+type definition for SiloRef, our framework also provides a companion singleton
+object (Scala's form of modules). The singleton object provides factory
+methods for obtaining SiloRefs referring to silos populated with some initial
+data:\footnote{The given code snippets are minimally simplified for clarity.
+No essential details are omitted.}
+
+\begin{lstlisting}
+object SiloRef {
+  def fromTextFile(host: Host)(file: File): SiloRef[List[String]] = ...
+  def fromFun[T](host: Host)(s: Spore[Unit, T]): SiloRef[T] = ...
+}
+\end{lstlisting}
+
+Each of the factory methods has a \verb|host| parameter that specifies the
+target host (address/port) on which to create the silo. Note that the
+\verb|fromFun| method takes a spore closure as an argument to make sure it can
+be serialized and sent to \verb|host|. In each case, the returned SiloRef
+contains its \verb|host| as well as an identifier that uniquely identifies its
+silo on the \verb|host|. To obtain this host-unique identifier, each factory
+method has to communicate with the target \verb|host|.
+
+
+\begin{figure}[ht!]
+\includegraphics[width=\columnwidth]{basic-diagram.pdf}
+\caption{Basic model.}\label{fig:basic-diagram}
+\end{figure}
+
+
+Nothing beats a video when something evolves in space in time, so we've also produced a short video to illustrate the model\footnote{\url{https://vimeo.com/120415626}}
+
+
+\subsection{Primitives}
+\label{sec:primitives}
 
 \section{Related Work}
 
@@ -504,18 +570,6 @@ Illustrations to have:
 \item nice figure
 \item organic evolving model on youtube
 \end{enumerate}
-
-\subsection{Model}
-
-This is the basic model.
-
-\begin{figure}[ht!]
-\includegraphics[width=\columnwidth]{basic-diagram.pdf}
-\caption{Basic model.}\label{fig:basic-diagram}
-\end{figure}
-
-
-Nothing beats a video when something evolves in space in time, so we've also produced a short video to illustrate the model\footnote{\url{https://vimeo.com/120415626}}
 
 \subsection{Evaluation}
 
