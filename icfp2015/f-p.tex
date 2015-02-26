@@ -343,9 +343,9 @@ structure, the silo. A silo is a typed container for a single (immutable)
 value. A silo is ``stationary''; it is never moved away from the host on which
 it was created. Computations on silos are expressed using SiloRefs, proxy
 objects representing remote silos. The primary means to operate on a silo is
-by passing a serializable closure to it using a SiloRef. SiloRefs provide both
-a standard monadic interface and data-flow combinators based on single
-assignment.
+by passing a serializable closure to it using a SiloRef. SiloRefs provide a
+standard monadic interface as well as primitives for defining flexible fault
+handling strategies.
 
 To ensure safe and efficient distribution of closures, our model leverages
 both syntactic and type-based restrictions. For instance, closures sent to
