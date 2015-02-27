@@ -298,16 +298,16 @@ substrate on which to build data-centric distributed systems. A key idea is to
 pass safe, well-typed serializable functions to immutable distributed data.
 The F-P model itself can be thought of as a distributed persistent functional
 data structure, which stores in its nodes transformations to data rather than
-the distributed data itself. Thus making it easier by design to recover from
-failures--just replay function applications atop of immutable data from
-persistent storage. Lazy evaluation is also central to our model; by carefully
-incorporating laziness into our design (only at the point of initiating
-network communication), our model remains easy to reason about while remaining
-efficient in time and memory. We formalize our programming model in the form
-of a small-step operational semantics which includes a precise specification
-of the semantics of functional fault recovery. We implement our model in and
-for the Scala programming language, and provide a small evaluation of the
-efficiency of our implementation of the model.
+the distributed data itself.  Thus, the model simplifies failure recovery by
+design--data is recovered by replaying function applications atop immutable
+data loaded from stable storage. Lazy evaluation is also central to our model;
+by carefully incorporating laziness into our design (only at the point of
+initiating network communication), our model remains easy to reason about
+while remaining efficient in time and memory. We formalize our programming
+model in the form of a small-step operational semantics which includes a
+precise specification of the semantics of functional fault recovery. We
+implement our model in and for the Scala programming language, and provide a
+small evaluation of the efficiency of our implementation of the model.
 
 % (F-P), designed to bring a bit of order to this disarray. F-P aims to provide a more
 
