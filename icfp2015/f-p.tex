@@ -963,9 +963,11 @@ t ::=     x                                 & \mbox{variable}
 \\
 \gap ~|~  \texttt{send}(r)                  & \mbox{send}
 \\
-\gap ~|~  \texttt{await}(\iota)             & \mbox{await location}
+\gap ~|~  \texttt{await}(\iota)             & \mbox{await future}
 \\
 \gap ~|~  r                                 & \mbox{SiloRef}
+\\
+\gap ~|~  \iota                             & \mbox{future}
 \\
  & \\
 v ::=     (x: T) \Rightarrow t              & \mbox{abstraction}
@@ -975,6 +977,8 @@ v ::=     (x: T) \Rightarrow t              & \mbox{abstraction}
 \gap ~|~  p                                 & \mbox{spore value}
 \\
 \gap ~|~  r                                 & \mbox{SiloRef}
+\\
+\gap ~|~  \iota                             & \mbox{future}
 \\
  & \\
 p ::=     \texttt{spore}~\{~\seq{x : T = v}~; (x: T) \Rightarrow t~\}  & \mbox{spore value}
@@ -996,7 +1000,7 @@ T ::=     T \Rightarrow T                   & \mbox{function type} \\
   \vspace{1mm}
 \end{figure}
 
-We formalize our programming model in the context of a standard, typed lambda calculus with records. Figure~\ref{fig:syntax} shows the syntax of our core language. Terms are standard except for the \texttt{spore}, \texttt{map}, \texttt{flatMap}, \texttt{send}, and \texttt{await} terms. A \texttt{spore} term creates a new spore. It contains a list of variable definitions (the spore header) and the spore's closure. The \texttt{map}, \texttt{flatMap}, and \texttt{send} primitives have been discussed earlier. A \texttt{send} term is immediately reduced to an \texttt{await} term, which suspends reduction until the value of the silo at location $\iota$ is available (see below).
+We formalize our programming model in the context of a standard, typed lambda calculus with records. Figure~\ref{fig:syntax} shows the syntax of our core language. Terms are standard except for the \texttt{spore}, \texttt{map}, \texttt{flatMap}, \texttt{send}, and \texttt{await} terms. A \texttt{spore} term creates a new spore. It contains a list of variable definitions (the spore header) and the spore's closure. A term $\texttt{await}(\iota)$ blocks execution until the future $\iota$ has been completed asynchronously. The \texttt{map}, \texttt{flatMap}, and \texttt{send} primitives have been discussed earlier.
 
 
 \subsection{Operational semantics}\label{sec:opsem}
@@ -1097,14 +1101,14 @@ The key principles of the fault handling mechanism are:
 \inferrule[\textsc{R-Res}]
 { E = \text{Res}(\iota, v) \texttt{::} E' \quad S' = S + (\iota \mapsto v)
 }
-{ (R[\texttt{await}(i_f)], E, S)^h \longrightarrow (R[\texttt{await}(i_f)], E', S')^h }
+{ (R[\texttt{await}(\iota_f)], E, S)^h \longrightarrow (R[\texttt{await}(\iota_f)], E', S')^h }
 
 \inferrule[\textsc{R-ReqLocal}]
 { E = \text{Req}(h', r, \iota'') \texttt{::} E' \quad r = \text{Mapped}(\iota, h, r', p) \quad r' \neq \text{Mat}(\iota_s) \quad S(\iota) = \text{None} \\
   loc(r') = \iota' \quad S(\iota') = \text{None} \\
   E'' = \text{Req}(h, r', \iota') \texttt{::} E
 }
-{ (R[\texttt{await}(P(i_f))], E, S)^h \rightarrow (R[\texttt{await}(P(i_f))], E'', S)^h
+{ (R[\texttt{await}(\iota_f)], E, S)^h \rightarrow (R[\texttt{await}(\iota_f)], E'', S)^h
 }
 
 \end{mathpar}
@@ -1124,7 +1128,7 @@ The key principles of the fault handling mechanism are:
 { host(r) = h' \quad h' \neq h \quad i~\text{fresh} \\
   \iota = (h, i) \quad m = \text{Req}(h, r, \iota)
 }
-{ \{ (R[\texttt{send}(r)], E, S)^h, (t, E', S')^{h'} \} \cup H \rightarrow \{ (R[\texttt{await}(\iota)], E, S)^h, (t, E' \cdot m, S')^{h'} \} \cup H
+{ \{ (R[\texttt{send}(r)], E, S)^h, (t, E', S')^{h'} \} \cup H \rightarrow \{ (R[\iota], E, S)^h, (t, E' \cdot m, S')^{h'} \} \cup H
 }
 
 \inferrule[\textsc{R-Req1}]
