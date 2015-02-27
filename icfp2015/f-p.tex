@@ -382,29 +382,32 @@ However, these frameworks are built atop of tall stacks of typically
 imperative and untyped code, losing most of the benefits enjoyed by the users
 of their high-level APIs. Consequently, concerns central to distributed
 systems such as concurrency and fault tolerance become more difficult to
-reason about and realize in practice. These problems manifest themselves in
-all layers of the stack, negatively affecting these systems' usage, maintenance,
-and optimization. Some such problems include:
+reason about and realize in practice. Yet other problems manifest themselves
+in all layers of the stack, surprising users and impacting ease-of-use,
+complicating maintenance, and losing opportunities for optimization.
+% Some such problems include:
 
 \begin{itemize}
 
-\item These systems' APIs cannot statically prevent {\em common usage errors}.
-As a result, users are often confronted with runtime errors that are hard to
-debug. A common example is unsafe closure serialization~\cite{Spores}.
+\item {\bf Complicated Ease of Use} These systems' APIs cannot statically
+prevent {\em common usage errors}. As a result, users are often confronted
+with runtime errors that are hard to debug. A common example is unsafe closure
+serialization~\cite{Spores}.
 
-\item Typically, only high-level user-facing abstractions are statically
+\item {\bf Complicated Maintenance} Typically, only high-level user-facing abstractions are statically
 typed.  The absence of static types in lower layers of the system makes
 maintenance tasks, such as code refactorings, more difficult.
 
-\item The absence of certain kinds of static type information precludes
-systems-centric optimizations. Importantly, type-based static meta-programming
-enables fast serialization~\cite{Pickling}, but this is only possible if also
-lower layers (namely those dealing with object serialization) are statically
-typed. Several studies~\cite{JavaSerialization, JavaRMI, MoreEfficientJavaRMI,
-Jaguar} report on the high overhead of serialization in widely-used runtime
-environments such as the JVM. This overhead is so important in practice that
-popular systems, like Spark~\cite{Spark} and Akka~\cite{Akka}, leverage
-alternative serialization frameworks such as Protocol Buffers~\cite{Protobuf}, Apache
+\item {\bf Lost Optimization Opportunities} The absence of certain kinds of
+static type information precludes systems-centric optimizations. Importantly,
+type-based static meta-programming enables fast serialization~\cite{Pickling},
+but this is only possible if also lower layers (namely those dealing with
+object serialization) are statically typed. Several
+studies~\cite{JavaSerialization, JavaRMI, MoreEfficientJavaRMI, Jaguar} report
+on the high overhead of serialization in widely-used runtime environments such
+as the JVM. This overhead is so important in practice that popular systems,
+like Spark~\cite{Spark} and Akka~\cite{Akka}, leverage alternative
+serialization frameworks such as Protocol Buffers~\cite{Protobuf}, Apache
 Avro~\cite{Avro}, or Kryo~\cite{Kryo}. \end{itemize}
 
 Yet frameworks that took the leap to invert their models to  are riddled with
