@@ -349,7 +349,7 @@ Serialization, Concurrency, Types, Scala
 
 It's difficult to deny that data-centric programming is growing in importance.
 At the same time, it's no secret that the most successful systems for
-programming with ``big data'' have all adopted {\em concepts} from functional
+programming with ``big data'' have all adopted ideas from functional
 programming; \ie programming with first-class functions and higher-order
 functions. These functional ideas are often touted to be the key to the
 success of these frameworks. It's not hard to imagine why--a functional,
@@ -357,14 +357,14 @@ declarative interface to data distributed over tens to thousands of nodes
 provides a more natural way for end-users and data scientists to reason about
 data.
 
-While leveraging functional programming concepts, popular implementations of
-the MapReduce~\cite{MapReduce} model, such as Hadoop MapReduce~\cite{Hadoop}
-for Java, have been developed without making use of functional language
-features such as closures. In contrast, a new generation of programming
-systems for large-scale data processing, such as Apache Spark~\cite{Spark},
-Twitter's Scalding~\cite{Scalding}, and Scoobi~\cite{Scoobi} build on
-functional language features from Scala in order to provide high-level,
-declarative APIs.
+While leveraging functional programming {\em concepts}, popular
+implementations of the MapReduce~\cite{MapReduce} model, such as Hadoop
+MapReduce~\cite{Hadoop} for Java, have been developed without making use of
+functional language features such as closures. In contrast, a new generation
+of programming systems for large-scale data processing, such as Apache
+Spark~\cite{Spark}, Twitter's Scalding~\cite{Scalding}, and
+Scoobi~\cite{Scoobi} build on functional language features in Scala in order
+to provide high-level, declarative APIs.
 
 % Spark~\cite{Spark}, MapReduce~\cite{MapReduce}, and Dryad~\cite{Dryad} are
 % just a few.
@@ -384,13 +384,13 @@ of their high-level APIs. Consequently, concerns central to distributed
 systems such as concurrency and fault tolerance become more difficult to
 reason about and realize in practice. These problems manifest themselves in
 all layers of the stack, negatively affecting these systems' usage, maintenance,
-and optimization. Some of these include:
+and optimization. Some such problems include:
 
 \begin{itemize}
 
-\item Their APIs cannot statically prevent {\em common usage errors}. As a
-result, users are often confronted with runtime errors that are hard to debug.
-A common example is unsafe closure serialization~\cite{Spores}.
+\item These systems' APIs cannot statically prevent {\em common usage errors}.
+As a result, users are often confronted with runtime errors that are hard to
+debug. A common example is unsafe closure serialization~\cite{Spores}.
 
 \item Typically, only high-level user-facing abstractions are statically
 typed.  The absence of static types in lower layers of the system makes
@@ -1316,7 +1316,55 @@ $r_f$ is requested in the same way as in the non-failure case
 \section{Related Work}
 \label{sec:related-work}
 
-Actors~\cite{Actors, ScalaActors}. Typed Actors~\cite{TypedActors}. MapReduce~\cite{MapReduce}. Spark~\cite{Spark}. Dryad~\cite{Dryad}. Session Types~\cite{SessionTypes}. Cloud Haskell~\cite{CloudHaskell}. Alice ML~\cite{AliceML}. Acute ML~\cite{AcuteML}. Type-safe distributed OCaml~\cite{DistOCaml}. AmbientTalk~\cite{AmbientTalk}. E Language~\cite{ELang}. Clojure's Agents~\cite{Clojure}. Thorn~\cite{Thorn}. Type-safe distributed programming in ML5 (Tom 7)~\cite{Tom7}
+Actors~\cite{Actors, ScalaActors}. Typed Actors~\cite{TypedActors}.
+
+The Clojure programming language proposes Agents~\cite{Clojure}--stationary
+mutable data containers that users apply functions to in order to update an
+agent's state. F-P, in contrast, proposes that data in stationary containers
+be immutable, and that transformations by function application form a
+persistent data structure. Further, Clojure's Agents are designed to manage
+state in a shared memory scenario, whereas F-P is designed with remote
+references for a distributed scenario.
+
+Cloud Haskell~\cite{CloudHaskell} leverages guaranteed-serializable, static
+closures for a message-passing communication model inspired by Erlang. In
+contrast, in our model spores are sent between passive, persistent silos.\todo{more here}
+Closures and continuations in Termite Scheme~\cite{TermiteScheme} are always
+serializable; references to non-serializable objects (like open files) are
+automatically wrapped in processes that are serialized as their process ID.
+Similar to Cloud Haskell, Termite is inspired by Erlang. In contrast to
+Termite, F-P is statically typed, enabling advanced type-based optimizations.
+In non-process-oriented models, parallel closures~\cite{ParallelClosures} and
+RiverTrail~\cite{RiverTrail} address important safety issues.\todo{more here}
+
+Alice ML~\cite{AliceML} is an extension of Standard ML which adds a number of
+important features for distributed programming \todo{more here}. The design
+leading up to F-P has incorporated many similar ideas, such as {type-safe},
+generic and platform-independent pickling. F-P differs however, in that it is
+a programming model rather than a language which focuses on sending functions
+to immutable data rather than remote invocation.
+
+Acute ML~\cite{AcuteML} propose.
+
+Other approaches such as type-safe distributed OCaml~\cite{DistOCaml}
+
+Other clean slate language designs have been proposed to broadly address
+issues related to distributed programming. Thorn~\cite{Thorn} was designed
+with concurrency and the need to interact with remote services in mind. Though
+a main design goal of Thorn is to evolve scripts into typed programs via
+gradual typing. F-P on the other hand is not a language, but a programming
+model, which is designed to inject types into distributed program from the
+get-go.
+
+F-P integrates a distributed, persistent data structure. Other prior work
+related to spores is discussed in~\cite{Spores}.
+
+Type-safe distributed programming in ML5 (Tom 7)~\cite{Tom7}
+
+MapReduce~\cite{MapReduce}. Spark~\cite{Spark}. Dryad~\cite{Dryad}. Session
+Types~\cite{SessionTypes}. AmbientTalk~\cite{AmbientTalk}. E
+Language~\cite{ELang}.
+
 
 
 \section{Conclusion and Future Work}
