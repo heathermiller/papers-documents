@@ -1053,9 +1053,9 @@ t ::=     x                                 & \mbox{variable}
 \\
 \gap ~|~  \texttt{spore}~\{~\seq{x : T = t}~; (x: T) \Rightarrow t~\}  & \mbox{spore}
 \\
-\gap ~|~  \texttt{map}(r, t, t)             & \mbox{map}
+\gap ~|~  \texttt{map}(r, t)                & \mbox{map}
 \\
-\gap ~|~  \texttt{flatMap}(r, t, t)         & \mbox{flatMap}
+\gap ~|~  \texttt{flatMap}(r, t[, t])       & \mbox{flatMap}
 \\
 \gap ~|~  \texttt{send}(r)                  & \mbox{send}
 \\
@@ -1110,14 +1110,14 @@ h \in Hosts &
 i \in \mathbb{N} &
 \\
  & \\
-\iota  ::=  (h, i)                             & \mbox{location}
+\iota  ::=  (h, i)                               & \mbox{location}
 \\
  & \\
 r ::=     \text{Mat}(\iota) & \mbox{materialized}
 \\
-\gap ~|~  \text{Mapped}(\iota, h, r, p, p_f)   & \mbox{lineage with \texttt{map}}
+\gap ~|~  \text{Mapped}(\iota, h, r, p)          & \mbox{lineage with \texttt{map}}
 \\
-\gap ~|~  \text{FMapped}(\iota, h, r, p, p_f)  & \mbox{lineage with \texttt{flatMap}}
+\gap ~|~  \text{FMapped}(\iota, h, r, p, opt_f)  & \mbox{lineage with \texttt{flatMap}}
 \\
  & \\
 E      ::=  \epsilon & \mbox{message queue}
@@ -1138,7 +1138,7 @@ In the following we give a small-step operational semantics of the primitives of
 
 \paragraph{Notation and conventions.} We write $S' = S + (\iota \mapsto v)$ to express the fact that $S'$ maps $\iota$ to $v$ and otherwise agrees with $S$. We write $S(\iota) = \text{Some}(v)$ to express the fact that $S$ maps $\iota$ to $v$. We write $S(\iota) = \text{None}$ if $S$ does not have a mapping for $\iota$. Reduction is defined using reduction contexts~\cite{TAPL}. We omit the definition of reduction contexts, since they are completely standard.
 
-\paragraph{Configurations.} The reduction rules of the deterministic layer define transitions of \emph{host configurations} $(t, E, S)^h$ of host $h$ where $t$ is a redex term, $E$ is a message queue, and $S$ is a store. The reduction rules of the non-deterministic layer define transitions of sets $H$ of host configurations. The reduced host configurations are chosen non-deterministically in order to express concurrency between hosts.
+\paragraph{Configurations.} The reduction rules of the deterministic layer define transitions of \emph{host configurations} $(t, E, S)^h$ of host $h$ where $t$ is a term, $E$ is a message queue, and $S$ is a silo store. The reduction rules of the non-deterministic layer define transitions of sets $H$ of host configurations. The reduced host configurations are chosen non-deterministically in order to express concurrency between hosts.
 
 \paragraph{Fault handling.} In the interest of clarity we present the reduction rules in two steps. In the first step we explain simplified rules without fault handling semantics (Sections~\ref{sec:det-layer} and~\ref{sec:nondet-layer}). In the second step we explain how these simplified rules have to be refined in order to support the fault handling principles of our model (Section~\ref{sec:faults-opsem}).
 
@@ -1167,15 +1167,15 @@ Reducing a term $\texttt{send}(r)$ appends a request $\text{Req}(h, r, \iota)$ t
 
 \inferrule[\textsc{R-Map}]
 { host(r) = h' \quad i~\text{fresh} \\
-  r' = \text{Mapped}((h, i), h', r, p, p_f)
+  r' = \text{Mapped}((h, i), h', r, p)
 }
-{ (R[\texttt{map}(r, p, p_f)], E, S)^h \longrightarrow (R[r'], E, S)^h }
+{ (R[\texttt{map}(r, p)], E, S)^h \longrightarrow (R[r'], E, S)^h }
 
 \inferrule[\textsc{R-FMap}]
 { host(r) = h' \quad i~\text{fresh} \\
-  r' = \text{FMapped}((h, i), h', r, p, p_f)
+  r' = \text{FMapped}((h, i), h', r, p, \text{None})
 }
-{ (R[\texttt{flatMap}(r, p, p_f)], E, S)^h \longrightarrow (R[r'], E, S)^h }
+{ (R[\texttt{flatMap}(r, p)], E, S)^h \longrightarrow (R[r'], E, S)^h }
 
 \inferrule[\textsc{R-Await}]
 { S(\iota) = \text{Some}(v)
@@ -1188,7 +1188,7 @@ Reducing a term $\texttt{send}(r)$ appends a request $\text{Req}(h, r, \iota)$ t
 { (R[\texttt{await}(\iota_f)], E, S)^h \longrightarrow (R[\texttt{await}(\iota_f)], E', S')^h }
 
 \inferrule[\textsc{R-ReqLocal}]
-{ E = \text{Req}(h', r, \iota'') \texttt{::} E' \quad r = \text{Mapped}(\iota, h, r', p, p_f) \quad r' \neq \text{Mat}(\iota_s) \quad S(\iota) = \text{None} \\
+{ E = \text{Req}(h', r, \iota'') \texttt{::} E' \quad r = \text{Mapped}(\iota, h, r', p) \quad r' \neq \text{Mat}(\iota_s) \quad S(\iota) = \text{None} \\
   loc(r') = \iota' \quad S(\iota') = \text{None} \\
   E'' = \text{Req}(h, r', \iota') \texttt{::} E
 }
@@ -1223,17 +1223,24 @@ Reducing a term $\texttt{send}(r)$ appends a request $\text{Req}(h, r, \iota)$ t
 }
 
 \inferrule[\textsc{R-Req2}]
-{ E = \text{Req}(h', r, \iota') \texttt{::} E' \quad r = \text{Mapped}(\iota, h, r', p, p_f) \quad r' = \text{Mat}(\iota_s) \quad S(\iota) = \text{None} \\
+{ E = \text{Req}(h', r, \iota') \texttt{::} E' \quad r = \text{Mapped}(\iota, h, r', p) \quad r' = \text{Mat}(\iota_s) \quad S(\iota) = \text{None} \\
   S(\iota_s) = \text{Some}(v) \quad p(v) = v' \quad S' = S + (\iota \mapsto v') \quad m = \text{Res}(\iota', v')
 }
 { \{ (R[\texttt{await}(\iota_f)], E, S)^h, (t, E'', S'')^{h'} \} \cup H \rightarrow \{ (R[\texttt{await}(\iota_f)], E', S')^h, (t, E'' \cdot m, S'')^{h'} \} \cup H
 }
 
 \inferrule[\textsc{R-Req3}]
-{ E = \text{Req}(h'', r, \iota'') \texttt{::} E'' \quad r = \text{FMapped}(\iota, h, \text{Mat}(\iota_s), p, p_f) \quad S(\iota) = \text{None} \\
-  S(\iota_s) = \text{Some}(v) \quad p(v) = r' \quad loc(r') = \iota' \quad S(\iota') = \text{None} \quad host(r') = h' \quad m = \text{Req}(h, r', \iota')
+{ E = \text{Req}(h'', r, \iota'') \texttt{::} E'' \quad r = \text{FMapped}(\iota, h, \text{Mat}(\iota_s), p, \text{None}) \quad S(\iota) = \text{None} \quad S(\iota_s) = \text{Some}(v) \\
+  \quad p(v) = r' \quad loc(r') = \iota' \quad S(\iota') = \text{None} \quad host(r') = h' \quad m = \text{Req}(h, r', \iota') \quad E''' = \text{Req}(h'', r', \iota'') \texttt{::} E''
 }
-{ \{ (R[\texttt{await}(\iota_f)], E, S)^h, (t, E', S')^{h'} \} \cup H \rightarrow \{ (R[\texttt{await}(\iota_f)], E'', S)^h, (t, E' \cdot m, S')^{h'} \} \cup H
+{ \{ (R[\texttt{await}(\iota_f)], E, S)^h, (t, E', S')^{h'} \} \cup H \rightarrow \{ (R[\texttt{await}(\iota_f)], E''', S)^h, (t, E' \cdot m, S')^{h'} \} \cup H
+}
+
+\inferrule[\textsc{R-Req4}]
+{ E = \text{Req}(h'', r, \iota'') \texttt{::} E'' \quad r = \text{FMapped}(\iota, h, \text{Mat}(\iota_s), p, \text{None}) \quad S(\iota) = \text{None} \quad S(\iota_s) = \text{Some}(v) \\
+  \quad p(v) = r' \quad loc(r') = \iota' \quad S(\iota') = \text{Some}(v') \quad S'' = S + (\iota \mapsto v') \quad m = \text{Res}(\iota'', v')
+}
+{ \{ (R[\texttt{await}(\iota_f)], E, S)^h, (t, E', S')^{h''} \} \cup H \rightarrow \{ (R[\texttt{await}(\iota_f)], E'', S'')^h, (t, E' \cdot m, S')^{h''} \} \cup H
 }
 
 \end{mathpar}
@@ -1270,11 +1277,26 @@ The key principles of the fault handling mechanism are:
 }
 
 \inferrule[\textsc{RF-Req4}]
-{ E = \text{Req}(h'', r, \iota'') \texttt{::} E'' \quad r = \text{FMapped}(\iota, h, \text{Mat}(\iota_s), p, p_f) \quad S(\iota) = \text{None} \\
-  S(\iota_s) = \text{Some}(v) \quad p(v) = r' \quad host(r') = h' \quad \text{failed}(h') \quad p_f(v) = r_f \quad host(r_f) = h_f \quad \not \text{failed}(h_f) \\
-  loc(r_f) = \iota_f \quad S(\iota_f) = \text{None} \quad m = \text{Req}(h, r_f, \iota_f)
+{ E = \text{Req}(h'', r, \iota'') \texttt{::} E'' \quad r = \text{FMapped}(\iota, h, r'', p, \text{Some}(p_f)) \quad S(\iota) = \text{None} \\
+  loc(r'') = \iota_s \quad S(\iota_s) = \text{Some}(v) \quad p(v) = r' \quad \text{failed}(host(r')) \quad p_f(v) = r_f \quad host(r_f) = h_f \quad \lnot \text{failed}(h_f) \\
+  loc(r_f) = \iota_f \quad S(\iota_f) = \text{None} \quad m = \text{Req}(h, r_f, \iota_f) \quad E''' = \text{Req}(h'', r_f, \iota'') \texttt{::} E''
 }
-{ \{ (R[\texttt{await}(\iota_f)], E, S)^h, (t, E', S')^{h_f} \} \cup H \rightarrow \{ (R[\texttt{await}(\iota_f)], E'', S)^h, (t, E' \cdot m, S')^{h_f} \} \cup H
+{ \{ (R[\texttt{await}(\iota_f)], E, S)^h, (t, E', S')^{h_f} \} \cup H \rightarrow \{ (R[\texttt{await}(\iota_f)], E''', S)^h, (t, E' \cdot m, S')^{h_f} \} \cup H
+}
+
+\inferrule[\textsc{RF-Req5}]
+{ E = \text{Req}(h'', r, \iota'') \texttt{::} E' \quad r = \text{FMapped}(\iota, h, r'', p, \text{None}) \quad S(\iota) = \text{None} \quad loc(r'') = \iota_s \quad S(\iota_s) = \text{Some}(v) \\
+  p(v) = r' \quad \text{failed}(host(r')) \quad i_p, i_a~\text{fresh} \quad \iota_p = (h, i_p), \iota_a = (h, i_a) \quad m_p = \text{ReqF}(h, r'', \iota_p) \\
+  r_a = \text{FMapped}(\iota_a, h, \text{Mat}(\iota_p), p, \text{None}) \quad E'' = m_p \texttt{::} \text{Req}(h'', r_a, \iota'') \texttt{::} E'
+}
+{ (R[\texttt{await}(\iota_f)], E, S)^h \longrightarrow (R[\texttt{await}(\iota_f)], E'', S)^h
+}
+
+\inferrule[\textsc{RF-ReqF}]
+{ E = \text{ReqF}(h, r, \iota') \texttt{::} E' \quad r = \text{FMapped}(\iota, h, r'', p, \text{Some}(p_f)) \\
+  loc(r'') = \iota_s \quad S(\iota_s) = \text{Some}(v) \quad E'' = \text{Res}(\iota', p_f(v)) \texttt{::} E'
+}
+{ (R[\texttt{await}(\iota_f)], E, S)^h \longrightarrow (R[\texttt{await}(\iota_f)], E'', S)^h
 }
 
 
@@ -1285,32 +1307,52 @@ The key principles of the fault handling mechanism are:
   % \vspace{-3mm}
 \end{figure*}
 
-These principles are embodied in the reduction as follows. First, whenever a
-host $h$ intends to send a message to a host $h'$ where $h' \neq h$, it is
-checked whether $\text{failed}(h')$. If that is the case, either the
+These principles are embodied in the reduction as follows. First, we use the
+predicate $\text{failed}(h)$ as a way to check whether it is possible to
+communicate with host $h$ (e.g., an implementation could check whether it is
+possible to establish a socket connection). Second, failures of hosts are
+handled whenever communication is attempted: whenever a host $h$ intends to
+send a message to a host $h'$ where $h' \neq h$, it is checked whether
+$\text{failed}(h')$. If it is the case that $\text{failed}(h')$, either the
 corresponding location (silo or future) is declared as failed (and fault
 handling deferred), or a suitable fault handler is located and a recovery step
-is attempted.
+is attempted. In the following we explain the extended reduction rules shown
+in Figure~\ref{fig:opsem-faults}.
 
-For example, in rule \textsc{RF-Send}, the host of the requested silo $r$ is
-detected to be failed. However, the parent silos of $r$ are all located on the
-same (failed) host. Thus, in this case silo $r$ is simply declared as failed,
-and fault handling is delegated to parts of the computation DAG that require
-the value of $r$ (if any). Since \texttt{send} is essentially a ``sink'' of a
-DAG, no suitable fault handler can be located at this point.
+In rule \textsc{RF-Send}, the host of the requested silo $r$ is detected to have
+failed. However, the parent silos of $r$ are all located on the same (failed)
+host. Thus, in this case silo $r$ is simply declared as failed, and fault
+handling is delegated to other parts of the computation DAG that require the
+value of $r$ (if any). Since \texttt{send} is essentially a ``sink'' of a DAG,
+no suitable fault handler can be located at this point.
 
 This is different in rule \textsc{RF-Req4}. Here, host $h$ processes a message
 requesting silo $r$ which is the result of a \texttt{flatMap} call.
 Materializing $r$ requires obtaining the value of silo $r'$, the result of
-applying spore $p$ to the value $v$ of the materialized parent. Importantly,
-if the host $h'$ of $r'$ is failed, it means the computation of the DAG
-defined by spore $p$ did not result in a silo on an available host.
+applying spore $p$ to the value $v$ of the materialized parent $r''$.
+Importantly, if the host of $r'$ is failed, it means the computation of the
+DAG defined by spore $p$ did not result in a silo on an available host.
 Consequently, if the \texttt{flatMap} call deriving $r$ specified a fault
-handler $p_f$, $p_f$ is applied to $v$ in order to recover from the failure of
-$h'$. If the host of the resulting silo $r_f$ is not failed, the value of
-$r_f$ is requested in the same way as in the non-failure case
-(\textsc{R-Req3}).
+handler $p_f$, $p_f$ is applied to $v$ in order to recover from the failure.
+If the host of the resulting silo $r_f$ is not failed, the original request
+for $r$ is ``modified'' to request $r_f$ instead. This is done by removing
+message $\text{Req}(h'', r, \iota'')$ from the message queue and prepending
+message $\text{Req}(h'', r_f, \iota'')$. Moreover, host $h$ sends a message to
+itself, requesting the value of silo $r_f$.
 
+Rule \textsc{RF-Req5} shows fault recovery in the case where the lineage of a
+requested silo does not specify a fault handler itself. In this case, host $h$
+creates two fresh locations $\iota_p, \iota_a$. $\iota_p$ is supposed to be
+eventually mapped to the result value of executing the fault handler of parent
+silo $r''$. Host $h$ requests this value from itself using a special message
+$\text{ReqF}(h, r'', \iota_p)$. Finally, the original request for silo $r$ in
+message queue $E$ is replaced with a request for silo $r_a$. The silo $r_a$ is
+created analogous to $r$, but using silo $\text{Mat}(\iota_p)$ as parent
+(eventually, location $\iota_p$ is mapped to the result of applying the
+parent's fault handler). As demonstrated by rule \textsc{RF-ReqF}, ReqF
+messages used to request the application of the fault handler are handled in a
+way that is completely analogous to the way regular Req messages are handled,
+except that fault handlers $p_f$ are applied as opposed to regular spores $p$.
 
 
 \section{Implementation}
