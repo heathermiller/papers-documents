@@ -277,7 +277,7 @@
 % \title{Function-Passing Style: Typed, Distributed Functional Programming}
 % \subtitle{Subtitle Text, if any}
 
-\authorinfo{Heather Miller}
+\authorinfo{Heather Miller\titlenote{Work done while the author was affiliated with Databricks.}}
            {EPFL}
            {heather.miller@epfl.ch}
 \authorinfo{Philipp Haller}
@@ -292,14 +292,21 @@ The most successful systems for ``big data'' processing have all adopted
 functional APIs. But the innards of these systems are often built atop
 imperative and weakly-typed stacks, which complicates the design and
 implementation of distributed system essentials like fault-tolerance. We
-present a new {\em function-passing} (F-P) programming model designed to bring
-a bit of order to this disarray. A goal of F-P is to provide a more principled
-substrate on which to build data-centric distributed systems. A key approach
-is to pass safe, well-typed functions to immutable distributed data, which in
-many cases improves latency (keep data distributed) while making it easier by
-design to recover from failures. We provide an operational semantics, an
-implementation in and for Scala, and a small evaluation of the efficiency of
-our implementation of the model.
+present a new programming model we call  {\em function-passing} (F-P),
+designed to bring a bit of order to this disarray. A goal of F-P is to provide
+a more principled substrate on which to build data-centric distributed
+systems. F-P seeks to
+
+Typed, composable serialization. And an inversion of the actor model--send
+functionality to data.
+
+Can be viewed as a generalization of the MapReduce/Spark model.
+
+A key approach is to pass safe, well-typed functions to immutable
+distributed data, which in many cases improves latency (keep data distributed)
+while making it easier by design to recover from failures. We provide an
+operational semantics, an implementation in and for Scala, and a small
+evaluation of the efficiency of our implementation of the model.
 
 
 
@@ -351,8 +358,30 @@ natural to end-users and data scientists.
 However, frameworks for distributed programming are built atop of tall stacks
 of code which is typically imperative and untyped, losing most of the benefits
 enjoyed by the users of their high-level APIs. This makes concerns central to
-distributed systems such as concurrency and fault tolerance difficult to
-achieve in practice.
+distributed systems such as concurrency and fault tolerance more difficult in
+practice. Some of the several problems that negatively affect these systems'
+usage, maintenance, and optimization include:
+
+\begin{itemize}
+
+\item Their APIs cannot statically prevent {\em common usage errors}. As a
+result, users are often confronted with runtime errors that are hard to debug.
+A common example is unsafe closure serialization~\cite{Spores}.
+
+\item Typically, only high-level user-facing abstractions are statically
+typed.  The absence of static types in lower layers of the system makes
+maintenance tasks, such as code refactorings, more difficult.
+
+\item The absence of certain kinds of static type information precludes
+systems-centric optimizations. Importantly, type-based static meta-programming
+enables fast serialization~\cite{Pickling}, but this is only possible if also
+lower layers (namely those dealing with object serialization) are statically
+typed. Several studies~\cite{JavaSerialization, JavaRMI, MoreEfficientJavaRMI,
+Jaguar} report on the high overhead of serialization in widely-used runtime
+environments such as the JVM. This overhead is so important in practice that
+popular systems, like Spark~\cite{Spark} and Akka~\cite{Akka}, leverage
+alternative serialization frameworks such as Protocol Buffers~\cite{Protobuf}, Apache
+Avro~\cite{Avro}, or Kryo~\cite{Kryo}. \end{itemize}
 
 Yet frameworks that took the leap to invert their models to  are riddled with
 challenges at the level of the language. Scala is a language --
