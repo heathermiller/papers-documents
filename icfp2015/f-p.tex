@@ -510,15 +510,15 @@ distributed programming.\todo{include description of our implementation of babys
 Our approach is to describe our model from a high-level, elaborating upon key
 benefits and trade-offs, and then to zoom in and make each component part of
 our model more precise. We describe the basic model this way in
-Section~\ref{sec:basic-model}. We go on to show in Section~\ref{sec:higher-
-order-operations} how essential higher-order operations on distributed
+Section~\ref{sec:basic-model}. We go on to show in Section~\ref{sec:higher-order-operations}
+how essential higher-order operations on distributed
 frameworks like Spark can be implemented in terms of the primitives presented
 in Section~\ref{sec:basic-model}. We present a formalization of our
 programming model in Section~\ref{sec:formalization}, and an overview of its
 prototypical implementation in Section~\ref{sec:implementation}. We show a
 small experimental evaluation of the efficiency of our model in
-Section~\ref{sec:evaluation}, discuss related work in Section~\ref{sec
-:related-work}, and conclude in Section~\ref{sec:conclusion}.
+Section~\ref{sec:evaluation}, discuss related work in Section~\ref{sec:related-work},
+and conclude in Section~\ref{sec:conclusion-future-work}.
 
 % In this paper, we present object-oriented
 % pickler combinators and a framework for generating them
@@ -839,7 +839,7 @@ describe these in the following section.
 
 \begin{figure}[t!]
 \centering\includegraphics[width=\columnwidth]{bigger-dag.pdf}
-\caption{Basic model.}\label{fig:bigger-dag}
+\caption{Basic model 2.}\label{fig:bigger-dag}
 \end{figure}
 
 \subsection{Primitives}
@@ -848,8 +848,9 @@ describe these in the following section.
 There are four basic primitive operations on SiloRefs that together can be
 used to build the higher-order operations common to popular data-centric
 distributed systems (how to build some of these higher-order operations is
-described in Section~\ref{sec:higher-order-operations}). These primitives
-include:
+described in Section~\ref{sec:higher-order-operations}). In this section we'll
+introduce these primitives in the context of a running example. These
+primitives include:
 
 \begin{itemize}[noitemsep,nolistsep]
 \item \verb|map|
@@ -871,9 +872,10 @@ method, \verb|send| or \verb|cache|, must be called explicitly to force the
 materialization of the result silo.
 
 To better understand how DAGs are created and how remote silos are
-materialized, we will develop a running example. Given a silo containing a
-list of \verb|Person| records, the following application of \verb|map| defines
-a (not-yet-materialized) silo containing only the records of adults:
+materialized, we will develop a running example throughout this section. Given
+a silo containing a list of \verb|Person| records, the following application
+of \verb|map| defines a (not-yet-materialized) silo containing only the
+records of adults (graphically shown in Figure~\ref{fig:bigger-dag}, part 1):
 
 \begin{lstlisting}
 val persons: SiloRef[List[Person]] = ...
@@ -894,7 +896,7 @@ problem of combining the information contained in two different silos
 containing \verb|Vehicle| records should be enriched with other details only
 found in the \verb|adults| silo. In the following, \verb|flatMap| is used to
 create a silo of \verb|(Person, Vehicle)| pairs where the names of person and
-vehicle owner match:
+vehicle owner match (graphically shown in Figure~\ref{fig:bigger-dag}, part 2):
 
 \begin{lstlisting}
 val vehicles: SiloRef[List[Vehicle]] = ...
@@ -953,16 +955,22 @@ node, \verb|send| should only be called on silos with reasonably small data
 (for example, in the implementation of an aggregate operation such as
 \verb|reduce| on a distributed collection).
 
-\paragraph{cache} \texttt{def cache(): Unit}
+\paragraph{cache} \texttt{def cache(): Future[Unit]}
 \newline The performance of typical data analytics jobs can be increased
-dramatically by caching large data sets in memory~\cite{Spark}. To do this, the
-silo containing the computed data set needs to be materialized. So far, the
-only way to materialize a silo that we have shown is using the \verb|send|
+dramatically by caching large data sets in memory~\cite{Spark}. To do this,
+the silo containing the computed data set needs to be materialized. So far,
+the only way to materialize a silo that we have shown is using the \verb|send|
 primitive. However, \verb|send| additionally transfers the contents of a silo
 to the requesting node--too much if a large remote data set should merely be
-cached in memory remotely. Therefore, an additional \verb|primitive| called
-\verb|cache| is provided, which forces the materialization of the given SiloRef,
-returning \verb|Future[Unit]|. Example:
+cached in memory remotely. Therefore, an additional primitive called
+\verb|cache| is provided, which forces the materialization of the given
+SiloRef, returning \verb|Future[Unit]|.
+
+Given the running example so far, we can add another subgraph branching off of
+\verb|adults|, which sorts each \verb|Person| by age, produces a \verb|String|
+gretting, and then ``kicks-off'' remote computation by calling \verb|cache|
+and caching the result in remote memory (graphically shown in Figure~\ref{fig:bigger-dag},
+part 3 and 4):
 
 \begin{lstlisting}
 val sorted =
