@@ -417,19 +417,46 @@ We present a new programming model we call {\em function passing} (F-P),
 designed to provide a more principled substrate on which to build data-centric
 distributed systems. Our model attempts to fit the paradigm of data-centric
 programming more naturally by extending monadic programming to the network.
-Our model can be thought of as somewhat of a dual to the actor model; rather
-than keeping functionality stationary and sending data, in our model, we keep
-data stationary and send functionality to the data. This results in well-typed
+Our model can be thought of as somewhat of a dual to the actor
+model\footnote{There are many variations and interpretations of the actor
+model; in saying our model is somewhat of a dual, we simply mean to highlight
+that programmers need not focus on programming with typically stationary
+message handlers. Instead, our model focuses on a monadic interface for
+programming with data (and sending functions instead).}; rather than keeping
+functionality stationary and sending data, in our model, we keep data
+stationary and send functionality to the data. This results in well-typed
 communication by design, a common pain point for builders of distributed
 systems in Scala.
 
+Our model brings together immutable, persistent data structures, monadic
+higher-order functions, strong static typing, and lazy evaluation--pillars of
+functional programming. Interestingly, we found that laziness was an enabler
+in our model, without complicating the ability to reason about programs.
+Without optimizations based on laziness, we found this model would be
+impractically inefficient in memory and time.
 
-Yet frameworks that took the leap to invert their models to  are riddled with
-challenges at the level of the language. Scala is a language --
-Spark~\cite{Spark}, Scalding~\cite{Scalding}, Kafka~\cite{Kafka}, and
-Scoobi~\cite{Scoobi} are just a few.
+% In this paper, we present object-oriented
+% pickler combinators and a framework for generating them
+% at compile-time, called scala/pickling, designed to be the
+% default serialization mechanism of the Scala programming
+% language. The static generation of OO picklers enables significant
+% performance improvements, outperforming Java and
+% Kryo in most of our benchmarks. In addition to high performance
+% and the need for little to no boilerplate, our framework
+% is extensible: using the type class pattern, users can
+% provide both (1) custom, easily interchangeable pickle formats
+% and (2) custom picklers, to override the default behavior
+% of the pickling framework. In benchmarks, we compare
+% scala/pickling with other popular industrial frameworks, and
+% present results on time, memory usage, and size when pickling/unpickling
+% a number of data types used in real-world,
+% large-scale distributed applications and frameworks.
 
 
+% Yet frameworks that took the leap to invert their models to  are riddled with
+% challenges at the level of the language. Scala is a language --
+% Spark~\cite{Spark}, Scalding~\cite{Scalding}, Kafka~\cite{Kafka}, and
+% Scoobi~\cite{Scoobi} are just a few.
 
 % Yet, software developers still fumble with low-level RPC frameworks.
 
