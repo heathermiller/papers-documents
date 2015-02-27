@@ -853,21 +853,22 @@ include:
 \item \verb|cache|
 \end{itemize}
 
-\paragraph{map} The \verb|map| method takes a spore that is to be applied to
-the data in the silo associated with the given SiloRef. Rather than
-immediately sending the spore across the network, and waiting for the
-operation to finish, the \verb|map| method is \emph{lazy}. Without involving
-any network communication, it immediately returns a SiloRef referring to a
-new, lazily-created silo. This new SiloRef only contains lineage information,
-namely, a reference to the original SiloRef, a reference to the argument
-spore, and the information that it is the result of a \verb|map| invocation.
-As we explain below, another method, \verb|send| or \verb|cache|, must be
-called explicitly to force the materialization of the result silo.
+\paragraph{map} \texttt{def map[S](s: Spore[T, S]): SiloRef[S]}
+\newline The \verb|map| method takes a spore that is to be applied to the data
+in the silo associated with the given SiloRef. Rather than immediately sending
+the spore across the network, and waiting for the operation to finish, the
+\verb|map| method is \emph{lazy}. Without involving any network communication,
+it immediately returns a SiloRef referring to a new, lazily-created silo. This
+new SiloRef only contains lineage information, namely, a reference to the
+original SiloRef, a reference to the argument spore, and the information that
+it is the result of a \verb|map| invocation. As we explain below, another
+method, \verb|send| or \verb|cache|, must be called explicitly to force the
+materialization of the result silo.
 
 To better understand how DAGs are created and how remote silos are
-materialized, we will follow a running example. Given a silo containing a list
-of \verb|Person| records, the following application of \verb|map| defines a
-silo containing only the records of adults:
+materialized, we will develop a running example. Given a silo containing a
+list of \verb|Person| records, the following application of \verb|map| defines
+a (not-yet-materialized) silo containing only the records of adults:
 
 \begin{lstlisting}
 val persons: SiloRef[List[Person]] = ...
@@ -875,9 +876,9 @@ val adults =
   persons.map(spore { ps => ps.filter(p => p.age >= 18) })
 \end{lstlisting}
 
-\paragraph{flatMap}
-Like \verb|map|, the \verb|flatMap| method takes a spore that is to be applied
-to the data in the silo of the given SiloRef. However, the crucial
+\paragraph{flatMap} \texttt{def flatMap[S](s: Spore[T, SiloRef[S]]): SiloRef[S]}
+\newline Like \verb|map|, the \verb|flatMap| method takes a spore that is to
+be applied to the data in the silo of the given SiloRef. However, the crucial
 difference is in the type of the spore argument whose result type is a SiloRef
 in this case. Semantically, the new silo created by \verb|flatMap| is defined
 to contain the data of the silo that the user-defined spore returns. The
@@ -928,35 +929,35 @@ is then also contained in the silo returned by \verb|flatMap|.
 Although the expressiveness of the \verb|flatMap| combinator subsumes that of
 the \verb|map| combinator (see Section~\ref{sec:expr}), keeping \verb|map| as
 a (lightweight) primitive enables more opportunities for optimizing
-computation DAGs (\eg, operation fusion~\cite{FlumeJava}).
+computation DAGs (\eg operation fusion~\cite{FlumeJava}).
 
-\paragraph{send}
-As mentioned earlier, the execution of computations built using SiloRefs is
-deferred. The \verb|send| operation {\em forces} the lazy computation defined
-by the given SiloRef. Forcing is explicit in our model, because it requires
-sending the lineage to the remote node on which the result silo should be
-created. Given that network communication has a latency several orders of
-magnitude greater than accessing a word in main memory, say, we felt an
-explicit send operation a judicious choice.
+\paragraph{send} \texttt{def send(): Future[T]}
+\newline As mentioned earlier, the execution of computations built using
+SiloRefs is deferred. The \verb|send| operation {\em forces} the lazy
+computation defined by the given SiloRef. Forcing is explicit in our model,
+because it requires sending the lineage to the remote node on which the result
+silo should be created. Given that network communication has a latency several
+orders of magnitude greater than accessing a word in main memory, providing an
+explicit send operation is a judicious choice~\cite{ANoteDistComp}.
 
 To enable materialization of remote silos to proceed concurrently, the
-\verb|send| operation immediately returns a future~\cite{Future}. This future
+\verb|send| operation immediately returns a future~\cite{Futures}. This future
 is then asynchronously completed with the data of the given silo. Since
 calling \verb|send| will materialize a silo and send its data to the current
-node, \verb|send| should only be called on silos with reasonably small data.
+node, \verb|send| should only be called on silos with reasonably small data
+(for example, in the implementation of an aggregate operation such as
+\verb|reduce| on a distributed collection).
 
-\paragraph{cache}
-
-The performance of typical data analytics jobs can be increased dramatically
-by caching large data sets in memory~\cite{Spark}. For this, the silo
-containing the data set needs to be materialized. So far, the only way to
-materialize a silo that we have shown is using the \verb|send| primitive.
-However, \verb|send| additionally transfers the contents of a silo to the
-requesting node--too much if a large remote data set should merely be cached
-in memory. Therefore, an additional \verb|primitive| called ``cache'' is
-provided, which forces the materialization of the given SiloRef, returning
-a trivial \verb|Future[Boolean]| that is completed as soon as the
-corresponding silo has been materialized in memory. Example:
+\paragraph{cache} \texttt{def cache(): Unit}
+\newline The performance of typical data analytics jobs can be increased
+dramatically by caching large data sets in memory~\cite{Spark}. To do this, the
+silo containing the computed data set needs to be materialized. So far, the
+only way to materialize a silo that we have shown is using the \verb|send|
+primitive. However, \verb|send| additionally transfers the contents of a silo
+to the requesting node--too much if a large remote data set should merely be
+cached in memory remotely. Therefore, an additional \verb|primitive| called
+\verb|cache| is provided, which forces the materialization of the given SiloRef,
+returning \verb|Future[Unit]|. Example:
 
 \begin{lstlisting}
 val sorted =
@@ -1041,17 +1042,18 @@ based on operation fusion.
 expressed using \verb|flatMap| and \verb|send|:
 
 \begin{lstlisting}
-def cache(): Future[Boolean] = this.flatMap(spore {
-  val localDoneSiloRef = DoneSiloRef
-  res => localDoneSiloRef.send()
-}
+def cache(): Future[Unit] = this.flatMap(spore {
+ val localDoneSiloRef = DoneSiloRef
+ res => localDoneSiloRef
+}).send()
+
 \end{lstlisting}
 \noindent
 Here, we first use \verb|flatMap| to create a new silo that will be completed
-with the trivial value of the \verb|DoneSiloRef| singleton object (e.g., a
-Boolean constant). Essentially, invoking \verb|send| on this trivial SiloRef
-causes the resulting future to be completed as soon as \verb|this| SiloRef has
-been materialized in memory.
+with the trivial value of the \verb|DoneSiloRef| singleton object (\eg
+\verb|Unit|). Essentially, invoking \verb|send| on this trivial SiloRef causes
+the resulting future to be completed as soon as \verb|this| SiloRef has been
+materialized in memory.
 
 % This optimization is explained following the
 % discussion of the third main operation of SiloRefs, \verb|send|.
@@ -1071,13 +1073,12 @@ been materialized in memory.
 \subsection{Fault Handling}
 \label{sec:fault-handling}
 
-Besides the primitives discussed so far, the programming model includes
-overloaded variants that enable the definition of flexible fault handling
-semantics. The main idea is to specify fault handlers for \emph{subgraphs of
-computation DAGs}. Our guiding principle is to make the definition of the
-failure-free path through a computation DAG as simple as possible, while still
-enabling the handling of faults at the fine-granular level of individual
-SiloRefs.
+F-P includes overloaded variants of the primitives discussed so far that
+enable the definition of flexible fault handling semantics. The main idea is
+to specify fault handlers for \emph{subgraphs of computation DAGs}. Our
+guiding principle is to make the definition of the failure-free path through a
+computation DAG as simple as possible, while still enabling the handling of
+faults at the fine-granular level of individual SiloRefs.
 
 \paragraph{Defining fault handlers} Fault handlers may be specified whenever
 the lineage of a SiloRef is extended. For this purpose, the introduced
