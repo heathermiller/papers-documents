@@ -287,11 +287,23 @@
 \maketitle
 
 \begin{abstract}
-Functional ideas have long
-been appearing in the designs of such systems. We present a new programming
+
+The most successful systems for ``big data'' processing all Functional ideas have long
+been appearing in the designs of such systems.
+But the innards of these systems are often built atop mutable, weakly-typed stacks, and as a result complicating essentials like fault-tolerance.
+ We present a new programming
 model we refer to as {\em function-passing}. model . We provide an operational
 semantics, an implementation in and for Scala, and a small evaluation of the
 efficiency of our implementation of the model.
+
+We aim to add reason to this calamity.
+
+
+Our principal contributions are a careful selection of features that support
+the evolution of scripts into industrial grade programs—e.g., an expressive
+module system, an optional type annotation facility for declarations, and
+support for concurrency based on message passing between lightweight, isolated
+processes.
 
 \end{abstract}
 
@@ -364,6 +376,12 @@ functional distributed programming. We present a new programming model, called
 Our work builds on two previous veins of work--type-safe and performant
 serialization based on functional pickler combinators, and spores, closures
 that are guaranteed to be serializable.
+
+Guiding principles.
+
+\begin{itemize}[noitemsep]
+\item A solution should be rapidly uptakeable by real systems.
+\end{itemize}
 
 Our contributions...
 
@@ -1161,11 +1179,11 @@ The key principles of the fault handling mechanism are:
 \section{Related Work}
 \label{sec:related-work}
 
+Actors~\cite{Actors, ScalaActors}. Typed Actors~\cite{TypedActors}. MapReduce~\cite{MapReduce}. Spark~\cite{Spark}. Dryad~\cite{Dryad}. Session Types~\cite{SessionTypes}. Cloud Haskell~\cite{CloudHaskell}. Alice ML~\cite{AliceML}. Acute ML~\cite{AcuteML}. Type-safe distributed OCaml~\cite{DistOCaml}. AmbientTalk~\cite{AmbientTalk}. E Language~\cite{ELang}. Clojure's Agents~\cite{Clojure}. Thorn~\cite{Thorn}. Type-safe distributed programming in ML5 (Tom 7)~\cite{Tom7}
+
+
 \section{Conclusion and Future Work}
 \label{sec:conclusion-future-work}
-
-Actors~\cite{Actors, ScalaActors}. Typed Actors~\cite{TypedActors}. MapReduce~\cite{MapReduce}. Spark~\cite{Spark}. Dryad~\cite{Dryad}. Session Types~\cite{SessionTypes}. Cloud Haskell~\cite{CloudHaskell}. Alice ML~\cite{AliceML}. Acute ML~\cite{AcuteML}. Type-safe distributed OCaml~\cite{DistOCaml}. AmbientTalk~\cite{AmbientTalk}. E Language~\cite{ELang}. Clojure's Agents~\cite{Clojure}.
-
 
 \section{Old}
 
