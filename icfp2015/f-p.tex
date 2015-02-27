@@ -786,9 +786,9 @@ example, {\em exclude} a certain type from being captured by user-provided
 spores. Authors of distributed frameworks may kick on this type-checking by
 simply including information about excluded types (or other type-based
 properties) in the signature of a method. A concrete example would be to
-ensure that the \verb|map| method on \verb|RDD|s in Spark to accept only
-spores which do not capture \verb|SparkContext| (a non-serializable internal
-framework class).
+ensure that the \verb|map| method on \verb|RDD|s in Spark (a distributed
+collection) accepts only spores which do not capture \verb|SparkContext| (a
+non-serializable internal framework class).
 
 For a deeper understanding, see either Appendix~\ref{appendix:spores} which
 covers the semantics of spores or the corresponding publication~\cite{Spores}.
@@ -799,6 +799,12 @@ covers the semantics of spores or the corresponding publication~\cite{Spores}.
 \end{figure}
 
 \subsection{Basic Usage}
+
+We begin with a simple visual example to provide a feeling for the basic
+model.\footnote{We also feel that, to visually illustrate a system evolving in
+both space and time, nothing beats a video animation. So, we've produced a
+short animation to provide visual intuition of the F-P model:
+\url{https://vimeo.com/120415626}}
 
 The only way to interact with distributed data stored in silos is through the
 use of SiloRefs. A SiloRef can be thought of as an immutable handle to the
@@ -848,17 +854,20 @@ include:
 \end{itemize}
 
 \paragraph{map} The \verb|map| method takes a spore that is to be applied to
-the data in the silo of the given SiloRef. Rather than immediately sending the
-spore across the network, and waiting for the operation to finish, the
-\verb|map| method is \emph{lazy}. Without involving any network communication,
-it immediately returns a SiloRef referring to a new, lazily-created silo. This
-new SiloRef only contains lineage information, namely, a reference to the
-original SiloRef, a reference to the argument spore, and the information that
-it is the result of a \verb|map| invocation. As we explain below, another
-method called \verb|send| must be called explicitly to force the
-materialization of the result silo. For example, given a silo with a list of
-\verb|Person| records, the following application of \verb|map| defines a silo
-containing only the records of adults:
+the data in the silo associated with the given SiloRef. Rather than
+immediately sending the spore across the network, and waiting for the
+operation to finish, the \verb|map| method is \emph{lazy}. Without involving
+any network communication, it immediately returns a SiloRef referring to a
+new, lazily-created silo. This new SiloRef only contains lineage information,
+namely, a reference to the original SiloRef, a reference to the argument
+spore, and the information that it is the result of a \verb|map| invocation.
+As we explain below, another method, \verb|send| or \verb|cache|, must be
+called explicitly to force the materialization of the result silo.
+
+To better understand how DAGs are created and how remote silos are
+materialized, we will follow a running example. Given a silo containing a list
+of \verb|Person| records, the following application of \verb|map| defines a
+silo containing only the records of adults:
 
 \begin{lstlisting}
 val persons: SiloRef[List[Person]] = ...
@@ -1057,9 +1066,6 @@ been materialized in memory.
 %   def send(): Future[T]
 % }
 % \end{lstlisting}
-
-[TODO!!]
-Nothing beats a video when something evolves in space in time, so we've also produced a short video to illustrate the model\footnote{\url{https://vimeo.com/120415626}}
 
 
 \subsection{Fault Handling}
