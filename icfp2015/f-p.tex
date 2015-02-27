@@ -1053,7 +1053,7 @@ t ::=     x                                 & \mbox{variable}
 \\
 \gap ~|~  \texttt{spore}~\{~\seq{x : T = t}~; (x: T) \Rightarrow t~\}  & \mbox{spore}
 \\
-\gap ~|~  \texttt{map}(r, t)                & \mbox{map}
+\gap ~|~  \texttt{map}(r, t[, t])           & \mbox{map}
 \\
 \gap ~|~  \texttt{flatMap}(r, t[, t])       & \mbox{flatMap}
 \\
@@ -1115,7 +1115,7 @@ i \in \mathbb{N} &
  & \\
 r ::=     \text{Mat}(\iota) & \mbox{materialized}
 \\
-\gap ~|~  \text{Mapped}(\iota, h, r, p)          & \mbox{lineage with \texttt{map}}
+\gap ~|~  \text{Mapped}(\iota, h, r, p, opt_f)   & \mbox{lineage with \texttt{map}}
 \\
 \gap ~|~  \text{FMapped}(\iota, h, r, p, opt_f)  & \mbox{lineage with \texttt{flatMap}}
 \\
@@ -1167,7 +1167,7 @@ Reducing a term $\texttt{send}(r)$ appends a request $\text{Req}(h, r, \iota)$ t
 
 \inferrule[\textsc{R-Map}]
 { host(r) = h' \quad i~\text{fresh} \\
-  r' = \text{Mapped}((h, i), h', r, p)
+  r' = \text{Mapped}((h, i), h', r, p, \text{None})
 }
 { (R[\texttt{map}(r, p)], E, S)^h \longrightarrow (R[r'], E, S)^h }
 
@@ -1188,7 +1188,7 @@ Reducing a term $\texttt{send}(r)$ appends a request $\text{Req}(h, r, \iota)$ t
 { (R[\texttt{await}(\iota_f)], E, S)^h \longrightarrow (R[\texttt{await}(\iota_f)], E', S')^h }
 
 \inferrule[\textsc{R-ReqLocal}]
-{ E = \text{Req}(h', r, \iota'') \texttt{::} E' \quad r = \text{Mapped}(\iota, h, r', p) \quad r' \neq \text{Mat}(\iota_s) \quad S(\iota) = \text{None} \\
+{ E = \text{Req}(h', r, \iota'') \texttt{::} E' \quad r = \text{Mapped}(\iota, h, r', p, \text{None}) \quad r' \neq \text{Mat}(\iota_s) \quad S(\iota) = \text{None} \\
   loc(r') = \iota' \quad S(\iota') = \text{None} \\
   E'' = \text{Req}(h, r', \iota') \texttt{::} E
 }
@@ -1223,7 +1223,7 @@ Reducing a term $\texttt{send}(r)$ appends a request $\text{Req}(h, r, \iota)$ t
 }
 
 \inferrule[\textsc{R-Req2}]
-{ E = \text{Req}(h', r, \iota') \texttt{::} E' \quad r = \text{Mapped}(\iota, h, r', p) \quad r' = \text{Mat}(\iota_s) \quad S(\iota) = \text{None} \\
+{ E = \text{Req}(h', r, \iota') \texttt{::} E' \quad r = \text{Mapped}(\iota, h, r', p, \text{None}) \quad r' = \text{Mat}(\iota_s) \quad S(\iota) = \text{None} \\
   S(\iota_s) = \text{Some}(v) \quad p(v) = v' \quad S' = S + (\iota \mapsto v') \quad m = \text{Res}(\iota', v')
 }
 { \{ (R[\texttt{await}(\iota_f)], E, S)^h, (t, E'', S'')^{h'} \} \cup H \rightarrow \{ (R[\texttt{await}(\iota_f)], E', S')^h, (t, E'' \cdot m, S'')^{h'} \} \cup H
