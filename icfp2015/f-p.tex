@@ -1165,9 +1165,11 @@ r ::=     \text{Mat}(\iota) & \mbox{materialized}
  & \\
 E      ::=  \epsilon & \mbox{message queue}
 \\
-\gap ~|~    \text{Res}(\iota, v) \texttt{::} E     & \mbox{response}
+\gap ~|~    \text{Res}(\iota, v) \texttt{::} E      & \mbox{response}
 \\
-\gap ~|~    \text{Req}(h, r, \iota) \texttt{::} E  & \mbox{request}
+\gap ~|~    \text{Req}(h, r, \iota) \texttt{::} E   & \mbox{request}
+\\
+\gap ~|~    \text{ReqF}(h, r, \iota) \texttt{::} E  & \mbox{request (fault)}
 \\
   \ea$
 
