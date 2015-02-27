@@ -994,15 +994,17 @@ t ::=     x                                 & \mbox{variable}
 \\
 \gap ~|~  \texttt{spore}~\{~\seq{x : T = t}~; (x: T) \Rightarrow t~\}  & \mbox{spore}
 \\
-\gap ~|~  \texttt{map}(r, p)                & \mbox{map}
+\gap ~|~  \texttt{map}(r, t)                & \mbox{map}
 \\
-\gap ~|~  \texttt{flatMap}(r, p)            & \mbox{flatMap}
+\gap ~|~  \texttt{flatMap}(r, t)            & \mbox{flatMap}
 \\
 \gap ~|~  \texttt{send}(r)                  & \mbox{send}
 \\
-\gap ~|~  \texttt{await}(\iota)             & \mbox{await location}
+\gap ~|~  \texttt{await}(\iota)             & \mbox{await future}
 \\
 \gap ~|~  r                                 & \mbox{SiloRef}
+\\
+\gap ~|~  \iota                             & \mbox{future}
 \\
  & \\
 v ::=     (x: T) \Rightarrow t              & \mbox{abstraction}
@@ -1012,6 +1014,8 @@ v ::=     (x: T) \Rightarrow t              & \mbox{abstraction}
 \gap ~|~  p                                 & \mbox{spore value}
 \\
 \gap ~|~  r                                 & \mbox{SiloRef}
+\\
+\gap ~|~  \iota                             & \mbox{future}
 \\
  & \\
 p ::=     \texttt{spore}~\{~\seq{x : T = v}~; (x: T) \Rightarrow t~\}  & \mbox{spore value}
@@ -1033,7 +1037,7 @@ T ::=     T \Rightarrow T                   & \mbox{function type} \\
   \vspace{1mm}
 \end{figure}
 
-We formalize our programming model in the context of a standard, typed lambda calculus with records. Figure~\ref{fig:syntax} shows the syntax of our core language. Terms are standard except for the \texttt{spore}, \texttt{map}, \texttt{flatMap}, \texttt{send}, and \texttt{await} terms. A \texttt{spore} term creates a new spore. It contains a list of variable definitions (the spore header) and the spore's closure. The \texttt{map}, \texttt{flatMap}, and \texttt{send} primitives have been discussed earlier. A \texttt{send} term is immediately reduced to an \texttt{await} term, which suspends reduction until the value of the silo at location $\iota$ is available (see below).
+We formalize our programming model in the context of a standard, typed lambda calculus with records. Figure~\ref{fig:syntax} shows the syntax of our core language. Terms are standard except for the \texttt{spore}, \texttt{map}, \texttt{flatMap}, \texttt{send}, and \texttt{await} terms. A \texttt{spore} term creates a new spore. It contains a list of variable definitions (the spore header) and the spore's closure. A term $\texttt{await}(\iota)$ blocks execution until the future $\iota$ has been completed asynchronously. The \texttt{map}, \texttt{flatMap}, and \texttt{send} primitives have been discussed earlier.
 
 
 \subsection{Operational semantics}\label{sec:opsem}
@@ -1075,7 +1079,11 @@ In the following we give a small-step operational semantics of the primitives of
 
 \paragraph{Notation and conventions.} We write $S' = S + (\iota \mapsto v)$ to express the fact that $S'$ maps $\iota$ to $v$ and otherwise agrees with $S$. We write $S(\iota) = \text{Some}(v)$ to express the fact that $S$ maps $\iota$ to $v$. We write $S(\iota) = \text{None}$ if $S$ does not have a mapping for $\iota$. Reduction is defined using reduction contexts~\cite{TAPL}. We omit the definition of reduction contexts, since they are completely standard.
 
-\paragraph{Configurations.} The reduction rules of the deterministic layer define transitions of \emph{host configurations} $(t, E, S)^h$ of host $h$ where $t$ is a local redex term, $E$ is a message queue, and $S$ is a store. The reduction rules of the non-deterministic layer define transitions of sets $H$ of host configurations. The reduced host configurations are chosen non-deterministically.
+\paragraph{Configurations.} The reduction rules of the deterministic layer define transitions of \emph{host configurations} $(t, E, S)^h$ of host $h$ where $t$ is a redex term, $E$ is a message queue, and $S$ is a store. The reduction rules of the non-deterministic layer define transitions of sets $H$ of host configurations. The reduced host configurations are chosen non-deterministically in order to express concurrency between hosts.
+
+\subsubsection{Decentralized identification}
+
+A important property of our programming model is the fact that silos are uniquely identified using \emph{decentralized identifiers}. A decentralized identifier $\iota$ has two components: (a) the identifier of the host $h$ that created $\iota$, and (b) a name $i$ created fresh on $h$ (e.g., an integer value): $\iota = (h, i)$. Decentralized identifiers are important, since they reconcile two conflicting properties central to our model. The first property is building computation DAGs locally, without remote communication. This is possible using decentralized identifiers, since each host can generate new identifiers independently of other remote hosts. The second property is allowing SiloRefs to be freely copied between remote hosts. This is possible, since decentralized identifiers uniquely identify silos without the need for subsequent updates of their information; decentralized identifiers are immutable. This latter property is essential to enable computation DAGs that are \emph{immutable upon construction}. In our programming model, computation DAGs are created using the standard monadic operations of SiloRefs. In particular, the \texttt{flatMap} operation (monadic bind) in general requires that its argument spore captures SiloRefs that are subsequently copied to a remote host. Hence it is essential that SiloRefs and the decentralized identifiers they contain be freely copyable between remote hosts.
 
 \subsubsection{Deterministic layer}
 
@@ -1130,14 +1138,14 @@ The key principles of the fault handling mechanism are:
 \inferrule[\textsc{R-Res}]
 { E = \text{Res}(\iota, v) \texttt{::} E' \quad S' = S + (\iota \mapsto v)
 }
-{ (R[\texttt{await}(i_f)], E, S)^h \longrightarrow (R[\texttt{await}(i_f)], E', S')^h }
+{ (R[\texttt{await}(\iota_f)], E, S)^h \longrightarrow (R[\texttt{await}(\iota_f)], E', S')^h }
 
 \inferrule[\textsc{R-ReqLocal}]
 { E = \text{Req}(h', r, \iota'') \texttt{::} E' \quad r = \text{Mapped}(\iota, h, r', p) \quad r' \neq \text{Mat}(\iota_s) \quad S(\iota) = \text{None} \\
   loc(r') = \iota' \quad S(\iota') = \text{None} \\
   E'' = \text{Req}(h, r', \iota') \texttt{::} E
 }
-{ (R[\texttt{await}(P(i_f))], E, S)^h \rightarrow (R[\texttt{await}(P(i_f))], E'', S)^h
+{ (R[\texttt{await}(\iota_f)], E, S)^h \rightarrow (R[\texttt{await}(\iota_f)], E'', S)^h
 }
 
 \end{mathpar}
@@ -1157,7 +1165,7 @@ The key principles of the fault handling mechanism are:
 { host(r) = h' \quad h' \neq h \quad i~\text{fresh} \\
   \iota = (h, i) \quad m = \text{Req}(h, r, \iota)
 }
-{ \{ (R[\texttt{send}(r)], E, S)^h, (t, E', S')^{h'} \} \cup H \rightarrow \{ (R[\texttt{await}(\iota)], E, S)^h, (t, E' \cdot m, S')^{h'} \} \cup H
+{ \{ (R[\texttt{send}(r)], E, S)^h, (t, E', S')^{h'} \} \cup H \rightarrow \{ (R[\iota], E, S)^h, (t, E' \cdot m, S')^{h'} \} \cup H
 }
 
 \inferrule[\textsc{R-Req1}]
