@@ -310,43 +310,49 @@ At the same time, it's no secret that the most successful systems for
 programming with ``big data'' have all adopted functional features;
 Spark~\cite{Spark}, MapReduce~\cite{MapReduce}, and Dryad~\cite{Dryad} are
 just a few. These functional features are often touted to be the key to the
-success of these frameworks, from both the perspective of users and framework
-authors alike. It's not hard to imagine why--a functional, declarative
+success of these frameworks.
+% , from both the perspective of users and framework authors alike.
+It's not hard to imagine why--a functional, declarative
 interface to data distributed over tens to thousands of nodes is arguably most
-natural to end-users and data scientists. The benefits provided by functional
-programming have also won over framework designers as well--some have noticed
-that immutability, and data transformation via higher-order functions makes it
-much easier, by design, to tackle concerns central to distributed systems such
-as concurrency and fault tolerance.
-
-% reasoning about data distributed over tens to thousands of nodes
-% a functional, declarative interface for
-% operating on
-% is arguably the
-% most straightforward for end-users.
+natural to end-users and data scientists.
+% The benefits provided by functional
+% programming have also won over framework designers as well--some have noticed
+% that immutability, and data transformation via higher-order functions makes it
+% much easier, by design, to tackle concerns central to distributed systems such
+% as concurrency and fault tolerance.
 
 %  -- the declarative, data-centric interface offered by such
 % systems is a boon for mathematically-oriented data analytics.
 
-Yet, building such systems remains an endeavor only succeeded by a few.
+However, frameworks for distributed programming are built atop of tall stacks
+of code which is typically imperative and untyped, losing most of the benefits
+enjoyed by the users of their high-level APIs. This makes concerns central to
+distributed systems such as concurrency and fault tolerance difficult to
+achieve in practice.
 
-The actor model~\cite{Actors, ScalaActors}. While , well-typed operations on
-remote data is not the model.  Closely related work here.
+% What makes this problem even
+% worse is the fact that coordinating between data shards and doing that in a
+% way that is easy to reason about is the wheel that every data-centric
+% distributed system keeps reinventing.
 
 This paper takes a step towards more a more principled foundation for typed,
-functional distributed programming.
+functional distributed programming. We present a new programming model, called
+{\em function-passing}
 
 Our work builds on two previous veins of work--type-safe and performant
 serialization based on functional pickler combinators, and spores, closures
 that are guaranteed to be serializable.
 
-In this paper, we present
+Our contributions...
+
+% Yet, building such systems remains an endeavor only succeeded by a few.
+
+The actor model~\cite{Actors, ScalaActors}. While , well-typed operations on
+remote data is not the model.  Closely related work here.
 
 Structure. Our approach is to describe our model from a high level,
 elaborating upon key concepts. While focusing on .. over time. We then proceed
 to zoom in and make precise each component of our model in Sections~\ref{}.
-
-Our contributions...
 
 % Functional programming concepts are making inroads in hot up-and-coming
 % frameworks for distributed computing and, dare we say it, ``big data.''
