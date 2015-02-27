@@ -496,7 +496,7 @@ distributed layer.
 
 \item A small experimental evaluation to show the benefits of some of  the
 proposed design decisions, and a validation of spores in the context of
-distributed programming.
+distributed programming.\todo{include description of our implementation of babyspark!}
 
 % An experimental evaluation comparing the performance
 % of our framework with Java serialization and Kryo on
@@ -504,6 +504,21 @@ distributed programming.
 % distributed applications and frameworks
 
 \end{itemize}
+
+% The rest of our paper is structured as follows.
+
+Our approach is to describe our model from a high-level, elaborating upon key
+benefits and trade-offs, and then to zoom in and make each component part of
+our model more precise. We describe the basic model this way in
+Section~\ref{sec:basic-model}. We go on to show in Section~\ref{sec:higher-
+order-operations} how essential higher-order operations on distributed
+frameworks like Spark can be implemented in terms of the primitives presented
+in Section~\ref{sec:basic-model}. We present a formalization of our
+programming model in Section~\ref{sec:formalization}, and an overview of its
+prototypical implementation in Section~\ref{sec:implementation}. We show a
+small experimental evaluation of the efficiency of our model in
+Section~\ref{sec:evaluation}, discuss related work in Section~\ref{sec
+:related-work}, and conclude in Section~\ref{sec:conclusion}.
 
 % In this paper, we present object-oriented
 % pickler combinators and a framework for generating them
@@ -547,24 +562,24 @@ distributed programming.
 % way that is easy to reason about is the wheel that every data-centric
 % distributed system keeps reinventing.
 
-This paper takes a step towards more a more principled foundation for typed,
-functional distributed programming. We present a new programming model, called
-{\em function-passing}
+% This paper takes a step towards more a more principled foundation for typed,
+% functional distributed programming. We present a new programming model, called
+% {\em function-passing}
 
-Our work builds on two previous veins of work--type-safe and performant
-serialization based on functional pickler combinators, and spores, closures
-that are guaranteed to be serializable.
+% Our work builds on two previous veins of work--type-safe and performant
+% serialization based on functional pickler combinators, and spores, closures
+% that are guaranteed to be serializable.
 
-Guiding principles.
+% Guiding principles.
 
-\begin{itemize}[noitemsep]
-\item A solution should be rapidly uptakeable by real systems.
-\end{itemize}
+% \begin{itemize}[noitemsep]
+% \item A solution should be rapidly uptakeable by real systems.
+% \end{itemize}
 
-Our principal contribution is the careful design of a monadically inspired
-model of concurrency. We provide a formal semantics, an implementation in
-Scala, and a small empirical evaluation to show the benefits of some of the
-proposed design decisions.
+% Our principal contribution is the careful design of a monadically inspired
+% model of concurrency. We provide a formal semantics, an implementation in
+% Scala, and a small empirical evaluation to show the benefits of some of the
+% proposed design decisions.
 
 % Our principal contributions are a careful selection of features that
 % facilitate important concerns like fault tolerance by design.
@@ -578,12 +593,8 @@ proposed design decisions.
 
 % Yet, building such systems remains an endeavor only succeeded by a few.
 
-The actor model~\cite{Actors, ScalaActors}. While , well-typed operations on
-remote data is not the model.  Closely related work here.
-
-Structure. Our approach is to describe our model from a high level,
-elaborating upon key concepts. While focusing on .. over time. We then proceed
-to zoom in and make precise each component of our model in Sections~\ref{}.
+% The actor model~\cite{Actors, ScalaActors}. While , well-typed operations on
+% remote data is not the model.  Closely related work here.
 
 % Functional programming concepts are making inroads in hot up-and-coming
 % frameworks for distributed computing and, dare we say it, ``big data.''
@@ -663,6 +674,7 @@ to zoom in and make precise each component of our model in Sections~\ref{}.
 % \end{itemize}
 
 \section{Overview of Model}
+\label{sec:basic-model}
 
 The best way to quickly visualize the F-P model is to think in terms of a
 persistent functional data structure with structural sharing. Then, rather
@@ -1537,96 +1549,96 @@ Language~\cite{ELang}.
 
 \section{Old}
 
-\subsection{Old Intro}
+% \subsection{Old Intro}
 
-% From the ivory tower, it may not be evident,
-% It might not seem this way from the ivory tower,
-% but
+% % From the ivory tower, it may not be evident,
+% % It might not seem this way from the ivory tower,
+% % but
 
-While it might not seem that way at a glance, mainstream software development
-has become largely distributed. Two {\em styles} of distribution
-dominate the current landscape; (1) systems composed of microservices,
- % or designed to be software as a service (SaaS),
-and (2) systems for ``big data'' processing. Names like Netflix, SoundCloud,
-and Twitter have established their competitive offerings by way of one or
-both of these types of systems.
+% While it might not seem that way at a glance, mainstream software development
+% has become largely distributed. Two {\em styles} of distribution
+% dominate the current landscape; (1) systems composed of microservices,
+%  % or designed to be software as a service (SaaS),
+% and (2) systems for ``big data'' processing. Names like Netflix, SoundCloud,
+% and Twitter have established their competitive offerings by way of one or
+% both of these types of systems.
 
-Microservices are small, independent (separately-compiled) services running on
-different machines which communicate with each other to together make up a
-single and complex application. ``Big data''-style applications on the other
-hand are typically single applications whose data cannot fit into the memory
-of one machine alone. Such applications are typically singly-compiled, with
-their binaries distributed across a cluster of machines.
+% Microservices are small, independent (separately-compiled) services running on
+% different machines which communicate with each other to together make up a
+% single and complex application. ``Big data''-style applications on the other
+% hand are typically single applications whose data cannot fit into the memory
+% of one machine alone. Such applications are typically singly-compiled, with
+% their binaries distributed across a cluster of machines.
 
-Yet, software developers still fumble with low-level RPC frameworks.
-% and sluggish serialization frameworks.
-Mainstream programming languages have traditionally offered little support in
-this space.
+% Yet, software developers still fumble with low-level RPC frameworks.
+% % and sluggish serialization frameworks.
+% Mainstream programming languages have traditionally offered little support in
+% this space.
 
-We design module systems, etc, for maximum reuse and productivity, we go as
-far as we can to demonstrate their power. But we often . Some of these
-concerns have been affectionately referred to as the ``awkward
-squad''~\cite{AwkwardSquad} by PL research, and they are concerns that are central to
-contemporary software development.
+% We design module systems, etc, for maximum reuse and productivity, we go as
+% far as we can to demonstrate their power. But we often . Some of these
+% concerns have been affectionately referred to as the ``awkward
+% squad''~\cite{AwkwardSquad} by PL research, and they are concerns that are central to
+% contemporary software development.
 
-Functional programming brings value to distributed systems builders. The
-success of popular Spark can be attributed to functional ideas.
+% Functional programming brings value to distributed systems builders. The
+% success of popular Spark can be attributed to functional ideas.
 
-However, beyond Spark's interface, .
+% However, beyond Spark's interface, .
 
-We refer to the model as {\em function-passing}, and .
-
-
-We design a programming model in such a way that we can ``maximize'' static
-types, and with it enable type-specialized picklers (statically generated),
-typed closures, and type-specialized data structures.
-
-The motto is ``making type inference work for you when optimizing distributed
-systems'', or ``how type inference and existential types benefit distributed
-systems''.
-
-In existing systems, types are only in the user-facing API and help the user.
-However, all too often, the internals of a distributed system are largely
-untyped, in particular when operating on data types that are also shipped
-remotely. In our approach we now go ahead and make types work so that they
-benefit both users (helping catch common errors) \emph{and} distributed
-systems builders. Our approach leverages types to provide (1) type-specialized
-picklers, and (2) type-specialized collections/builders.
-
-The approach is novel, because noone talks about making sure the unpicklers
-and builders themselves are serializable, but that's actually fundamental to
-the whole design.
-
-\begin{itemize}
-
-\item We have to make the point that serialization is like a primitive in
-systems design, not some extra thing you figure out how to do later, like in
-typical PLs. so maybe one central point that we should try to make is that
-for distributed systems, serializability is like a key primitive, along with
-latency and other things.
-
-\item we want to prove that typed distributed systems are a good idea. right
-now a lot of systems for dist computing are fundamentally untyped or
-dynamically checked. those that are typed lose type information between
-machines.
-
-\item so we're trying to argue that types are good for system builders.
-
-\end{itemize}
-
-The fact that actually these benefits from types \emph{carry over to other
-models as well} (not just spark-like models).
+% We refer to the model as {\em function-passing}, and .
 
 
-Generalization of MapReduce model. Low-level. Inversion of the actor model.
-Can represent different many models for distributed computing, e.g. Spark,
-Percolator (we probably can't validate this claim.)
+% We design a programming model in such a way that we can ``maximize'' static
+% types, and with it enable type-specialized picklers (statically generated),
+% typed closures, and type-specialized data structures.
 
-Illustrations to have:
-\begin{enumerate}
-\item nice figure
-\item organic evolving model on youtube
-\end{enumerate}
+% The motto is ``making type inference work for you when optimizing distributed
+% systems'', or ``how type inference and existential types benefit distributed
+% systems''.
+
+% In existing systems, types are only in the user-facing API and help the user.
+% However, all too often, the internals of a distributed system are largely
+% untyped, in particular when operating on data types that are also shipped
+% remotely. In our approach we now go ahead and make types work so that they
+% benefit both users (helping catch common errors) \emph{and} distributed
+% systems builders. Our approach leverages types to provide (1) type-specialized
+% picklers, and (2) type-specialized collections/builders.
+
+% The approach is novel, because noone talks about making sure the unpicklers
+% and builders themselves are serializable, but that's actually fundamental to
+% the whole design.
+
+% \begin{itemize}
+
+% \item We have to make the point that serialization is like a primitive in
+% systems design, not some extra thing you figure out how to do later, like in
+% typical PLs. so maybe one central point that we should try to make is that
+% for distributed systems, serializability is like a key primitive, along with
+% latency and other things.
+
+% \item we want to prove that typed distributed systems are a good idea. right
+% now a lot of systems for dist computing are fundamentally untyped or
+% dynamically checked. those that are typed lose type information between
+% machines.
+
+% \item so we're trying to argue that types are good for system builders.
+
+% \end{itemize}
+
+% The fact that actually these benefits from types \emph{carry over to other
+% models as well} (not just spark-like models).
+
+
+% Generalization of MapReduce model. Low-level. Inversion of the actor model.
+% Can represent different many models for distributed computing, e.g. Spark,
+% Percolator (we probably can't validate this claim.)
+
+% Illustrations to have:
+% \begin{enumerate}
+% \item nice figure
+% \item organic evolving model on youtube
+% \end{enumerate}
 
 \subsection{Evaluation}
 
