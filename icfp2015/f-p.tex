@@ -292,58 +292,61 @@ The most successful systems for ``big data'' processing have all adopted
 functional APIs. But the innards of these systems are often built atop
 imperative and weakly-typed stacks, which complicates the design and
 implementation of distributed system essentials like fault-tolerance. We
-present a new programming model we call  {\em function-passing} (F-P),
-designed to bring a bit of order to this disarray. F-P aims to provide a more
-principled substrate on which to build data-centric distributed systems.
+present a new programming model we call  {\em function passing}
+designed to overcome many of these issues by providing a more principled
+substrate on which to build data-centric distributed systems. A key idea is to
+pass safe, well-typed serializable functions to immutable distributed data.
+The F-P model itself can be thought of as a distributed persistent functional
+data structure, which stores in its nodes transformations to data rather than
+the distributed data itself. Thus making it easier by design to recover from
+failures--just replay function applications atop of immutable data from
+persistent storage. Lazy evaluation is also central to our model; by carefully
+incorporating laziness into our design (only at the point of initiating
+network communication), our model remains easy to reason about while remaining
+efficient in time and memory. We formalize our programming model in the form
+of a small-step operational semantics which includes a precise specification
+of the semantics of functional fault recovery. We implement our model in and
+for the Scala programming language, and provide a small evaluation of the
+efficiency of our implementation of the model.
 
-. F-P
-seeks to
+% (F-P), designed to bring a bit of order to this disarray. F-P aims to provide a more
 
-Typed, composable serialization. And an inversion of the actor model--send
-functionality to data.
+% Evolve beautifully in time and space like a persistent data structure.
 
-Can be viewed as a generalization of the MapReduce/Spark model.
+% This results in well-typed communication by design, a common pain point for builders of distributed systems in Scala.
 
-More naturally models the .
+% operational semantics, an implementation in and for Scala, and a small
+% evaluation of the efficiency of our implementation of the model.
 
-A key approach is to pass safe, well-typed functions to immutable
-distributed data, which in many cases improves latency (keep data distributed)
-while making it easier by design to recover from failures. We provide an
-operational semantics, an implementation in and for Scala, and a small
-evaluation of the efficiency of our implementation of the model.
+% Fault-handling built-in to the model. The user is free to choose their own
+% fault-handling strategy or lack thereof.
 
-We describe this model in the context of the Scala programming language,
-although there is no reason these concepts are limited to Scala.
+% Our model brings together immutable, persistent data struc- tures, monadic
+% higher-order functions, strong static typing, and lazy evaluation–pillars of
+% functional programming–to provide a more type-safe, and easy to reason about
+% foundation for data-centric dis- tributed systems.
 
-Fault-handling built-in to the model. The user is free to choose their own
-fault-handling strategy or lack thereof.
+% Typed, composable serialization. And an inversion of the actor model--send
+% functionality to data.
 
-Evolve beautifully in time and space like a persistent data structure.
-
-A model for asynchronous programming.
-
-% The key idea is to provide
-% --passing safe, well-typed functions to immutable distributed data.
-
-% A model of concurrency which better suits communication in typed data-centric
-% distributed programming. Our model is implemented in and for the Scala programming language--a language
-
-%   we refer to as {\em function-passing}. model . We provide an operational
-% semantics, an implementation in and for Scala, and a small evaluation of the
-% efficiency of our implementation of the model.
-
+% A key approach is to pass safe, well-typed functions to immutable
+% distributed data, which in many cases improves latency (keep data distributed)
+% while making it easier by design to recover from failures. We provide an
+% operational semantics, an implementation in and for Scala, and a small
+% evaluation of the efficiency of our implementation of the model.
 
 \end{abstract}
 
-\category{D.3.3}{Programming Languages}{Language Constructs and Features}
+\category{D.3.2}{Programming Languages}{Language Classifications -- Concurrent, distributed, and parallel languages}
+\category{D.3.3}{Programming Languages}{Language Constructs and Features -- Concurrent programming structures; Procedures, functions, and subroutines}
 % general terms are not compulsory anymore,
 % you may leave them out
-\terms
-Languages, Design
+% \terms
+% Languages, Design
 
 \keywords
-Functional Programming, Distributed Programming, Functions, Closures,
-Serialization, Concurrency, Types, Scala
+Functional programming, distributed programming, functions, closures,
+serialization, concurrency, types, Scala
 
 \section{Introduction}
 
@@ -475,15 +478,15 @@ be serialized.
 This paper makes the following contributions:
 \begin{itemize} %[noitemsep]
 
-\item A new data-centric programming model for functional processing of
-distributed data which makes important concerns like fault tolerance easy by
+\item {\bf\em A new data-centric programming model for functional processing of
+distributed data} which makes important concerns like fault tolerance easy by
 design. The main computational principle is based on the idea of sending safe,
 guaranteed serializable functions to stationary data. Using standard monadic
 operations our model enables creating immutable DAGs of computations,
 supporting decentralized distributed computations. Lazy evaluation enables
 important optimizations while keeping programs easy to reason about.
 
-\item A formalization of our programming model based on a small-step
+\item {\bf\em A formalization of our programming model} based on a small-step
 operational  semantics. To our knowledge it is the first formal account of
 fault recovery based on lineage in a purely functional setting. Inspired by
 widespread systems like Spark, our formalization closely models real-world
@@ -492,9 +495,9 @@ a deterministic layer and a concurrent/distributed layer. Importantly,
 reasoning techniques for sequential programs are not invalidated by the
 distributed layer.
 
-\item A distributed implementation of the programming model in and for Scala.
+\item {\bf\em A distributed implementation of the programming model} in and for Scala.
 
-\item A small experimental evaluation to show the benefits of some of  the
+\item {\bf\em A small experimental evaluation} to show the benefits of some of  the
 proposed design decisions, and a validation of spores in the context of
 distributed programming.\todo{include description of our implementation of babyspark!}
 
