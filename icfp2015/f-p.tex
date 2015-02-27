@@ -793,17 +793,18 @@ ensure that the \verb|map| method on \verb|RDD|s in Spark (a distributed
 collection) accepts only spores which do not capture \verb|SparkContext| (a
 non-serializable internal framework class).
 
-For a deeper understanding, see either Appendix~\ref{appendix:spores} which
-covers the semantics of spores or the corresponding publication~\cite{Spores}.
+For a deeper understanding of spores, see
+% either Appendix~\ref{appendix:spores} which covers the semantics of spores or
+the corresponding publication~\cite{Spores}.
 
 \begin{figure}[t!]
 \centering\includegraphics[width=0.8\columnwidth]{basic-diagram.pdf}
-\caption{Basic model.}\label{fig:basic-diagram}
+\caption{Basic F-P model.}\label{fig:basic-diagram}
 \end{figure}
 
 \subsection{Basic Usage}
 
-We begin with a simple visual example to provide a feeling for the basic
+We begin with a simple visual example to provide a feeling for the basics of the F-P
 model.\footnote{We also feel that, to visually illustrate a system evolving in
 both space and time, nothing beats a video animation. So, we've produced a
 short animation to provide visual intuition of the F-P model:
@@ -842,7 +843,7 @@ describe these in the following section.
 
 \begin{figure}[t!]
 \centering\includegraphics[width=\columnwidth]{bigger-dag.pdf}
-\caption{Basic model 2.}\label{fig:bigger-dag}
+\caption{A simple DAG in the F-P model.}\label{fig:bigger-dag}
 \end{figure}
 
 \subsection{Primitives}
@@ -1094,7 +1095,7 @@ materialized in memory.
 \subsection{Fault Handling}
 \label{sec:fault-handling}
 
-F-P includes overloaded variants of the primitives discussed so far that
+F-P includes overloaded variants of the primitives discussed so far which
 enable the definition of flexible fault handling semantics. The main idea is
 to specify fault handlers for \emph{subgraphs of computation DAGs}. Our
 guiding principle is to make the definition of the failure-free path through a
@@ -1734,6 +1735,40 @@ Language~\cite{ELang}.
 \section{Conclusion and Future Work}
 \label{sec:conclusion-future-work}
 
+We have presented F-P, a new programming model and principled substrate for
+building data-centric distributed systems. Thanks to a foundation consisting
+of safe, serializable closures and type-safe serization,
+\todo{evaluation point here}
+
+% The most successful systems for ``big data'' processing have all adopted
+% functional APIs. But the innards of these systems are often built atop
+% imperative and weakly-typed stacks, which complicates the design and
+% implementation of distributed system essentials like fault-tolerance. We
+% present a new programming model we call  {\em function passing}
+% designed to overcome many of these issues by providing a more principled
+% substrate on which to build data-centric distributed systems. A key idea is to
+% pass safe, well-typed serializable functions to immutable distributed data.
+% The F-P model itself can be thought of as a distributed persistent functional
+% data structure, which stores in its nodes transformations to data rather than
+% the distributed data itself.  Thus, the model simplifies failure recovery by
+% design--data is recovered by replaying function applications atop immutable
+% data loaded from stable storage. Lazy evaluation is also central to our model;
+% by carefully incorporating laziness into our design (only at the point of
+% initiating network communication), our model remains easy to reason about
+% while remaining efficient in time and memory. We formalize our programming
+% model in the form of a small-step operational semantics which includes a
+% precise specification of the semantics of functional fault recovery. We
+% implement our model in and for the Scala programming language, and provide a
+% small evaluation of the efficiency of our implementation of the model.
+
+% \section{Future Work}
+
+% Adapt this model for streaming computation. This would take coming up with a
+% solution to null out references in the {\em lineage}. This would make it
+% possible to instantiate and populate new silos to handle incoming data.
+
+
+
 \section{Old}
 
 % \subsection{Old Intro}
@@ -1855,14 +1890,11 @@ for babyspark then the interpolation will be much more precise.
 
 
 
-\section{Future Work}
 
-Adapt this model for streaming computation. This would take coming up with a
-solution to null out references in the {\em lineage}. This would make it possible to instantiate and populate new silos to handle incoming data.
 
-\appendix
-\section{Spores}
-\label{appendix:spores}
+% \appendix
+% \section{Spores}
+% \label{appendix:spores}
 
 % This is the text of the appendix, if you need one.
 
