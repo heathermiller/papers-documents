@@ -1130,6 +1130,102 @@ thus, in case \verb|vehicles| has failed, the computation is retried using
 \section{Higher-Order Operations}
 \label{sec:higher-order-operations}
 
+The introduced primitives enable expressing surprisingly intricate
+computational structures. In particular, the fact that SiloRefs can be freely
+exchanged between hosts enables {\em decentralized configurations} far more
+complex than master/slave configurations that typical data analytics stacks
+like MapReduce are limited to.
+
+To illustrate the decentralized nature of our model, consider the following
+example: the local host would like to aggregate data as soon as it has been
+materialized in two silos \verb|vehicles| and \verb|persons|, and write the
+result of the aggregation to a file on a distributed file system:
+
+\begin{lstlisting}
+object Utils {
+  def aggregate(vehicles: SiloRef[List[Vehicle]],
+                persons: SiloRef[List[Person]]): SiloRef[String] =
+    ...
+
+  def write(result: String, fileName: String): Unit = ...
+}
+
+val vehicles: SiloRef[List[Vehicle]] = ...
+val persons: SiloRef[List[Person]] = ...
+val fileName: String = "hdfs://..."
+
+val done = aggregate(vehicles, persons).map(spore {
+  val localName = fileName
+  (res: String) => Utils.write(res, localName)
+})
+
+done.cache() // force computation
+\end{lstlisting}
+\noindent
+
+This program does not tolerate faults of the local host: if it fails, the
+result is never written to the file. Using fault handlers, though, it is
+possible to introduce a backup host that takes over in case the local host
+fails during the \verb|aggregate| step:
+
+\begin{lstlisting}
+val todo = spore {
+  val localVehicles = vehicles
+  val localPersons  = persons
+  (fileName: String) =>
+    aggregate(localVehicles, localPersons).map(spore {
+      val localName = fileName
+      (res: String) => Utils.write(res, localName)
+    })
+}
+
+val hostb = Host(...) // backup host
+val backup = SiloRef.fromFun(hostb)(spore {
+  val captured = fileName
+  () => captured
+})
+
+// dummy silo on local host for failure handling
+val dummy = SiloRef.fromFun(localHost)(spore { () => true })
+
+val checking = backup.flatMap(spore {
+  val theVehicles = vehicles
+  val thePersons  = persons
+  val theDummy    = dummy
+  (name: String) =>
+    // when both silos are materialized...
+    theVehicles.zip(thePersons).flatMap(spore {
+      val localDummy = theDummy
+      res =>
+        // ... check if original host is still alive
+        localDummy.map(identity)
+    },
+    spore { // fault handler
+      res => backup.flatMap(todo)
+    })
+})
+
+checking.cache() // kick off backup
+todo(fileName).cache() // force computation
+\end{lstlisting}
+
+
+
+
+% // concat
+% def concat(silo1: SiloRef[List[A]],
+%            silo2: SiloRef[List[A]]) =
+%   silo1.flatMap(spore {
+%     val localSilo2 = silo2
+%     list1 =>
+%       localSilo2.map(spore {
+%         val localList1 = list1
+%         list2 => localList1 ++ list2
+%       })
+%   })
+
+
+
 Operations on distributed collections\todo{somehow mention Spark here so it's
 clear what a dist coll is.}~such as \verb|union|, \verb|groupByKey|, or
 \verb|join|, involve multiple data sets, possibly located on different nodes.
@@ -1139,6 +1235,7 @@ introduced primitives.\todo{need a more compelling into for PL people}
 \paragraph{union}
 The union of two unordered collections stored in two different silos can be
 expressed directly using the above \verb|flatMap| primitive.
+
 
 \paragraph{join}
 Suppose we are given two silos with the following types:
