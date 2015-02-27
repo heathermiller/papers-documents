@@ -293,14 +293,18 @@ functional APIs. But the innards of these systems are often built atop
 imperative and weakly-typed stacks, which complicates the design and
 implementation of distributed system essentials like fault-tolerance. We
 present a new programming model we call  {\em function-passing} (F-P),
-designed to bring a bit of order to this disarray. A goal of F-P is to provide
-a more principled substrate on which to build data-centric distributed
-systems. F-P seeks to
+designed to bring a bit of order to this disarray. F-P aims to provide a more
+principled substrate on which to build data-centric distributed systems.
+
+. F-P
+seeks to
 
 Typed, composable serialization. And an inversion of the actor model--send
 functionality to data.
 
 Can be viewed as a generalization of the MapReduce/Spark model.
+
+More naturally models the .
 
 A key approach is to pass safe, well-typed functions to immutable
 distributed data, which in many cases improves latency (keep data distributed)
@@ -308,7 +312,15 @@ while making it easier by design to recover from failures. We provide an
 operational semantics, an implementation in and for Scala, and a small
 evaluation of the efficiency of our implementation of the model.
 
+We describe this model in the context of the Scala programming language,
+although there is no reason these concepts are limited to Scala.
 
+Fault-handling built-in to the model. The user is free to choose their own
+fault-handling strategy or lack thereof.
+
+Evolve beautifully in time and space like a persistent data structure.
+
+A model for asynchronous programming.
 
 % The key idea is to provide
 % --passing safe, well-typed functions to immutable distributed data.
@@ -324,28 +336,39 @@ evaluation of the efficiency of our implementation of the model.
 \end{abstract}
 
 \category{D.3.3}{Programming Languages}{Language Constructs and Features}
-
 % general terms are not compulsory anymore,
 % you may leave them out
 \terms
 Languages, Design
 
 \keywords
-programming languages, functional programming, distributed programming,
-functions, closures, serialization, concurrency, types, Scala
+Functional Programming, Distributed Programming, Functions, Closures,
+Serialization, Concurrency, Types, Scala
 
 \section{Introduction}
 
 It's difficult to deny that data-centric programming is growing in importance.
 At the same time, it's no secret that the most successful systems for
-programming with ``big data'' have all adopted functional features;
-Spark~\cite{Spark}, MapReduce~\cite{MapReduce}, and Dryad~\cite{Dryad} are
-just a few. These functional features are often touted to be the key to the
-success of these frameworks.
-% , from both the perspective of users and framework authors alike.
-It's not hard to imagine why--a functional, declarative
-interface to data distributed over tens to thousands of nodes is arguably most
-natural to end-users and data scientists.
+programming with ``big data'' have all adopted {\em concepts} from functional
+programming; \ie programming with first-class functions and higher-order
+functions. These functional ideas are often touted to be the key to the
+success of these frameworks. It's not hard to imagine why--a functional,
+declarative interface to data distributed over tens to thousands of nodes
+provides a more natural way for end-users and data scientists to reason about
+data.
+
+While leveraging functional programming concepts, popular implementations of
+the MapReduce~\cite{MapReduce} model, such as Hadoop MapReduce~\cite{Hadoop}
+for Java, have been developed without making use of functional language
+features such as closures. In contrast, a new generation of programming
+systems for large-scale data processing, such as Apache Spark~\cite{Spark},
+Twitter's Scalding~\cite{Scalding}, and Scoobi~\cite{Scoobi} build on
+functional language features from Scala in order to provide high-level,
+declarative APIs.
+
+% Spark~\cite{Spark}, MapReduce~\cite{MapReduce}, and Dryad~\cite{Dryad} are
+% just a few.
+
 % The benefits provided by functional
 % programming have also won over framework designers as well--some have noticed
 % that immutability, and data transformation via higher-order functions makes it
@@ -355,12 +378,13 @@ natural to end-users and data scientists.
 %  -- the declarative, data-centric interface offered by such
 % systems is a boon for mathematically-oriented data analytics.
 
-However, frameworks for distributed programming are built atop of tall stacks
-of code which is typically imperative and untyped, losing most of the benefits
-enjoyed by the users of their high-level APIs. This makes concerns central to
-distributed systems such as concurrency and fault tolerance more difficult in
-practice. Some of the several problems that negatively affect these systems'
-usage, maintenance, and optimization include:
+However, these frameworks are built atop of tall stacks of typically
+imperative and untyped code, losing most of the benefits enjoyed by the users
+of their high-level APIs. Consequently, concerns central to distributed
+systems such as concurrency and fault tolerance become more difficult to
+reason about and realize in practice. These problems manifest themselves in
+all layers of the stack, negatively affecting these systems' usage, maintenance,
+and optimization. Some of these include:
 
 \begin{itemize}
 
