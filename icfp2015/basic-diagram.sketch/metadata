@@ -29,9 +29,12 @@
 		<string>Inconsolata</string>
 		<string>TimesNewRomanPS-ItalicMT</string>
 		<string>TimesNewRomanPSMT</string>
+		<string>MyriadPro-Regular</string>
+		<string>MyriadPro-Regular</string>
+		<string>MyriadPro-Regular</string>
 	</array>
 	<key>length</key>
-	<integer>283198</integer>
+	<integer>373954</integer>
 	<key>version</key>
 	<integer>18</integer>
 </dict>
