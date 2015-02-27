@@ -333,6 +333,25 @@ enjoyed by the users of their high-level APIs. This makes concerns central to
 distributed systems such as concurrency and fault tolerance difficult to
 achieve in practice.
 
+Yet frameworks that took the leap to invert their models to  are riddled with
+challenges at the level of the language. Scala is a language --
+Spark~\cite{Spark}, Scalding~\cite{Scalding}, Kafka~\cite{Kafka}, and
+Scoobi~\cite{Scoobi} are just a few.
+
+% Yet, software developers still fumble with low-level RPC frameworks.
+
+% In existing systems, types are only in the user-facing API and help the user.
+% However, all too often, the internals of a distributed system are largely
+% untyped, in particular when operating on data types that are also shipped
+% remotely. In our approach we now go ahead and make types work so that they
+% benefit both users (help- ing catch common errors) and distributed systems
+% builders. Our approach leverages types to provide (1) type-specialized
+% picklers, and (2) type-specialized collections/builders.
+
+% Generalization of MapReduce model. Low-level. Inversion of the actor model.
+% Can represent different many models for dis- tributed computing, e.g. Spark,
+% Percolator (we probably can’t vali- date this claim.)
+
 % What makes this problem even
 % worse is the fact that coordinating between data shards and doing that in a
 % way that is easy to reason about is the wheel that every data-centric
@@ -402,7 +421,7 @@ to zoom in and make precise each component of our model in Sections~\ref{}.
 % value. A silo is ``stationary''; it is never moved away from the host on which
 % it was created. Computations on silos are expressed using SiloRefs, proxy
 % objects representing remote silos. The primary means to operate on a silo is
-% by passing a serializable closure to it using a SiloRef. SiloRefs provide a
+% by passing a serializable closure to it via a SiloRef. SiloRefs provide a
 % standard monadic interface as well as primitives for defining flexible fault
 % handling strategies.
 
@@ -1078,7 +1097,7 @@ The key principles of the fault handling mechanism are:
 
 \inferrule[\textsc{R-ReqLocal}]
 { E = \text{Req}(h', r, \iota'') \texttt{::} E' \quad r = \text{Mapped}(\iota, h, r', p) \quad r' \neq \text{Mat}(\iota_s) \quad S(\iota) = \text{None} \\
-  loc(r') = \iota' \quad S(\iota') = \text{None} \\ 
+  loc(r') = \iota' \quad S(\iota') = \text{None} \\
   E'' = \text{Req}(h, r', \iota') \texttt{::} E
 }
 { (R[\texttt{await}(P(i_f))], E, S)^h \rightarrow (R[\texttt{await}(P(i_f))], E'', S)^h
