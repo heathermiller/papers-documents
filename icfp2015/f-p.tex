@@ -1293,7 +1293,7 @@ The key principles of the fault handling mechanism are:
 }
 
 \inferrule[\textsc{RF-ReqF}]
-{ E = \text{ReqF}(h, r, \iota') \texttt{::} E' \quad r = \text{FMapped}(\iota, h, r'', p, \text{Some}(p_f)) \\
+{ E = \text{ReqF}(h, r, \iota') \texttt{::} E' \quad r = \text{Mapped}(\iota, h, r'', p, \text{Some}(p_f)) \\
   loc(r'') = \iota_s \quad S(\iota_s) = \text{Some}(v) \quad E'' = \text{Res}(\iota', p_f(v)) \texttt{::} E'
 }
 { (R[\texttt{await}(\iota_f)], E, S)^h \longrightarrow (R[\texttt{await}(\iota_f)], E'', S)^h
