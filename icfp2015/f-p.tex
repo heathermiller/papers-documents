@@ -411,20 +411,25 @@ on the high overhead of serialization in widely-used runtime environments such
 as the JVM. This overhead is so important in practice that popular systems,
 like Spark~\cite{Spark} and Akka~\cite{Akka}, leverage alternative
 serialization frameworks such as Protocol Buffers~\cite{Protobuf}, Apache
-Avro~\cite{Avro}, or Kryo~\cite{Kryo}. \end{itemize}
+Avro~\cite{Avro}, or Kryo~\cite{Kryo}.
+
+\end{itemize}
 
 
-We present a new programming model we call {\em function passing} (F-P),
-designed to provide a more principled substrate on which to build data-centric
-distributed systems. Our model attempts to fit the paradigm of data-centric
-programming more naturally by extending monadic programming to the network.
-Our model can be thought of as somewhat of a dual to the actor
-model\footnote{There are many variations and interpretations of the actor
-model; in saying our model is somewhat of a dual, we simply mean to highlight
-that programmers need not focus on programming with typically stationary
-message handlers. Instead, our model focuses on a monadic interface for
-programming with data (and sending functions instead).}; rather than keeping
-functionality stationary and sending data, in our model, we keep data
+We present a new programming model we call {\em function passing} (F-P)
+designed to overcome most of these issues by providing a more principled
+substrate on which to build data-centric distributed systems. It builds upon
+two previous veins of work--an approach for generating type-safe and
+performant pickler combinators~\cite{Pickling}, and spores~\cite{Spores},
+closures that are guaranteed to be serializable.  Our model attempts to fit
+the paradigm of data-centric programming more naturally by extending monadic
+programming to the network. Our model can be thought of as somewhat of a dual
+to the actor model;\footnote{There are many variations and interpretations of
+the actor model; in saying our model is somewhat of a dual, we simply mean to
+highlight that programmers need not focus on programming with typically
+stationary message handlers. Instead, our model focuses on a monadic interface
+for programming with data (and sending functions instead).} rather than
+keeping functionality stationary and sending data, in our model, we keep data
 stationary and send functionality to the data. This results in well-typed
 communication by design, a common pain point for builders of distributed
 systems in Scala.
@@ -437,25 +442,66 @@ laziness was an enabler in our model, without complicating the ability to
 reason about programs. Without optimizations based on laziness, we found this
 model would be impractically inefficient in memory and time.
 
-An important goal of our model is to better understand programming systems
-such as Spark, Scalding, and Scoobi, by incorporating several of their core
-principles; namely, immutable distributed data and distributed closure
-passing. At the same time, the prototype implementation of our programming
-model is much simpler as compared to such systems. As a result, our prototype
-simplifies experimentation and exploring implementation trade-offs. In
-addition, the simplicity of our programming model enables capturing the
-semantics of core constructs more precisely.
+One important contribution of our model is a precise specification of the
+semantics of functional fault recovery. The fault-recovery mechanisms of
+widespread systems such as Apache Spark, MapReduce~\cite{MapReduce} and
+Dryad~\cite{Dryad} are based on the concept of a
+\emph{lineage}~\cite{Lineage1,Linage2}. Essentially, the lineage of a data set
+combines (a) an initial data set available on stable storage and (b) a
+sequence of transformations applied to initial and subsequent data sets.
+Maintaining such lineages enables fault recovery through recomputation.
+Practical implementations of lineage-based fault recovery suffer from complex
+code bases, typically eschewing strong static typing. This paper presents a
+principled approach to lineage-based fault recovery in a purely functional
+setting--to our knowledge a novelty in the PL literature.
 
-In particular, one important goal is to more precisely specify the semantics
-of widespread fault-recovery mechanisms based on the concept of a {\em
-lineage}. Essentially, the lineage of a data set combines (a) an initial data
-set available on stable storage and (b) a sequence of transformations applied
-to initial and subsequent data sets. Maintaining such lineages enables fault
-recovery through recomputing results.
+Our programming model is also designed to enable adoption in real-world
+languages and systems. On the one hand, our model can be thought of as a
+generalization of the MapReduce/Spark computation model, which has been shown
+to be widely portable. On the other hand, the core primitives of the
+programming model can be implemented in any language that enables closures to
+be serialized.
+
+
+% To ensure safe and efficient distribution of closures, our model leverages
+% both syntactic and type- based restrictions. For instance, closures sent to
+% remote nodes are required to conform to the restrictions imposed by the so-
+% called “spore” abstraction that the authors presented in previous work [12].
+% Among others, the syntax and static semantics of spores can guarantee the
+% absence of runtime serialization errors due to closure environments that are
+% not serializable.
+
 
 This paper makes the following contributions:
-\begin{itemize}[noitemsep]
-\item
+\begin{itemize} %[noitemsep]
+
+\item A new data-centric programming model for functional processing of
+distributed data which makes important concerns like fault tolerance easy by
+design. The main computational principle is based on the idea of sending safe,
+guaranteed serializable functions to stationary data. Using standard monadic
+operations our model enables creating immutable DAGs of computations,
+supporting decentralized distributed computations. Lazy evaluation enables
+important optimizations while keeping programs easy to reason about.
+
+\item A formalization of our programming model based on a small-step
+operational  semantics. To our knowledge it is the first formal account of
+fault recovery based on lineage in a purely functional setting. Inspired by
+widespread systems like Spark, our formalization closely models real-world
+fault recovery mechanisms. The presented semantics is clearly stratified into
+a deterministic layer and a concurrent/distributed layer. Importantly,
+reasoning techniques for sequential programs are not invalidated by the
+distributed layer.
+
+\item A distributed implementation of the programming model in and for Scala.
+
+\item A small experimental evaluation to show the benefits of some of  the
+proposed design decisions, and a validation of spores in the context of
+distributed programming.
+
+% An experimental evaluation comparing the performance
+% of our framework with Java serialization and Kryo on
+% a number of data types used in real-world, large-scale
+% distributed applications and frameworks
 
 \end{itemize}
 
