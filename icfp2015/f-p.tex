@@ -288,22 +288,31 @@
 
 \begin{abstract}
 
-The most successful systems for ``big data'' processing all Functional ideas have long
-been appearing in the designs of such systems.
-But the innards of these systems are often built atop mutable, weakly-typed stacks, and as a result complicating essentials like fault-tolerance.
- We present a new programming
-model we refer to as {\em function-passing}. model . We provide an operational
-semantics, an implementation in and for Scala, and a small evaluation of the
-efficiency of our implementation of the model.
+The most successful systems for ``big data'' processing have all adopted
+functional APIs. But the innards of these systems are often built atop
+imperative and weakly-typed stacks, which complicates the design and
+implementation of distributed system essentials like fault-tolerance. We
+present a new {\em function-passing} (F-P) programming model designed to bring
+a bit of order to this disarray. A goal of F-P is to provide a more principled
+substrate on which to build data-centric distributed systems. A key approach
+is to pass safe, well-typed functions to immutable distributed data, which in
+many cases improves latency (keep data distributed) while making it easier by
+design to recover from failures. We provide an operational semantics, an
+implementation in and for Scala, and a small evaluation of the efficiency of
+our implementation of the model.
 
-We aim to add reason to this calamity.
 
 
-Our principal contributions are a careful selection of features that support
-the evolution of scripts into industrial grade programs—e.g., an expressive
-module system, an optional type annotation facility for declarations, and
-support for concurrency based on message passing between lightweight, isolated
-processes.
+% The key idea is to provide
+% --passing safe, well-typed functions to immutable distributed data.
+
+% A model of concurrency which better suits communication in typed data-centric
+% distributed programming. Our model is implemented in and for the Scala programming language--a language
+
+%   we refer to as {\em function-passing}. model . We provide an operational
+% semantics, an implementation in and for Scala, and a small evaluation of the
+% efficiency of our implementation of the model.
+
 
 \end{abstract}
 
@@ -384,6 +393,16 @@ Guiding principles.
 \end{itemize}
 
 Our contributions...
+
+% Our principal contributions are a careful selection of features that
+% facilitate important concerns like fault tolerance by design.
+
+% that support
+% the evolution of scripts into industrial grade programs—e.g., an expressive
+% module system, an optional type annotation facility for declarations, and
+% support for concurrency based on message passing between lightweight, isolated
+% processes.
+
 
 % Yet, building such systems remains an endeavor only succeeded by a few.
 
