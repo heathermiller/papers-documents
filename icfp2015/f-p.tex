@@ -390,15 +390,16 @@ problems include:
 
 \begin{itemize}
 
-\item {\bf Complicated Ease of Use} These systems' APIs cannot statically
-prevent {\em common usage errors} resulting from some language features not
-being designed with distribution in mind. As a result, users are often
-confronted with runtime errors that are hard to debug. A common example is
-unsafe closure serialization~\cite{Spores}.
+\item {\bf Difficulty of Use} These systems' APIs cannot statically prevent
+{\em common usage errors} resulting from some language features not being
+designed with distribution in mind, often confronting users with hard-to-debug
+runtime errors. A common example is unsafe closure
+serialization~\cite{Spores}.
 
-\item {\bf Complicated Maintenance} Typically, only high-level user-facing abstractions are statically
-typed.  The absence of static types in lower layers of the system makes
-maintenance tasks, such as code refactorings, more difficult.
+\item {\bf Complicated Maintenance} Typically, only high-level user-facing
+abstractions are statically typed.  The absence of static types in lower
+layers of the system makes maintenance tasks, such as code refactorings, more
+difficult.
 
 \item {\bf Lost Optimization Opportunities} The absence of certain kinds of
 static type information precludes systems-centric optimizations. Importantly,
@@ -435,6 +436,28 @@ foundation for data-centric distributed systems. Interestingly, we found that
 laziness was an enabler in our model, without complicating the ability to
 reason about programs. Without optimizations based on laziness, we found this
 model would be impractically inefficient in memory and time.
+
+An important goal of our model is to better understand programming systems
+such as Spark, Scalding, and Scoobi, by incorporating several of their core
+principles; namely, immutable distributed data and distributed closure
+passing. At the same time, the prototype implementation of our programming
+model is much simpler as compared to such systems. As a result, our prototype
+simplifies experimentation and exploring implementation trade-offs. In
+addition, the simplicity of our programming model enables capturing the
+semantics of core constructs more precisely.
+
+In particular, one important goal is to more precisely specify the semantics
+of widespread fault-recovery mechanisms based on the concept of a {\em
+lineage}. Essentially, the lineage of a data set combines (a) an initial data
+set available on stable storage and (b) a sequence of transformations applied
+to initial and subsequent data sets. Maintaining such lineages enables fault
+recovery through recomputing results.
+
+This paper makes the following contributions:
+\begin{itemize}[noitemsep]
+\item
+
+\end{itemize}
 
 % In this paper, we present object-oriented
 % pickler combinators and a framework for generating them
