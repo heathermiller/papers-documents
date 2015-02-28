@@ -1710,10 +1710,19 @@ except that fault handlers $p_f$ are applied as opposed to regular spores $p$.
 \section{Implementation}
 \label{sec:implementation}
 
-\url{http://lampwww.epfl.ch/~hmiller/f-p/}\footnote{Review note: this site is publicly accessible and is linked to in talks and from other various pages. }
+\url{http://lampwww.epfl.ch/~hmiller/f-p/}\footnote{Review note: this site is publicly accessible, has no tracking capabilities, and is linked to in talks and from other various webpages meaning it already gets public traffic. One may visit it without identity concerns.}
+
+\begin{figure}[t!]
+\centering\includegraphics[width=\columnwidth]{multipleJVM.pdf}
+\caption{Impact of Static Types on Performance, End-to-End Application (\texttt{groupBy} + \texttt{join}).}
+\label{fig:multiple-jvm}
+\end{figure}
 
 \section{Evaluation}
 \label{sec:evaluation}
+
+We provide a small evaluation of our implementation to demonstrate the
+practical benefit of some of the design points of our model.
 
 \section{Related Work}
 \label{sec:related-work}
@@ -1757,10 +1766,10 @@ for distributed programming, such as type-safe serialization, dynamic linking
 and rebinding, and versioning. F-P, in contrast, is based on spores, which
 ship with their serialized environment or they fail to compile, obviating the
 need for dynamic rebinding. HashCaml~\cite{DistOCaml} is a practical evolution
-of Acute ML's ideas that extends to the OCaml bytecode compiler, and focuses
-on type-safe serialization and providing globally meaningful type names. In
-contrast, F-P merely a programming model, which does not require extensions to
-the Scala compiler.
+of Acute ML's ideas in the form of an extension to the OCaml bytecode
+compiler, which focuses on type-safe serialization and providing globally
+meaningful type names. In contrast, F-P merely a programming model, which does
+not require extensions to the Scala compiler.
 
 % compiler, which focuses on transmitting safe functions to work on remote
 % distributed data.
@@ -1778,9 +1787,9 @@ stronger than what plain spores provide.\todo{more here}
 
 Systems like Spark~\cite{Spark}, MapReduce~\cite{MapReduce}, and
 Dryad~\cite{Dryad} are just that--distributed systems. F-P is meant to act as
-more of a middleware to facilitate the construction of such systems, and as a
-result provides much finer-grained control over details such as fault handling
-and network topology (\ie peer-to-peer vs master/worker).
+more of a middleware to facilitate the design and implementation of such
+systems, and as a result provides much finer-grained control over details such
+as fault handling and network topology (\ie peer-to-peer vs master/worker).
 
 Session
 Types~\cite{SessionTypes}. AmbientTalk~\cite{AmbientTalk}. E
