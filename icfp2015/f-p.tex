@@ -1887,14 +1887,20 @@ invocations.
 
 Cloud Haskell~\cite{CloudHaskell} leverages guaranteed-serializable, static
 closures for a message-passing communication model inspired by Erlang. In
-contrast, in our model spores are sent between passive, persistent silos.\todo{more here}
-Closures and continuations in Termite Scheme~\cite{TermiteScheme} are always
-serializable; references to non-serializable objects (like open files) are
-automatically wrapped in processes that are serialized as their process ID.
-Similar to Cloud Haskell, Termite is inspired by Erlang. In contrast to
-Termite, F-P is statically typed, enabling advanced type-based optimizations.
-In non-process-oriented models, parallel closures~\cite{ParallelClosures} and
-RiverTrail~\cite{RiverTrail} address important safety issues.\todo{more here}
+contrast, in our model spores are sent between passive, persistent silos. In
+contrast, in our model spores are sent between passive, persistent silos.
+Moreover, the coordination of concurrent activity is based on futures, instead
+of message passing. Closures and continuations in Termite
+Scheme~\cite{TermiteScheme} are always serializable; references to non-
+serializable objects (like open files) are automatically wrapped in processes
+that are serialized as their process ID. Similar to Cloud Haskell, Termite is
+inspired by Erlang. In contrast to Termite, F-P is statically typed, enabling
+advanced type-based optimizations. In non-process-oriented models, parallel
+closures~\cite{ParallelClosures} and RiverTrail~\cite{RiverTrail} address
+important safety issues of closures in a concurrent setting. However,
+RiverTrail currently does not support capturing variables in closures, which
+is critical for the flatMap combinator in F-P. In contrast to parallel
+closures, spores do not require a type system extension in Scala.
 
 Acute ML~\cite{AcuteML} is a dialect of ML which proposes numerous primitives
 for distributed programming, such as type-safe serialization, dynamic linking
@@ -1912,7 +1918,14 @@ not require extensions to the Scala compiler.
 ML5~\cite{Tom7} provides mobile closures verified not to use resources not
 present on machines where they are applied. This property is enforced
 transitively (for all values reachable from captured values), which is
-stronger than what plain spores provide.\todo{more here}
+stronger than what plain spores provide. However, type constraints allow
+spores to require properties not limited to mobility. Transitive properties
+are supported either using type constraints based on type classes which
+enforce a transitive property or by integrating with type systems that enforce
+transitive properties. Unlike ML5, spores do not require a type system
+extension. Further, the F-P model sits on top of these primitives to provide a
+full programming model for distribution, which also integrates spores and
+type-safe pickling.
 
 % However, type constraints allow spores to require properties not limited to
 % mobility. Transitive prop- erties are supported either using type constraints
