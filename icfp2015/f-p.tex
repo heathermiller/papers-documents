@@ -1495,30 +1495,6 @@ E      ::=  \epsilon & \mbox{message queue}
 
 In the following we give a small-step operational semantics of the primitives of our language. The semantics is clearly stratified into a deterministic layer and a non-deterministic (concurrent) layer. Importantly, this means our programming model can benefit from existing reasoning techniques for sequential programs. Program transformations that are correct for sequential programs are also correct for distributed programs. Our programming model shares this property with some existing approaches such as~\cite{ConcurrentHaskell}.
 
-\paragraph{Notation and conventions.} We write $S' = S + (\iota \mapsto v)$ to express the fact that $S'$ maps $\iota$ to $v$ and otherwise agrees with $S$. We write $S(\iota) = \text{Some}(v)$ to express the fact that $S$ maps $\iota$ to $v$. We write $S(\iota) = \text{None}$ if $S$ does not have a mapping for $\iota$. Reduction is defined using reduction contexts~\cite{TAPL}. We omit the definition of reduction contexts, since they are completely standard.
-
-\paragraph{Configurations.} The reduction rules of the deterministic layer define transitions of \emph{host configurations} $(t, E, S)^h$ of host $h$ where $t$ is a term, $E$ is a message queue, and $S$ is a silo store. The reduction rules of the non-deterministic layer define transitions of sets $H$ of host configurations. The reduced host configurations are chosen non-deterministically in order to express concurrency between hosts.
-
-\paragraph{Fault handling.} In the interest of clarity we present the reduction rules in two steps. In the first step we explain simplified rules without fault handling semantics (Sections~\ref{sec:det-layer} and~\ref{sec:nondet-layer}). In the second step we explain how these simplified rules have to be refined in order to support the fault handling principles of our model (Section~\ref{sec:faults-opsem}).
-
-
-\subsubsection{Decentralized identification}
-
-A important property of our programming model is the fact that silos are uniquely identified using \emph{decentralized identifiers}. A decentralized identifier $\iota$ has two components: (a) the identifier of the host $h$ that created $\iota$, and (b) a name $i$ created fresh on $h$ (e.g., an integer value): $\iota = (h, i)$. Decentralized identifiers are important, since they reconcile two conflicting properties central to our model. The first property is building computation DAGs locally, without remote communication. This is possible using decentralized identifiers, since each host can generate new identifiers independently of other remote hosts. The second property is allowing SiloRefs to be freely copied between remote hosts. This is possible, since decentralized identifiers uniquely identify silos without the need for subsequent updates of their information; decentralized identifiers are immutable. This latter property is essential to enable computation DAGs that are \emph{immutable upon construction}. In our programming model, computation DAGs are created using the standard monadic operations of SiloRefs. In particular, the \texttt{flatMap} operation (monadic bind) in general requires that its argument spore captures SiloRefs that are subsequently copied to a remote host. Hence it is essential that SiloRefs and the decentralized identifiers they contain be freely copyable between remote hosts.
-
-\subsubsection{Deterministic layer}\label{sec:det-layer}
-
-We first consider the reduction rules of the deterministic layer shown in Figure~\ref{fig:opsem-determ}. The reduction rules for \texttt{map} (\textsc{R-Map}) and \texttt{flatMap} (\textsc{R-FMap}) do not involve communication with other hosts. In each case, a new SiloRef $r'$ is created that is derived from SiloRef $r$. The execution of the actual operation (\texttt{map} or \texttt{flatMap}, respectively) is deferred, and an object representing this derivation is returned. In both cases, the new SiloRef $r'$ refers to a silo created on host $h'$ by applying the spore value $p$ to the value of silo $r$. The first component of the Mapped and FMapped objects, $(h, i)$, is a fresh \emph{location} created by host $h$ to uniquely identify the result silo.
-
-Most reduction rules are enabled when the current redex is an \texttt{await} term. The reduction of a term $\texttt{await}(\iota)$ only continues when store $S$ maps location $\iota$ to value $v$. In all other cases, the current host removes the next message from its message queue $E$. As shown in Figure~\ref{fig:elems-opsem} there are two types of messages: requests (Req) and responses (Res). A response $\text{Res}(\iota, v)$ tells its receiver that the silo at location $\iota$ has value $v$. A request $\text{Req}(h, r, \iota)$ is sent on behalf of host $h$ to request the value of silo $r$ at location $\iota$. The reception of a response $\text{Res}(\iota, v)$ is handled by adding a mapping $(\iota \mapsto v)$ to the store (rule \textsc{R-Res}). The reception of a request $\text{Req}(h', r, \iota'')$ is handled locally if materialization of the requested silo $r$ is deferred and the parent silo $r'$ in $r$'s lineage has not been materialized either. In this case, the host sends a request to materialize $r'$ to itself.
-
-\subsubsection{Nondeterministic layer}\label{sec:nondet-layer}
-
-All reduction rules in the nondeterministic layer involve communication between two hosts.
-
-Reducing a term $\texttt{send}(r)$ appends a request $\text{Req}(h, r, \iota)$ to the message queue of host $h'$ of the requested silo $r$. In this case, host $h$ creates a unique location $\iota = (h, i)$ to identify the silo subsequently. Rules \textsc{R-Req1}, \textsc{R-Req2}, and \textsc{R-Req3} define the handling of request messages that cannot be handled locally. If the request can be serviced immediately (\textsc{R-Req1}), a response with the value $v$ of the requested silo $r$ is appended to the message queue of the requesting host $h'$. Rules \textsc{R-Req2} and \textsc{R-Reg3} handle cases where the requested silo is not already available in materialized form.
-
-
 \begin{figure*}[t!]
   \centering
 % \vspace{-7mm}
@@ -1561,8 +1537,27 @@ Reducing a term $\texttt{send}(r)$ appends a request $\text{Req}(h, r, \iota)$ t
   % \vspace{-3mm}
 \end{figure*}
 
+\paragraph{Notation and conventions.} We write $S' = S + (\iota \mapsto v)$ to express the fact that $S'$ maps $\iota$ to $v$ and otherwise agrees with $S$. We write $S(\iota) = \text{Some}(v)$ to express the fact that $S$ maps $\iota$ to $v$. We write $S(\iota) = \text{None}$ if $S$ does not have a mapping for $\iota$. Reduction is defined using reduction contexts~\cite{TAPL}. We omit the definition of reduction contexts, since they are completely standard.
 
-\begin{figure*}[t!]
+\paragraph{Configurations.} The reduction rules of the deterministic layer define transitions of \emph{host configurations} $(t, E, S)^h$ of host $h$ where $t$ is a term, $E$ is a message queue, and $S$ is a silo store. The reduction rules of the non-deterministic layer define transitions of sets $H$ of host configurations. The reduced host configurations are chosen non-deterministically in order to express concurrency between hosts.
+
+\paragraph{Fault handling.} In the interest of clarity we present the reduction rules in two steps. In the first step we explain simplified rules without fault handling semantics (Sections~\ref{sec:det-layer} and~\ref{sec:nondet-layer}). In the second step we explain how these simplified rules have to be refined in order to support the fault handling principles of our model (Section~\ref{sec:faults-opsem}).
+
+
+
+\subsubsection{Decentralized identification}
+
+A important property of our programming model is the fact that silos are uniquely identified using \emph{decentralized identifiers}. A decentralized identifier $\iota$ has two components: (a) the identifier of the host $h$ that created $\iota$, and (b) a name $i$ created fresh on $h$ (e.g., an integer value): $\iota = (h, i)$. Decentralized identifiers are important, since they reconcile two conflicting properties central to our model. The first property is building computation DAGs locally, without remote communication. This is possible using decentralized identifiers, since each host can generate new identifiers independently of other remote hosts. The second property is allowing SiloRefs to be freely copied between remote hosts. This is possible, since decentralized identifiers uniquely identify silos without the need for subsequent updates of their information; decentralized identifiers are immutable. This latter property is essential to enable computation DAGs that are \emph{immutable upon construction}. In our programming model, computation DAGs are created using the standard monadic operations of SiloRefs. In particular, the \texttt{flatMap} operation (monadic bind) in general requires that its argument spore captures SiloRefs that are subsequently copied to a remote host. Hence it is essential that SiloRefs and the decentralized identifiers they contain be freely copyable between remote hosts.
+
+
+\subsubsection{Deterministic layer}\label{sec:det-layer}
+
+We first consider the reduction rules of the deterministic layer shown in Figure~\ref{fig:opsem-determ}. The reduction rules for \texttt{map} (\textsc{R-Map}) and \texttt{flatMap} (\textsc{R-FMap}) do not involve communication with other hosts. In each case, a new SiloRef $r'$ is created that is derived from SiloRef $r$. The execution of the actual operation (\texttt{map} or \texttt{flatMap}, respectively) is deferred, and an object representing this derivation is returned. In both cases, the new SiloRef $r'$ refers to a silo created on host $h'$ by applying the spore value $p$ to the value of silo $r$. The first component of the Mapped and FMapped objects, $(h, i)$, is a fresh \emph{location} created by host $h$ to uniquely identify the result silo.
+
+Most reduction rules are enabled when the current redex is an \texttt{await} term. The reduction of a term $\texttt{await}(\iota)$ only continues when store $S$ maps location $\iota$ to value $v$. In all other cases, the current host removes the next message from its message queue $E$. As shown in Figure~\ref{fig:elems-opsem} there are two types of messages: requests (Req) and responses (Res). A response $\text{Res}(\iota, v)$ tells its receiver that the silo at location $\iota$ has value $v$. A request $\text{Req}(h, r, \iota)$ is sent on behalf of host $h$ to request the value of silo $r$ at location $\iota$. The reception of a response $\text{Res}(\iota, v)$ is handled by adding a mapping $(\iota \mapsto v)$ to the store (rule \textsc{R-Res}). The reception of a request $\text{Req}(h', r, \iota'')$ is handled locally if materialization of the requested silo $r$ is deferred and the parent silo $r'$ in $r$'s lineage has not been materialized either. In this case, the host sends a request to materialize $r'$ to itself.
+
+
+\begin{figure*}[ht!]
   \centering
 % \vspace{-7mm}
 \begin{mathpar}
@@ -1609,6 +1604,17 @@ Reducing a term $\texttt{send}(r)$ appends a request $\text{Req}(h, r, \iota)$ t
   % \vspace{-3mm}
 \end{figure*}
 
+
+
+
+\subsubsection{Nondeterministic layer}\label{sec:nondet-layer}
+
+All reduction rules in the nondeterministic layer, shown in Figure~\ref{fig:opsem-nondeterm}, involve communication between two hosts.
+
+Reducing a term $\texttt{send}(r)$ appends a request $\text{Req}(h, r, \iota)$ to the message queue of host $h'$ of the requested silo $r$. In this case, host $h$ creates a unique location $\iota = (h, i)$ to identify the silo subsequently. Rules \textsc{R-Req1}, \textsc{R-Req2}, and \textsc{R-Req3} define the handling of request messages that cannot be handled locally. If the request can be serviced immediately (\textsc{R-Req1}), a response with the value $v$ of the requested silo $r$ is appended to the message queue of the requesting host $h'$. Rules \textsc{R-Req2} and \textsc{R-Reg3} handle cases where the requested silo is not already available in materialized form.
+
+
+
 % Failures may be detected whenever a message is sent to a non-local host. Note that this does not mean that message sends must be synchronous. Instead, our implementation interprets a failure to establish a network connection with a remote host as a failure of the remote host and thus a failure of all silos that it hosts.
 
 \subsection{Fault handling}\label{sec:faults-opsem}
@@ -1622,6 +1628,21 @@ The key principles of the fault handling mechanism are:
 
 
 % A host either (a) discovers itself that a remote silo has failed (e.g., because it could not establish a network connection to the remote host), or (b) is notified that a remote silo has failed by a healthy host involved in its materialization.
+
+
+These principles are embodied in the reduction as follows. First, we use the
+predicate $\text{failed}(h)$ as a way to check whether it is possible to
+communicate with host $h$ (e.g., an implementation could check whether it is
+possible to establish a socket connection). Second, failures of hosts are
+handled whenever communication is attempted: whenever a host $h$ intends to
+send a message to a host $h'$ where $h' \neq h$, it is checked whether
+$\text{failed}(h')$. If it is the case that $\text{failed}(h')$, either the
+corresponding location (silo or future) is declared as failed (and fault
+handling deferred), or a suitable fault handler is located and a recovery step
+is attempted. In the following we explain the extended reduction rules shown
+in Figure~\ref{fig:opsem-faults}.
+
+
 
 \begin{figure*}[t!]
   \centering
@@ -1666,17 +1687,6 @@ The key principles of the fault handling mechanism are:
   % \vspace{-3mm}
 \end{figure*}
 
-These principles are embodied in the reduction as follows. First, we use the
-predicate $\text{failed}(h)$ as a way to check whether it is possible to
-communicate with host $h$ (e.g., an implementation could check whether it is
-possible to establish a socket connection). Second, failures of hosts are
-handled whenever communication is attempted: whenever a host $h$ intends to
-send a message to a host $h'$ where $h' \neq h$, it is checked whether
-$\text{failed}(h')$. If it is the case that $\text{failed}(h')$, either the
-corresponding location (silo or future) is declared as failed (and fault
-handling deferred), or a suitable fault handler is located and a recovery step
-is attempted. In the following we explain the extended reduction rules shown
-in Figure~\ref{fig:opsem-faults}.
 
 In rule \textsc{RF-Send}, the host of the requested silo $r$ is detected to have
 failed. However, the parent silos of $r$ are all located on the same (failed)
