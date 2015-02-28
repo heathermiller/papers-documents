@@ -1159,10 +1159,10 @@ Higher-order operations such as variants of \verb|map|, \verb|reduce|, and
 \verb|join|, operating on collections of data partitions, distributed across a
 set of hosts, are required when implementing abstractions like Spark's
 distributed collections~\cite{Spark}. Section~\ref{sec:dist-coll} demonstrates
-the implementation of such operations in terms of silos.
+the implementation of some such operations in terms of silos.
 
 In addition, even more patterns are possible thanks to the decentralized
-nature of our programming model, which removes the limitations of master/slave
+nature of our programming model, which removes the limitations of master/worker
 host configurations. Section~\ref{sec:decentral} shows examples of
 peer-to-peer patterns that are still fault-tolerant.
 
@@ -1710,13 +1710,16 @@ except that fault handlers $p_f$ are applied as opposed to regular spores $p$.
 \section{Implementation}
 \label{sec:implementation}
 
+\url{http://lampwww.epfl.ch/~hmiller/f-p/}\footnote{Review note: this site is publicly accessible and is linked to in talks and from other various pages. }
+
 \section{Evaluation}
 \label{sec:evaluation}
 
 \section{Related Work}
 \label{sec:related-work}
 
-Actors~\cite{Actors, ScalaActors}. Typed Actors~\cite{TypedActors}.
+Actors~\cite{Actors, ScalaActors}. Typed
+Actors~\cite{TypedActors}.\todo{Philipp! Halp!}
 
 The Clojure programming language proposes Agents~\cite{Clojure}--stationary
 mutable data containers that users apply functions to in order to update an
@@ -1725,6 +1728,18 @@ be immutable, and that transformations by function application form a
 persistent data structure. Further, Clojure's Agents are designed to manage
 state in a shared memory scenario, whereas F-P is designed with remote
 references for a distributed scenario.
+
+Alice ML~\cite{AliceML} is an extension of Standard ML which adds a number of
+important features for distributed programming such as futures and proxies.
+The design leading up to F-P has incorporated many similar ideas, such as
+{type-safe}, generic and platform-independent pickling. In Alice, functions
+are stationary, but it is possible to send proxies, mobile wrappers for
+functions. Sending a proxy will not transfer the wrapped function; instead,
+when a proxy function is applied, the call is forwarded by the system to the
+original site as a remote invocation (pickling arguments and result
+appropriately). In F-P, however, functions are not wrapped in proxies but sent
+directly. Thus, calling a received function will not lead to remote
+invocations.
 
 Cloud Haskell~\cite{CloudHaskell} leverages guaranteed-serializable, static
 closures for a message-passing communication model inspired by Erlang. In
@@ -1737,36 +1752,55 @@ Termite, F-P is statically typed, enabling advanced type-based optimizations.
 In non-process-oriented models, parallel closures~\cite{ParallelClosures} and
 RiverTrail~\cite{RiverTrail} address important safety issues.\todo{more here}
 
-Alice ML~\cite{AliceML} is an extension of Standard ML which adds a number of
-important features for distributed programming \todo{more here}. The design
-leading up to F-P has incorporated many similar ideas, such as {type-safe},
-generic and platform-independent pickling. F-P differs however, in that it is
-a programming model rather than a language which focuses on sending functions
-to immutable data rather than remote invocation.
+Acute ML~\cite{AcuteML} is a dialect of ML which proposes numerous primitives
+for distributed programming, such as type-safe serialization, dynamic linking
+and rebinding, and versioning. F-P, in contrast, is based on spores, which
+ship with their serialized environment or they fail to compile, obviating the
+need for dynamic rebinding. HashCaml~\cite{DistOCaml} is a practical evolution
+of Acute ML's ideas that extends to the OCaml bytecode compiler, and focuses
+on type-safe serialization and providing globally meaningful type names. In
+contrast, F-P merely a programming model, which does not require extensions to
+the Scala compiler.
 
-Acute ML~\cite{AcuteML} propose.
+% compiler, which focuses on transmitting safe functions to work on remote
+% distributed data.
 
-Other approaches such as type-safe distributed OCaml~\cite{DistOCaml}
+ML5~\cite{Tom7} provides mobile closures verified not to use resources not
+present on machines where they are applied. This property is enforced
+transitively (for all values reachable from captured values), which is
+stronger than what plain spores provide.\todo{more here}
 
-Other clean slate language designs have been proposed to broadly address
-issues related to distributed programming. Thorn~\cite{Thorn} was designed
-with concurrency and the need to interact with remote services in mind. Though
-a main design goal of Thorn is to evolve scripts into typed programs via
-gradual typing. F-P on the other hand is not a language, but a programming
-model, which is designed to inject types into distributed program from the
-get-go.
+% However, type constraints allow spores to require properties not limited to
+% mobility. Transitive prop- erties are supported either using type constraints
+% based on type classes which enforce a transitive property or by integrating
+% with type systems that enforce transitive properties. Unlike ML5, spores do
+% not require a type system extension.
 
-F-P integrates a distributed, persistent data structure. Other prior work
-related to spores is discussed in~\cite{Spores}.
+Systems like Spark~\cite{Spark}, MapReduce~\cite{MapReduce}, and
+Dryad~\cite{Dryad} are just that--distributed systems. F-P is meant to act as
+more of a middleware to facilitate the construction of such systems, and as a
+result provides much finer-grained control over details such as fault handling
+and network topology (\ie peer-to-peer vs master/worker).
 
-Type-safe distributed programming in ML5~\cite{Tom7} introduces a notion of a
-typed context called a ``world'' and permits functions to be executed given a
-specific world.
-
-MapReduce~\cite{MapReduce}. Spark~\cite{Spark}. Dryad~\cite{Dryad}. Session
+Session
 Types~\cite{SessionTypes}. AmbientTalk~\cite{AmbientTalk}. E
 Language~\cite{ELang}.
 
+
+% Other clean slate language designs have been proposed to broadly address
+% issues related to distributed programming. Thorn~\cite{Thorn} was designed
+% with concurrency and the need to interact with remote services in mind. Though
+% a main design goal of Thorn is to evolve scripts into typed programs via
+% gradual typing. F-P on the other hand is not a language, but a programming
+% model, which is designed to inject types into distributed programs from the
+% get-go.
+
+% F-P integrates a distributed, persistent data structure. Other prior work
+% related to spores is discussed in~\cite{Spores}.
+
+% Type-safe distributed programming in ML5~\cite{Tom7} introduces a notion of a
+% typed context called a ``world'' and permits functions to be executed given a
+% specific world.
 
 
 \section{Conclusion and Future Work}
@@ -1776,6 +1810,14 @@ We have presented F-P, a new programming model and principled substrate for
 building data-centric distributed systems. Thanks to a foundation consisting
 of safe, serializable closures and type-safe serization,
 \todo{evaluation point here}
+
+In future work, we plan to better understand concerns of separate compilation
+and apply our model to microservices.
+
+% Adapt this model for streaming computation. This would take coming up with a
+% solution to null out references in the {\em lineage}. This would make it
+% possible to instantiate and populate new silos to handle incoming data.
+
 
 % The most successful systems for ``big data'' processing have all adopted
 % functional APIs. But the innards of these systems are often built atop
