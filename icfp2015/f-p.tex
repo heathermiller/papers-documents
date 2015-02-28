@@ -1869,7 +1869,7 @@ and apply our model to microservices.
 
 
 
-\section{Old}
+% \section{Old}
 
 % \subsection{Old Intro}
 
@@ -1962,31 +1962,31 @@ and apply our model to microservices.
 % \item organic evolving model on youtube
 % \end{enumerate}
 
-\subsection{Evaluation}
+% \subsection{Evaluation}
 
-we could make the performance eval strong by saying, ok, we implemented real
-apps, so we have the real communication that needs to happen (and happens).
-and we now make this communication typed, plus we measure exactly the
-percentage of time that's spent in serialization for example. and then we
-could even interpolate the results, so we could say, ok, if some other dist
-system has a lower percentage spent in serialization, then the speed up would
-be like this.
+% we could make the performance eval strong by saying, ok, we implemented real
+% apps, so we have the real communication that needs to happen (and happens).
+% and we now make this communication typed, plus we measure exactly the
+% percentage of time that's spent in serialization for example. and then we
+% could even interpolate the results, so we could say, ok, if some other dist
+% system has a lower percentage spent in serialization, then the speed up would
+% be like this.
 
-and then we could even measure that for real spark, and then interpolate and
-say, ok, in the ideal case, meaning using all of our design principles, we
-could speed up things like this, if one would re-architect spark to preserve
-types (it's a huge task, so out of scope).
+% and then we could even measure that for real spark, and then interpolate and
+% say, ok, in the ideal case, meaning using all of our design principles, we
+% could speed up things like this, if one would re-architect spark to preserve
+% types (it's a huge task, so out of scope).
 
-well, it would definitely be something that we can measure objectively. the
-only thing we have to guard against would be to say, adding picklers and
-builders does not otherwise \emph{degrade} performance, like, we'd have to
-prove that there's no cost, but \emph{just} the performance benefits. adding
-the classname of the unpickler adds a few bytes to each pickle, for example.
+% well, it would definitely be something that we can measure objectively. the
+% only thing we have to guard against would be to say, adding picklers and
+% builders does not otherwise \emph{degrade} performance, like, we'd have to
+% prove that there's no cost, but \emph{just} the performance benefits. adding
+% the classname of the unpickler adds a few bytes to each pickle, for example.
 
-we could even show that with babyspark, like have a version that uses java
-serialization, then a version that uses pickling without selfdescribing, then
-with runtime unpickling, and with all static. because we have those numbers
-for babyspark then the interpolation will be much more precise.
+% we could even show that with babyspark, like have a version that uses java
+% serialization, then a version that uses pickling without selfdescribing, then
+% with runtime unpickling, and with all static. because we have those numbers
+% for babyspark then the interpolation will be much more precise.
 
 
 
