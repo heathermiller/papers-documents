@@ -1733,8 +1733,8 @@ except that fault handlers $p_f$ are applied as opposed to regular spores $p$.
 The presented programming model has been fully implemented in Scala, a
 functional programming language that runs on both JVMs and JavaScript
 runtimes. F-P is compiled and run using Scala 2.11.5, and considers only the
-JVM backend for now. Our implementation, which has been published as an open-
-source project\footnote{\url{https://github.com/heathermiller/f-p}}, builds on
+JVM backend for now. Our implementation, which has been published as an
+open-source project,\footnote{\url{https://github.com/heathermiller/f-p}} builds on
 two main Scala extensions:
 
 \begin{itemize}
@@ -1752,7 +1752,7 @@ objects with explicit, typed environments. While previous work has reported on
 an empirical evaluation of spores, our presented programming model and
 implementation turned out to be an extensive validation of spores in the
 context of distributed programming. In addition, our implementation required a
-thorough refinement of the way spores are pickled (see below).
+thorough refinement of the way spores are pickled.
 
 \end{itemize}
 
@@ -1761,9 +1761,9 @@ distributed collections abstraction, and example data analytics applications,
 such as word count and group-by-join pipelines. Our prototype has also served
 as an experimentation platform for type-based optimizations, which we present
 in more detail below.  We maintain a growing collection of these toy
-distributed frameworks (built on top of F-P) and applications on top them
+distributed frameworks (built on top of F-P) and applications on top of them
 (such as data analytics) at
-\url{http://lampwww.epfl.ch/~hmiller/f-p/}\footnote{Review note: this site is
+\url{http://lampwww.epfl.ch/~hmiller/f-p/}.\footnote{Review note: this site is
 publicly accessible, has no tracking capabilities, and is linked to in talks
 and from other various webpages meaning it already gets public traffic. One
 may visit it without identity concerns.}
