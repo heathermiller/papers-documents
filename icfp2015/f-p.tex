@@ -292,22 +292,25 @@ The most successful systems for ``big data'' processing have all adopted
 functional APIs. But the innards of these systems are often built atop
 imperative and weakly-typed stacks, which complicates the design and
 implementation of distributed system essentials like fault-tolerance. We
-present a new programming model we call  {\em function passing}
-designed to overcome many of these issues by providing a more principled
-substrate on which to build data-centric distributed systems. A key idea is to
-pass safe, well-typed serializable functions to immutable distributed data.
-The F-P model itself can be thought of as a distributed persistent functional
-data structure, which stores in its nodes transformations to data rather than
-the distributed data itself.  Thus, the model simplifies failure recovery by
+present a new programming model we call  {\em function passing} designed to
+overcome many of these issues by providing a more principled substrate on
+which to build data-centric distributed systems. A key idea is to pass safe,
+well-typed serializable functions to immutable distributed data. The F-P model
+itself can be thought of as a distributed persistent functional data
+structure, which stores in its nodes transformations to data rather than the
+distributed data itself.  Thus, the model simplifies failure recovery by
 design--data is recovered by replaying function applications atop immutable
 data loaded from stable storage. Lazy evaluation is also central to our model;
 by carefully incorporating laziness into our design (only at the point of
 initiating network communication), our model remains easy to reason about
 while remaining efficient in time and memory. We formalize our programming
 model in the form of a small-step operational semantics which includes a
-precise specification of the semantics of functional fault recovery. We
-implement our model in and for the Scala programming language, and provide a
-small evaluation of the efficiency of our implementation of the model.
+precise specification of the semantics of functional fault recovery, and we
+provide an open-source implementation of our model in and for the Scala
+programming language.
+
+% We implement our model in and for the Scala programming language, and provide
+% a small evaluation of the efficiency of our implementation of the model.
 
 % (F-P), designed to bring a bit of order to this disarray. F-P aims to provide a more
 
@@ -495,11 +498,14 @@ a deterministic layer and a concurrent/distributed layer. Importantly,
 reasoning techniques for sequential programs are not invalidated by the
 distributed layer.
 
-\item {\bf\em A distributed implementation of the programming model} in and for Scala.
+\item {\bf\em A distributed implementation of the programming model} in and
+for Scala. We present experiments that show some of the benefits of the
+proposed design, and we report on a validation of spores in the context of
+distributed programming.
 
-\item {\bf\em A small experimental evaluation} to show the benefits of some of  the
-proposed design decisions, and a validation of spores in the context of
-distributed programming.\todo{include description of our implementation of babyspark!}
+% \item {\bf\em A small experimental evaluation} to show the benefits of some of  the
+% proposed design decisions, and a validation of spores in the context of
+% distributed programming.\todo{include description of our implementation of babyspark!}
 
 % An experimental evaluation comparing the performance
 % of our framework with Java serialization and Kryo on
@@ -518,10 +524,11 @@ how essential higher-order operations on distributed
 frameworks like Spark can be implemented in terms of the primitives presented
 in Section~\ref{sec:basic-model}. We present a formalization of our
 programming model in Section~\ref{sec:formalization}, and an overview of its
-prototypical implementation in Section~\ref{sec:implementation}. We show a
-small experimental evaluation of the efficiency of our model in
-Section~\ref{sec:evaluation}, discuss related work in Section~\ref{sec:related-work},
-and conclude in Section~\ref{sec:conclusion-future-work}.
+prototypical implementation in Section~\ref{sec:implementation}.
+% We show a small experimental evaluation of the efficiency of our model in
+% Section~\ref{sec:evaluation},
+Finally, we discuss related work in Section~\ref{sec:related-work}, and
+conclude in Section~\ref{sec:conclusion-future-work}.
 
 % In this paper, we present object-oriented
 % pickler combinators and a framework for generating them
@@ -1710,7 +1717,12 @@ except that fault handlers $p_f$ are applied as opposed to regular spores $p$.
 \section{Implementation}
 \label{sec:implementation}
 
-\url{http://lampwww.epfl.ch/~hmiller/f-p/}\footnote{Review note: this site is publicly accessible, has no tracking capabilities, and is linked to in talks and from other various webpages meaning it already gets public traffic. One may visit it without identity concerns.}
+These benchmarks are preliminary, thus we maintain a growing collection of
+distributed implementations and benchmarks comparing F-P with other systems at
+\url{http://lampwww.epfl.ch/~hmiller/f-p/}\footnote{Review note: this site is
+publicly accessible, has no tracking capabilities, and is linked to in talks
+and from other various webpages meaning it already gets public traffic. One
+may visit it without identity concerns.}
 
 \begin{figure}[t!]
 \centering\includegraphics[width=\columnwidth]{multipleJVM.pdf}
@@ -1718,11 +1730,11 @@ except that fault handlers $p_f$ are applied as opposed to regular spores $p$.
 \label{fig:multiple-jvm}
 \end{figure}
 
-\section{Evaluation}
-\label{sec:evaluation}
+% \section{Evaluation}
+% \label{sec:evaluation}
 
-We provide a small evaluation of our implementation to demonstrate the
-practical benefit of some of the design points of our model.
+% We provide a small evaluation of our implementation to demonstrate the
+% practical benefit of some of the design points of our model.
 
 \section{Related Work}
 \label{sec:related-work}
