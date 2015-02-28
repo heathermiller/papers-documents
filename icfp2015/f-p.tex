@@ -1838,11 +1838,29 @@ pickleable using a type-specific pickler is guaranteed to be unpickleable by
 the receiver of the pickled SelfDescribing instance, and (b) that unpickling
 is as efficient as pickling, thanks to using type-specific unpicklers.
 
+\subsection{Type-based optimization of serialization}
+
 \begin{figure}[t!]
 \centering\includegraphics[width=\columnwidth]{multipleJVM.pdf}
 \caption{Impact of Static Types on Performance, End-to-End Application (\texttt{groupBy} + \texttt{join}).}
 \label{fig:multiple-jvm}
 \end{figure}
+
+We have used our implementation to measure the impact of type-specific,
+compile-time-generated serializers (see above) on end-to-end application
+performance. In our benchmark application, a group of 4 silos is distributed
+across 4 different nodes/JVMs. Each silo is populated with a collection of
+``person'' records. The application first transforms each silo using
+\emph{map}, and then using \emph{groupBy} and \emph{join}. For the benchmark
+we measure the running time for a varying number of records.
+
+We ran our experiments on a 2.3 GHz Intel Core i7 with 16 GB RAM under Mac OS
+X 10.9.5 using Java HotSpot Server 1.8.0-b132. For each input size we report
+the median of 7 runs. Figure~\ref{fig:multiple-jvm} shows the results.
+Interestingly, for an input size of 100,000 records, the use of type-specific
+serializers resulted in an overall speedup of about 48\% with respect to the
+same system using runtime-based serializers.
+
 
 % \section{Evaluation}
 % \label{sec:evaluation}
