@@ -1727,12 +1727,114 @@ except that fault handlers $p_f$ are applied as opposed to regular spores $p$.
 \section{Implementation}
 \label{sec:implementation}
 
-These benchmarks are preliminary, thus we maintain a growing collection of
-distributed implementations and benchmarks comparing F-P with other systems at
+The presented programming model has been fully implemented in Scala, a
+functional programming language that runs on both JVMs and JavaScript
+runtimes. F-P is compiled and run using Scala 2.11.5, and considers only the
+JVM backend for now. Our implementation, which has been published as an open-
+source project\footnote{\url{https://github.com/heathermiller/f-p}}, builds on
+two main Scala extensions:
+
+\begin{itemize}
+
+\item First, Pickling,\footnote{\url{https://github.com/scala/pickling}} a
+type-safe and performant serialization library with an accompanying, optional
+macro extension that is focused on distributed programming. It is used for all
+serialization tasks. Our F-P implementation benefits from the maturity of
+Pickling, which supports pickling/unpickling a wide range of Scala type
+constructors. Pickling has evolved from a research prototype to a
+production-ready serialization framework that is now in widespread commercial use.
+
+\item Second, the programming model makes extensive use of spores, closure-like
+objects with explicit, typed environments. While previous work has reported on
+an empirical evaluation of spores, our presented programming model and
+implementation turned out to be an extensive validation of spores in the
+context of distributed programming. In addition, our implementation required a
+thorough refinement of the way spores are pickled (see below).
+
+\end{itemize}
+
+So far, we have used our implementation to build a small Spark-like
+distributed collections abstraction, and example data analytics applications,
+such as word count and group-by-join pipelines. Our prototype has also served
+as an experimentation platform for type-based optimizations, which we present
+in more detail below.  We maintain a growing collection of these toy
+distributed frameworks (built on top of F-P) and applications on top them
+(such as data analytics) at
 \url{http://lampwww.epfl.ch/~hmiller/f-p/}\footnote{Review note: this site is
 publicly accessible, has no tracking capabilities, and is linked to in talks
 and from other various webpages meaning it already gets public traffic. One
 may visit it without identity concerns.}
+
+
+\subsection{Serialization in the presence of existential quantification}
+
+Initially, to serialize most message types exchanged by the network
+communication layer, runtime-based unpicklers had to be used (meaning
+unpickling code discovering the structure of a type through introspection at
+runtime). A major disadvantage of runtime-based unpickling is its significant
+impact on performance. The reason for its initial necessity was that message
+types are typically generic, but the generic type arguments are {\em
+existentially-quantified type variables} on the receiver's side. For example,
+the lineage of a SiloRef may contain instances of a type Mapped. This generic
+type has four type parameters. The receiver of a freshly unpickled Mapped
+instance typically uses a pattern match:
+
+\begin{lstlisting}
+case mapped: Mapped[u, t, v, s] =>
+\end{lstlisting}
+
+The type arguments \verb|u|, \verb|t|, \verb|v|, and \verb|s| are {\em type
+variables}. While unknown, the static type of \verb|mapped| is still useful
+for type-safety:
+
+\begin{lstlisting}
+val newSilo = new LocalSilo[v, s](mapped.fun(value))
+\end{lstlisting}
+
+However, it is impossible to generate type-specific code to unpickle a type
+like \verb|Mapped[u, t, v, s]|. As a solution to this problem we propose what
+we call ``self-describing'' pickles. Basically, the idea is to augment the
+serialized representation with additional information about how to unpickle.
+The key is to capture the type-specific pickler and unpickler when the fully-concrete
+type of a \verb|Mapped| instance is known:
+
+\begin{lstlisting}
+def doPickle[T](msg: T)
+  (implicit pickler: Pickler[T],
+               unpickler: Unpickler[T]): Array[Byte] = ...
+\end{lstlisting}
+
+Essentially, this means when \verb|doPickle| is called with a concrete type
+\verb|T|, say:\footnote{Note that the type arguments are inferred by the Scala
+compiler; they are only shown for clarity.}
+
+\begin{lstlisting}
+doPickle[Mapped[Int, List[Int], String, List[String]]](mapped)
+\end{lstlisting}
+
+\noindent not only a type-specific implicit pickler (a type class instance) is
+looked up, but also a type-specific implicit unpickler. The \verb|doPickle|
+method can then build a self-describing pickle as follows. First, the actual
+message is pickled using the pickler, yielding a byte array. Then, an instance
+of the following simple record-like class is created:
+
+\begin{lstlisting}
+case class SelfDescribing(blob: Array[Byte],
+                          unpicklerClassName: String)
+\end{lstlisting}
+
+Besides the just produced byte array, it contains the class name of the type-
+specific unpickler. This enables, using this fully type-specific unpickler,
+even when the message type to be unpickled is only partially known. All that
+is required is an unpickler for type \verb|SelfDescribing|. First, it reads
+the byte array and class name from the pickle. Second, it instantiates the
+type- specific unpickler reflectively using the class name. (Note that this is
+possible on both the JVM as well as on JavaScript runtimes using Scala's
+current JavaScript backend.) Finally, the unpickler is used to unpickle the
+byte array. In conclusion, this approach ensures (a) that a type that is
+pickleable using a type-specific pickler is guaranteed to be unpickleable by
+the receiver of the pickled SelfDescribing instance, and (b) that unpickling
+is as efficient as pickling, thanks to using type-specific unpicklers.
 
 \begin{figure}[t!]
 \centering\includegraphics[width=\columnwidth]{multipleJVM.pdf}
@@ -1838,12 +1940,27 @@ Language~\cite{ELang}.
 \label{sec:conclusion-future-work}
 
 We have presented F-P, a new programming model and principled substrate for
-building data-centric distributed systems. Thanks to a foundation consisting
-of safe, serializable closures and type-safe serization,
-\todo{evaluation point here}
+building data-centric distributed systems. Built atop a foundation consisting
+of performant and type-safe serialization, and safe, serializable closures, we
+have showed that it's possible to build elegant fault-tolerant functional
+systems. While designed with the intention of improving the foundation on
+which frameworks ``big data'' are built, we have shown that F-P is able to
+express patterns of computation (while maintaining fault-tolerance) richer
+than those required by common ``big data'' frameworks--such decentralized
+peer-to-peer patterns of communication.
 
-In future work, we plan to better understand concerns of separate compilation
-and apply our model to microservices.
+The new constructs should also admit an efficient implementation.
+
+A great deal of future work remains. In the short-term, we aim to better
+understand
+
+In the long-term, we plan to better understand concerns of separate
+compilation in order to evaluate whether our model could be of help in
+coordinating between microservices.\footnote{Microservices are small,
+independent (separately-compiled) services running on different machines which
+communicate with each other to together make up a single and complex
+application. They are a predominant trend in industry amongst rich and
+complicated web-based services.}
 
 % Adapt this model for streaming computation. This would take coming up with a
 % solution to null out references in the {\em lineage}. This would make it
