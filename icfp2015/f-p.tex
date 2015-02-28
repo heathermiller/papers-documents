@@ -1971,12 +1971,18 @@ behavior in the form of serializable closures is central to the F-P model.
 We have presented F-P, a new programming model and principled substrate for
 building data-centric distributed systems. Built atop a foundation consisting
 of performant and type-safe serialization, and safe, serializable closures, we
-have showed that it's possible to build elegant fault-tolerant functional
-systems. While designed with the intention of improving the foundation on
-which frameworks ``big data'' are built, we have shown that F-P is able to
-express patterns of computation (while maintaining fault-tolerance) richer
-than those required by common ``big data'' frameworks--such decentralized
-peer-to-peer patterns of communication.
+have shown that it's possible to build elegant fault-tolerant functional
+systems. One insight of our model is that lineage-based fault recovery
+mechanisms, used in widespread frameworks for distribution, can be modeled
+elegantly in a functional way using persistent data structures. Our
+operational semantics shows that this approach makes it even amenable to
+formal treatment. We have also shown that F-P is able to express patterns of
+computation richer than those supported by common ``big data'' frameworks
+while maintaining fault-tolerance--such as decentralized peer-to-peer patterns
+of communication.  Finally, we have implemented our approach in and for Scala,
+as well as numerous applications on top, and have discovered new ways to
+reconcile type-specific serializers with patterns of static typing common in
+distributed systems.
 
 A great deal of future work remains. In the short-term, we aim to continue to
 build different sorts of distributed frameworks and applications atop F-P in
