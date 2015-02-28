@@ -1873,17 +1873,6 @@ same system using runtime-based serializers.
 \section{Related Work}
 \label{sec:related-work}
 
-Actors~\cite{Actors, ScalaActors}. Typed
-Actors~\cite{TypedActors}.\todo{Philipp! Halp!}
-
-The Clojure programming language proposes Agents~\cite{Clojure}--stationary
-mutable data containers that users apply functions to in order to update an
-agent's state. F-P, in contrast, proposes that data in stationary containers
-be immutable, and that transformations by function application form a
-persistent data structure. Further, Clojure's Agents are designed to manage
-state in a shared memory scenario, whereas F-P is designed with remote
-references for a distributed scenario.
-
 Alice ML~\cite{AliceML} is an extension of Standard ML which adds a number of
 important features for distributed programming such as futures and proxies.
 The design leading up to F-P has incorporated many similar ideas, such as
@@ -1937,9 +1926,27 @@ more of a middleware to facilitate the design and implementation of such
 systems, and as a result provides much finer-grained control over details such
 as fault handling and network topology (\ie peer-to-peer vs master/worker).
 
-Session
-Types~\cite{SessionTypes}. AmbientTalk~\cite{AmbientTalk}. E
-Language~\cite{ELang}.
+The Clojure programming language proposes agents~\cite{Clojure}--stationary
+mutable data containers that users apply functions to in order to update an
+agent's state. F-P, in contrast, proposes that data in stationary containers
+be immutable, and that transformations by function application form a
+persistent data structure. Further, Clojure's agents are designed to manage
+state in a shared memory scenario, whereas F-P is designed with remote
+references for a distributed scenario.
+
+The F-P model is also related to the actor model of concurrency~\cite{Actors},
+which features multiple implementations in
+Scala~\cite{ScalaActors,Akka,TypedActors}. Actors can serve as in-memory data
+containers in a distributed system, like our silos. Unlike silos, actors
+encapsulate behavior in addition to immutable or mutable values. While only
+some actor implementations support mobile actors (none in Scala), mobile
+behavior in the form of serializable closures is central to the F-P model.
+
+
+
+% Session
+% Types~\cite{SessionTypes}. AmbientTalk~\cite{AmbientTalk}. E
+% Language~\cite{ELang}.
 
 
 % Other clean slate language designs have been proposed to broadly address
