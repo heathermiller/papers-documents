@@ -1970,10 +1970,10 @@ express patterns of computation (while maintaining fault-tolerance) richer
 than those required by common ``big data'' frameworks--such decentralized
 peer-to-peer patterns of communication.
 
-The new constructs should also admit an efficient implementation.
-
-A great deal of future work remains. In the short-term, we aim to better
-understand
+A great deal of future work remains. In the short-term, we aim to continue to
+build different sorts of distributed frameworks and applications atop F-P in
+an effort to work towards a production-ready implementation of our model for
+consumption by the Scala community at large.
 
 In the long-term, we plan to better understand concerns of separate
 compilation in order to evaluate whether our model could be of help in
@@ -1982,6 +1982,7 @@ independent (separately-compiled) services running on different machines which
 communicate with each other to together make up a single and complex
 application. They are a predominant trend in industry amongst rich and
 complicated web-based services.}
+
 
 % Adapt this model for streaming computation. This would take coming up with a
 % solution to null out references in the {\em lineage}. This would make it
