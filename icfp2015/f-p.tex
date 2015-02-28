@@ -505,7 +505,7 @@ distributed programming.
 
 % \item {\bf\em A small experimental evaluation} to show the benefits of some of  the
 % proposed design decisions, and a validation of spores in the context of
-% distributed programming.\todo{include description of our implementation of babyspark!}
+% distributed programming.
 
 % An experimental evaluation comparing the performance
 % of our framework with Java serialization and Kryo on
@@ -704,14 +704,16 @@ distributed data are typically not executed eagerly; instead, applying a
 function to distributed data just creates an immutable lineage. To obtain the
 result of a computation, it is necessary to first ``kick off'' computation, or
 to force its lineage. Within our programming model, this force
-operation\todo{which force operation?} makes network communication (and thus
+operation
+% \todo{which force operation?}
+makes network communication (and thus
 possibilities for latency) explicit, which is considered to be a strength when
 designing distributed systems~\cite{ANoteDistComp}. Deferred evaluation also
 enables optimizing distributed computations through operation fusion, which
 avoids the creation of unnecessary intermediate data structures--this is
 efficient in time as well as space. This kind of optimization is particularly
-important and effective in distributed systems~\cite{FlumeJava}.\todo{What
-does this have to do with FlumeJava?}
+important and effective in distributed systems~\cite{FlumeJava}.
+% \todo{What does this have to do with FlumeJava?}
 
 \vspace{-3mm}
 \begin{center}\noindent\rule{8cm}{0.4pt}\end{center}
