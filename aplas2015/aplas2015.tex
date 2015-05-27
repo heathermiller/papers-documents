@@ -1,0 +1,171 @@
+% This is LLNCS.DEM the demonstration file of
+% the LaTeX macro package from Springer-Verlag
+% for Lecture Notes in Computer Science,
+% version 2.4 for LaTeX2e as of 16. April 2010
+%
+\documentclass[runningheads]{llncs}
+%
+
+%% Save the class definition of \subparagraph
+\let\llncssubparagraph\subparagraph
+%% Provide a definition to \subparagraph to keep titlesec happy
+\let\subparagraph\paragraph
+%% Load titlesec
+\usepackage[compact]{titlesec}
+%% Revert \subparagraph to the llncs definition
+\let\subparagraph\llncssubparagraph
+\usepackage{makeidx}  % allows for indexgeneration
+\usepackage{url}
+\usepackage[xetex]{hyperref}
+\usepackage{todonotes}
+\usepackage{listings}
+% \usepackage{fontspec}
+\usepackage[labelfont=bf]{caption}
+\usepackage{subcaption}
+\captionsetup{compatibility=false}
+\usepackage{times}
+\usepackage{graphicx}
+\usepackage{xcolor}
+\usepackage{lipsum}
+
+\newcommand{\comment}[1]{}
+
+% Member sequences
+\newcommand{\seq}[1]{\overline{#1}}
+
+% arrays
+\newcommand{\ba}{\begin{array}}
+\newcommand{\ea}{\end{array}}
+\newcommand{\bda}{\[\ba}
+\newcommand{\eda}{\ea\]}
+\newcommand{\ei}{\end{array}}
+\newcommand{\bcases}{\left\{\begin{array}{ll}}
+\newcommand{\ecases}{\end{array}\right.}
+\newcommand{\sporeurl}{\url{https://github.com/scala/spores}}
+% spacing
+\newcommand{\gap}{\quad\quad}
+\newcommand{\andalso}{\quad\quad}
+\newcommand{\biggap}{\quad\quad\quad}
+\newcommand{\nextline}{\\ \\}
+\newcommand{\htabwidth}{0.5cm}
+\newcommand{\tabwidth}{1cm}
+\newcommand{\htab}{\hspace{\htabwidth}}
+\newcommand{\tab}{\hspace{\tabwidth}}
+\newcommand{\linesep}{\ \hrulefill \ \smallskip}
+
+\newcommand{\ie}{{\em i.e.,~}}
+\newcommand{\eg}{{\em e.g.,~}}
+\newcommand{\etc}{{\em etc}}
+
+\newcommand*\loc{\includegraphics[height=0.65em,keepaspectratio]{loc}}
+\newcommand*\stars{\includegraphics[height=0.8em,keepaspectratio]{stars}}
+\newcommand*\contribs{\includegraphics[height=0.8em,keepaspectratio]{contribs}}
+
+\lstdefinelanguage{Scala}%
+{morekeywords={abstract,case,catch,char,class,%
+    def,else,extends,final,%
+    if,import,%
+    match,module,new,null,object,override,package,private,protected,%
+    public,return,super,this,throw,trait,try,type,val,var,with,implicit,%
+    macro,sealed,%
+  },%
+  sensitive,%
+  morecomment=[l]//,%
+  morecomment=[s]{/*}{*/},%
+  morestring=[b]",%
+  morestring=[b]',%
+  showstringspaces=false%
+}[keywords,comments,strings]%
+
+% \lstset{language=Scala,%
+%   mathescape=true,%
+%   columns=[c]fixed,%
+%   numbers=left, numberstyle=\scriptsize\color{gray}\ttfamily,
+%   basewidth={0.5em, 0.40em},%
+%   basicstyle=\tt,%
+%   xleftmargin=0.0cm
+% }
+
+% \setmainfont[
+%   Ligatures=TeX,
+%   SmallCapsFont={TeX Gyre Termes},
+%   SmallCapsFeatures={Letters=SmallCaps},
+% ]{Times New Roman}
+
+\lstset{tabsize=2,
+basicstyle=\ttfamily\fontsize{9pt}{1em}\selectfont,
+commentstyle=\itshape\rmfamily,
+numbers=left, numberstyle=\scriptsize\color{gray}\ttfamily, language=scala,moredelim=[il][\sffamily]{?},mathescape=false,showspaces=false,showstringspaces=false,xleftmargin=15pt,escapechar=@, morekeywords=[1]{let,fn,val},deletekeywords={for},classoffset=0,belowskip=\smallskipamount
+}
+
+% \setlength{\belowcaptionskip}{-5pt}
+\setlength{\textwidth}{12.4cm}
+ \setlength\intextsep{ 0pt plus 2pt minus 2pt}
+
+% \titlespacing{\section}{0pt}{\parskip}{-\parskip}
+
+\begin{document}
+
+% \fontspec[
+%   SmallCapsFont={TeX Gyre Termes},
+%   SmallCapsFeatures={Letters=SmallCaps},
+% ]{Times New Roman}
+% \VerbatimFootnotes
+% \setmonofont[Scale=0.8,BoldFont={Consolas Bold}]{Consolas}
+
+%
+\mainmatter              % start of the contributions
+
+
+\title{Title}
+
+\titlerunning{Running title}  % abbreviated title (for running head)
+%                                     also used for the TOC unless
+%                                     \toctitle is used
+%
+\author{Philipp Haller$^{1}$ \and Alon Dolev
+\and Heather Miller}
+
+%%% list of authors for the TOC (use if author list has to be modified)
+\tocauthor{Philipp Haller,$^{1}$ Alon Dolev, and Heather Miller}
+
+% \institute{EPFL and Typesafe, Inc$^{1}$\\
+
+% \texttt{\scriptsize \{heather.miller, martin.odersky\}@epfl.ch}
+% and \texttt{\scriptsize philipp.haller@typesafe.com}$^{1}$}
+
+
+\institute{KTH Royal Institute of Technology$^{1}$\\
+\texttt{\{heather.miller, martin.odersky\}@epfl.ch}
+and
+\texttt{philipp.haller@typesafe.com}$^{1}$}
+
+
+\setlength{\abovecaptionskip}{0pt}
+\setlength{\belowcaptionskip}{0pt}
+\authorrunning{P. Haller, A. Dolev, and H. Miller} % abbreviated author list (for running head)
+
+\maketitle              % typeset the title of the contribution
+
+\begin{abstract}
+
+abstract
+
+\keywords{closures, functions, distributed programming, concurrent programming, type systems}
+\end{abstract}
+
+
+\section{Introduction}
+\label{sec:introduction}
+
+Introduce
+
+\section{Conclusion}
+\label{sec:conclusion}
+
+Conclude
+
+\bibliographystyle{abbrv}
+\bibliography{bib}
+
+\end{document}
