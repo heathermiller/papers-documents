@@ -277,7 +277,7 @@ blocked, waiting until {\em all} results have been received.
 \begin{figure}[ht]
 \centering
 \begin{lstlisting}
-def findProducts(name: String): Unit = {
+def findProducts(name: String) = {
   val search: Observable[Product] = db.searchProductsByName(name)
   search.flatMap(p => {
     val reviews: Observable[List[Review]] = db.getReviews(p.id)
