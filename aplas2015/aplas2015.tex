@@ -125,7 +125,7 @@ numbers=left, numberstyle=\scriptsize\color{gray}\ttfamily, language=scala,mored
 %                                     also used for the TOC unless
 %                                     \toctitle is used
 %
-\author{Philipp Haller$^{1}$ \and Alon Dolev
+\author{Philipp Haller$^{1}$ \and Alon Dolev\footnote{Work done while at TU Delft.}
 \and Heather Miller}
 
 %%% list of authors for the TOC (use if author list has to be modified)
@@ -259,6 +259,41 @@ observer which outputs all received events to the \verb|output| stream. (The
 shown example suffers from a problem explained in~\cite{RxCACM} which
 motivates the use of an additional \verb|Switch| combinator which is omitted
 here for brevity.)
+
+\section{Overview}
+
+Join patterns are an elegant way to {\em declaratively} coordinate multiple
+observables.
+
+Consider the implementation of a method \verb|findProducts| for finding
+products of a given name in a large database. For each product, the method
+should not only find the description of the product, but also additional data,
+such as product images and product reviews. Furthermore, the method should
+find ``related'' products, e.g., as determined by a recommender system. Given
+the complexity of the search, it is essential that the \verb|findProducts|
+method is {\em asynchronous;} its callers should under no circumstance be
+blocked, waiting until {\em all} results have been received.
+
+\begin{figure}[ht]
+\centering
+\begin{lstlisting}
+def findProducts(name: String): Unit = {
+  val search: Observable[Product] = db.searchProductsByName(name)
+  search.flatMap(p => {
+    val reviews: Observable[List[Review]] = db.getReviews(p.id)
+    val images: Observable[List[Image]] = fileServer.getProductImages(p.id)
+    val related: Observable[(String, Int, List[Image])] = getRelatedProducts(p.id)
+    Observable.just(p.description).zip(reviews).zip(images).merge(related)
+  })
+}
+\end{lstlisting}
+\caption{The \texttt{findProducts} method}
+\label{fig:find-products}
+\end{figure}
+
+Figure~\ref{fig:find-products} shows an implementation of the
+\verb|findProducts| method using the Reactive Extensions model.
+
 
 \section{Conclusion}
 \label{sec:conclusion}
