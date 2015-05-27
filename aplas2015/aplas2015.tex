@@ -267,12 +267,12 @@ observables.
 
 Consider the implementation of a method \verb|findProducts| for finding
 products of a given name in a large database. For each product, the method
-should not only find the description of the product, but also additional data,
-such as product images and product reviews. Furthermore, the method should
-find ``related'' products, e.g., as determined by a recommender system. Given
-the complexity of the search, it is essential that the \verb|findProducts|
-method is {\em asynchronous;} its callers should under no circumstance be
-blocked, waiting until {\em all} results have been received.
+should not only return its description, but also reviews of the seller, and
+images of the product. Furthermore, the method should find ``related''
+products, e.g., as determined by a recommender system. Given the complexity of
+the search, it is essential that the \verb|findProducts| method is {\em
+asynchronous;} its callers should under no circumstance be blocked, waiting
+until {\em all} results have been received.
 
 \begin{figure}[ht]
 \centering
@@ -280,7 +280,7 @@ blocked, waiting until {\em all} results have been received.
 def findProducts(name: String) = {
   val search: Observable[Product] = db.searchProductsByName(name)
   search.flatMap(p => {
-    val reviews: Observable[List[Review]] = db.getReviews(p.id)
+    val reviews: Observable[List[Review]] = db.getSellerReviews(p.seller)
     val images: Observable[List[Image]] = fileServer.getProductImages(p.id)
     val related: Observable[(String, Int, List[Image])] = getRelatedProducts(p.id)
     Observable.just(p.description).zip(reviews).zip(images).merge(related)
@@ -292,7 +292,16 @@ def findProducts(name: String) = {
 \end{figure}
 
 Figure~\ref{fig:find-products} shows an implementation of the
-\verb|findProducts| method using the Reactive Extensions model.
+\verb|findProducts| method using the Reactive Extensions model. First, the
+method queries a \verb|db| object which returns a stream of products (an
+\verb|Observable[Product]|). A \verb|Product| has an \verb|id|, a
+\verb|description|, and a \verb|seller|. For each search result a query to a
+file server retrieves product images. We then combine the description, the
+reviews, and the images into a single observable using \verb|zip|. The
+\verb|zip| combinator buffers emissions until each observable has emitted an
+event; these events are combined into a tuple which is in turn emitted by the
+combined observable (the result of \verb|zip|). The \verb|merge| combinator
+merges multiple streams.
 
 
 \section{Conclusion}
