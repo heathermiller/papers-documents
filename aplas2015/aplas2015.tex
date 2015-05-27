@@ -20,10 +20,12 @@
 \usepackage{todonotes}
 \usepackage{listings}
 % \usepackage{fontspec}
+\usepackage{fancyvrb}
 \usepackage[labelfont=bf]{caption}
 \usepackage{subcaption}
 \captionsetup{compatibility=false}
 \usepackage{times}
+\usepackage[scaled=0.875]{inconsolata}
 \usepackage{graphicx}
 \usepackage{xcolor}
 \usepackage{lipsum}
@@ -110,7 +112,7 @@ numbers=left, numberstyle=\scriptsize\color{gray}\ttfamily, language=scala,mored
 %   SmallCapsFont={TeX Gyre Termes},
 %   SmallCapsFeatures={Letters=SmallCaps},
 % ]{Times New Roman}
-% \VerbatimFootnotes
+\VerbatimFootnotes
 % \setmonofont[Scale=0.8,BoldFont={Consolas Bold}]{Consolas}
 
 %
@@ -147,6 +149,7 @@ and
 
 \maketitle              % typeset the title of the contribution
 
+\begin{sloppypar}
 \begin{abstract}
 
 This paper presents a new, scalable matching algorithm for
@@ -265,4 +268,5 @@ Conclude
 \bibliographystyle{abbrv}
 \bibliography{bib}
 
+\end{sloppypar}
 \end{document}
