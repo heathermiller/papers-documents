@@ -100,6 +100,11 @@ commentstyle=\itshape\rmfamily,
 numbers=left, numberstyle=\scriptsize\color{gray}\ttfamily, language=scala,moredelim=[il][\sffamily]{?},mathescape=false,showspaces=false,showstringspaces=false,xleftmargin=15pt,escapechar=@, morekeywords=[1]{let,fn,val},deletekeywords={for},classoffset=0,belowskip=\smallskipamount
 }
 
+\definecolor{light-gray}{gray}{0.80}
+\definecolor{lightGray}{rgb}{0.9, 0.9, 0.9}
+
+\newcommand{\Hilight}{\makebox[0pt][l]{\color{light-gray}\rule[-0.45em]{\linewidth}{1.5em}}}
+
 % \setlength{\belowcaptionskip}{-5pt}
 \setlength{\textwidth}{12.4cm}
  \setlength\intextsep{ 0pt plus 2pt minus 2pt}
@@ -276,36 +281,152 @@ until {\em all} results have been received.
 
 \begin{figure}[ht]
 \centering
+\lstset{numbers=left}
 \begin{lstlisting}
 def findProducts(name: String) = {
   val search: Observable[Product] = db.searchProductsByName(name)
   search.flatMap(p => {
-    val reviews: Observable[List[Review]] = db.getSellerReviews(p.seller)
-    val images: Observable[List[Image]] = fileServer.getProductImages(p.id)
-    val related: Observable[(String, Int, List[Image])] = getRelatedProducts(p.id)
+    val reviews = db.getSellerReviews(p.seller)
+    val images = fileServer.getProductImages(p.id)
+    val related = db.getRelatedProducts(p.id)
+
     Observable.just(p.description).zip(reviews).zip(images).merge(related)
   })
 }
 \end{lstlisting}
-\caption{The \texttt{findProducts} method}
+\caption{Finding products using the Reactive Extensions model}
 \label{fig:find-products}
 \end{figure}
 
 Figure~\ref{fig:find-products} shows an implementation of the
 \verb|findProducts| method using the Reactive Extensions model. First, the
 method queries a \verb|db| object which returns a stream of products (an
-\verb|Observable[Product]|). A \verb|Product| has an \verb|id|, a
-\verb|description|, and a \verb|seller|. For each search result a query to a
-file server retrieves product images. We then combine the description, the
-reviews, and the images into a single observable using \verb|zip|. The
-\verb|zip| combinator buffers emissions until each observable has emitted an
-event; these events are combined into a tuple which is in turn emitted by the
-combined observable (the result of \verb|zip|). The \verb|merge| combinator
-merges multiple streams.
+\verb|Observable[Product]|). For each product \verb|p| in this stream we would
+like to create a new stream that combines the product's description, images,
+reviews, as well as related products. Using \verb|flatMap| these per-product
+streams are combined into a single result stream that \verb|findProducts|
+returns. In this example, a \verb|Product| has an \verb|id|, a
+\verb|description|, and a \verb|seller|. A sequence of method calls obtains
+seller reviews, product images, and related products from several different
+sources (a database and a file server) in the form of observables to enable
+asynchronous retrieval of several results. The per-product result stream is
+created as follows: \verb|Observable.just(p.description)| creates a trivial
+stream with just a single element (the description); \verb|a.zip(b)| creates a
+stream of pairs $(a_1, b_1), (a_2, b_2), \ldots$ if stream \verb|a| emits
+elements $a_1, a_2, \ldots$ and stream \verb|b| emits elements $b_1, b_2,
+\ldots$; the \verb|merge| combinator merges multiple streams into one.
+
+\subsection{Join patterns}
+
+% !\colorbox{light-gray}{JoinObservable}![List[Review]]
+
+\begin{figure}[ht]
+\centering
+\lstset{numbers=left}
+\begin{lstlisting}[escapechar=!]
+def findProducts(name: String) = {
+  val search: Observable[Product] = db.searchProductsByName(name)
+  search.flatMap(p => {
+    val reviews = db.getSellerReviews(p.seller)!\colorbox{light-gray}{.p}!
+    val images = fileServer.getProductImages(p.id)!\colorbox{light-gray}{.p}!
+    val related = db.getRelatedProducts(p.id)!\colorbox{light-gray}{.p}!
+
+    !\colorbox{light-gray}{join}! {
+      !\colorbox{light-gray}{case reviews(r) \&\& images(i) => Next((p.description, r, i))}!
+      !\colorbox{light-gray}{case related(x) => Next(x)}!
+    }
+  })
+}
+\end{lstlisting}
+\caption{Finding products using join patterns}
+\label{fig:find-products-joins}
+\end{figure}
+
+\noindent
+Our extended programming model enables expressing the above example using {\em
+join patterns}, as shown in Figure~\ref{fig:find-products-joins}. The
+differences to the implementation without join patterns (see
+Figure~\ref{fig:find-products}) are indicated by \colorbox{light-gray}{shading}.
+
+First, \verb|reviews|, \verb|images|, and \verb|related| are no longer
+observables. Instead, by invoking the \verb|p| {\em extension method} (TODO:
+add reference to Scala spec) each original observable is turned into a
+\verb|JoinObservable|, enabling its use in join patterns.\footnote{By
+implementing additional methods, a \texttt{JoinObservable} is an {\em
+extractor}~\cite{EmirOW07} for its underlying \texttt{Observable}.}
+
+Second, the \verb|join| construct on line 8 introduces a join pattern. The
+result of \verb|join| is an observable that emits events as defined by the
+pattern block following the \verb|join| marker. A pattern block defines a list
+of join pattern {\em cases}. The first pattern fires as soon as {\em both} the
+\verb|reviews| {\em and} the \verb|images| observable have emitted an event.
+Whenever a join pattern fires, the observable created by the \verb|join|
+construct emits an event defined by the right-hand side of the join pattern
+(following the \verb|=>| arrow). In the case of the first join pattern, the
+resulting observable emits a triple consisting of the product description, the
+received review, and the received image. The second join pattern fires as soon
+as the \verb|related| observable emits an event. In this case, the created
+observable simply emits the received event \verb|x|.
+
+In the above example, the observable created using \verb|join| only emits
+\verb|onNext| events, using the \verb|Next| constructor. It is equally
+possible to match and emit \verb|onDone| and \verb|onFailure| events. The
+following join pattern forwards all three types of events emitted by some
+observable \verb|obs|:
+
+\begin{lstlisting}
+join {
+  case obs(x)       => Next(x)
+  case obs.done     => Done
+  case obs.error(e) => throw e
+}
+\end{lstlisting}
+
+\noindent
+The semantics of matching events is that an event is only matched at most
+once; this applies also to \verb|onDone| and \verb|onFailure| events. This
+means that the following join patterns {\em race} to match the single
+\verb|onDone| event of \verb|obs1|:
+
+\begin{lstlisting}
+join {
+  case obs2(x) && obs1.done => Next(Some(x))
+  case obs3(y) && obs1.done => Next(None)
+}
+\end{lstlisting}
+
+\noindent
+Note that the order in which patterns are matched is undefined by default. We
+call this semantics \emph{non-deterministic choice}, and it is crucial to
+achieve high scalability, as we show in Section~\ref{sec:evaluation}.
+Nevertheless, sometimes it is useful to enforce the order in which the
+patterns are matched, for example when encoding priority.
+
+For example, we might launch two web requests to retrieve data to a search
+term, one to an internal system and one to an external system:
+
+\begin{lstlisting}
+implicit val checkOrder = InOrder
+join {
+  case search(s) && internal(d) => Next((s, d))
+  case search(s) && external(d) => Next((s, d))
+}
+\end{lstlisting}
+
+\noindent
+We define an implicit value \verb|checkOrder|, and set it to \verb|InOrder|.
+Now, the \verb|join| construct uses a different algorithm that checks the
+patterns in the order stated textually. This means that events from the
+\verb|internal| system are prioritized. Although we have optimized the
+performance of this {\em deterministic-choice} algorithm, in general it
+performs worse than the {\em non-deterministic choice} algorithm, since the
+latter can leverage more concurrency.
 
 
-\section{Conclusion}
-\label{sec:conclusion}
+\section{Evaluation}\label{sec:evaluation}
+
+
+\section{Conclusion}\label{sec:conclusion}
 
 Conclude
 
