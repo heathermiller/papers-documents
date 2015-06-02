@@ -423,6 +423,40 @@ performs worse than the {\em non-deterministic choice} algorithm, since the
 latter can leverage more concurrency.
 
 
+\section{Scalable Matching Algorithm}\label{sec:algorithm}
+
+The main challenge of join-calculus pattern matching is ensuring {\em
+atomicity:} messages in multiple buffers must be examined and dequeued
+atomically. It is an additional challenge to guarantee atomicity in a {\em scalable}
+way. Several join-calculus implementations rely on locks to ensure atomicity
+(see Section~\ref{cha:related}). The scalability problems of locks are well
+documented~\cite{Michael:1998}; in summary, lock-based implementations do not
+guarantee thread safety in the most scalable way.
+
+Turon \& Russo~\cite{Turon:2011} take up the challenge to provide a {\em
+scalable} pattern-matching algorithm. They identify two main factors crucial
+to scalability: lock freedom and fine-grained concurrency. Lock freedom mainly
+means that no locks are used; instead, non-blocking concurrency primitives are
+used. Fine-grained concurrency means that critical sections are as short as
+possible. An important insight of Turon \& Russo's join patterns is that if
+ordering constraints on message buffers are relaxed beyond the FIFO ordering
+typically guaranteed by join-calculus implementations, additional concurrency
+can be leveraged, and synchronization can happen as fine-grained as on the
+level of individual messages. Relaxing the ordering of messages is valid as
+far as compliance with the original join-calculus
+semantics~\cite{Fournet:1996} is concerned; however, it is {\em incompatible}
+with the semantics of observables.
+
+To remedy this problem, we present a novel matching algorithm which guarantees
+FIFO ordering of message buffers. The algorithm is inspired to a large extent
+by Turon \& Russo's scalable, non-blocking algorithm. In the following we
+first introduce our algorithm, and then we discuss the differences with regard
+to Turon \& Russo.
+
+% For a more detailed discussion of Turon \& Russo's
+% algorithm see Section~\ref{sub:scalableJoinPatterns}.
+
+
 \section{Evaluation}\label{sec:evaluation}
 
 
