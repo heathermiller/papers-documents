@@ -913,7 +913,7 @@ matching algorithm implements non-deterministic choice.
 \subsection{Setup}
 
 We used \textsc{ScalaMeter}~\cite{ScalaMeter} for our benchmarks, a library
-for micro-benchmarking, and performance regression testing on the JVM.
+for micro-benchmarking and performance regression testing on the JVM.
 \textsc{ScalaMeter} takes care of warm-up runs, garbage collection pauses, and
 other factors crucial to benchmarking on the JVM. All tests were run with 1024
 to 2048 warm-up runs, and 2048 test runs. All tests were executed eight times
@@ -943,7 +943,7 @@ In all benchmarks we are limited to a maximum of 64 observables per test
 because of the way the deterministic-choice algorithm is implemented. Further,
 \textsc{RxJavaJoins} only defines dedicated \texttt{Function} interfaces with
 up to nine parameters, and we therefore did not implement tests that would
-require a pattern-body function with more parameters than that.
+require a pattern-body function with more parameters.
 
 All events are sent and processed on different threads for each observable,
 respectively. We use back-pressure handling subjects that send an integer
@@ -977,6 +977,63 @@ serialization, because the Rx Guidelines state that it can be omitted for
 high-performance use cases; however, the benchmarks do use the built-in
 \texttt{serialize} operator on observables to ensure comparability with
 \textsc{RxJavaJoins} in all cases.
+
+\subsection{Results}
+
+\captionsetup[figure]{labelsep=space}
+
+% For this test ReactiveX/RxJavaJoins (RXJ) also showed relatively large confidence intervals.
+% It is unclear what causes these irregularities.
+
+\subsubsection{Throughput vs. size of patterns}
+
+\begin{figure}[h]
+  \centering
+  \includegraphics[scale=0.30]{img/two-patterns-N-observables.pdf}
+  \caption{Matching two patterns with an increasing number of observables}
+  \label{fig:TwoChoiceNObservables}
+\end{figure}
+
+As can be seen in Figure~\ref{fig:TwoChoiceNObservables}, except for the case
+of two cases with one observable each, the non-deterministic choice transform
+(NCT) has highest throughput. Generally, throughput decreases roughly linearly
+with increasing pattern sizes. The deterministic choice transform (DCT) has
+lowest throughput with the exception of two observables shared between two
+choices. The high throughput in this case is explained by the lazy-queuing
+optimization applied by DCT. In this case no message is put into buffers by
+DCT, whereas NCT and RXJ always put messages into buffers. The average
+increase in throughput when using NCT over RXJ is 30.3\%.
+
+\subsubsection{Throughput vs. number of patterns}
+
+\begin{figure}[h]
+  \centering
+  \includegraphics[scale=0.30]{img/N-patterns-two-observables.pdf}
+  \caption{Matching an increasing number of patterns with two observables each}
+  \label{fig:NChoiceTwoObservables}
+\end{figure}
+
+Performance with an increasing number of choices/patterns shows some
+interesting results, as can be seen in Figure~\ref{fig:NChoiceTwoObservables}.
+The coarse-grained approaches DCT and RXJ have an almost constant throughput
+with increasing number of choices whereas NCT achieves increased throughput.
+This indicates that NCT leverages concurrency better than the other
+approaches. The average increase in throughput of NCT over RXJ is 35.6\%.
+
+\subsubsection{Performance with Increasing Size of Interdependentness}
+
+\begin{figure}[h]
+  \centering
+  \includegraphics[scale=0.30]{img/32-patterns-N-interdep.pdf}
+  \caption{}
+  \label{fig:}
+\end{figure}
+
+The hypotheses that NCT leverages concurrency is supported by the
+interdependentness tests: the throughput, while generally higher than the
+other two approaches, does decrease with increasing number of interdependent
+choices. The other two approaches remain more or less constant. The average
+increase in throughput when using NCT over RXJ is 31.6\%.
 
 
 \section{Conclusion}\label{sec:conclusion}
