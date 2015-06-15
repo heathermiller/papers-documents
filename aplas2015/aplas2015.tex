@@ -29,6 +29,7 @@
 \usepackage{graphicx}
 \usepackage{xcolor}
 \usepackage{lipsum}
+\usepackage{booktabs}
 
 \newcommand{\comment}[1]{}
 
@@ -857,7 +858,7 @@ differ then either another resolver has used our message, or a previous
 resolver for the same event handler has decided \texttt{NoMatch}.
 
 
-\subsection{Comparison to Turon \& Russo's scalable join patterns}
+\subsection{Comparison to Turon \& Russo's scalable join patterns}\label{sec:comp-turon-russo}
 
 Turon \& Russo do not guarantee any ordering on the buffers, and therefore
 they can synchronize on the level of messages for additional concurrency.
@@ -1034,6 +1035,74 @@ interdependentness tests: the throughput, while generally higher than the
 other two approaches, does decrease with increasing number of interdependent
 choices. The other two approaches remain more or less constant. The average
 increase in throughput when using NCT over RXJ is 31.6\%.
+
+
+\section{Related work}\label{cha:related}
+
+\begin{table}[h]
+\centering
+\resizebox{\textwidth}{!}{%
+\begin{tabular}{@{}llllllll@{}}
+\toprule
+ & Language & Implementation & Synchrony & Choice & Channels & Concurrency & Buffers \\ \midrule
+JErlang & Erlang & Both & Async & Deterministic & Messages & Coarse & Unbounded \\
+JoinJava & Java & Compiler & Both & Both & Methods & Coarse & Unbounded \\
+C\# Joins Library & .NET & Library & Both & Non-Determ. & Channels & Coarse & Unbounded \\
+This paper & Scala & Macros & Async & Both & Observables & Fine / Coarse & Both \\
+Polyphonic C\# & C\# & Compiler & Both & Non-Determ. & Methods & Coarse & Unbounded \\
+Scalable Join-Patterns & C\# & Library & Both & Non-Determ. & Channels & Fine & Unbounded \\
+Scala Joins & Scala & Library & Both & Non-Determ. & Channels & Coarse & Unbounded \\ \bottomrule
+\end{tabular}
+}
+\caption{}
+\label{tab:JoinCalculusImplementations}
+\end{table}
+
+Table~\ref{tab:JoinCalculusImplementations} gives an overview of join-calculus
+implementations most closely related to our work.
+In general, we differ from stand-alone and extended compiler implementations
+by leveraging static meta-programming. With the use of macros the \verb|join| construct
+can be imported like a regular library. This means that users do not have to
+install and possibly maintain compiler extensions (or a whole new compiler)
+for projects where only parts require the provided functionality. Further, the
+macros we use do not allow changing the syntax of the host language (in this case, Scala);
+this means, clients of our system use a syntax that is already familiar, helping adoption.
+For example, both
+JoinJava~\cite{Itzstein:2001} and Polyphonic~C\#~\cite{Benton:2004} introduce
+a novel syntax, and are implemented on the compiler level. Polyphonic~C\#
+extends C\# with chords: combinations of methods that have to be called before
+a method body is executed. JoinJava is conceptually very similar to
+Polyphonic~C\# and both authors mention the simultaneous discovery. One of the key
+differences is that JoinJava allows ordered checking of the patterns as
+opposed to Polyphonic~C\# where patterns are always matched non-deterministically.
+Our approach also allows the configuration of the matching
+semantics. JErlang~\cite{Plociniczak:2010} combines join-calculus with actors.
+It integrates join patterns with Erlang's pattern matching facility. In contrast to our
+work, JErlang allows for more complex guards that operate on the values
+carried by events/messages, and further allows constraints on combinations of
+events. This enhanced expressiveness comes at the cost of more complex matching
+algorithms.
+
+If we, in general, compare to the pure library implementations we again profit
+from our use of macros. While libraries provide the flexibility and
+the advantages described above, they do so at the cost of run-time overhead and
+internal complexity. In order to allow for the required syntax, a first-class
+representation of the join patterns is constructed at runtime. There are no
+possibilities of optimizing this intermediate representation. The C\# Joins
+concurrency library~\cite{Russo:2007}, a library implementation similar to
+Polyphonic~C\#, is a good example of the internal complexity required to build
+representations of join patterns at runtime. The authors themselves state that they are
+``abusing'' the type system, and they push the boundaries of what is regularly
+expressable in C\#. Scalable Join Patterns~\cite{Turon:2011} implement the Joins concurrency
+library in a scalable, non-blocking fashion, based on fine-grained concurrency. The main
+difference to our scalable algorithm is that their algorithm does not
+guarantee FIFO ordering of buffers. Section~\ref{sec:comp-turon-russo} provides a detailed comparison
+of the two approaches. Scala Joins~\cite{Haller:2008} is a library
+implementation of join-calculus for threads and actors which integrates with Scala's
+extensible pattern matching~\cite{EmirOW07}. It is similar to our approach but does not target
+asynchronous data streams, and is not implemented in a fine-grained concurrent fashion.
+
+As far as we know, our work is the only approach with the ability to bound buffers.
 
 
 \section{Conclusion}\label{sec:conclusion}
