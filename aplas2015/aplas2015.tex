@@ -158,29 +158,140 @@ and
 \begin{sloppypar}
 \begin{abstract}
 
-This paper presents a new, scalable matching algorithm for
-reactive streams.
+Asynchronous programming has been a long-standing challenge. Meanwhile, the
+rise of asynchronous, event-based programming, as witnessed, \eg by the
+Reactive Manifesto, has propelled stream-based programming into the focus of
+mainstream software development.
 
-\keywords{join calculus, concurrent programming, streams}
+This paper proposes a new approach to {\em scalable and declarative
+synchronization of asynchronous event streams} based on join
+patterns. Instead of introducing a new, incompatible
+programming model, we present a new synchronization construct for an existing,
+widely-used programming model for asynchronous streams. In order to support
+the ordering constraints of streams, we adapt Turon and Russo's scalable
+join-pattern matching algorithm. Furthermore, our join
+synchronization construct enables integrating with flow-control mechanisms of
+stream-based programming models. Experimental results using micro
+benchmarks show an average increase in throughput of 30-36\% compared to
+the standard joins implementation of \textsc{RxJava}, a state-of-the-art
+streaming implementation for the JVM.
+
+\keywords{concurrent programming, join-calculus, streams}
 \end{abstract}
 
 
 \section{Introduction}
 \label{sec:introduction}
 
-Introduce
+Asynchronous programming has been a long-standing challenge. A multitude of
+programming models has been proposed to simplify the task, including
+actors~\cite{Hewitt77}, futures~\cite{Halstead85}, promises~\cite{LiskovS88},
+and join patterns~\cite{Fournet:1996}. The asynchronous models of
+F\#~\cite{SymePL11}, C\#~\cite{FormalizingAsync}, and
+Scala~\cite{ScalaAsyncSIP} provide language support for programming with
+futures (or ``tasks'') by avoiding an inversion of control that is inherent
+in designs based on callbacks~\cite{John88a}.
+
+Meanwhile, the rise of asynchronous, event-based programming as witnessed, \eg
+by the Reactive Manifesto~\cite{ReactiveManifesto}, has propelled stream-based
+programming into the focus of mainstream software development. As a result,
+asynchronous language extensions have been extended to streams, \eg in
+Scala~\cite{RAY} and Dart~\cite{MeijerMB15}. However, the scalable
+synchronization of streams using fine-grained concurrent algorithms has
+remained a challenge.
+
+This paper proposes a new approach to {\em scalable and declarative synchronization
+of asynchronous event streams} based on join patterns~\cite{Fournet:1996}. Instead of
+introducing a new, incompatible programming model, we present a new
+synchronization construct for an existing, widely-used programming model for
+asynchronous streams. In order to support the ordering constraints of streams,
+we adapt Turon and Russo's scalable join-pattern matching algorithm~\cite{Turon:2011}. Furthermore,
+our join synchronization construct enables integrating with flow-control
+mechanisms of stream-based programming models, such as \textsc{RxJava}~\cite{RxJava}
+and Reactive Streams~\cite{ReactiveStreams}. Experimental results using micro
+benchmarks show an average increase in throughput of 30-36\% compared to
+\textsc{RxJavaJoins}~\cite{RxJavaJoins}, the standard, industrial-strength joins
+implementation of \textsc{RxJava}.
+
+
+\subsection{Related work}\label{sec:related}
+
+\begin{table}[h]
+\centering
+\resizebox{\textwidth}{!}{%
+\begin{tabular}{@{}llllllll@{}}
+\toprule
+ & Language & Implementation & Synchrony & Choice & Channels & Concurrency & Buffers \\ \midrule
+Polyphonic C\#         & C\# & Compiler & Both & Non-Determ. & Methods & Coarse & Unbounded \\
+JoinJava               & Java & Compiler & Both & Both & Methods & Coarse & Unbounded \\
+C\# Joins Library      & .NET & Library & Both & Non-Determ. & Channels & Coarse & Unbounded \\
+Scala Joins            & Scala & Library & Both & Non-Determ. & Channels & Coarse & Unbounded \\
+JErlang                & Erlang & Both & Async & Deterministic & Messages & Coarse & Unbounded \\
+Scalable Join Patterns & C\# & Library & Both & Non-Determ. & Channels & Fine & Unbounded \\
+RxJavaJoins            & Java & Library & Async & Non-Determ. & Observables & Coarse & Unbounded \\
+This paper             & Scala & Macro & Async & Both & Observables & Fine / Coarse & Both \\ \bottomrule
+\end{tabular}
+}
+\caption{}
+\label{tab:JoinCalculusImplementations}
+\end{table}
+
+Table~\ref{tab:JoinCalculusImplementations} gives an overview of join-calculus
+implementations most closely related to our work.
+In general, we differ from stand-alone and extended compiler implementations
+by leveraging static meta-programming. With the use of macros the \verb|join| construct
+can be imported like a regular library. This means that users do not have to
+install and possibly maintain compiler extensions (or a whole new compiler)
+for projects where only parts require the provided functionality. Further, the
+macros we use do not allow changing the syntax of the host language (in this case, Scala);
+this means, clients of our system use a syntax that is already familiar, helping adoption.
+For example, both
+JoinJava~\cite{Itzstein:2001} and Polyphonic~C\#~\cite{Benton:2004} introduce
+a novel syntax, and are implemented on the compiler level. Polyphonic~C\#
+extends C\# with chords: combinations of methods that have to be called before
+a method body is executed. JoinJava is conceptually very similar to
+Polyphonic~C\# and both authors mention the simultaneous discovery. One of the key
+differences is that JoinJava allows ordered checking of the patterns as
+opposed to Polyphonic~C\# where patterns are always matched non-deterministically.
+Our approach also allows the configuration of the matching
+semantics. JErlang~\cite{Plociniczak:2010} combines join-calculus with actors.
+It integrates join patterns with Erlang's pattern matching facility. In contrast to our
+work, JErlang allows for more complex guards that operate on the values
+carried by events/messages, and further allows constraints on combinations of
+events. This enhanced expressiveness comes at the cost of more complex matching
+algorithms.
+
+If we, in general, compare to the pure library implementations we again profit
+from our use of macros. While libraries provide the flexibility and
+the advantages described above, they do so at the cost of run-time overhead and
+internal complexity. In order to allow for the required syntax, a first-class
+representation of the join patterns is constructed at runtime. There are no
+possibilities of optimizing this intermediate representation. The C\# Joins
+concurrency library~\cite{Russo:2007}, a library implementation similar to
+Polyphonic~C\#, is a good example of the internal complexity required to build
+representations of join patterns at runtime. The authors themselves state that they are
+``abusing'' the type system, and they push the boundaries of what is regularly
+expressable in C\#. Scalable Join Patterns~\cite{Turon:2011} implement the Joins concurrency
+library in a scalable, non-blocking fashion, based on fine-grained concurrency. The main
+difference to our scalable algorithm is that their algorithm does not
+guarantee FIFO ordering of buffers. Section~\ref{sec:comp-turon-russo} provides a detailed comparison
+of the two approaches. Scala Joins~\cite{Haller:2008} is a library
+implementation of join-calculus for threads and actors which integrates with Scala's
+extensible pattern matching~\cite{EmirOW07}. It is similar to our approach but does not target
+asynchronous data streams, and is not implemented in a fine-grained concurrent fashion.
+
+As far as we know, our work is the only approach with the ability to bound buffers.
+
 
 \section{Background}
 
-\subsection{Reactive Extensions}
-
-The Rx programming model is based on two interface traits: \verb|Observable|
-and \verb|Observer|. \verb|Observable| represents observable streams, i.e.,
+The Reactive Extensions programming model is based on two interfaces/traits: \verb|Observable|
+and \verb|Observer|. \verb|Observable| represents observable streams, \ie
 streams that produce a sequence of events. These events can be observed by
 registering an \verb|Observer| with the \verb|Observable|. The \verb|Observer|
 provides methods which are invoked for each of the kinds of events produced by
 the \verb|Observable|. In Scala, the two traits can be defined as shown in
-Figure~\ref{fig:observable-observer}.
+Fig.~\ref{fig:observable-observer}.
 
 \begin{figure}[ht!]
   \centering
@@ -211,7 +322,7 @@ method which removes the subscription from the observable. The next listing
 shows an example implementation.
 
 Note that in our Scala version the \verb|Observer| trait extends the function
-type \verb|Try[T] => Unit|. \verb|Try[T]| is a simple container type which
+type \verb|Try[T] => Unit|. \verb|Try[T]|~\cite{FuturesSIP} is a simple container type which
 supports heap-based exception handling (as opposed to the traditional stack-based
 exception handling using expressions like \verb|try-catch-finally|.)
 There are two subclasses of \verb|Try[T]|: \verb|Success| (encapsulating a
@@ -299,7 +410,7 @@ def findProducts(name: String) = {
 \label{fig:find-products}
 \end{figure}
 
-Figure~\ref{fig:find-products} shows an implementation of the
+Fig.~\ref{fig:find-products} shows an implementation of the
 \verb|findProducts| method using the Reactive Extensions model. First, the
 method queries a \verb|db| object which returns a stream of products (an
 \verb|Observable[Product]|). For each product \verb|p| in this stream we would
@@ -345,13 +456,13 @@ def findProducts(name: String) = {
 
 \noindent
 Our extended programming model enables expressing the above example using {\em
-join patterns}, as shown in Figure~\ref{fig:find-products-joins}. The
+join patterns}, as shown in Fig.~\ref{fig:find-products-joins}. The
 differences to the implementation without join patterns (see
-Figure~\ref{fig:find-products}) are indicated by \colorbox{light-gray}{shading}.
+Fig.~\ref{fig:find-products}) are indicated by \colorbox{light-gray}{shading}.
 
 First, \verb|reviews|, \verb|images|, and \verb|related| are no longer
-observables. Instead, by invoking the \verb|p| {\em extension method} (TODO:
-add reference to Scala spec) each original observable is turned into a
+observables. Instead, by invoking the \verb|p| {\em extension method}~\cite{Odersky-Spoon-Venners07}
+each original observable is turned into a
 \verb|JoinObservable|, enabling its use in join patterns.\footnote{By
 implementing additional methods, a \texttt{JoinObservable} is an {\em
 extractor}~\cite{EmirOW07} for its underlying \texttt{Observable}.}
@@ -430,7 +541,7 @@ The main challenge of join-calculus pattern matching is ensuring {\em
 atomicity:} messages in multiple buffers must be examined and dequeued
 atomically. It is an additional challenge to guarantee atomicity in a {\em scalable}
 way. Several join-calculus implementations rely on locks to ensure atomicity
-(see Section~\ref{cha:related}). The scalability problems of locks are well
+(see Section~\ref{sec:related}). The scalability problems of locks are well
 documented~\cite{Michael:1998}; in summary, lock-based implementations do not
 guarantee thread safety in the most scalable way.
 
@@ -610,7 +721,7 @@ must avoid deadlocks.
 
 Resolution is a two-level process. On the first level, a loop, implemented as
 a tail-recursive function, iterates through the patterns which the current
-message could fire. Figure~\ref{fig:resolve} shows such a tail-recursive
+message could fire. Fig.~\ref{fig:resolve} shows such a tail-recursive
 function called \verb|resolve|.
 
 \begin{figure}[ht]
@@ -628,7 +739,7 @@ case object Retry    extends MatchResult
 For every pattern the function calls a \verb|checkPattern| method. The
 \verb|checkPattern| call represents the second level. The result of a
 \verb|checkPattern| call is either \verb|NoMatch|, \verb|Retry|, or
-\verb|Resolved| (see Figure~\ref{fig:match-results}). A \texttt{NoMatch}
+\verb|Resolved| (see Fig.~\ref{fig:match-results}). A \texttt{NoMatch}
 result means that the pattern cannot be matched as there are other messages
 missing to complete it. If every \texttt{checkPattern} function call returns
 \texttt{NoMatch} we can stop resolving, and leave the message buffered: the
@@ -684,7 +795,7 @@ def resolve[A](messageToResolve: Message[A], backoff: Backoff): Unit = {
 
 \subsubsection{Checking patterns}
 
-Figure~\ref{fig:check-pattern} shows an example of a \verb|checkPattern|
+Fig.~\ref{fig:check-pattern} shows an example of a \verb|checkPattern|
 function generated for the following simple join pattern:
 
 \begin{lstlisting}
@@ -995,7 +1106,7 @@ high-performance use cases; however, the benchmarks do use the built-in
   \label{fig:TwoChoiceNObservables}
 \end{figure}
 
-As can be seen in Figure~\ref{fig:TwoChoiceNObservables}, except for the case
+As can be seen in Fig.~\ref{fig:TwoChoiceNObservables}, except for the case
 of two cases with one observable each, the non-deterministic choice transform
 (NCT) has highest throughput. Generally, throughput decreases roughly linearly
 with increasing pattern sizes. The deterministic choice transform (DCT) has
@@ -1015,7 +1126,7 @@ increase in throughput when using NCT over RXJ is 30.3\%.
 \end{figure}
 
 Performance with an increasing number of choices/patterns shows some
-interesting results, as can be seen in Figure~\ref{fig:NChoiceTwoObservables}.
+interesting results, as can be seen in Fig.~\ref{fig:NChoiceTwoObservables}.
 The coarse-grained approaches DCT and RXJ have an almost constant throughput
 with increasing number of choices whereas NCT achieves increased throughput.
 This indicates that NCT leverages concurrency better than the other
@@ -1036,73 +1147,6 @@ other two approaches, does decrease with increasing number of interdependent
 choices. The other two approaches remain more or less constant. The average
 increase in throughput when using NCT over RXJ is 31.6\%.
 
-
-\section{Related work}\label{cha:related}
-
-\begin{table}[h]
-\centering
-\resizebox{\textwidth}{!}{%
-\begin{tabular}{@{}llllllll@{}}
-\toprule
- & Language & Implementation & Synchrony & Choice & Channels & Concurrency & Buffers \\ \midrule
-JErlang & Erlang & Both & Async & Deterministic & Messages & Coarse & Unbounded \\
-JoinJava & Java & Compiler & Both & Both & Methods & Coarse & Unbounded \\
-C\# Joins Library & .NET & Library & Both & Non-Determ. & Channels & Coarse & Unbounded \\
-This paper & Scala & Macros & Async & Both & Observables & Fine / Coarse & Both \\
-Polyphonic C\# & C\# & Compiler & Both & Non-Determ. & Methods & Coarse & Unbounded \\
-Scalable Join-Patterns & C\# & Library & Both & Non-Determ. & Channels & Fine & Unbounded \\
-Scala Joins & Scala & Library & Both & Non-Determ. & Channels & Coarse & Unbounded \\ \bottomrule
-\end{tabular}
-}
-\caption{}
-\label{tab:JoinCalculusImplementations}
-\end{table}
-
-Table~\ref{tab:JoinCalculusImplementations} gives an overview of join-calculus
-implementations most closely related to our work.
-In general, we differ from stand-alone and extended compiler implementations
-by leveraging static meta-programming. With the use of macros the \verb|join| construct
-can be imported like a regular library. This means that users do not have to
-install and possibly maintain compiler extensions (or a whole new compiler)
-for projects where only parts require the provided functionality. Further, the
-macros we use do not allow changing the syntax of the host language (in this case, Scala);
-this means, clients of our system use a syntax that is already familiar, helping adoption.
-For example, both
-JoinJava~\cite{Itzstein:2001} and Polyphonic~C\#~\cite{Benton:2004} introduce
-a novel syntax, and are implemented on the compiler level. Polyphonic~C\#
-extends C\# with chords: combinations of methods that have to be called before
-a method body is executed. JoinJava is conceptually very similar to
-Polyphonic~C\# and both authors mention the simultaneous discovery. One of the key
-differences is that JoinJava allows ordered checking of the patterns as
-opposed to Polyphonic~C\# where patterns are always matched non-deterministically.
-Our approach also allows the configuration of the matching
-semantics. JErlang~\cite{Plociniczak:2010} combines join-calculus with actors.
-It integrates join patterns with Erlang's pattern matching facility. In contrast to our
-work, JErlang allows for more complex guards that operate on the values
-carried by events/messages, and further allows constraints on combinations of
-events. This enhanced expressiveness comes at the cost of more complex matching
-algorithms.
-
-If we, in general, compare to the pure library implementations we again profit
-from our use of macros. While libraries provide the flexibility and
-the advantages described above, they do so at the cost of run-time overhead and
-internal complexity. In order to allow for the required syntax, a first-class
-representation of the join patterns is constructed at runtime. There are no
-possibilities of optimizing this intermediate representation. The C\# Joins
-concurrency library~\cite{Russo:2007}, a library implementation similar to
-Polyphonic~C\#, is a good example of the internal complexity required to build
-representations of join patterns at runtime. The authors themselves state that they are
-``abusing'' the type system, and they push the boundaries of what is regularly
-expressable in C\#. Scalable Join Patterns~\cite{Turon:2011} implement the Joins concurrency
-library in a scalable, non-blocking fashion, based on fine-grained concurrency. The main
-difference to our scalable algorithm is that their algorithm does not
-guarantee FIFO ordering of buffers. Section~\ref{sec:comp-turon-russo} provides a detailed comparison
-of the two approaches. Scala Joins~\cite{Haller:2008} is a library
-implementation of join-calculus for threads and actors which integrates with Scala's
-extensible pattern matching~\cite{EmirOW07}. It is similar to our approach but does not target
-asynchronous data streams, and is not implemented in a fine-grained concurrent fashion.
-
-As far as we know, our work is the only approach with the ability to bound buffers.
 
 
 \section{Conclusion}\label{sec:conclusion}
