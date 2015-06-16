@@ -171,7 +171,8 @@ widely-used programming model for asynchronous streams. In order to support
 the ordering constraints of streams, we adapt Turon and Russo's scalable
 join-pattern matching algorithm. Furthermore, our join
 synchronization construct enables integrating with flow-control mechanisms of
-stream-based programming models. Experimental results using micro
+stream-based programming models. Thus, our implementation of join patterns is the
+first to support bounded message buffers. Experimental results using micro
 benchmarks show an average increase in throughput of 30-36\% compared to
 the standard joins implementation of \textsc{RxJava}, a state-of-the-art
 streaming implementation for the JVM.
@@ -239,7 +240,7 @@ This paper             & Scala & Macro & Async & Both & Observables & Fine / Coa
 Table~\ref{tab:JoinCalculusImplementations} gives an overview of join-calculus
 implementations most closely related to our work.
 In general, we differ from stand-alone and extended compiler implementations
-by leveraging static meta-programming. With the use of macros the \verb|join| construct
+by leveraging static meta-programming. With the use of macros our \verb|join| synchronization construct
 can be imported like a regular library. This means that users do not have to
 install and possibly maintain compiler extensions (or a whole new compiler)
 for projects where only parts require the provided functionality. Further, the
@@ -282,8 +283,43 @@ asynchronous data streams, and is not implemented in a fine-grained concurrent f
 
 As far as we know, our work is the only approach with the ability to bound buffers.
 
+\subsection{Contributions}\label{sec:contribs}
 
-\section{Background}
+This paper makes the following contributions:
+
+\begin{enumerate}
+
+\item We present a new, scalable join-pattern matching algorithm for ordered,
+asynchronous event streams. The algorithm has an important liveness property:
+{\em if a pattern can fire, eventually, a pattern will fire.}
+
+\item We provide an implementation\footnote{Available as open source at
+\url{https://github.com/phaller/joins/}.} of our join-pattern matching
+algorithm for Scala 2.11, the current stable release of the mainline Scala
+language and compiler. Our implementation is notable in that it integrates
+join patterns into Scala's standard pattern matching construct. Furthermore,
+our implementation has built-in support for bounded buffers whose
+user-configured capacities are enforced automatically. To our knowledge it is the
+first implementation of join patterns to do so.
+
+\item We evaluate our implementation of join patterns experimentally. On micro
+benchmarks, the evaluation shows an average increase in throughput of 30-36\%
+compared to the standard joins implementation of \textsc{RxJava}, a
+state-of-the-art streaming implementation for the JVM.
+
+\end{enumerate}
+
+The rest of this paper is structured as follows. Section~\ref{sec:background}
+provides some background on the underlying programming model for asynchronous
+streams. Section~\ref{sec:overview} introduces our join synchronization
+construct by means of examples. Section~\ref{sec:algorithm} presents our
+scalable join-pattern matching algorithm, including a detailed comparison with
+Turon and Russo's scalable join patterns.
+Section~\ref{sec:evaluation} evaluates our algorithm and implementation
+experimentally. Finally, Section~\ref{sec:conclusion} concludes.
+
+
+\section{Background}\label{sec:background}
 
 The Reactive Extensions programming model is based on two interfaces/traits: \verb|Observable|
 and \verb|Observer|. \verb|Observable| represents observable streams, \ie
@@ -377,7 +413,8 @@ shown example suffers from a problem explained in~\cite{RxCACM} which
 motivates the use of an additional \verb|Switch| combinator which is omitted
 here for brevity.)
 
-\section{Overview}
+
+\section{Overview}\label{sec:overview}
 
 Join patterns are an elegant way to {\em declaratively} coordinate multiple
 observables.
@@ -1015,7 +1052,7 @@ Section~\ref{sec:evaluation}).
 
 \section{Evaluation}\label{sec:evaluation}
 
-We evaluated the performance of our system with a set of micro benchmarks
+We evaluate the performance of our system with a set of micro benchmarks
 against a join-calculus implementation for observables called
 \textsc{RxJavaJoins}~\cite{RxJavaJoins}. \textsc{RxJava} is a widely used
 Reactive Extensions library for Java, and its join-calculus implementation is
