@@ -300,7 +300,7 @@ asynchronous event streams. The algorithm has an important liveness property:
 {\em if a pattern can fire, eventually, a pattern will fire.}
 
 \item We provide an implementation\footnote{Available as open source at
-\url{https://github.com/phaller/joins/}.} of our join-pattern matching
+\url{https://github.com/phaller/reactive-joins/}.} of our join-pattern matching
 algorithm for Scala 2.11, the current stable release of the mainline Scala
 language and compiler. Our implementation is notable in that it integrates
 join patterns into Scala's standard pattern matching construct. Furthermore,
@@ -1088,13 +1088,16 @@ matching algorithm implements non-deterministic choice.
 
 \subsection{Setup}
 
+% All tests were run with 1024 to 2048 warm-up runs, and 2048 test runs. All
+% tests were executed eight times on independent JVMs. 
+
 We used \textsc{ScalaMeter}~\cite{ScalaMeter} for our benchmarks, a library
 for micro-benchmarking and performance regression testing on the JVM.
 \textsc{ScalaMeter} takes care of warm-up runs, garbage collection pauses, and
-other factors crucial to benchmarking on the JVM. All tests were run with 1024
-to 2048 warm-up runs, and 2048 test runs. All tests were executed eight times
-on independent JVMs. We ran the benchmarks on a machine with an Intel Core i5
-2.6~GHz processor and 16~GB RAM, running Mac OS X 10.9.5 and Oracle JDK 8.
+other factors crucial to benchmarking on the JVM. We ran the benchmarks on a
+machine with an Intel Core i5 2.6~GHz processor and 16~GB RAM, running Mac OS
+X 10.9.5 and Oracle JDK 8 Java HotSpot(TM) 64-Bit Server VM (build 25.45-b02,
+mixed mode).
 
 \subsection{Overview}
 
@@ -1133,7 +1136,7 @@ For the first two benchmarks we send 32768 events from each observable. For
 the first benchmark this results in a constant number of matches of twice the
 number of events emitted per observable. For the second benchmark we increase
 the number of patterns which increases the number of pattern matches as a
-function of the number of pattern. For the last benchmark we send 32768 events
+function of the number of patterns. For the last benchmark we send 32768 events
 for 16 observables, but the interdependent observables send a multiple of that
 depending on the number of patterns they appear in. We account for these
 variations in number of pattern matches by calculating the throughput instead
@@ -1218,21 +1221,20 @@ with increasing number of choices whereas NCT achieves increased throughput.
 This indicates that NCT leverages concurrency better than the other
 approaches. The average increase in throughput of NCT over RXJ is 35.6\%.
 
-\subsubsection{Performance with Increasing Size of Interdependentness}
+\subsubsection{Throughput vs. number of interdependent observables}
 
 \begin{figure}[h]
   \centering
   \includegraphics[scale=0.30]{img/32-patterns-N-interdep.pdf}
-  \caption{}
-  \label{fig:}
+  \caption{Matching 16 patterns with an increasing number of interdependent observables}
+  \label{fig:interdependent}
 \end{figure}
 
-The hypotheses that NCT leverages concurrency is supported by the
-interdependentness tests: the throughput, while generally higher than the
-other two approaches, does decrease with increasing number of interdependent
-choices. The other two approaches remain more or less constant. The average
+The hypotheses that NCT leverages concurrency is supported by the third
+benchmark whose results are shown in Fig.~\ref{fig:interdependent}:
+throughput, while generally higher than the other two approaches, decreases
+with an increasing number of interdependent observables. Nonetheless, the average
 increase in throughput when using NCT over RXJ is 31.6\%.
-
 
 
 \section{Conclusion}\label{sec:conclusion}
