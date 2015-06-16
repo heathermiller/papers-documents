@@ -131,22 +131,29 @@ numbers=left, numberstyle=\scriptsize\color{gray}\ttfamily, language=scala,mored
 %                                     also used for the TOC unless
 %                                     \toctitle is used
 %
-\author{Philipp Haller$^{1}$ \and Alon Dolev\footnote{Work done while at TU Delft.}
-\and Heather Miller}
+\author{Philipp Haller$^{1}$ \and Alon Dolev$^{2}$\footnote{Work done while at TU Delft.}
+\and Heather Miller$^{3}$}
 
 %%% list of authors for the TOC (use if author list has to be modified)
-\tocauthor{Philipp Haller,$^{1}$ Alon Dolev, and Heather Miller}
+\tocauthor{Philipp Haller, Alon Dolev, and Heather Miller}
 
 % \institute{EPFL and Typesafe, Inc$^{1}$\\
 
 % \texttt{\scriptsize \{heather.miller, martin.odersky\}@epfl.ch}
 % and \texttt{\scriptsize philipp.haller@typesafe.com}$^{1}$}
 
+% Ergon Informatik AG
+% Merkurstrasse 43
+% 8032 Zürich
 
-\institute{KTH Royal Institute of Technology$^{1}$\\
-\texttt{heather.miller@epfl.ch}
-and
-\texttt{phaller@kth.se}$^{1}$}
+
+\institute{KTH Royal Institute of Technology, Sweden$^{1}$\\
+% \texttt{phaller@kth.se}\\
+Ergon Informatik AG, Switzerland$^{2}$\\
+% \texttt{alon@dolev.ch}\\
+EPFL, Switzerland$^{3}$\\
+% \texttt{heather.miller@epfl.ch}
+}
 
 
 \setlength{\abovecaptionskip}{0pt}
@@ -1047,6 +1054,27 @@ Another difference is that we randomize the order in which the patterns are
 checked per event handler to potentially avoid contention. This measure has
 lead to a performance increase in our micro benchmarks (see
 Section~\ref{sec:evaluation}).
+
+\subsection{Flow control}\label{sec:flow}
+
+It can happen that a producer of events, such as an observable, overwhelms its
+consumers when it emits events with a high rate. This is especially
+problematic when buffers are used as they can easily outgrow the limited
+memory available. One way of solving this problem is through explicit ``back-pressure''
+control. In the case of \textsc{RxJava} and \textsc{Reactive Streams} such back-pressure control
+is available: subscribers can send asynchronous requests to
+observables asking for a maximum number of new events. For our use case this is especially
+important, because coordinating events with join patterns requires buffering. In our implementation it is possible to set a bound on the number of elements buffered for each observable source. This bound is automatically
+enforced by our generated code.
+
+The developer can set an implicit value to the maximum buffer size for
+\verb|Next| type events of each observable. The transform looks up this
+implicit value and, if it exists, it generates code that requests that amount
+as initial request for every observable involved in a join pattern.
+Additionally, for every queue we create an atomic counter with the buffer
+size, and each time an event is dequeued this counter is decremented. The
+resolver that manages to decrement the last element requests another batch of
+events, and resets the counter.
 
 
 \section{Evaluation}\label{sec:evaluation}
