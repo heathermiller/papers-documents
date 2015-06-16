@@ -1161,6 +1161,28 @@ increase in throughput when using NCT over RXJ is 30.3\%.
   \label{fig:NChoiceTwoObservables}
 \end{figure}
 
+% \begin{figure}[t!]
+% % \vspace{-4mm}
+% \begin{subfigure}{.5\textwidth}
+%   \centering
+%   \includegraphics[scale=0.15]{img/N-patterns-two-observables.pdf}
+%   \caption{Caption 1}
+%   \label{fig:function-arity1}
+% \end{subfigure}%
+% \begin{subfigure}{.5\textwidth}
+%   \centering
+%   \includegraphics[scale=0.15]{img/N-patterns-two-observables.pdf}
+%   \caption{Caption 2}
+%   \label{fig:spore-arity1}
+% \end{subfigure}%
+% \vspace{1mm}
+% \caption{Benchmark 2}
+% \label{fig:bench2}
+% \vspace{-2mm}
+% \end{figure}
+
+
+
 Performance with an increasing number of choices/patterns shows some
 interesting results, as can be seen in Fig.~\ref{fig:NChoiceTwoObservables}.
 The coarse-grained approaches DCT and RXJ have an almost constant throughput
@@ -1187,7 +1209,16 @@ increase in throughput when using NCT over RXJ is 31.6\%.
 
 \section{Conclusion}\label{sec:conclusion}
 
-Conclude
+High-level synchronization constructs are indispensible for simplifying
+asynchronous programming. In this paper we have proposed a scalable
+synchronization construct based on the join-calculus. Our goal is an
+integration with existing, stream-based programming models. For this purpose,
+we have adapted Turon and Russo's scalable join-pattern matching algorithm to
+work with the ordering constraints of streams. Micro benchmarks confirm the
+benefits of fine-grained concurrency: on average, throughput of matching join
+patterns increases by 30-36\% compared to the standard joins implementation of
+\textsc{RxJava}, a state-of-the-art streaming implementation for the JVM.
+
 
 \bibliographystyle{abbrv}
 \bibliography{bib}
