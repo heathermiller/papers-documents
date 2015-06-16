@@ -240,18 +240,17 @@ This paper             & Scala & Macro & Async & Both & Observables & Fine / Coa
 Table~\ref{tab:JoinCalculusImplementations} gives an overview of join-calculus
 implementations most closely related to our work.
 In general, we differ from stand-alone and extended compiler implementations
-by leveraging static meta-programming. With the use of macros our \verb|join| synchronization construct
+by leveraging static meta-programming. With the use of Scala macros~\cite{burmako13}
+our \verb|join| synchronization construct
 can be imported like a regular library. This means that users do not have to
 install and possibly maintain compiler extensions (or a whole new compiler)
 for projects where only parts require the provided functionality. Further, the
 macros we use do not allow changing the syntax of the host language (in this case, Scala);
 this means, clients of our system use a syntax that is already familiar, helping adoption.
-For example, both
-JoinJava~\cite{Itzstein:2001} and Polyphonic~C\#~\cite{Benton:2004} introduce
+In contrast, both JoinJava~\cite{Itzstein:2001} and Polyphonic~C\#~\cite{Benton:2004} introduce
 a novel syntax, and are implemented on the compiler level. Polyphonic~C\#
-extends C\# with chords: combinations of methods that have to be called before
-a method body is executed. JoinJava is conceptually very similar to
-Polyphonic~C\# and both authors mention the simultaneous discovery. One of the key
+extends C\# with {\em chords:} combinations of methods that have to be called before
+a method body is executed. JoinJava is conceptually very similar to Polyphonic~C\#. One of the key
 differences is that JoinJava allows ordered checking of the patterns as
 opposed to Polyphonic~C\# where patterns are always matched non-deterministically.
 Our approach also allows the configuration of the matching
