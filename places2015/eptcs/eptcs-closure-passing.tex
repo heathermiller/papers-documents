@@ -45,12 +45,12 @@ numbers=left, numberstyle=\scriptsize\color{gray}\ttfamily, language=scala,mored
 
 \title{Distributed Programming via Safe Closure Passing}
 \author{Philipp Haller
-\institute{KTH Royal Institute of Technology\\ Stockholm, Sweden}
+\institute{KTH Royal Institute of Technology\\ Sweden}
 \email{phaller@kth.se}
 \and
 Heather Miller
 \institute{EPFL\\
-Lausanne, Switzerland}
+Switzerland}
 \email{heather.miller@epfl.ch}
 }
 \def\titlerunning{Safe Closure Passing}
@@ -156,7 +156,7 @@ work~\cite{MillerHO14}. Among others, the syntax and static semantics of
 spores can guarantee the absence of runtime serialization errors due to
 closure environments that are not serializable.
 
-The following section~\ref{sec:spores} provides some required background.
+The following Section~\ref{sec:spores} provides some required background.
 Sections~\ref{sec:model} (programming model) and~\ref{sec:impl} (implementation)
 present our main contributions. Section~\ref{sec:related} relates to prior work.
 Section~\ref{sec:conclusion} summarizes future work and concludes.
@@ -493,7 +493,7 @@ trait SiloRef[T] {
 
 \paragraph{Apply}
 
-The \verb|apply| method takes a spore, a kind of closure (see Appendix~\ref{sec:spores} for an overview),
+The \verb|apply| method takes a spore, a kind of closure (see Section~\ref{sec:spores} for an overview),
 that is to be applied to the data in the silo of the receiver SiloRef. Rather than immediately sending
 the spore across the network, and waiting for the operation to finish, the
 apply method is \emph{lazy}. It immediately returns a SiloRef that refers to the
