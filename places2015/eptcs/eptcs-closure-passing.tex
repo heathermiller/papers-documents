@@ -1,0 +1,44 @@
+\documentclass[submission,copyright,creativecommons]{eptcs}
+\providecommand{\event}{PLACES 2015} % Name of the event you are submitting to
+\usepackage{breakurl}                % Not needed if you use pdflatex only.
+
+\title{Distributed Programming via Safe Closure Passing}
+\author{Philipp Haller
+\institute{KTH Royal Institute of Technology\\ Stockholm, Sweden}
+\email{phaller@kth.se}
+\and
+Heather Miller
+\institute{EPFL\\
+Lausanne, Switzerland}
+\email{heather.miller@epfl.ch}
+}
+\def\titlerunning{Safe Closure Passing}
+\def\authorrunning{P. Haller \& H. Miller}
+\begin{document}
+\maketitle
+
+\begin{abstract}
+Programming systems incorporating aspects of functional programming, e.g.,
+higher-order functions, are becoming increasingly popular for large-scale
+distributed programming. New frameworks such as Apache Spark leverage
+functional techniques to provide high-level, declarative APIs for in-memory
+data analytics, often outperforming traditional ``big data'' frameworks like
+Hadoop MapReduce. However, widely-used programming models remain rather
+ad-hoc; aspects such as implementation trade-offs, static typing, and semantics
+are not yet well-understood. We present a new asynchronous programming model
+that has at its core several principles facilitating functional processing of
+distributed data. The emphasis of our model is on simplicity, performance,
+and expressiveness. The primary means of
+communication is by passing functions (closures) to distributed, immutable
+data. To ensure safe and efficient distribution of closures, our model
+leverages both syntactic and type-based restrictions. We report on a prototype
+implementation in Scala. Finally, we present preliminary experimental results
+evaluating the performance impact of a static, type-based optimization of serialization.
+\end{abstract}
+
+\section{Introduction}
+
+\nocite{*}
+\bibliographystyle{eptcs}
+\bibliography{bib}
+\end{document}
