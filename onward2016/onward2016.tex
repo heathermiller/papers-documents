@@ -41,29 +41,13 @@
 \usepackage{xspace}
 \usepackage{mdframed}
 \usepackage{xcolor}
-
-% XXX @heater, @philip: Don't get XeTeX/ LuaTeX running
-%\usepackage{fontspec}
-
+\usepackage{fontspec}
 \usepackage{graphicx}
 \usepackage{setspace}
 \usepackage{wasysym}
 \usepackage{url}
-
-% XXX @heater, @philip: Running pdflatex I get the following warings:
-%
-%     (/usr/local/texlive/2014/texmf-dist/tex/latex/caption/subcaption.sty
-%     (/usr/local/texlive/2014/texmf-dist/tex/latex/caption/caption.sty
-%     (/usr/local/texlive/2014/texmf-dist/tex/latex/caption/caption3.sty)
-%     
-%     package caption Warning: Unsupported document class (or package) detected,
-%     (caption)                usage of the caption package is not recommended.
-%     see the caption package documentation for explanation.
-%
-%     Relevant?
-%\usepackage{caption}
-%\usepackage{subcaption}
-
+\usepackage{caption}
+\usepackage{subcaption}
 \usepackage{csquotes}
 \usepackage{enumitem}
 
@@ -262,9 +246,9 @@
 \setlength{\pdfpageheight}{\paperheight}
 \setlength{\pdfpagewidth}{\paperwidth}
 
-% XXX Requires XeTeX/ LuaTeX
-% XXX \setmainfont[Mapping=tex-text]{Times New Roman}
-% XXX \setmonofont[Scale=0.8,BoldFont={Consolas Bold}]{Consolas}
+% Requires XeTeX/ LuaTeX
+\setmainfont[Mapping=tex-text]{Times New Roman}
+\setmonofont[Scale=0.8,BoldFont={Consolas Bold}]{Consolas}
 
 \conferenceinfo{CONF 'yy}{Month d--d, 20yy, City, ST, Country}
 \copyrightyear{20yy}
@@ -1928,7 +1912,7 @@ as efficient as pickling, thanks to using type-specific unpicklers.
 \subsection{Type-based optimization of serialization}
 
 \begin{figure}[t!]
-\centering\includegraphics[width=\columnwidth]{pic/multiJVM.pdf}
+\centering\includegraphics[width=\columnwidth]{pic/multiple-jvm.pdf}
 \caption{Impact of Static Types on Performance, End-to-End Application (\texttt{groupBy} + \texttt{join}).}
 \label{fig:multiple-jvm}
 \end{figure}
