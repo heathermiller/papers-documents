@@ -1,0 +1,223 @@
+The introduced primitives enable expressing surprisingly intricate
+computational patterns.
+
+Higher-order operations such as variants of \verb|map|, \verb|reduce|, and
+\verb|join|, operating on collections of data partitions, distributed across a
+set of hosts, are required when implementing abstractions like Spark's
+distributed collections~\cite{Spark}. Section~\ref{sec:dist-coll} demonstrates
+the implementation of some such operations in terms of silos.
+
+In addition, even more patterns are possible thanks to the decentralized nature
+of our programming model, which removes the limitations of master/worker host
+configurations. Section~\ref{sec:decentral} shows examples of peer-to-peer
+patterns that are still fault-tolerant.
+
+% \verb|union|, \verb|groupByKey|, or
+% \verb|join|
+
+\subsection{Higher-Order Operations}
+\label{sec:dist-coll}
+
+% \paragraph{union}
+%
+% The union of two unordered collections stored in two different silos can be
+% expressed directly using the above \verb|flatMap| primitive.
+
+\paragraph{join}
+
+Suppose we are given two silos with the following types:
+
+\begin{lstlisting}
+val silo1: SiloRef[List[A]]
+val silo2: SiloRef[List[B]]
+\end{lstlisting}
+\noindent
+as well as two hash functions computing hashes (of type \verb|K|) for elements
+of type \verb|A| and type \verb|B|, respectively:
+
+\begin{lstlisting}
+val hashA: A => K = ...
+val hashB: B => K = ...
+\end{lstlisting}
+\noindent
+The goal is to compute the hash-join of \verb|silo1| and \verb|silo2| using a
+higher-order operation \verb|hashJoin|:
+
+\begin{lstlisting}
+def hashJoin[A, B, K](s1: SiloRef[List[A]],
+                      s2: SiloRef[List[B]],
+                      f: A => K,
+                      g: B => K)
+  : SiloRef[List[(K, (A, B))]] = ???
+\end{lstlisting}
+\noindent
+To implement \verb|hashJoin| in terms of silos, the types of the two silos
+first have to be made equal, through initial \verb|map| invocations:
+
+\begin{lstlisting}
+val s12: SiloRef[List[(K, Option[A], Option[B])]] =
+  s1.map(spore { l1 => l1.map(x => (f(x), Some(x), None)) })
+val s22: SiloRef[List[(K, Option[A], Option[B])]] =
+  s2.map(spore { l2 => l2.map(x => (g(x), None, Some(x))) })
+\end{lstlisting}
+\noindent
+Then, we can use \verb|flatMap| to create a new silo which contains the
+elements of both silo \verb|s12| and silo \verb|s22|:
+
+\begin{lstlisting}
+val combined = s12.flatMap(spore {
+  val localS22 = s22
+  (triples1: List[(K, Option[A], Option[B])]) =>
+    s22.map(spore {
+      val localTriples1 = triples1
+      (triples2: List[(K, Option[A], Option[B])]) =>
+        localTriples1 ++ triples2
+    })
+})
+\end{lstlisting}
+\noindent
+The combined silo contains triples of type \verb|(K, Option[A], Option[B])|.
+Using an additional \verb|map|, the collection can be sorted by key, and
+adjacent triples be combined, yielding a \texttt{SiloRef[List[(K, (A, B))]]} as
+required.
+
+\paragraph{Partitioning and groupByKey}
+
+A \verb|groupByKey| operation on a group of silos containing collections needs
+to create multiple result silos, on each node, with ranges of keys supposed to
+be shipped to destination hosts. These destination hosts are determined using a
+partitioning function. Our goal, concretely:
+
+\begin{lstlisting}
+val groupedSilos = groupByKey(silos)
+\end{lstlisting}
+\noindent
+Furthermore, we assume that \verb|silos.size| $= N$ where $N$ is the number of
+hosts, with hosts $h_1$, $h_2$, etc. We assume each silo contains an unordered
+collection of key-value pairs (a multi-map). Then, \verb|groupByKey| can be
+implemented as follows:
+
+\begin{itemize}
+\item Each host $h_i$ applies a {\em partitioning function} (example:
+  \texttt{hash(key) mod N}) to the key-value pairs in its silo, yielding $N$
+  (local) silos.
+
+\item Using \verb|flatMap|, each pair of silos containing keys of the same
+  range can be combined and materialized on the right destination host.
+\end{itemize}
+
+Using just the primitives introduced earlier, applying the partitioning
+function in this way would require $N$ \verb|map| invocations per silo. Thus,
+the performance of \verb|groupByKey| could be increased significantly using a
+specialized combinator, say, ``mapPartition'' that would apply a given
+partitioning function to each key-value pair, simultaneously populating $N$
+silos (where $N$ is the number of ``buckets'' of the partitioning function).
+
+\subsection{Peer-to-Peer Patterns}
+\label{sec:decentral}
+
+To illustrate the decentralized nature of our model, consider the following
+example: the local host aggregates some data as soon as two silos
+\verb|vehicles| and \verb|persons| have been materialized. The aggregation
+result is then combined with a silo \verb|info| on local host. The final result
+is written to a distributed file system:
+
+\begin{lstlisting}
+object Utils {
+  def aggregate(vs: SiloRef[List[Vehicle]],
+                ps: SiloRef[List[Person]]): SiloRef[String] = ...
+  def write(result: String, fileName: String): Unit = ...
+}
+val vehicles: SiloRef[List[Vehicle]] = ...
+val persons:  SiloRef[List[Person]]  = ...
+val info:     SiloRef[Info]          = ...
+val fileName: String                 = "hdfs://..."
+val done    = info.flatMap(spore {
+  val localVehicles = vehicles
+  val localPersons  = persons
+  (localInfo: Info) =>
+    aggregate(localVehicles, localPersons).map(spore {
+      val in = localInfo
+      res => combine(res, in)
+    })
+}).map(spore {
+  val captured = fileName
+  combined => Utils.write(combined, captured)
+})
+done.cache() // force computation
+\end{lstlisting}
+\noindent
+This program does not tolerate failures of the local host: if it fails before
+the computation is complete, the result is never written to the file. Using
+fault handlers, though, it is easy to introduce a backup host that takes over
+in case the local host fails at any point:
+
+\begin{lstlisting}
+val doCombine = spore {
+  val localVehicles = vehicles
+  val localPersons  = persons
+  (localInfo: Info) =>
+    aggregate(localVehicles, localPersons).map(spore {
+      val in = localInfo
+      res => combine(res, in)
+    })
+}
+val doWrite = spore {
+  val captured = fileName
+  combined => Utils.write(combined, captured)
+}
+val done      = info.flatMap(doCombine).map(doWrite)
+val backup    = SiloRef.fromFun(hostb)(spore { () => true })
+val recovered = backup.flatMap(
+  spore {
+    val localDone = done
+    x => localDone
+  },
+  spore { // fault handler
+    val localInfo      = info
+    val localDoCombine = doCombine
+    val localDoWrite   = doWrite
+    val localHostb     = hostb
+    x =>
+      val restoredInfo = SiloRef.fromLineage(localHostb)(localInfo)
+      restoredInfo.flatMap(localDoCombine).map(localDoWrite)
+  }
+)
+done.cache()      // force computation on local host
+recovered.cache() // force computation on backup host
+\end{lstlisting}
+\noindent
+First, the local variables \verb|doCombine| and \verb|doWrite| refer to the
+verbatim spores passed to \verb|flatMap| and \verb|map| above. Second,
+\verb|backup| is a dummy silo on a backup host \verb|hostb|. It is used to send
+a spore to the backup host in a way that allows it to detect whether the
+original host has failed. The fault handling is done by calling \verb|flatMap|
+on \verb|backup|, passing (a) a spore for the non-failure case  (b) a spore for
+the failure case. The spore for the non-failure case simply returns the
+\verb|done| SiloRef. The spore for the failure case is applied whenever the
+value of the \verb|done| SiloRef could not be obtained. In this case, the
+lineage of the captured \verb|info| SiloRef is used to restore its original
+contents in a new silo created on the backup host \verb|hostb|. Its SiloRef is
+then used to retry the original computation. In case the original host failed
+only after the materialization of \verb|vehicles| and \verb|persons| completed,
+their cached data is reused.
+
+% // concat
+% def concat(silo1: SiloRef[List[A]],
+%            silo2: SiloRef[List[A]]) =
+%   silo1.flatMap(spore {
+%     val localSilo2 = silo2
+%     list1 =>
+%       localSilo2.map(spore {
+%         val localList1 = list1
+%         list2 => localList1 ++ list2
+%       })
+%   })
+
+% Operations on distributed collections\todo{somehow mention Spark here so it's
+% clear what a dist coll is.}~such as \verb|union|, \verb|groupByKey|, or
+% \verb|join|, involve multiple data sets, possibly located on different nodes.
+% In the following we explain how such operations can be expressed using the
+% introduced primitives.\todo{need a more compelling into for PL people}
+
+

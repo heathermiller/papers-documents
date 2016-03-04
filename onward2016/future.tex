@@ -1,0 +1,58 @@
+We have presented F-P, a new programming model and principled substrate for
+building data-centric distributed systems. Built atop a foundation consisting
+of performant and type-safe serialization, and safe, serializable closures, we
+have shown that it's possible to build elegant fault-tolerant functional
+systems. One insight of our model is that lineage-based fault recovery
+mechanisms, used in widespread frameworks for distribution, can be modeled
+elegantly in a functional way using persistent data structures. Our operational
+semantics shows that this approach makes it even amenable to formal treatment.
+We have also shown that F-P is able to express patterns of computation richer
+than those supported by common ``big data'' frameworks while maintaining
+fault-tolerance--such as decentralized peer-to-peer patterns of communication.
+Finally, we have implemented our approach in and for Scala, as well as numerous
+applications on top, and have discovered new ways to reconcile type-specific
+serializers with patterns of static typing common in distributed systems.
+
+A great deal of future work remains. In the short-term, we aim to continue to
+build different sorts of distributed frameworks and applications atop F-P in an
+effort to work towards a production-ready implementation of our model for
+consumption by the Scala community at large.
+
+In the long-term, we plan to better understand concerns of separate compilation
+in order to evaluate whether our model could be of help in coordinating between
+microservices.\footnote{Microservices are small, independent
+  (separately-compiled) services running on different machines which
+communicate with each other to together make up a single and complex
+application. They are a predominant trend in industry amongst rich and
+complicated web-based services.}
+
+% Adapt this model for streaming computation. This would take coming up with a
+% solution to null out references in the {\em lineage}. This would make it
+% possible to instantiate and populate new silos to handle incoming data.
+
+% The most successful systems for ``big data'' processing have all adopted
+% functional APIs. But the innards of these systems are often built atop
+% imperative and weakly-typed stacks, which complicates the design and
+% implementation of distributed system essentials like fault-tolerance. We
+% present a new programming model we call  {\em function passing} designed to
+% overcome many of these issues by providing a more principled substrate on
+% which to build data-centric distributed systems. A key idea is to pass safe,
+% well-typed serializable functions to immutable distributed data.  The F-P
+% model itself can be thought of as a distributed persistent functional data
+% structure, which stores in its nodes transformations to data rather than the
+% distributed data itself.  Thus, the model simplifies failure recovery by
+% design--data is recovered by replaying function applications atop immutable
+% data loaded from stable storage. Lazy evaluation is also central to our
+% model; by carefully incorporating laziness into our design (only at the point
+% of initiating network communication), our model remains easy to reason about
+% while remaining efficient in time and memory. We formalize our programming
+% model in the form of a small-step operational semantics which includes a
+% precise specification of the semantics of functional fault recovery. We
+% implement our model in and for the Scala programming language, and provide a
+% small evaluation of the efficiency of our implementation of the model.
+
+% \section{Future Work}
+
+% Adapt this model for streaming computation. This would take coming up with a
+% solution to null out references in the {\em lineage}. This would make it
+% possible to instantiate and populate new silos to handle incoming data.

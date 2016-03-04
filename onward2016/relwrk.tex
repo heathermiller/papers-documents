@@ -1,0 +1,98 @@
+Alice ML~\cite{AliceML} is an extension of Standard ML which adds a number of
+important features for distributed programming such as futures and proxies.
+The design leading up to F-P has incorporated many similar ideas, such as
+{type-safe}, generic and platform-independent pickling. In Alice, functions are
+stationary, but it is possible to send proxies, mobile wrappers for functions.
+Sending a proxy will not transfer the wrapped function; instead, when a proxy
+function is applied, the call is forwarded by the system to the original site
+as a remote invocation (pickling arguments and result appropriately). In F-P,
+however, functions are not wrapped in proxies but sent directly. Thus, calling
+a received function will not lead to remote invocations.
+
+Cloud Haskell~\cite{CloudHaskell} leverages guaranteed-serializable, static
+closures for a message-passing communication model inspired by Erlang. In
+contrast, in our model spores are sent between passive, persistent silos. In
+contrast, in our model spores are sent between passive, persistent silos.
+Moreover, the coordination of concurrent activity is based on futures, instead
+of message passing. Closures and continuations in Termite
+Scheme~\cite{TermiteScheme} are always serializable; references to non-
+serializable objects (like open files) are automatically wrapped in processes
+that are serialized as their process ID. Similar to Cloud Haskell, Termite is
+inspired by Erlang. In contrast to Termite, F-P is statically typed, enabling
+advanced type-based optimizations. In non-process-oriented models, parallel
+closures~\cite{ParallelClosures} and RiverTrail~\cite{RiverTrail} address
+important safety issues of closures in a concurrent setting. However,
+RiverTrail currently does not support capturing variables in closures, which is
+critical for the flatMap combinator in F-P. In contrast to parallel closures,
+spores do not require a type system extension in Scala.
+
+Acute ML~\cite{AcuteML} is a dialect of ML which proposes numerous primitives
+for distributed programming, such as type-safe serialization, dynamic linking
+and rebinding, and versioning. F-P, in contrast, is based on spores, which ship
+with their serialized environment or they fail to compile, obviating the need
+for dynamic rebinding. HashCaml~\cite{DistOCaml} is a practical evolution of
+Acute ML's ideas in the form of an extension to the OCaml bytecode compiler,
+which focuses on type-safe serialization and providing globally meaningful type
+names. In contrast, F-P merely a programming model, which does not require
+extensions to the Scala compiler.
+
+% compiler, which focuses on transmitting safe functions to work on remote
+% distributed data.
+
+ML5~\cite{Tom7} provides mobile closures verified not to use resources not
+present on machines where they are applied. This property is enforced
+transitively (for all values reachable from captured values), which is stronger
+than what plain spores provide. However, type constraints allow spores to
+require properties not limited to mobility. Transitive properties are supported
+either using type constraints based on type classes which enforce a transitive
+property or by integrating with type systems that enforce transitive
+properties. Unlike ML5, spores do not require a type system extension. Further,
+the F-P model sits on top of these primitives to provide a full programming
+model for distribution, which also integrates spores and type-safe pickling.
+
+% However, type constraints allow spores to require properties not limited to
+% mobility. Transitive prop- erties are supported either using type constraints
+% based on type classes which enforce a transitive property or by integrating
+% with type systems that enforce transitive properties. Unlike ML5, spores do
+% not require a type system extension.
+
+Systems like Spark~\cite{Spark}, MapReduce~\cite{MapReduce}, and
+Dryad~\cite{Dryad} are just that--distributed systems. F-P is meant to act as
+more of a middleware to facilitate the design and implementation of such
+systems, and as a result provides much finer-grained control over details such
+as fault handling and network topology (\ie peer-to-peer vs master/worker).
+
+The Clojure programming language proposes agents~\cite{Clojure}--stationary
+mutable data containers that users apply functions to in order to update an
+agent's state. F-P, in contrast, proposes that data in stationary containers be
+immutable, and that transformations by function application form a persistent
+data structure. Further, Clojure's agents are designed to manage state in a
+shared memory scenario, whereas F-P is designed with remote references for a
+distributed scenario.
+
+The F-P model is also related to the actor model of concurrency~\cite{Actors},
+which features multiple implementations in
+Scala~\cite{ScalaActors,Akka,TypedActors}. Actors can serve as in-memory data
+containers in a distributed system, like our silos. Unlike silos, actors
+encapsulate behavior in addition to immutable or mutable values. While only
+some actor implementations support mobile actors (none in Scala), mobile
+behavior in the form of serializable closures is central to the F-P model.
+
+% Session
+% Types~\cite{SessionTypes}. AmbientTalk~\cite{AmbientTalk}. E
+% Language~\cite{ELang}.
+
+% Other clean slate language designs have been proposed to broadly address
+% issues related to distributed programming. Thorn~\cite{Thorn} was designed
+% with concurrency and the need to interact with remote services in mind. Though
+% a main design goal of Thorn is to evolve scripts into typed programs via
+% gradual typing. F-P on the other hand is not a language, but a programming
+% model, which is designed to inject types into distributed programs from the
+% get-go.
+
+% F-P integrates a distributed, persistent data structure. Other prior work
+% related to spores is discussed in~\cite{Spores}.
+
+% Type-safe distributed programming in ML5~\cite{Tom7} introduces a notion of a
+% typed context called a ``world'' and permits functions to be executed given a
+% specific world.

@@ -1,0 +1,51 @@
+The most successful systems for ``big data'' processing have all adopted
+functional APIs. But the innards of these systems are often built atop
+imperative and weakly-typed stacks, which complicates the design and
+implementation of distributed system essentials like fault-tolerance. We
+present a new programming model we call  {\em function passing} designed to
+overcome many of these issues by providing a more principled substrate on which
+to build data-centric distributed systems. A key idea is to pass safe,
+well-typed serializable functions to immutable distributed data. The F-P model
+itself can be thought of as a distributed persistent functional data structure,
+which stores in its nodes transformations to data rather than the distributed
+data itself.  Thus, the model simplifies failure recovery by design--data is
+recovered by replaying function applications atop immutable data loaded from
+stable storage. Lazy evaluation is also central to our model; by carefully
+incorporating laziness into our design (only at the point of initiating network
+communication), our model remains easy to reason about while remaining
+efficient in time and memory. We formalize our programming model in the form of
+a small-step operational semantics which includes a precise specification of
+the semantics of functional fault recovery, and we provide an open-source
+implementation of our model in and for the Scala programming language. 
+
+% We implement our model in and for the Scala programming language, and provide
+% a small evaluation of the efficiency of our implementation of the model.
+
+% (F-P), designed to bring a bit of order to this disarray. F-P aims to provide
+% a more
+
+% Evolve beautifully in time and space like a persistent data structure.
+
+% This results in well-typed communication by design, a common pain point for
+% builders of distributed systems in Scala.
+
+% operational semantics, an implementation in and for Scala, and a small
+% evaluation of the efficiency of our implementation of the model.
+
+% Fault-handling built-in to the model. The user is free to choose their own
+% fault-handling strategy or lack thereof.
+
+% Our model brings together immutable, persistent data struc- tures, monadic
+% higher-order functions, strong static typing, and lazy evaluation–pillars of
+% functional programming–to provide a more type-safe, and easy to reason about
+% foundation for data-centric dis- tributed systems.
+
+% Typed, composable serialization. And an inversion of the actor model--send
+% functionality to data.
+
+% A key approach is to pass safe, well-typed functions to immutable distributed
+% data, which in many cases improves latency (keep data distributed) while
+% making it easier by design to recover from failures. We provide an
+% operational semantics, an implementation in and for Scala, and a small
+% evaluation of the efficiency of our implementation of the model.
+
