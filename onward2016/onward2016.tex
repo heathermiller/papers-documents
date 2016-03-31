@@ -235,6 +235,8 @@
 \newcommand{\weakexpand}{\prec}
 \newcommand{\spcomma}{~,~}
 
+\newcommand{\fixme}[1]{{\color{gray}\itshape#1}}
+
 % hide the copyright box
 % \makeatletter
 % \def\@copyrightspace{\relax}
@@ -280,9 +282,9 @@
 
 \begin{abstract}
 The most successful systems for ``big data'' processing have all adopted
-functional APIs. But the innards of these systems are often built atop
+functional APIs. \fixme{But the innards of these systems are often built atop
 imperative and weakly-typed stacks, which complicates the design and
-implementation of distributed system essentials like fault-tolerance. We
+implementation of distributed system essentials like fault-tolerance.} We
 present a new programming model we call  {\em function passing} designed to
 overcome many of these issues by providing a more principled substrate on which
 to build data-centric distributed systems. A key idea is to pass safe,
@@ -291,13 +293,13 @@ itself can be thought of as a distributed persistent functional data structure,
 which stores in its nodes transformations to data rather than the distributed
 data itself.  Thus, the model simplifies failure recovery by design--data is
 recovered by replaying function applications atop immutable data loaded from
-stable storage. Lazy evaluation is also central to our model; by carefully
-incorporating laziness into our design (only at the point of initiating network
+stable storage. Deferred evaluation is also central to our model; by carefully
+incorporating deferred evaluation into our design (only at the point of initiating network
 communication), our model remains easy to reason about while remaining
 efficient in time and memory. We formalize our programming model in the form of
 a small-step operational semantics which includes a precise specification of
 the semantics of functional fault recovery, and we provide an open-source
-implementation of our model in and for the Scala programming language. 
+implementation of our model in and for the Scala programming language.
 
 % We implement our model in and for the Scala programming language, and provide
 % a small evaluation of the efficiency of our implementation of the model.
@@ -376,9 +378,9 @@ features in Scala in order to provide high-level, declarative APIs.
 % -- the declarative, data-centric interface offered by such systems is a boon
 % for mathematically-oriented data analytics.
 
-However, these frameworks are built atop of tall stacks of typically imperative
+\fixme{However, these frameworks are built atop of tall stacks of typically imperative
 and untyped code, losing most of the benefits enjoyed by the users of their
-high-level APIs. Consequently, concerns central to distributed systems such as
+high-level APIs.} Consequently, concerns central to distributed systems such as
 concurrency and fault tolerance become more difficult to reason about and
 realize in practice. Some language features, like closures, are not able to be
 reliably distributed. Yet other problems manifest themselves in all layers of
@@ -388,18 +390,18 @@ include:
 
 \begin{itemize}
 
-\item {\bf Difficulty of Use} These systems' APIs cannot statically prevent
+\item \fixme{{\bf Difficulty of Use}These systems' APIs cannot statically prevent
   {\em common usage errors} resulting from some language features not being
   designed with distribution in mind, often confronting users with
   hard-to-debug runtime errors. A common example is unsafe closure
-  serialization~\cite{Spores}.
+  serialization~\cite{Spores}.}
 
-\item {\bf Complicated Maintenance} Typically, only high-level user-facing
+\item \fixme{{\bf Complicated Maintenance} Typically, only high-level user-facing
   abstractions are statically typed.  The absence of static types in lower
   layers of the system makes maintenance tasks, such as code refactorings, more
-  difficult.
+  difficult.}
 
-\item {\bf Lost Optimization Opportunities} The absence of certain kinds of
+\item \fixme{{\bf Lost Optimization Opportunities} The absence of certain kinds of
   static type information precludes systems-centric optimizations. Importantly,
   type-based static meta-programming enables fast
   serialization~\cite{Pickling}, but this is only possible if also lower layers
@@ -409,35 +411,42 @@ include:
   environments such as the JVM. This overhead is so important in practice that
   popular systems, like Spark~\cite{Spark} and Akka~\cite{Akka}, leverage
   alternative serialization frameworks such as Protocol
-  Buffers~\cite{Protobuf}, Apache Avro~\cite{Avro}, or Kryo~\cite{Kryo}.
+  Buffers~\cite{Protobuf}, Apache Avro~\cite{Avro}, or Kryo~\cite{Kryo}.}
 
 \end{itemize}
 
-We present a new programming model we call {\em function passing} (F-P)
-designed to overcome most of these issues by providing a more principled
-substrate on which to build data-centric distributed systems. It builds upon
-two previous veins of work--an approach for generating type-safe and performant
-pickler combinators~\cite{Pickling}, and spores~\cite{Spores}, closures that
-are guaranteed to be serializable.  Our model attempts to fit the paradigm of
-data-centric programming more naturally by extending monadic programming to the
-network. Our model can be thought of as somewhat of a dual to the actor
-model;\footnote{There are many variations and interpretations of the actor
-  model; in saying our model is somewhat of a dual, we simply mean to highlight
-that programmers need not focus on programming with typically stationary
-message handlers. Instead, our model focuses on a monadic interface for
-programming with data (and sending functions instead).} rather than keeping
-functionality stationary and sending data, in our model, we keep data
-stationary and send functionality to the data. This results in well-typed
-communication by design, a common pain point for builders of distributed
-systems in Scala.
+We present a new programming model we call {\em function passing} designed to
+overcome \fixme{most of these issues by providing a more principled substrate}
+on which to build data-centric distributed systems. The function passing model
+can be thought of as a persistent data structure whose nodes span compute nodes.
+It builds upon two previous veins of work--an approach for statically generating
+type-safe and performant pickler combinators~\cite{Pickling}, and
+spores~\cite{Spores}, closures that are guaranteed to be serializable. The
+function passing model adds the concept of a \textit{silo}--stationary,
+immutable data containers that can be remotely referenced and transformed via
+the application of spores sent over the wire from other nodes--as well as
+communication primitives based on function application.
 
-Our model brings together immutable, persistent data structures, monadic
-higher-order functions, strong static typing, and lazy evaluation--pillars of
-functional programming--to provide a more type-safe, and easy to reason about
-foundation for data-centric distributed systems. Interestingly, we found that
-laziness was an enabler in our model, without complicating the ability to
-reason about programs. Without optimizations based on laziness, we found this
-model would be impractically inefficient in memory and time.
+The function passing model attempts to more naturally the paradigm of
+data-centric programming by extending monadic programming to the network. It can
+be thought of as somewhat of a dual to the actor model;\footnote{There are many
+variations and interpretations of the actor model; in saying our model is
+somewhat of a dual, we simply mean to highlight that programmers need not focus
+on programming with typically stationary message handlers. Instead, our model
+focuses on a monadic interface for programming with data (and sending functions
+instead).} rather than keeping functionality stationary and sending data, in our
+model, we keep data stationary and send functionality to the data. This results
+in well-typed communication by design, a common pain point for builders of
+distributed systems in Scala.
+
+The function passing model brings together immutable, persistent data
+structures, monadic higher-order functions, strong static typing, and deferred
+evaluation--pillars of functional programming--to provide a more type-safe, and
+easy to reason about foundation upon which to build data-centric distributed
+systems. \fixme{Interestingly, we found that deferred evaluation was an enabler
+in our model, without complicating the ability to reason about programs. Without
+optimizations based on deferred evaluation, we found this model would be
+impractically inefficient in memory and time.}
 
 One important contribution of our model is a precise specification of the
 semantics of functional fault recovery. The fault-recovery mechanisms of
@@ -472,12 +481,14 @@ This paper makes the following contributions:
 \begin{itemize} %[noitemsep]
 
 \item {\bf\em A new data-centric programming model for functional processing of
-  distributed data} which makes important concerns like fault tolerance simple
-  by design. The main computational principle is based on the idea of sending
-  safe, guaranteed serializable functions to stationary data. Using standard
-  monadic operations our model enables creating immutable DAGs of computations,
-  supporting decentralized distributed computations. Lazy evaluation enables
-  important optimizations while keeping programs simple to reason about.
+  distributed data} which makes important concerns like fault tolerance simpler by
+  design. \fixme{The main principle is immutable data stored in silos, persistent
+  data structure that evolves} The main computational principle is based on the
+  idea of sending safe, guaranteed serializable functions to stationary data.
+  Using standard monadic operations our model enables creating immutable DAGs of
+  computations, supporting decentralized distributed computations. Deferred
+  evaluation enables important optimizations while keeping programs simple to
+  reason about.
 
 \item {\bf\em A formalization of our programming model} based on a small-step
   operational  semantics. To our knowledge it is the first formal account of
@@ -489,9 +500,9 @@ This paper makes the following contributions:
   distributed layer.
 
 \item {\bf\em A distributed implementation of the programming model} in and for
-  Scala. We present experiments that show some of the benefits of the proposed
+  Scala. \fixme{We present experiments that show some of the benefits of the proposed
   design, and we report on a validation of spores in the context of distributed
-  programming.
+  programming.}
 
 % \item {\bf\em A small experimental evaluation} to show the benefits of some
   % of  the proposed design decisions, and a validation of spores in the
@@ -685,12 +696,12 @@ acyclic graph (DAG) of transformations on distributed data.
 Importantly, since this DAG of computations is a persistent data structure
 itself, it is safe to exchange (copies of) subgraphs of a DAG between remote
 nodes. This enables a robust and easy-to-reason-about model of fault tolerance.
-We call subgraphs of a DAG lineages; lineages enable restoring the data of
-failed nodes through re-applying the transformations represented by their DAG.
-This sequence of applications must begin with data available from stable
+We call subgraphs of a DAG \textit{lineages}; lineages enable restoring the data
+of failed nodes through re-applying the transformations represented by their
+DAG. This sequence of applications must begin with data available from stable
 storage.
 
-Central to our model is the careful use of laziness. Computations on
+Central to our model is the careful use of deferred evaluation. Computations on
 distributed data are typically not executed eagerly; instead, applying a
 function to distributed data just creates an immutable lineage. To obtain the
 result of a computation, it is necessary to first ``kick off'' computation, or
@@ -707,7 +718,7 @@ this have to do with FlumeJava?}
 \vspace{-3mm}
 \begin{center}\noindent\rule{8cm}{0.4pt}\end{center}
 \begin{displayquote}
-For these reasons, we believe that laziness should be viewed as an enabler in
+For these reasons, we believe that deferred evaluation should be viewed as an enabler in
 the design of distributed systems.
 \end{displayquote}
 \vspace{-4mm}
@@ -770,7 +781,7 @@ to ensure that types being captured have certain properties.
 
 \vspace{-1mm}
 \begin{figure}[h!]
-\centering\includegraphics[width=0.75\columnwidth]{pic/spore-shape.pdf}
+\centering\includegraphics[width=0.75\columnwidth]{spore-shape.pdf}
 \end{figure}
 \vspace{-1mm}
 
@@ -800,17 +811,18 @@ For a deeper understanding of spores, see
 the corresponding publication~\cite{Spores}.
 
 \begin{figure}[t!]
-\centering\includegraphics[width=0.8\columnwidth]{pic/basic-diagram.pdf}
+\centering\includegraphics[width=0.8\columnwidth]{basic-diagram.pdf}
 \caption{Basic F-P model.}\label{fig:basic-diagram}
 \end{figure}
 
 \subsection{Basic Usage}
 
 We begin with a simple visual example to provide a feeling for the basics of
-the F-P model.\footnote{We also feel that, to visually illustrate a system
-  evolving in both space and time, nothing beats a video animation. So, we've
-  produced a short animation to provide visual intuition of the F-P model:
-\url{https://vimeo.com/120415626}}
+the F-P model.
+% \footnote{We also feel that, to visually illustrate a system
+%   evolving in both space and time, nothing beats a video animation. So, we've
+%   produced a short animation to provide visual intuition of the F-P model:
+% \url{https://vimeo.com/120415626}}
 
 The only way to interact with distributed data stored in silos is through the
 use of SiloRefs. A SiloRef can be thought of as an immutable handle to the
@@ -842,7 +854,7 @@ the primitive operations available on SiloRefs and their semantics. We describe
 these in the following section.
 
 \begin{figure}[t!]
-\centering\includegraphics[width=\columnwidth]{pic/bigger-dag.pdf}
+\centering\includegraphics[width=\columnwidth]{bigger-dag.pdf}
 \caption{A simple DAG in the F-P model.}\label{fig:bigger-dag}
 \end{figure}
 
@@ -864,7 +876,7 @@ these primitives in the context of a running example. These primitives include:
 
 \paragraph{map}%
 %
-\texttt{def map[S](s: Spore[T, S]): SiloRef[S]} \newline 
+\texttt{def map[S](s: Spore[T, S]): SiloRef[S]} \newline
 %
 The \verb|map| method takes a spore that is to be applied to the data in the
 silo associated with the given SiloRef. Rather than immediately sending the
@@ -967,7 +979,7 @@ is then asynchronously completed with the data of the given silo. Since calling
 example, in the implementation of an aggregate operation such as \verb|reduce|
 on a distributed collection).
 
-\paragraph{cache}% 
+\paragraph{cache}%
 %
 \texttt{def cache(): Future[Unit]} \newline
 %
@@ -1555,7 +1567,7 @@ $S(\iota) = \text{None}$ if $S$ does not have a mapping for $\iota$. Reduction
 is defined using reduction contexts~\cite{TAPL}. We omit the definition of
 reduction contexts, since they are completely standard.
 
-\paragraph{Configurations.} 
+\paragraph{Configurations.}
 
 The reduction rules of the deterministic layer define transitions of \emph{host
 configurations} $(t, E, S)^h$ of host $h$ where $t$ is a term, $E$ is a message
@@ -1564,7 +1576,7 @@ layer define transitions of sets $H$ of host configurations. The reduced host
 configurations are chosen non-deterministically in order to express concurrency
 between hosts.
 
-\paragraph{Fault handling.} 
+\paragraph{Fault handling.}
 
 In the interest of clarity we present the reduction rules in two steps. In the
 first step we explain simplified rules without fault handling semantics
@@ -1912,7 +1924,7 @@ as efficient as pickling, thanks to using type-specific unpicklers.
 \subsection{Type-based optimization of serialization}
 
 \begin{figure}[t!]
-\centering\includegraphics[width=\columnwidth]{pic/multiple-jvm.pdf}
+\centering\includegraphics[width=\columnwidth]{multipleJVM.pdf}
 \caption{Impact of Static Types on Performance, End-to-End Application (\texttt{groupBy} + \texttt{join}).}
 \label{fig:multiple-jvm}
 \end{figure}
