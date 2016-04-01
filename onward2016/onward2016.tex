@@ -276,7 +276,7 @@
            {phaller@kth.se}
 \authorinfo{Normen M{\"u}ller}
            {Trivadis}
-           {normen.mueller@gmail.com}
+           {normen.mueller@trivadis.com}
 \authorinfo{Jocelyn Boullier}
            {EPFL}
            {jocelyn.boullier@epfl.ch}
@@ -287,25 +287,43 @@
 \maketitle
 
 \begin{abstract}
-The most successful systems for ``big data'' processing have all adopted
-functional APIs. \fixme{But the innards of these systems are often built atop
-imperative and weakly-typed stacks, which complicates the design and
-implementation of distributed system essentials like fault-tolerance.} We
-present a new programming model we call  {\em function passing} designed to
-overcome many of these issues by providing a more principled substrate on which
-to build data-centric distributed systems. A key idea is to pass safe,
-well-typed serializable functions to immutable distributed data. The function passing model
-itself can be thought of as a distributed persistent functional data structure,
-which stores in its nodes transformations to data rather than the distributed
-data itself.  Thus, the model simplifies failure recovery by design--data is
-recovered by replaying function applications atop immutable data loaded from
-stable storage. Deferred evaluation is also central to our model; by carefully
-incorporating deferred evaluation into our design (only at the point of initiating network
-communication), our model remains easy to reason about while remaining
-efficient in time and memory. We formalize our programming model in the form of
-a small-step operational semantics which includes a precise specification of
-the semantics of functional fault recovery, and we provide an open-source
-implementation of our model in and for the Scala programming language.
+  The most successful systems for ``big data'' processing have all adopted
+  functional APIs. We present a new programming model we call \textit{function
+  passing} designed to provide a more principled substrate on which to build
+  data-centric distributed systems. A key idea is to build up a persistent
+  functional data structure representing transformations on distributed
+  immutable data by passing well-typed serializable functions over the wire and
+  applying them to this distributed data. The model simplifies failure recovery
+  by design--data is recovered by replaying function applications atop immutable
+  data loaded from stable storage. Deferred evaluation is also central to our
+  model; by incorporating deferred evaluation into our design only at the point
+  of initiating network communication, the function passing model remains easy
+  to reason about while remaining efficient in time and memory. We formalize our
+  programming model in the form of a small-step operational semantics which
+  includes a precise specification of the semantics of functional fault
+  recovery, and we provide an open-source implementation of our model in and for
+  the Scala programming language, along with a case study of several example
+  frameworks and end-user programs written atop of this model.
+
+% The most successful systems for ``big data'' processing have all adopted
+% functional APIs. \fixme{But the innards of these systems are often built atop
+% imperative and weakly-typed stacks, which complicates the design and
+% implementation of distributed system essentials like fault-tolerance.} We
+% present a new programming model we call  {\em function passing} designed to
+% overcome many of these issues by providing a more principled substrate on which
+% to build data-centric distributed systems. A key idea is to pass safe,
+% well-typed serializable functions to immutable distributed data. The function passing model
+% itself can be thought of as a distributed persistent functional data structure,
+% which stores in its nodes transformations to data rather than the distributed
+% data itself.  Thus, the model simplifies failure recovery by design--data is
+% recovered by replaying function applications atop immutable data loaded from
+% stable storage. Deferred evaluation is also central to our model; by carefully
+% incorporating deferred evaluation into our design (only at the point of initiating network
+% communication), our model remains easy to reason about while remaining
+% efficient in time and memory. We formalize our programming model in the form of
+% a small-step operational semantics which includes a precise specification of
+% the semantics of functional fault recovery, and we provide an open-source
+% implementation of our model in and for the Scala programming language.
 
 % We implement our model in and for the Scala programming language, and provide
 % a small evaluation of the efficiency of our implementation of the model.
@@ -2052,7 +2070,7 @@ def kMeansIterate(
     .map({ case (p1, p2) => dist(p1, p2) })
     .max
 
-  \\ check if converged, else iterate again
+  // check if converged, else iterate again
   if (diff < epsilon) {
     newCentroids
   } else {
