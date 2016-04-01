@@ -541,15 +541,17 @@ This paper makes the following contributions:
 % The rest of our paper is structured as follows.
 
 Our approach is to describe our model from a high-level, elaborating upon key
-benefits and trade-offs, and then to zoom in and make each component part of
-our model more precise. We describe the basic model this way in
+benefits and trade-offs, and then to zoom in and make each component part of our
+model more precise. We describe the basic model this way in
 Section~\ref{sec:basic-model}. We go on to show in
 Section~\ref{sec:higher-order-operations} how essential higher-order operations
 on distributed frameworks like Spark can be implemented in terms of the
 primitives presented in Section~\ref{sec:basic-model}. We present a
 formalization of our programming model in Section~\ref{sec:formalization}, and
 an overview of its prototypical implementation in
-Section~\ref{sec:implementation}.
+Section~\ref{sec:implementation}. In Section~\ref{sec:examples}, we show
+examples of different sorts of distributed frameworks built atop of the function
+passing model. 
 % We show a small experimental evaluation of the efficiency of our model in
 % Section~\ref{sec:evaluation},
 Finally, we discuss related work in Section~\ref{sec:related-work}, and
@@ -778,15 +780,20 @@ Similar to a proxy object, a SiloRef represents, and allows interacting with,
 both local and remote silos. SiloRefs are immutable, storing identifiers to
 locate possibly remote silos. SiloRefs are also typed (\verb|SiloRef[T]|)
 corresponding to the type of their silo's data, leading to well-typed network
-communication. The SiloRef provides three primitive operations/combinators
-(some are lazy, some are not): map, flatMap, and send. map lazily applies a
-user-defined function to data pointed to by the SiloRef, creating in a new silo
-containing the result of this application. Like map, flatMap lazily applies a
-user-defined function to data pointed to by the SiloRef. Unlike map, the
-user-defined function passed to flatMap returns a SiloRef whose contents is
-transferred to the new silo returned by flatMap. Essentially, flatMap enables
-accessing the contents of (local or remote) silos from within remote
-computations. We illustrate these primitives in more detail in
+communication. The SiloRef provides three primitive operations/combinators (some
+are lazy, some are not): \verb|map|, \verb|flatMap|, and \verb|send|. The
+\verb|map| method makes use of deferred evaluation; it applies a user-defined
+function to data pointed to by the SiloRef, creating in a new silo containing
+the result of this application, though this application is \textit{deferred}.
+That is, this computation is only kicked off when the \verb|send| method is
+invoked. This makes it possible to queue up or stage transformations in order to
+optimize network communication. Like \verb|map|, the application of
+\verb|flatMap| is deferred. \verb|flatMap| applies a user-defined function to
+data pointed to by the SiloRef. Unlike \verb|map|, however, the user-defined
+function passed to \verb|flatMap| returns a SiloRef whose contents are
+transferred to the new silo returned by \verb|flatMap|. Essentially,
+\verb|flatMap| enables accessing the contents of (local or remote) silos from
+within remote computations. We illustrate these primitives in more detail in
 Section~\ref{sec:primitives}.
 
 \paragraph{Spores}
@@ -855,14 +862,14 @@ the function passing model.
 %   produced a short animation to provide visual intuition of the function passing model:
 % \url{https://vimeo.com/120415626}}
 
-The only way to interact with distributed data stored in silos is through the
-use of SiloRefs. A SiloRef can be thought of as an immutable handle to the
-remote data contained within a corresponding silo. Users interact with this
-distributed data by applying functions to SiloRefs, which are transmitted over
-the wire and later applied to the data within the corresponding silo. As is the
-case for persistent data structures, when a function is applied to a piece of
-distributed data via a SiloRef, a SiloRef representing a new silo containing
-the transformed data is returned.
+The main handle users have to the framework is via SiloRefs. A SiloRef can be
+thought of as an immutable handle to distributed data contained within a
+corresponding silo. Users interact with this distributed data by applying
+functions (as spores) to SiloRefs, which are transmitted over the wire and later
+applied to the data within the corresponding silo. As is the case for persistent
+data structures, when a function is applied to a piece of distributed data via a
+SiloRef, a SiloRef representing a new silo containing the transformed data is
+returned.
 
 The simplest illustration of the model is shown in
 Figure~\ref{fig:basic-diagram} (time flows vertically from top to bottom).
@@ -912,13 +919,13 @@ these primitives in the context of a running example. These primitives include:
 The \verb|map| method takes a spore that is to be applied to the data in the
 silo associated with the given SiloRef. Rather than immediately sending the
 spore across the network, and waiting for the operation to finish, the
-\verb|map| method is \emph{lazy}. Without involving any network communication,
-it immediately returns a SiloRef referring to a new, lazily-created silo. This
-new SiloRef only contains lineage information, namely, a reference to the
-original SiloRef, a reference to the argument spore, and the information that
-it is the result of a \verb|map| invocation. As we explain below, another
-method, \verb|send| or \verb|cache|, must be called explicitly to force the
-materialization of the result silo.
+\verb|map| method's evaluation is \emph{deferred}. Without involving any network
+communication, it immediately returns a SiloRef referring to a new,
+soon-to-be-created silo. This new SiloRef only contains lineage information,
+namely, a reference to the original SiloRef, a reference to the argument spore,
+and the information that it is the result of a \verb|map| invocation. As we
+explain below, another method, \verb|send| or \verb|cache|, must be called
+explicitly to force the materialization of the result silo.
 
 To better understand how DAGs are created and how remote silos are
 materialized, we will develop a running example throughout this section. Given
@@ -995,7 +1002,7 @@ DAGs (\eg operation fusion~\cite{FlumeJava}).
 \texttt{def send(): Future[T]} \newline
 %
 As mentioned earlier, the execution of computations built using SiloRefs is
-deferred. The \verb|send| operation {\em forces} the lazy computation defined
+deferred. The \verb|send| operation {\em forces} the deferred computation defined
 by the given SiloRef.  Forcing is explicit in our model, because it requires
 sending the lineage to the remote node on which the result silo should be
 created. Given that network communication has a latency several orders of
@@ -2032,7 +2039,7 @@ available on GitHub~\footnote{Omitted for review due to double blind criterion.}
 
 In the context of MBrace, we also implemented the K-Means Clustering example
 available on the MBrace's
-website\footnote{http://mbrace.io/starterkit/HandsOnTutorial/examples/200-kmeans-clustering-example.html},
+website\footnote{\url{http://mbrace.io/starterkit/HandsOnTutorial/examples/200-kmeans-clustering-example.html}},
 an excerpt of which is shown below. Our implementation of a distributed K-Means
 using the function passing model is an almost identical port of the MBrace’s
 version written in F\#. K-Means is an algorithm to categorize data points across
