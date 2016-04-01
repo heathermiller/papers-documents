@@ -384,93 +384,124 @@ natural way for end-users and data scientists to reason about data.
 
 While leveraging functional programming {\em concepts}, popular implementations
 of the MapReduce~\cite{MapReduce} model, such as Hadoop MapReduce~\cite{Hadoop}
-for Java, have been developed without making use of functional language
-features such as closures. In contrast, a new generation of programming systems
-for large-scale data processing, such as Apache Spark~\cite{Spark}, Twitter's
-Scalding~\cite{Scalding}, and Scoobi~\cite{Scoobi} build on functional language
-features in Scala in order to provide high-level, declarative APIs.
+for Java, have been developed without making use of functional language features
+such as closures. For nearly a decade, the open source interpretation of this
+model, Hadoop, swelled in size, remaining largely unchallenged--causing nearly
+all of industry to synchronize on this one implementation for most all
+large-scale data processing needs.
 
-% Spark~\cite{Spark}, MapReduce~\cite{MapReduce}, and Dryad~\cite{Dryad} are
-% just a few.
+However, in recent years, a new generation of distributed systems for
+large-scale data processing have suddenly cropped up, built on top of emerging
+functional languages like Scala; such systems include Apache Spark~\cite{Spark},
+Twitter's Scalding~\cite{Scalding}, and Scoobi~\cite{Scoobi}. These systems make
+use of functional language features in Scala in order to provide high-level,
+declarative APIs to end-users. Further, the benefits provided by functional
+programming have also won over framework designers as well--some have noticed
+that immutability, and data transformation via higher-order functions makes it
+much easier, by design, to tackle concerns central to distributed systems such
+as concurrency. We believe it's possible to take these benefits further to other
+pain points for distributed system builders
 
-% The benefits provided by functional programming have also won over framework
-% designers as well--some have noticed that immutability, and data
-% transformation via higher-order functions makes it much easier, by design, to
-% tackle concerns central to distributed systems such as concurrency and fault
-% tolerance.
 
-% -- the declarative, data-centric interface offered by such systems is a boon
-% for mathematically-oriented data analytics.
 
-\fixme{However, these frameworks are built atop of tall stacks of typically imperative
-and untyped code, losing most of the benefits enjoyed by the users of their
-high-level APIs.} Consequently, concerns central to distributed systems such as
-concurrency and fault tolerance become more difficult to reason about and
-realize in practice. Some language features, like closures, are not able to be
-reliably distributed. Yet other problems manifest themselves in all layers of
-the stack, surprising users and impacting ease-of-use, complicating
-maintenance, and losing opportunities for optimization. Some such problems
-include:
+% \begin{itemize}
+%
+% \item \fixme{{\bf Difficulty of Use}These systems' APIs cannot statically prevent
+%   {\em common usage errors} resulting from some language features not being
+%   designed with distribution in mind, often confronting users with
+%   hard-to-debug runtime errors. A common example is unsafe closure
+%   serialization~\cite{Spores}.}
+%
+% \item \fixme{{\bf Complicated Maintenance} Typically, only high-level user-facing
+%   abstractions are statically typed.  The absence of static types in lower
+%   layers of the system makes maintenance tasks, such as code refactorings, more
+%   difficult.}
+%
+% \item \fixme{{\bf Lost Optimization Opportunities} The absence of certain kinds of
+%   static type information precludes systems-centric optimizations. Importantly,
+%   type-based static meta-programming enables fast
+%   serialization~\cite{Pickling}, but this is only possible if also lower layers
+%   (namely those dealing with object serialization) are statically typed.
+%   Several studies~\cite{JavaSerialization, JavaRMI, MoreEfficientJavaRMI,
+%   Jaguar} report on the high overhead of serialization in widely-used runtime
+%   environments such as the JVM. This overhead is so important in practice that
+%   popular systems, like Spark~\cite{Spark} and Akka~\cite{Akka}, leverage
+%   alternative serialization frameworks such as Protocol
+%   Buffers~\cite{Protobuf}, Apache Avro~\cite{Avro}, or Kryo~\cite{Kryo}.}
+%
+% \end{itemize}
 
-\begin{itemize}
+% While a refreshing trend, building these systems still notoriously hard--a tas.
+% Glued together in , types lost at interfaces. Why not apply a more monadic
+% interface to the network? But why not start with a model that more closely
+% resembles the sorts of
 
-\item \fixme{{\bf Difficulty of Use}These systems' APIs cannot statically prevent
-  {\em common usage errors} resulting from some language features not being
-  designed with distribution in mind, often confronting users with
-  hard-to-debug runtime errors. A common example is unsafe closure
-  serialization~\cite{Spores}.}
+This sudden proliferation of new frameworks for distributed data-centric
+programming concurrent with the sudden growth in popularity of an emerging
+programming language begs the question--has it been our programming languages
+that have limited us? Could it be that the primitives we build our systems upon
+are too low-level, causing us to struggle to reinvent the same tricky wheel over
+and over again? As these large-scale data processing applications continue to
+grow in importance, what can we as language designers do to make it easier for
+more of these frameworks to rise?
 
-\item \fixme{{\bf Complicated Maintenance} Typically, only high-level user-facing
-  abstractions are statically typed.  The absence of static types in lower
-  layers of the system makes maintenance tasks, such as code refactorings, more
-  difficult.}
+This paper presents a new programming model called the {\em function passing}
+model which has been designed to be a more principled substrate (or middleware)
+upon which to build data-centric distributed systems. It can be viewed as a
+generalization of the MapReduce/Spark programming model--though it is not
+limited to the MapReduce/Spark programming model alone as we will later show.
+% For example, the function passing
+% model attempts to more naturally model the paradigm of data-centric programming by
+% extending monadic programming to the network. In addition, it simplifies the task of
 
-\item \fixme{{\bf Lost Optimization Opportunities} The absence of certain kinds of
-  static type information precludes systems-centric optimizations. Importantly,
-  type-based static meta-programming enables fast
-  serialization~\cite{Pickling}, but this is only possible if also lower layers
-  (namely those dealing with object serialization) are statically typed.
-  Several studies~\cite{JavaSerialization, JavaRMI, MoreEfficientJavaRMI,
-  Jaguar} report on the high overhead of serialization in widely-used runtime
-  environments such as the JVM. This overhead is so important in practice that
-  popular systems, like Spark~\cite{Spark} and Akka~\cite{Akka}, leverage
-  alternative serialization frameworks such as Protocol
-  Buffers~\cite{Protobuf}, Apache Avro~\cite{Avro}, or Kryo~\cite{Kryo}.}
-
-\end{itemize}
-
-We present a new programming model we call {\em function passing} designed to
-overcome \fixme{most of these issues by providing a more principled substrate}
-on which to build data-centric distributed systems. The function passing model
-can be thought of as a persistent data structure whose nodes span compute nodes.
-It builds upon two previous veins of work--an approach for statically generating
-type-safe and performant pickler combinators~\cite{Pickling}, and
-spores~\cite{Spores}, closures that are guaranteed to be serializable. The
-function passing model adds the concept of a \textit{silo}--stationary,
-immutable data containers that can be remotely referenced and transformed via
-the application of spores sent over the wire from other nodes--as well as
-communication primitives based on function application.
-
-The function passing model attempts to more naturally the paradigm of
-data-centric programming by extending monadic programming to the network. It can
-be thought of as somewhat of a dual to the actor model;\footnote{There are many
+The key idea behind the function passing model is to keep distributed
+(immutable) data stationary, and to instead send functionality as function
+closures over the network. This enables two important benefits for distributed
+system builders; (a) since all computations are functional transformations on
+immutable data, fault-tolerance is made simple by design, and (b) communication
+is made well-typed by design, a common pain point for builders of distributed
+systems in Scala. Said another way, the function passing model attempts to more
+naturally model the paradigm of data-centric programming by extending monadic
+programming to the network.
+On this note, one might observe that the function passing model can actually be
+interpreted as somewhat of a dual to the actor model;\footnote{There are many
 variations and interpretations of the actor model; in saying our model is
 somewhat of a dual, we simply mean to highlight that programmers need not focus
 on programming with typically stationary message handlers. Instead, our model
 focuses on a monadic interface for programming with data (and sending functions
 instead).} rather than keeping functionality stationary and sending data, in our
-model, we keep data stationary and send functionality to the data. This results
-in well-typed communication by design, a common pain point for builders of
-distributed systems in Scala.
+model, we keep data stationary and send functionality to the data.
+
+% More concretely, the function passing model can be thought of as a persistent
+% data structure whose nodes span compute nodes. These nodes of this data
+% structure are called \textit{silos}--stationary, immutable data containers that
+% can be remotely referenced and transformed via the application of functions sent
+% over the wire from other nodes. The achieve this idea of {\em functionality
+% being sent to stationary immutable data}, the model is built using Scala
+% spores~\cite{Spores}, closures that are guaranteed to be serializable.
+
+
+% The function passing model
+% can be thought of as a persistent data structure whose nodes span compute nodes.
+% It builds upon two previous veins of work--an approach for statically generating
+% type-safe and performant pickler combinators~\cite{Pickling}, and
+% spores~\cite{Spores}, closures that are guaranteed to be serializable. The
+% function passing model adds the concept of a \textit{silo}--stationary,
+% immutable data containers that can be remotely referenced and transformed via
+% the application of spores sent over the wire from other nodes--as well as
+% communication primitives based on function application.
+
+% The function passing model attempts to more naturally the paradigm of
+% data-centric programming by extending monadic programming to the network.
 
 The function passing model brings together immutable, persistent data
 structures, monadic higher-order functions, strong static typing, and deferred
 evaluation--pillars of functional programming--to provide a more type-safe, and
 easy to reason about foundation upon which to build data-centric distributed
-systems. \fixme{Interestingly, we found that deferred evaluation was an enabler
-in our model, without complicating the ability to reason about programs. Without
-optimizations based on deferred evaluation, we found this model would be
-impractically inefficient in memory and time.}
+systems. Interestingly, we found that deferred evaluation was an enabler in our
+model, without complicating the ability to reason about programs as we will soon
+show. Without optimizations based on deferred evaluation, we found this model
+would be impractically inefficient in memory and time.
 
 One important contribution of our model is a precise specification of the
 semantics of functional fault recovery. The fault-recovery mechanisms of
@@ -485,12 +516,12 @@ static typing. This paper presents a principled approach to lineage-based fault
 recovery in a purely functional setting--to our knowledge a novelty in the PL
 literature.
 
-Our programming model is also designed to enable adoption in real-world
-languages and systems. On the one hand, our model can be thought of as a
-generalization of the MapReduce/Spark computation model, which has been shown
-to be widely portable. On the other hand, the core primitives of the
-programming model can be implemented in any language that enables closures to
-be serialized.
+% Our programming model is also designed to enable adoption in real-world
+% languages and systems. On the one hand, our model can be thought of as a
+% generalization of the MapReduce/Spark computation model, which has been shown
+% to be widely portable. On the other hand, the core primitives of the
+% programming model can be implemented in any language that enables closures to
+% be serialized.
 
 % To ensure safe and efficient distribution of closures, our model leverages
 % both syntactic and type- based restrictions. For instance, closures sent to
@@ -506,13 +537,12 @@ This paper makes the following contributions:
 
 \item {\bf\em A new data-centric programming model for functional processing of
   distributed data} which makes important concerns like fault tolerance simpler by
-  design. \fixme{The main principle is immutable data stored in silos, persistent
-  data structure that evolves} The main computational principle is based on the
+  design. The main computational principle is based on the
   idea of sending safe, guaranteed serializable functions to stationary data.
-  Using standard monadic operations our model enables creating immutable DAGs of
-  computations, supporting decentralized distributed computations. Deferred
-  evaluation enables important optimizations while keeping programs simple to
-  reason about.
+  Using standard monadic operations, our model enables creating immutable
+  directed acyclic graphs of computations, supporting decentralized distributed
+  computations. Deferred evaluation enables important optimizations while keeping
+  programs simple to reason about.
 
 \item {\bf\em A formalization of our programming model} based on a small-step
   operational  semantics. To our knowledge it is the first formal account of
@@ -524,9 +554,13 @@ This paper makes the following contributions:
   distributed layer.
 
 \item {\bf\em A distributed implementation of the programming model} in and for
-  Scala. \fixme{We present experiments that show some of the benefits of the proposed
-  design, and we report on a validation of spores in the context of distributed
-  programming.}
+  Scala as a middleware. In addition, we present prototype versions we have built
+  of popular frameworks like Spark and MBrace using the function passing model, and
+  end-user applications we have built using each of these prototype frameworks.
+
+  % \fixme{We present experiments that show some of the benefits of the proposed
+  % design, and we report on a validation of spores in the context of distributed
+  % programming.}
 
 % \item {\bf\em A small experimental evaluation} to show the benefits of some
   % of  the proposed design decisions, and a validation of spores in the
@@ -551,7 +585,7 @@ formalization of our programming model in Section~\ref{sec:formalization}, and
 an overview of its prototypical implementation in
 Section~\ref{sec:implementation}. In Section~\ref{sec:examples}, we show
 examples of different sorts of distributed frameworks built atop of the function
-passing model. 
+passing model.
 % We show a small experimental evaluation of the efficiency of our model in
 % Section~\ref{sec:evaluation},
 Finally, we discuss related work in Section~\ref{sec:related-work}, and
@@ -1858,8 +1892,8 @@ main Scala extensions:
 
 \begin{itemize}
 
-\item First, Pickling,\footnote{\url{https://github.com/scala/pickling}} a
-  type-safe and performant serialization library with an accompanying, optional
+\item First, Pickling~\cite{Pickling},\footnote{\url{https://github.com/scala/pickling}}
+  a type-safe and performant serialization library with an accompanying, optional
   macro extension that is focused on distributed programming. It is used for
   all serialization tasks. Our function passing implementation benefits from the maturity of
   Pickling, which supports pickling/unpickling a wide range of Scala type
