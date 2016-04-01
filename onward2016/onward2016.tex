@@ -694,12 +694,15 @@ conclude in Section~\ref{sec:conclusion-future-work}.
 \section{Overview of Model}
 \label{sec:basic-model}
 
-\paragraph{Essence} In the broadest sense, the function passing model can be
-thought of in terms of a persistent functional data structure with structural
-sharing. However, rather than containing pure data, instead the data structure
-represents a directed acyclic graph (DAG) of functional transformations on
-distributed data. The root node .; the nodes in the DAG are merely which are
-able to , and edges transformations.
+\subsection{Essence}
+
+In the broadest sense, the function passing model can be thought of as a sort of
+persistent functional data structure with structural sharing. However, rather
+than containing pure data, instead the data structure represents a directed
+acyclic graph (DAG) of functional transformations on distributed data. The root
+node of is immutable data read from stable storage (\eg Amazon S3); edges
+represent functional transformations on immutable data represented as nodes of
+the DAG.
 
 Importantly, since this DAG of computations is a persistent data structure
 itself, it is safe to exchange (copies of) subgraphs of a DAG between remote
@@ -709,32 +712,35 @@ of failed nodes through re-applying the transformations represented by their
 DAG. This sequence of applications must begin with data available from stable
 storage.
 
-Central to our model is the careful use of deferred evaluation. Computations on
-distributed data are typically not executed eagerly; instead, applying a
-function to distributed data just creates an immutable lineage. To obtain the
-result of a computation, it is necessary to first ``kick off'' computation, or
-to force its lineage. Within our programming model, this force
-operation\todo{which force operation?} makes network communication (and thus
-possibilities for latency) explicit, which is considered to be a strength when
-designing distributed systems~\cite{ANoteDistComp}. Deferred evaluation also
-enables optimizing distributed computations through operation fusion, which
-avoids the creation of unnecessary intermediate data structures--this is
-efficient in time as well as space. This kind of optimization is particularly
-important and effective in distributed systems~\cite{FlumeJava}.
+Central to the function passing model is the careful use of deferred evaluation.
+Computations on distributed data are typically not executed eagerly; instead,
+applying a function to distributed data just creates an immutable lineage. To
+make a network call and thus obtain the result of a computation, it is necessary
+to first ``kick off'' computation, or to force its lineage. Within our
+programming model, this force operation (called \verb|send()|) makes network
+communication (and thus possibilities for latency) explicit, which is considered
+to be a strength when designing distributed systems~\cite{ANoteDistComp}.
+Deferred evaluation also enables optimizing distributed computations through
+operation fusion, which avoids the creation of unnecessary intermediate data
+structures--this is efficient in time as well as space. This kind of
+optimization is particularly important and effective in distributed
+systems~\cite{FlumeJava}.
 
-\vspace{-3mm}
-\begin{center}\noindent\rule{8cm}{0.4pt}\end{center}
-\begin{displayquote}
-For these reasons, we believe that deferred evaluation should be viewed as an enabler in
-the design of distributed systems.
-\end{displayquote}
-\vspace{-4mm}
-\begin{center}\noindent\rule{8cm}{0.4pt}\end{center}
-\vspace{1mm}
+% \vspace{-3mm}
+% \begin{center}\noindent\rule{8cm}{0.4pt}\end{center}
+% \begin{displayquote}
+% For these reasons, we believe that deferred evaluation should be viewed as an enabler in
+% the design of distributed systems.
+% \end{displayquote}
+% \vspace{-4mm}
+% \begin{center}\noindent\rule{8cm}{0.4pt}\end{center}
+% \vspace{1mm}
 
-\paragraph{} The function passing model consists of three main components:
+\subsection{The Model}
+
+The function passing model consists of three main components:
 \begin{itemize}[noitemsep]
-  \item {\bf Silos:} stationary typed data containers.
+  \item {\bf Silos:} stationary, typed, immutable data containers.
   \item {\bf SiloRefs:} references to local or remote Silos.
   \item {\bf Spores:} safe, serializable functions.
 \end{itemize}
@@ -742,10 +748,10 @@ the design of distributed systems.
 
 \paragraph{Silos}
 
-A silo is a typed data container. It is stationary in the sense that it does
-not move between machines -- it remains on the machine where it was created.
-Data stored in a silo is typically loaded from stable storage, such as a
-distributed file system. A program operating on data stored in a silo can only
+A silo is a typed and immutable data container. It is stationary in the sense
+that it does not move between machines -- it remains on the machine where it was
+created. Data stored in a silo is typically loaded from stable storage, such as
+a distributed file system. A program operating on data stored in a silo can only
 do so using a reference to the silo, a \verb|SiloRef|.
 
 \paragraph{SiloRefs}
@@ -786,11 +792,11 @@ to ensure that types being captured have certain properties.
 
 \noindent This shape is illustrated below.
 
-\vspace{-1mm}
+% \vspace{-1mm}
 \begin{figure}[h!]
 \centering\includegraphics[width=0.75\columnwidth]{spore-shape.pdf}
 \end{figure}
-\vspace{-1mm}
+% \vspace{-1mm}
 
 The characteristic property of a spore is that the spore body is only allowed
 to access its parameter, the values in the spore header, as well as top-level
@@ -1016,7 +1022,7 @@ labels.cache()
 \noindent
 Assuming we would also cache the \verb|owners| SiloRef from the previous
 example, the resulting lineage graph would look as illustrated in
-Figure~\ref{fig:all-silorefs}\todo{Figure missing?}. Note that \verb|vehicles|
+Figure~\ref{fig:bigger-dag}. Note that \verb|vehicles|
 is not a regular parent in the lineage of \verb|owners|; it is an indirect
 input used to compute \verb|owners| by virtue of being {\em captured} by the
 spore used to compute \verb|owners|.
@@ -1126,7 +1132,7 @@ materialized in memory.
 \subsection{Fault Handling}
 \label{sec:fault-handling}
 
-function passing includes overloaded variants of the primitives discussed so far which
+The function passing model includes overloaded variants of the primitives discussed so far which
 enable the definition of flexible fault handling semantics. The main idea is to
 specify fault handlers for \emph{subgraphs of computation DAGs}. Our guiding
 principle is to make the definition of the failure-free path through a
@@ -1820,9 +1826,9 @@ except that fault handlers $p_f$ are applied as opposed to regular spores $p$.
 
 The presented programming model has been fully implemented in Scala, a
 functional programming language that runs on both JVMs and JavaScript runtimes.
-function passing is compiled and run using Scala 2.11.5, and considers only the JVM backend
+The function passing model is compiled and run using Scala 2.11.8, and considers only the JVM backend
 for now. Our implementation, which has been published as an open-source
-project,\footnote{\url{https://github.com/heathermiller/f-p}} builds on two
+project,\footnote{URL withheld for blind review.} builds on two
 main Scala extensions:
 
 \begin{itemize}
@@ -1846,17 +1852,20 @@ main Scala extensions:
 \end{itemize}
 
 So far, we have used our implementation to build a small Spark-like distributed
-collections abstraction, and example data analytics applications, such as word
-count and group-by-join pipelines. Our prototype has also served as an
-experimentation platform for type-based optimizations, which we present in more
-detail below.
+collections abstraction, a simple version of the MBrace~\cite{MBrace} framework,
+and example data analytics applications, such as word count and group-by-join
+pipelines. We give an introduction and step through some of these example
+applications in section~\ref{sec:examples}.
 
-Further, we maintain a growing collection of these toy distributed frameworks
-(built on top of function passing) and applications on top of them (such as data analytics)
-at \url{http://lampwww.epfl.ch/~hmiller/f-p/}.\footnote{Review note: this site
-  is publicly accessible, has no tracking capabilities, and is linked to in
-talks and from other various webpages meaning it already gets public traffic.
-One may visit it without identity concerns.}
+% Our prototype has also served as an experimentation platform for
+% type-based optimizations, which we present in more detail below.
+
+% Further, we maintain a growing collection of these toy distributed frameworks
+% (built on top of function passing) and applications on top of them (such as data analytics)
+% at \url{http://lampwww.epfl.ch/~hmiller/f-p/}.\footnote{Review note: this site
+%   is publicly accessible, has no tracking capabilities, and is linked to in
+% talks and from other various webpages meaning it already gets public traffic.
+% One may visit it without identity concerns.}
 
 \subsection{Serialization in the presence of existential quantification}
 
@@ -1928,28 +1937,147 @@ pickleable using a type-specific pickler is guaranteed to be unpickleable by
 the receiver of the pickled SelfDescribing instance, and (b) that unpickling is
 as efficient as pickling, thanks to using type-specific unpicklers.
 
-\subsection{Type-based optimization of serialization}
+% \subsection{Type-based optimization of serialization}
 
-\begin{figure}[t!]
-\centering\includegraphics[width=\columnwidth]{multipleJVM.pdf}
-\caption{Impact of Static Types on Performance, End-to-End Application (\texttt{groupBy} + \texttt{join}).}
-\label{fig:multiple-jvm}
-\end{figure}
+% \begin{figure}[t!]
+% \centering\includegraphics[width=\columnwidth]{multipleJVM.pdf}
+% \caption{Impact of Static Types on Performance, End-to-End Application (\texttt{groupBy} + \texttt{join}).}
+% \label{fig:multiple-jvm}
+% \end{figure}
+%
+% We have used our implementation to measure the impact of type-specific,
+% compile-time-generated serializers (see above) on end-to-end application
+% performance. In our benchmark application, a group of 4 silos is distributed
+% across 4 different nodes/JVMs. Each silo is populated with a collection of
+% ``person'' records. The application first transforms each silo using
+% \emph{map}, and then using \emph{groupBy} and \emph{join}. For the benchmark we
+% measure the running time for a varying number of records.
+%
+% We ran our experiments on a 2.3 GHz Intel Core i7 with 16 GB RAM under Mac OS X
+% 10.9.5 using Java HotSpot Server 1.8.0-b132. For each input size we report the
+% median of 7 runs. Figure~\ref{fig:multiple-jvm} shows the results.
+% Interestingly, for an input size of 100,000 records, the use of type-specific
+% serializers resulted in an overall speedup of about 48\% with respect to the
+% same system using runtime-based serializers.
 
-We have used our implementation to measure the impact of type-specific,
-compile-time-generated serializers (see above) on end-to-end application
-performance. In our benchmark application, a group of 4 silos is distributed
-across 4 different nodes/JVMs. Each silo is populated with a collection of
-``person'' records. The application first transforms each silo using
-\emph{map}, and then using \emph{groupBy} and \emph{join}. For the benchmark we
-measure the running time for a varying number of records.
+\section{Examples}
+\label{sec:examples}
 
-We ran our experiments on a 2.3 GHz Intel Core i7 with 16 GB RAM under Mac OS X
-10.9.5 using Java HotSpot Server 1.8.0-b132. For each input size we report the
-median of 7 runs. Figure~\ref{fig:multiple-jvm} shows the results.
-Interestingly, for an input size of 100,000 records, the use of type-specific
-serializers resulted in an overall speedup of about 48\% with respect to the
-same system using runtime-based serializers.
+To show that the function passing model is able to serve as a substrate upon
+which to build different sorts of data-centric distributed frameworks, we
+provide two miniaturized example systems built on top of F-P that are inspired
+by popular big data frameworks; Spark's RDD (Resilient Distributed
+Datasets)~\cite[Spark], and MBrace~\cite[MBrace]. Using each example system,
+we've implemented several example applications, excerpts of some of which are
+explained below.
+
+Spark's RDDs provide a set of operations to execute parallel operations on
+distributed data. MBrace extends F\#’s asynchronous workflows, a way to declare
+asynchronous tasks, to distribute computation in the cloud.
+
+Our simplified RDD implementation lets you use data structures distributed
+inside Silos using the function passing model. We've implemented some of the
+operations of Spark’s RDD such as \verb|map|, \verb|reduce|, \verb|groupBy| and
+\verb|join| in terms of the function passing model's primitives. Methods on RDDs
+like \verb|flatMap| or \verb|filter| that don’t need to communicate across Silos
+are implemented with the function passing model’s \verb|map| using the
+corresponding method on the underlying Scala’s collections, while \verb|join| is
+implemented using the function passing model’s \verb|flatMap|. Below, we use it
+to show a simple application associating the length of all words in two
+documents in a \verb|Map| to a set of words with the corresponding length.
+
+\begin{lstlisting}
+val content: RDD[String, List[String]] = ...
+val lorem: RDD[String, List[String]] = ...
+
+val contentWord = content.flatMap(line => {
+  line.split(' ').toList
+}).map(word => (word.length, word))
+
+val loremWord = lorem.flatMap(line => {
+  line.split(' ').toList
+}).map(word => (word.length, word))
+
+val res: Map[Int, Set[String]] =
+  contentWord.join[Set, Map](loremWord).collectMap()
+\end{lstlisting}
+
+In this example, the closure inside the RDD's \verb|flatMap| method called on
+each \verb|contentWord| and \verb|loremWord| splits each line as a list of
+words, and flattens everything as a single list. Each word is then mapped to a
+tuple containing its length and the word. Finally, we do an inner join, which in
+turn associates each length to the set of words of the same length, removing
+duplicate words in the process. Finally, we collect the final result in a
+\verb|Map| using the \verb|collectMap| method on RDDs. Several other more
+detailed example programs using Spark on the function passing model are
+available on GitHub~\footnote{Omitted for review due to double blind criterion.}
+
+In the context of MBrace, we also implemented the K-Means Clustering example
+available on the MBrace's
+website\footnote{http://mbrace.io/starterkit/HandsOnTutorial/examples/200-kmeans-clustering-example.html},
+an excerpt of which is shown below. Our implementation of a distributed K-Means
+using the function passing model is an almost identical port of the MBrace’s
+version written in F\#. K-Means is an algorithm to categorize data points across
+$K$ different clusters. It starts with the centroids of the $K$ clusters.
+
+\begin{lstlisting}
+def kMeansIterate(
+  partitionedPoints: Seq[SiloRef[Array[Point]]],
+  centroids: Array[Point],
+  iteration: Int): Array[Point] = {
+
+  // Running iteration...
+  val clusterParts = partitionedPoints.map(silo => {
+    silo.map(spore {
+      val lCentroids = centroids
+      points => kmeansLocal(points, lCentroids)
+    }).send()
+  })
+
+  val newCentroids =
+    Await.result(Future.sequence(clusterParts).map(seq => {
+      seq
+        .reduce(_ ++ _)
+        .groupBy(_._1)
+        .toSeq
+        .sortBy(_._1)
+        .map(_._2)
+        .map(clp => clp.map(_._2).toArray.unzip)
+        .map({ case (ns, points) => ns.sum -> sumPoints(points) })
+        .map({ case (n, sum) => divPoint(sum, n) })
+    }), 10.seconds).toArray
+
+  val diff = newCentroids
+    .zip(centroids)
+    .map({ case (p1, p2) => dist(p1, p2) })
+    .max
+
+  \\ check if converged, else iterate again
+  if (diff < epsilon) {
+    newCentroids
+  } else {
+    kMeansIterate(partitionedPoints, newCentroids, iteration + 1)
+  }
+}
+\end{lstlisting}
+
+The algorithm proceeds with two steps. It first assigns data points to the
+closest cluster. Then it assigns to each cluster a new centroid by computing the
+mean of the points assigned to the clusters. It stops when the centroids stop
+changing; if this convergence condition hasn't been met, the algorithm is called
+recursively with the updated set of centroids. In the distributed version of
+K-Means, we start with a master node that partitions the points into silos. At
+each iteration, \verb|map| is called on the SiloRef which results in a spore
+(function) being applied to the data within the corresponding silo. The spore
+captures the current iterations' centroids and uses them to compute the new
+cluster for its local set of points (using the \verb|kmeansLocal| function). The
+results are then sent back to the master node to compute the new centroids, and
+to verify the algorithm's convergence condition.
+
+
+
+
+
 
 % \section{Evaluation}
 % \label{sec:evaluation}
@@ -1962,12 +2090,12 @@ same system using runtime-based serializers.
 
 Alice ML~\cite{AliceML} is an extension of Standard ML which adds a number of
 important features for distributed programming such as futures and proxies.
-The design leading up to function passing has incorporated many similar ideas, such as
+The design leading up to the function passing model has incorporated many similar ideas, such as
 {type-safe}, generic and platform-independent pickling. In Alice, functions are
 stationary, but it is possible to send proxies, mobile wrappers for functions.
 Sending a proxy will not transfer the wrapped function; instead, when a proxy
 function is applied, the call is forwarded by the system to the original site
-as a remote invocation (pickling arguments and result appropriately). In function passing,
+as a remote invocation (pickling arguments and result appropriately). In the function passing model,
 however, functions are not wrapped in proxies but sent directly. Thus, calling
 a received function will not lead to remote invocations.
 
@@ -1977,25 +2105,25 @@ contrast, in our model spores are sent between passive, persistent silos. In
 contrast, in our model spores are sent between passive, persistent silos.
 Moreover, the coordination of concurrent activity is based on futures, instead
 of message passing. Closures and continuations in Termite
-Scheme~\cite{TermiteScheme} are always serializable; references to non-
-serializable objects (like open files) are automatically wrapped in processes
+Scheme~\cite{TermiteScheme} are always serializable; references to non-serializable
+objects (like open files) are automatically wrapped in processes
 that are serialized as their process ID. Similar to Cloud Haskell, Termite is
-inspired by Erlang. In contrast to Termite, function passing is statically typed, enabling
+inspired by Erlang. In contrast to Termite, the function passing model is statically typed, enabling
 advanced type-based optimizations. In non-process-oriented models, parallel
 closures~\cite{ParallelClosures} and RiverTrail~\cite{RiverTrail} address
 important safety issues of closures in a concurrent setting. However,
 RiverTrail currently does not support capturing variables in closures, which is
-critical for the flatMap combinator in function passing. In contrast to parallel closures,
+critical for the flatMap combinator in the function passing model. In contrast to parallel closures,
 spores do not require a type system extension in Scala.
 
 Acute ML~\cite{AcuteML} is a dialect of ML which proposes numerous primitives
 for distributed programming, such as type-safe serialization, dynamic linking
-and rebinding, and versioning. function passing, in contrast, is based on spores, which ship
+and rebinding, and versioning. The function passing model, in contrast, is based on spores, which ship
 with their serialized environment or they fail to compile, obviating the need
 for dynamic rebinding. HashCaml~\cite{DistOCaml} is a practical evolution of
 Acute ML's ideas in the form of an extension to the OCaml bytecode compiler,
 which focuses on type-safe serialization and providing globally meaningful type
-names. In contrast, function passing merely a programming model, which does not require
+names. In contrast, function passing is merely a programming model, which does not require
 extensions to the Scala compiler.
 
 % compiler, which focuses on transmitting safe functions to work on remote
@@ -2019,17 +2147,17 @@ model for distribution, which also integrates spores and type-safe pickling.
 % not require a type system extension.
 
 Systems like Spark~\cite{Spark}, MapReduce~\cite{MapReduce}, and
-Dryad~\cite{Dryad} are just that--distributed systems. function passing is meant to act as
+Dryad~\cite{Dryad} are just that--distributed systems. The function passing model is meant to act as
 more of a middleware to facilitate the design and implementation of such
 systems, and as a result provides much finer-grained control over details such
 as fault handling and network topology (\ie peer-to-peer vs master/worker).
 
 The Clojure programming language proposes agents~\cite{Clojure}--stationary
 mutable data containers that users apply functions to in order to update an
-agent's state. function passing, in contrast, proposes that data in stationary containers be
+agent's state. The function passing model, in contrast, proposes that data in stationary containers be
 immutable, and that transformations by function application form a persistent
 data structure. Further, Clojure's agents are designed to manage state in a
-shared memory scenario, whereas function passing is designed with remote references for a
+shared memory scenario, whereas the function passing model is designed with remote references for a
 distributed scenario.
 
 The function passing model is also related to the actor model of concurrency~\cite{Actors},
@@ -2062,7 +2190,7 @@ behavior in the form of serializable closures is central to the function passing
 \section{Conclusion and Future Work}
 \label{sec:conclusion-future-work}
 
-We have presented function passing, a new programming model and principled substrate for
+We have presented the function passing model, a new programming model and principled substrate for
 building data-centric distributed systems. Built atop a foundation consisting
 of performant and type-safe serialization, and safe, serializable closures, we
 have shown that it's possible to build elegant fault-tolerant functional
@@ -2070,7 +2198,7 @@ systems. One insight of our model is that lineage-based fault recovery
 mechanisms, used in widespread frameworks for distribution, can be modeled
 elegantly in a functional way using persistent data structures. Our operational
 semantics shows that this approach makes it even amenable to formal treatment.
-We have also shown that function passing is able to express patterns of computation richer
+We have also shown that the function passing model is able to express patterns of computation richer
 than those supported by common ``big data'' frameworks while maintaining
 fault-tolerance--such as decentralized peer-to-peer patterns of communication.
 Finally, we have implemented our approach in and for Scala, as well as numerous
@@ -2078,7 +2206,7 @@ applications on top, and have discovered new ways to reconcile type-specific
 serializers with patterns of static typing common in distributed systems.
 
 A great deal of future work remains. In the short-term, we aim to continue to
-build different sorts of distributed frameworks and applications atop function passing in an
+build different sorts of distributed frameworks and applications atop the function passing model in an
 effort to work towards a production-ready implementation of our model for
 consumption by the Scala community at large.
 
