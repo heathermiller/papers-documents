@@ -2148,15 +2148,17 @@ to verify the algorithm's convergence condition.
 \label{sec:related-work}
 
 Alice ML~\cite{AliceML} is an extension of Standard ML which adds a number of
-important features for distributed programming such as futures and proxies.
-The design leading up to the function passing model has incorporated many similar ideas, such as
-{type-safe}, generic and platform-independent pickling. In Alice, functions are
-stationary, but it is possible to send proxies, mobile wrappers for functions.
-Sending a proxy will not transfer the wrapped function; instead, when a proxy
-function is applied, the call is forwarded by the system to the original site
-as a remote invocation (pickling arguments and result appropriately). In the function passing model,
-however, functions are not wrapped in proxies but sent directly. Thus, calling
-a received function will not lead to remote invocations.
+important features for distributed programming such as futures and proxies. The
+design leading up to the function passing model has incorporated many similar
+ideas, such as {type-safe}, generic and platform-independent pickling. In Alice,
+functions intend to be mobile. Only those functions which capture (either
+directly or indirectly) local resources remain stationary. In the case of
+functions that must remain stationary, it is possible to send proxies, mobile
+wrappers for functions. Sending a proxy will not transfer the wrapped function;
+instead, when a proxy function is applied, the call is forwarded by the system
+to the original site as a remote invocation (pickling arguments and result
+appropriately). In F-P, however, functions are not wrapped in proxies but sent
+directly. Thus, calling a received function will not lead to remote invocations.
 
 Cloud Haskell~\cite{CloudHaskell} leverages guaranteed-serializable, static
 closures for a message-passing communication model inspired by Erlang. In
