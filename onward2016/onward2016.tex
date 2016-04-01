@@ -277,6 +277,12 @@
 \authorinfo{Normen M{\"u}ller}
            {Trivadis}
            {normen.mueller@gmail.com}
+\authorinfo{Jocelyn Boullier}
+           {EPFL}
+           {jocelyn.boullier@epfl.ch}
+\authorinfo{Jorge Vicente Cantero}
+           {EPFL}
+           {jorge.vicentecantero@epfl.ch}
 
 \maketitle
 
@@ -288,7 +294,7 @@ implementation of distributed system essentials like fault-tolerance.} We
 present a new programming model we call  {\em function passing} designed to
 overcome many of these issues by providing a more principled substrate on which
 to build data-centric distributed systems. A key idea is to pass safe,
-well-typed serializable functions to immutable distributed data. The F-P model
+well-typed serializable functions to immutable distributed data. The function passing model
 itself can be thought of as a distributed persistent functional data structure,
 which stores in its nodes transformations to data rather than the distributed
 data itself.  Thus, the model simplifies failure recovery by design--data is
@@ -304,7 +310,7 @@ implementation of our model in and for the Scala programming language.
 % We implement our model in and for the Scala programming language, and provide
 % a small evaluation of the efficiency of our implementation of the model.
 
-% (F-P), designed to bring a bit of order to this disarray. F-P aims to provide
+% (function passing), designed to bring a bit of order to this disarray. function passing aims to provide
 % a more
 
 % Evolve beautifully in time and space like a persistent data structure.
@@ -688,15 +694,17 @@ conclude in Section~\ref{sec:conclusion-future-work}.
 \section{Overview of Model}
 \label{sec:basic-model}
 
-The best way to quickly visualize the F-P model is to think in terms of a
-persistent functional data structure with structural sharing. Then, rather than
-containing pure data, imagine instead that the structure represents a directed
-acyclic graph (DAG) of transformations on distributed data.
+\paragraph{Essence} In the broadest sense, the function passing model can be
+thought of in terms of a persistent functional data structure with structural
+sharing. However, rather than containing pure data, instead the data structure
+represents a directed acyclic graph (DAG) of functional transformations on
+distributed data. The root node .; the nodes in the DAG are merely which are
+able to , and edges transformations.
 
 Importantly, since this DAG of computations is a persistent data structure
 itself, it is safe to exchange (copies of) subgraphs of a DAG between remote
 nodes. This enables a robust and easy-to-reason-about model of fault tolerance.
-We call subgraphs of a DAG \textit{lineages}; lineages enable restoring the data
+Subgraphs of the DAG are called \textit{lineages}; lineages enable restoring the data
 of failed nodes through re-applying the transformations represented by their
 DAG. This sequence of applications must begin with data available from stable
 storage.
@@ -712,8 +720,7 @@ designing distributed systems~\cite{ANoteDistComp}. Deferred evaluation also
 enables optimizing distributed computations through operation fusion, which
 avoids the creation of unnecessary intermediate data structures--this is
 efficient in time as well as space. This kind of optimization is particularly
-important and effective in distributed systems~\cite{FlumeJava}.\todo{What does
-this have to do with FlumeJava?}
+important and effective in distributed systems~\cite{FlumeJava}.
 
 \vspace{-3mm}
 \begin{center}\noindent\rule{8cm}{0.4pt}\end{center}
@@ -725,7 +732,7 @@ the design of distributed systems.
 \begin{center}\noindent\rule{8cm}{0.4pt}\end{center}
 \vspace{1mm}
 
-\noindent The F-P model consists of three main components:
+\paragraph{} The function passing model consists of three main components:
 \begin{itemize}[noitemsep]
   \item {\bf Silos:} stationary typed data containers.
   \item {\bf SiloRefs:} references to local or remote Silos.
@@ -812,16 +819,16 @@ the corresponding publication~\cite{Spores}.
 
 \begin{figure}[t!]
 \centering\includegraphics[width=0.8\columnwidth]{basic-diagram.pdf}
-\caption{Basic F-P model.}\label{fig:basic-diagram}
+\caption{Basic function passing model.}\label{fig:basic-diagram}
 \end{figure}
 
 \subsection{Basic Usage}
 
-We begin with a simple visual example to provide a feeling for the basics of
-the F-P model.
+We begin with a simple visual example to illustrate the basics of
+the function passing model.
 % \footnote{We also feel that, to visually illustrate a system
 %   evolving in both space and time, nothing beats a video animation. So, we've
-%   produced a short animation to provide visual intuition of the F-P model:
+%   produced a short animation to provide visual intuition of the function passing model:
 % \url{https://vimeo.com/120415626}}
 
 The only way to interact with distributed data stored in silos is through the
@@ -845,7 +852,7 @@ function is asynchronously sent over the wire and is applied to \verb|Silo[T]|,
 eventually producing a new \verb|Silo[S]| containing the data transformed by
 function $\lambda$. This new \verb|SiloRef[S]| can be used even before its
 corresponding silo is materialized (\ie before the data in \verb|Silo[S]| is
-computed) – the F-P framework queues up operations applied to \verb|SiloRef[S]|
+computed) – the function passing framework queues up operations applied to \verb|SiloRef[S]|
 and applies them when \verb|Silo[S]| is fully materialized.
 
 Different sorts of complex DAGs can be asynchronously built up in this way.
@@ -855,7 +862,7 @@ these in the following section.
 
 \begin{figure}[t!]
 \centering\includegraphics[width=\columnwidth]{bigger-dag.pdf}
-\caption{A simple DAG in the F-P model.}\label{fig:bigger-dag}
+\caption{A simple DAG in the function passing model.}\label{fig:bigger-dag}
 \end{figure}
 
 \subsection{Primitives}
@@ -1119,7 +1126,7 @@ materialized in memory.
 \subsection{Fault Handling}
 \label{sec:fault-handling}
 
-F-P includes overloaded variants of the primitives discussed so far which
+function passing includes overloaded variants of the primitives discussed so far which
 enable the definition of flexible fault handling semantics. The main idea is to
 specify fault handlers for \emph{subgraphs of computation DAGs}. Our guiding
 principle is to make the definition of the failure-free path through a
@@ -1813,7 +1820,7 @@ except that fault handlers $p_f$ are applied as opposed to regular spores $p$.
 
 The presented programming model has been fully implemented in Scala, a
 functional programming language that runs on both JVMs and JavaScript runtimes.
-F-P is compiled and run using Scala 2.11.5, and considers only the JVM backend
+function passing is compiled and run using Scala 2.11.5, and considers only the JVM backend
 for now. Our implementation, which has been published as an open-source
 project,\footnote{\url{https://github.com/heathermiller/f-p}} builds on two
 main Scala extensions:
@@ -1823,7 +1830,7 @@ main Scala extensions:
 \item First, Pickling,\footnote{\url{https://github.com/scala/pickling}} a
   type-safe and performant serialization library with an accompanying, optional
   macro extension that is focused on distributed programming. It is used for
-  all serialization tasks. Our F-P implementation benefits from the maturity of
+  all serialization tasks. Our function passing implementation benefits from the maturity of
   Pickling, which supports pickling/unpickling a wide range of Scala type
   constructors. Pickling has evolved from a research prototype to a
   production-ready serialization framework that is now in widespread commercial
@@ -1845,7 +1852,7 @@ experimentation platform for type-based optimizations, which we present in more
 detail below.
 
 Further, we maintain a growing collection of these toy distributed frameworks
-(built on top of F-P) and applications on top of them (such as data analytics)
+(built on top of function passing) and applications on top of them (such as data analytics)
 at \url{http://lampwww.epfl.ch/~hmiller/f-p/}.\footnote{Review note: this site
   is publicly accessible, has no tracking capabilities, and is linked to in
 talks and from other various webpages meaning it already gets public traffic.
@@ -1955,12 +1962,12 @@ same system using runtime-based serializers.
 
 Alice ML~\cite{AliceML} is an extension of Standard ML which adds a number of
 important features for distributed programming such as futures and proxies.
-The design leading up to F-P has incorporated many similar ideas, such as
+The design leading up to function passing has incorporated many similar ideas, such as
 {type-safe}, generic and platform-independent pickling. In Alice, functions are
 stationary, but it is possible to send proxies, mobile wrappers for functions.
 Sending a proxy will not transfer the wrapped function; instead, when a proxy
 function is applied, the call is forwarded by the system to the original site
-as a remote invocation (pickling arguments and result appropriately). In F-P,
+as a remote invocation (pickling arguments and result appropriately). In function passing,
 however, functions are not wrapped in proxies but sent directly. Thus, calling
 a received function will not lead to remote invocations.
 
@@ -1973,22 +1980,22 @@ of message passing. Closures and continuations in Termite
 Scheme~\cite{TermiteScheme} are always serializable; references to non-
 serializable objects (like open files) are automatically wrapped in processes
 that are serialized as their process ID. Similar to Cloud Haskell, Termite is
-inspired by Erlang. In contrast to Termite, F-P is statically typed, enabling
+inspired by Erlang. In contrast to Termite, function passing is statically typed, enabling
 advanced type-based optimizations. In non-process-oriented models, parallel
 closures~\cite{ParallelClosures} and RiverTrail~\cite{RiverTrail} address
 important safety issues of closures in a concurrent setting. However,
 RiverTrail currently does not support capturing variables in closures, which is
-critical for the flatMap combinator in F-P. In contrast to parallel closures,
+critical for the flatMap combinator in function passing. In contrast to parallel closures,
 spores do not require a type system extension in Scala.
 
 Acute ML~\cite{AcuteML} is a dialect of ML which proposes numerous primitives
 for distributed programming, such as type-safe serialization, dynamic linking
-and rebinding, and versioning. F-P, in contrast, is based on spores, which ship
+and rebinding, and versioning. function passing, in contrast, is based on spores, which ship
 with their serialized environment or they fail to compile, obviating the need
 for dynamic rebinding. HashCaml~\cite{DistOCaml} is a practical evolution of
 Acute ML's ideas in the form of an extension to the OCaml bytecode compiler,
 which focuses on type-safe serialization and providing globally meaningful type
-names. In contrast, F-P merely a programming model, which does not require
+names. In contrast, function passing merely a programming model, which does not require
 extensions to the Scala compiler.
 
 % compiler, which focuses on transmitting safe functions to work on remote
@@ -2002,7 +2009,7 @@ require properties not limited to mobility. Transitive properties are supported
 either using type constraints based on type classes which enforce a transitive
 property or by integrating with type systems that enforce transitive
 properties. Unlike ML5, spores do not require a type system extension. Further,
-the F-P model sits on top of these primitives to provide a full programming
+the function passing model sits on top of these primitives to provide a full programming
 model for distribution, which also integrates spores and type-safe pickling.
 
 % However, type constraints allow spores to require properties not limited to
@@ -2012,26 +2019,26 @@ model for distribution, which also integrates spores and type-safe pickling.
 % not require a type system extension.
 
 Systems like Spark~\cite{Spark}, MapReduce~\cite{MapReduce}, and
-Dryad~\cite{Dryad} are just that--distributed systems. F-P is meant to act as
+Dryad~\cite{Dryad} are just that--distributed systems. function passing is meant to act as
 more of a middleware to facilitate the design and implementation of such
 systems, and as a result provides much finer-grained control over details such
 as fault handling and network topology (\ie peer-to-peer vs master/worker).
 
 The Clojure programming language proposes agents~\cite{Clojure}--stationary
 mutable data containers that users apply functions to in order to update an
-agent's state. F-P, in contrast, proposes that data in stationary containers be
+agent's state. function passing, in contrast, proposes that data in stationary containers be
 immutable, and that transformations by function application form a persistent
 data structure. Further, Clojure's agents are designed to manage state in a
-shared memory scenario, whereas F-P is designed with remote references for a
+shared memory scenario, whereas function passing is designed with remote references for a
 distributed scenario.
 
-The F-P model is also related to the actor model of concurrency~\cite{Actors},
+The function passing model is also related to the actor model of concurrency~\cite{Actors},
 which features multiple implementations in
 Scala~\cite{ScalaActors,Akka,TypedActors}. Actors can serve as in-memory data
 containers in a distributed system, like our silos. Unlike silos, actors
 encapsulate behavior in addition to immutable or mutable values. While only
 some actor implementations support mobile actors (none in Scala), mobile
-behavior in the form of serializable closures is central to the F-P model.
+behavior in the form of serializable closures is central to the function passing model.
 
 % Session
 % Types~\cite{SessionTypes}. AmbientTalk~\cite{AmbientTalk}. E
@@ -2041,11 +2048,11 @@ behavior in the form of serializable closures is central to the F-P model.
 % issues related to distributed programming. Thorn~\cite{Thorn} was designed
 % with concurrency and the need to interact with remote services in mind. Though
 % a main design goal of Thorn is to evolve scripts into typed programs via
-% gradual typing. F-P on the other hand is not a language, but a programming
+% gradual typing. function passing on the other hand is not a language, but a programming
 % model, which is designed to inject types into distributed programs from the
 % get-go.
 
-% F-P integrates a distributed, persistent data structure. Other prior work
+% function passing integrates a distributed, persistent data structure. Other prior work
 % related to spores is discussed in~\cite{Spores}.
 
 % Type-safe distributed programming in ML5~\cite{Tom7} introduces a notion of a
@@ -2055,7 +2062,7 @@ behavior in the form of serializable closures is central to the F-P model.
 \section{Conclusion and Future Work}
 \label{sec:conclusion-future-work}
 
-We have presented F-P, a new programming model and principled substrate for
+We have presented function passing, a new programming model and principled substrate for
 building data-centric distributed systems. Built atop a foundation consisting
 of performant and type-safe serialization, and safe, serializable closures, we
 have shown that it's possible to build elegant fault-tolerant functional
@@ -2063,7 +2070,7 @@ systems. One insight of our model is that lineage-based fault recovery
 mechanisms, used in widespread frameworks for distribution, can be modeled
 elegantly in a functional way using persistent data structures. Our operational
 semantics shows that this approach makes it even amenable to formal treatment.
-We have also shown that F-P is able to express patterns of computation richer
+We have also shown that function passing is able to express patterns of computation richer
 than those supported by common ``big data'' frameworks while maintaining
 fault-tolerance--such as decentralized peer-to-peer patterns of communication.
 Finally, we have implemented our approach in and for Scala, as well as numerous
@@ -2071,7 +2078,7 @@ applications on top, and have discovered new ways to reconcile type-specific
 serializers with patterns of static typing common in distributed systems.
 
 A great deal of future work remains. In the short-term, we aim to continue to
-build different sorts of distributed frameworks and applications atop F-P in an
+build different sorts of distributed frameworks and applications atop function passing in an
 effort to work towards a production-ready implementation of our model for
 consumption by the Scala community at large.
 
@@ -2094,7 +2101,7 @@ complicated web-based services.}
 % present a new programming model we call  {\em function passing} designed to
 % overcome many of these issues by providing a more principled substrate on
 % which to build data-centric distributed systems. A key idea is to pass safe,
-% well-typed serializable functions to immutable distributed data.  The F-P
+% well-typed serializable functions to immutable distributed data.  The function passing
 % model itself can be thought of as a distributed persistent functional data
 % structure, which stores in its nodes transformations to data rather than the
 % distributed data itself.  Thus, the model simplifies failure recovery by
