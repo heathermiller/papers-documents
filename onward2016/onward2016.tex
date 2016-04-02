@@ -1,4 +1,4 @@
-%-----------------------------------------------------------------------------
+{}%-----------------------------------------------------------------------------
 %
 %               Template for sigplanconf LaTeX Class
 %
@@ -288,13 +288,16 @@
 
 \begin{abstract}
   The most successful systems for ``big data'' processing have all adopted
-  functional APIs. We present a new programming model we call \textit{function
+  functional APIs. We present a new programming model we call {\em function
   passing} designed to provide a more principled substrate on which to build
   data-centric distributed systems. A key idea is to build up a persistent
   functional data structure representing transformations on distributed
   immutable data by passing well-typed serializable functions over the wire and
-  applying them to this distributed data. The model simplifies failure recovery
-  by design--data is recovered by replaying function applications atop immutable
+  applying them to this distributed data. Thus, function passing model can be
+  thought of as a persistent functional data structure that is {\em
+  distributed}, where transformations to data are stored in its nodes rather
+  than the distributed data itself. The model simplifies failure recovery by
+  design--data is recovered by replaying function applications atop immutable
   data loaded from stable storage. Deferred evaluation is also central to our
   model; by incorporating deferred evaluation into our design only at the point
   of initiating network communication, the function passing model remains easy
@@ -304,6 +307,24 @@
   recovery, and we provide an open-source implementation of our model in and for
   the Scala programming language, along with a case study of several example
   frameworks and end-user programs written atop of this model.
+
+  % The most successful systems for ``big data'' processing have all adopted
+  % functional APIs. We present a new programming model we call \textit{function
+  % passing} designed to provide a more principled substrate on which to build
+  % data-centric distributed systems. A key idea is to build up a persistent
+  % functional data structure representing transformations on distributed
+  % immutable data by passing well-typed serializable functions over the wire and
+  % applying them to this distributed data. The model simplifies failure recovery
+  % by design--data is recovered by replaying function applications atop immutable
+  % data loaded from stable storage. Deferred evaluation is also central to our
+  % model; by incorporating deferred evaluation into our design only at the point
+  % of initiating network communication, the function passing model remains easy
+  % to reason about while remaining efficient in time and memory. We formalize our
+  % programming model in the form of a small-step operational semantics which
+  % includes a precise specification of the semantics of functional fault
+  % recovery, and we provide an open-source implementation of our model in and for
+  % the Scala programming language, along with a case study of several example
+  % frameworks and end-user programs written atop of this model.
 
 % The most successful systems for ``big data'' processing have all adopted
 % functional APIs. \fixme{But the innards of these systems are often built atop
@@ -399,8 +420,10 @@ declarative APIs to end-users. Further, the benefits provided by functional
 programming have also won over framework designers as well--some have noticed
 that immutability, and data transformation via higher-order functions makes it
 much easier, by design, to tackle concerns central to distributed systems such
-as concurrency. We believe it's possible to take these benefits further to other
-pain points for distributed system builders
+as concurrency.
+
+% We believe it's possible to take these benefits further to other
+% pain points for distributed system builders
 
 
 
@@ -2026,7 +2049,7 @@ To show that the function passing model is able to serve as a substrate upon
 which to build different sorts of data-centric distributed frameworks, we
 provide two miniaturized example systems built on top of F-P that are inspired
 by popular big data frameworks; Spark's RDD (Resilient Distributed
-Datasets)~\cite[Spark], and MBrace~\cite[MBrace]. Using each example system,
+Datasets)~\cite{Spark}, and MBrace~\cite{MBrace}. Using each example system,
 we've implemented several example applications, excerpts of some of which are
 explained below.
 
@@ -2248,36 +2271,103 @@ behavior in the form of serializable closures is central to the function passing
 % typed context called a ``world'' and permits functions to be executed given a
 % specific world.
 
-\section{Conclusion and Future Work}
+\section{Future Work and Conclusion}
 \label{sec:conclusion-future-work}
 
-We have presented the function passing model, a new programming model and principled substrate for
-building data-centric distributed systems. Built atop a foundation consisting
-of performant and type-safe serialization, and safe, serializable closures, we
-have shown that it's possible to build elegant fault-tolerant functional
-systems. One insight of our model is that lineage-based fault recovery
+\subsection{Ongoing and Future Work}
+
+In ongoing work we are exploring approaches for memory reclamation. The first
+approach uses Java's WeakReferences to detect when a SiloRef is no longer
+reachable from local GC roots. Upon detection the host of the corresponding silo
+is notified to decrease the silo's reference count; the host's reference(s) to
+the silo are nulled out when the reference count reaches zero. It is important
+to note that this strategy requires notifying a silo's host whenever a SiloRef
+to the silo reaches a new machine, to increase the silo's reference count. The
+second approach leverages uniqueness types in Scala~\cite{Uniqueness}. Here,
+SiloRefs are locally unique, and the programmer can explicitly declare a SiloRef
+as unused; the type system ensures that such an ``unused'' SiloRef is not used
+again subsequently. As in the first approach, upon marking a SiloRef as unused,
+the corresponding silo's host is notified to decrease the silo's reference
+count.
+
+Other future work includes better understanding concerns of separate compilation
+in order to evaluate whether our model could be of help in coordinating between
+microservices.\footnote{Microservices are small, independent
+(separately-compiled) services running on different machines which communicate
+with each other to together make up a single and complex application. They are a
+predominant trend in industry amongst rich and complicated web-based services.}
+
+\subsection{Conclusion}
+
+We have presented the function passing model, a new programming model and new
+substrate or middleware upon which to build data-centric distributed systems.
+This enables two important benefits for distributed system builders; (a) since
+all computations are functional transformations on immutable data,
+fault-tolerance is made simple by design, and (b) communication is made
+well-typed by design, the function passing model attempts to more naturally
+model the paradigm of data-centric programming by extending monadic programming
+to the network. One insight of our model is that lineage-based fault recovery
 mechanisms, used in widespread frameworks for distribution, can be modeled
 elegantly in a functional way using persistent data structures. Our operational
 semantics shows that this approach makes it even amenable to formal treatment.
-We have also shown that the function passing model is able to express patterns of computation richer
-than those supported by common ``big data'' frameworks while maintaining
-fault-tolerance--such as decentralized peer-to-peer patterns of communication.
-Finally, we have implemented our approach in and for Scala, as well as numerous
-applications on top, and have discovered new ways to reconcile type-specific
-serializers with patterns of static typing common in distributed systems.
+We have also shown that the function passing model is able to express patterns
+of computation richer than those supported by common ``big data'' frameworks
+while maintaining fault-tolerance--such as decentralized peer-to-peer patterns
+of communication. Finally, we have implemented our approach in and for Scala,
+and have shown that it's possible to support different popular patterns of
+distributed processing, such as  batch processing with Spark's RDDs  and
+MBrace's cloud-based asynchronous tasks.
 
-A great deal of future work remains. In the short-term, we aim to continue to
-build different sorts of distributed frameworks and applications atop the function passing model in an
-effort to work towards a production-ready implementation of our model for
-consumption by the Scala community at large.
+% We have presented the function passing model, a new programming model and new
+% substrate or middleware upon which to build data-centric distributed systems.
+%
+% This enables two important benefits for distributed
+% system builders; (a) since all computations are functional transformations on
+% immutable data, fault-tolerance is made simple by design, and (b) communication
+% is made well-typed by design, a common pain point for builders of distributed
+% systems in Scala. Said another way, the function passing model attempts to more
+% naturally model the paradigm of data-centric programming by extending monadic
+% programming to the network.
+%
+% This new model is designed to make it easier to reason about One insight of our
+% model is that lineage-based fault recovery mechanisms, used in widespread
+% frameworks for distribution, can be modeled elegantly in a functional way using
+% persistent data structures.
+%
+% Our operational
+% semantics shows that this approach makes it even amenable to formal treatment.
+%
+% We have also shown that the function passing model is able to express patterns of computation richer
+% than those supported by common ``big data'' frameworks while maintaining
+% fault-tolerance--such as decentralized peer-to-peer patterns of communication.
+%
+% Finally, we have implemented our approach in and for Scala, as well as numerous
+% applications on top. We've shown
+%
+% , and have discovered new ways to reconcile type-specific
+% serializers with patterns of static typing common in distributed systems.
 
-In the long-term, we plan to better understand concerns of separate compilation
-in order to evaluate whether our model could be of help in coordinating between
-microservices.\footnote{Microservices are small, independent
-  (separately-compiled) services running on different machines which
-communicate with each other to together make up a single and complex
-application. They are a predominant trend in industry amongst rich and
-complicated web-based services.}
+
+
+% We have presented the function passing model, a new programming model and principled substrate for
+% building data-centric distributed systems. Built atop a foundation consisting
+% of performant and type-safe serialization, and safe, serializable closures, we
+% have shown that it's possible to build elegant fault-tolerant functional
+% systems. One insight of our model is that lineage-based fault recovery
+% mechanisms, used in widespread frameworks for distribution, can be modeled
+% elegantly in a functional way using persistent data structures. Our operational
+% semantics shows that this approach makes it even amenable to formal treatment.
+% We have also shown that the function passing model is able to express patterns of computation richer
+% than those supported by common ``big data'' frameworks while maintaining
+% fault-tolerance--such as decentralized peer-to-peer patterns of communication.
+% Finally, we have implemented our approach in and for Scala, as well as numerous
+% applications on top, and have discovered new ways to reconcile type-specific
+% serializers with patterns of static typing common in distributed systems.
+%
+% A great deal of future work remains. In the short-term, we aim to continue to
+% build different sorts of distributed frameworks and applications atop the function passing model in an
+% effort to work towards a production-ready implementation of our model for
+% consumption by the Scala community at large.
 
 % Adapt this model for streaming computation. This would take coming up with a
 % solution to null out references in the {\em lineage}. This would make it
