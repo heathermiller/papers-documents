@@ -1198,6 +1198,22 @@ with the trivial value of the \verb|DoneSiloRef| singleton object (\eg
 the resulting future to be completed as soon as \verb|this| SiloRef has been
 materialized in memory.
 
+\subsubsection{Type Polymorphism and Silos/SiloRefs}
+
+An important property of silos is that they are polymorphic in the type of data
+that they hold. Importantly, silos are not just polymorphic in the {\em element
+type} of their data, but in the {\em type of their entire dataset}. For example,
+a silo might contain a Red-Black tree with elements of type \verb|Person| for
+some ADT \verb|Person|, ordered by one of the fields of the \verb|Person| type.
+Another silo might contain a completely different collection type, say, a linked
+list. This type polymorphism enables optimizing silos according to their data
+access patterns. Given that different data types may have specialized operations
+(e.g., a tree map could provide a range projection), the key to enabling this
+type polymorphism is the fact that a spore sent to a silo may apply arbitrary
+functions to the silo's data. Thus, the SiloRef API itself is not limited to
+providing just a fixed set of built-in operations (in contrast to RDDs in Spark,
+for example).
+
 % This optimization is explained following the
 % discussion of the third main operation of SiloRefs, \verb|send|.
 
