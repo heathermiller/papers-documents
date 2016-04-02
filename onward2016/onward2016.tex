@@ -293,8 +293,8 @@
   data-centric distributed systems. A key idea is to build up a persistent
   functional data structure representing transformations on distributed
   immutable data by passing well-typed serializable functions over the wire and
-  applying them to this distributed data. Thus, function passing model can be
-  thought of as a persistent functional data structure that is {\em
+  applying them to this distributed data. Thus, the function passing model can
+  be thought of as a persistent functional data structure that is {\em
   distributed}, where transformations to data are stored in its nodes rather
   than the distributed data itself. The model simplifies failure recovery by
   design--data is recovered by replaying function applications atop immutable
@@ -303,10 +303,10 @@
   of initiating network communication, the function passing model remains easy
   to reason about while remaining efficient in time and memory. We formalize our
   programming model in the form of a small-step operational semantics which
-  includes a precise specification of the semantics of functional fault
-  recovery, and we provide an open-source implementation of our model in and for
-  the Scala programming language, along with a case study of several example
-  frameworks and end-user programs written atop of this model.
+  includes a semantics of functional fault recovery, and we provide an
+  open-source implementation of our model in and for the Scala programming
+  language, along with a case study of several example frameworks and end-user
+  programs written atop of this model.
 
   % The most successful systems for ``big data'' processing have all adopted
   % functional APIs. We present a new programming model we call \textit{function
@@ -2092,7 +2092,7 @@ turn associates each length to the set of words of the same length, removing
 duplicate words in the process. Finally, we collect the final result in a
 \verb|Map| using the \verb|collectMap| method on RDDs. Several other more
 detailed example programs using Spark on the function passing model are
-available on GitHub~\footnote{Omitted for review due to double blind criterion.}
+available on GitHub~\footnote{URL withheld for blind review.}
 
 In the context of MBrace, we also implemented the K-Means Clustering example
 available on the MBrace's
@@ -2301,7 +2301,7 @@ predominant trend in industry amongst rich and complicated web-based services.}
 
 We have presented the function passing model, a new programming model and new
 substrate or middleware upon which to build data-centric distributed systems.
-This enables two important benefits for distributed system builders; (a) since
+This enables two important benefits for distributed system builders; since (a)
 all computations are functional transformations on immutable data,
 fault-tolerance is made simple by design, and (b) communication is made
 well-typed by design, the function passing model attempts to more naturally
