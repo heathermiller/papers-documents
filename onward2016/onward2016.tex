@@ -1468,10 +1468,11 @@ Another peer-to-peer pattern possible in the function passing model is
 decentralized fault handling. One may specify strategies to transfer computation
 to other nodes in the event of failure.
 
-Consider the following example: the local host aggregates some data as soon as
-two silos \verb|vehicles| and \verb|persons| have been materialized. The
-aggregation result is then combined with a silo \verb|info| on local host. The
-final result is written to a distributed file system:
+Consider the following example: an aggregation should be performed as
+soon as two silos \verb|vehicles| and \verb|persons| have been
+materialized. The aggregation result is then combined with a silo
+\verb|info| on some host different from the local host. The final
+result is written to a distributed file system:
 
 \begin{lstlisting}
 object Utils {
@@ -1498,13 +1499,16 @@ val done    = info.flatMap(spore {
 done.cache() // force computation
 \end{lstlisting}
 \noindent
-This program does not tolerate failures of the local host: if it fails before
-the computation is complete, the result is never written to the file.
+This program does not tolerate failures of the host of \verb|info|: if
+it fails before the computation is complete, the result is never
+written to the file.
 
-We can overcome this using fault handlers. It's possible to introduce another
-backup host which takes over in case the host of local fails at any point. Let's
-try the above computation again, this time using fault handlers to transfer the
-computation to a backup node in the event of a failure:
+We can overcome this using fault handlers. It is possible to introduce
+another backup host which takes over in case the host of \verb|info|
+(which is the same as the host of \verb|done|) fails at any
+point. Let's try the above computation again, this time using fault
+handlers to transfer the computation to a backup node in the event of
+a failure:
 
 \begin{lstlisting}
 val doCombine = spore {
@@ -1548,7 +1552,7 @@ First, the local variables \verb|doCombine| and \verb|doWrite| refer to the
 verbatim spores passed to \verb|flatMap| and \verb|map| above. Second,
 \verb|backup| is a dummy silo on a backup host \verb|hostb|. It is used to send
 a spore to the backup host in a way that allows it to detect whether the
-original host has failed. The fault handling is done by calling \verb|flatMap|
+host of \verb|done|/\verb|info| has failed. The fault handling is done by calling \verb|flatMap|
 on \verb|backup|, passing (a) a spore for the non-failure case and (b) a spore for
 the failure case. The spore for the non-failure case simply returns the
 \verb|done| SiloRef. Importantly, this enables \verb|hostb| to detect failures
