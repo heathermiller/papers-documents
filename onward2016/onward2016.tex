@@ -1726,10 +1726,10 @@ T ::=     T \Rightarrow T                   & \mbox{function type} \\
 \\
 \ea$
 
-  \vspace{1mm}
+  % \vspace{1mm}
   \caption{Core language syntax.}
   \label{fig:syntax}
-  \vspace{1mm}
+  % \vspace{1mm}
 \end{figure}
 
 We formalize our programming model in the context of a standard, typed lambda
@@ -1878,37 +1878,7 @@ that its argument spore captures SiloRefs that are subsequently copied to a
 remote host. Hence it is essential that SiloRefs and the decentralized
 identifiers they contain be freely copyable between remote hosts.
 
-\subsubsection{Deterministic layer}
-\label{sec:det-layer}
-
-We first consider the reduction rules of the deterministic layer shown in
-Figure~\ref{fig:opsem-determ}. The reduction rules for \texttt{map}
-(\textsc{R-Map}) and \texttt{flatMap} (\textsc{R-FMap}) do not involve
-communication with other hosts. In each case, a new SiloRef $r'$ is created
-that is derived from SiloRef $r$. The execution of the actual operation
-(\texttt{map} or \texttt{flatMap}, respectively) is deferred, and an object
-representing this derivation is returned. In both cases, the new SiloRef $r'$
-refers to a silo created on host $h'$ by applying the spore value $p$ to the
-value of silo $r$. The first component of the Mapped and FMapped objects, $(h,
-i)$, is a fresh \emph{location} created by host $h$ to uniquely identify the
-result silo.
-
-Most reduction rules are enabled when the current redex is an \texttt{await}
-term. The reduction of a term $\texttt{await}(\iota)$ only continues when store
-$S$ maps location $\iota$ to value $v$. In all other cases, the current host
-removes the next message from its message queue $E$. As shown in
-Figure~\ref{fig:elems-opsem} there are two types of messages: requests (Req)
-and responses (Res). A response $\text{Res}(\iota, v)$ tells its receiver that
-the silo at location $\iota$ has value $v$. A request $\text{Req}(h, r, \iota)$
-is sent on behalf of host $h$ to request the value of silo $r$ at location
-$\iota$. The reception of a response $\text{Res}(\iota, v)$ is handled by
-adding a mapping $(\iota \mapsto v)$ to the store (rule \textsc{R-Res}). The
-reception of a request $\text{Req}(h', r, \iota'')$ is handled locally if
-materialization of the requested silo $r$ is deferred and the parent silo $r'$
-in $r$'s lineage has not been materialized either. In this case, the host sends
-a request to materialize $r'$ to itself.
-
-\begin{figure*}[ht!]
+\begin{figure*}[t!]
   \centering
 % \vspace{-7mm}
 \begin{mathpar}
@@ -1955,6 +1925,38 @@ a request to materialize $r'$ to itself.
   % \vspace{-3mm}
 \end{figure*}
 
+\subsubsection{Deterministic layer}
+\label{sec:det-layer}
+
+We first consider the reduction rules of the deterministic layer shown in
+Figure~\ref{fig:opsem-determ}. The reduction rules for \texttt{map}
+(\textsc{R-Map}) and \texttt{flatMap} (\textsc{R-FMap}) do not involve
+communication with other hosts. In each case, a new SiloRef $r'$ is created
+that is derived from SiloRef $r$. The execution of the actual operation
+(\texttt{map} or \texttt{flatMap}, respectively) is deferred, and an object
+representing this derivation is returned. In both cases, the new SiloRef $r'$
+refers to a silo created on host $h'$ by applying the spore value $p$ to the
+value of silo $r$. The first component of the Mapped and FMapped objects, $(h,
+i)$, is a fresh \emph{location} created by host $h$ to uniquely identify the
+result silo.
+
+Most reduction rules are enabled when the current redex is an \texttt{await}
+term. The reduction of a term $\texttt{await}(\iota)$ only continues when store
+$S$ maps location $\iota$ to value $v$. In all other cases, the current host
+removes the next message from its message queue $E$. As shown in
+Figure~\ref{fig:elems-opsem} there are two types of messages: requests (Req)
+and responses (Res). A response $\text{Res}(\iota, v)$ tells its receiver that
+the silo at location $\iota$ has value $v$. A request $\text{Req}(h, r, \iota)$
+is sent on behalf of host $h$ to request the value of silo $r$ at location
+$\iota$. The reception of a response $\text{Res}(\iota, v)$ is handled by
+adding a mapping $(\iota \mapsto v)$ to the store (rule \textsc{R-Res}). The
+reception of a request $\text{Req}(h', r, \iota'')$ is handled locally if
+materialization of the requested silo $r$ is deferred and the parent silo $r'$
+in $r$'s lineage has not been materialized either. In this case, the host sends
+a request to materialize $r'$ to itself.
+
+
+
 \subsubsection{Nondeterministic layer}
 \label{sec:nondet-layer}
 
@@ -1972,36 +1974,6 @@ requesting host $h'$. Rules \textsc{R-Req2} and \textsc{R-Reg3} handle cases
 where the requested silo is not already available in materialized form.
 
 % Failures may be detected whenever a message is sent to a non-local host. Note that this does not mean that message sends must be synchronous. Instead, our implementation interprets a failure to establish a network connection with a remote host as a failure of the remote host and thus a failure of all silos that it hosts.
-
-\subsection{Fault handling}
-\label{sec:faults-opsem}
-
-The key principles of the fault handling mechanism are:
-\begin{itemize}
-\item Whenever a message is sent to a non-local host $h$, it is checked whether
-  $h$ is alive; if it is not, any silos located on $h$ are declared to have
-  failed.
-\item Whenever the value of a silo $r$ cannot be obtained due to another failed
-  silo, $r$ is declared to have failed.
-\item Whenever the failure of a silo $r$ is detected, the nearest predecessor
-  $r'$ in $r$'s lineage that is not located on the same host is determined. If
-  $r'$ has a fault handler $f$ registered, the execution of $f$ is requested.
-  Otherwise, $r'$ is declared to have failed.
-\end{itemize}
-
-% A host either (a) discovers itself that a remote silo has failed (e.g., because it could not establish a network connection to the remote host), or (b) is notified that a remote silo has failed by a healthy host involved in its materialization.
-
-These principles are embodied in the reduction as follows. First, we use the
-predicate $\text{failed}(h)$ as a way to check whether it is possible to
-communicate with host $h$ (e.g., an implementation could check whether it is
-possible to establish a socket connection). Second, failures of hosts are
-handled whenever communication is attempted: whenever a host $h$ intends to
-send a message to a host $h'$ where $h' \neq h$, it is checked whether
-$\text{failed}(h')$. If it is the case that $\text{failed}(h')$, either the
-corresponding location (silo or future) is declared as failed (and fault
-handling deferred), or a suitable fault handler is located and a recovery step
-is attempted. In the following we explain the extended reduction rules shown in
-Figure~\ref{fig:opsem-faults}.
 
 \begin{figure*}[t!]
   \centering
@@ -2039,11 +2011,43 @@ Figure~\ref{fig:opsem-faults}.
 }
 
 \end{mathpar}
-  % \vspace{-3mm}
+  \vspace{-3mm}
   \caption{Fault handling.}
   \label{fig:opsem-faults}
-  % \vspace{-3mm}
+  \vspace{-3mm}
 \end{figure*}
+
+% \vspace{-2.25mm}
+\subsection{Fault handling}
+\label{sec:faults-opsem}
+% \vspace{-1mm}
+The key principles of the fault handling mechanism are:
+% \vspace{-1mm}
+\begin{itemize}
+\item Whenever a message is sent to a non-local host $h$, it is checked whether
+  $h$ is alive; if it is not, any silos located on $h$ are declared to have
+  failed.
+\item Whenever the value of a silo $r$ cannot be obtained due to another failed
+  silo, $r$ is declared to have failed.
+\item Whenever the failure of a silo $r$ is detected, the nearest predecessor
+  $r'$ in $r$'s lineage that is not located on the same host is determined. If
+  $r'$ has a fault handler $f$ registered, the execution of $f$ is requested.
+  Otherwise, $r'$ is declared to have failed.
+\end{itemize}
+
+% A host either (a) discovers itself that a remote silo has failed (e.g., because it could not establish a network connection to the remote host), or (b) is notified that a remote silo has failed by a healthy host involved in its materialization.
+
+These principles are embodied in the reduction as follows. First, we use the
+predicate $\text{failed}(h)$ as a way to check whether it is possible to
+communicate with host $h$ (e.g., an implementation could check whether it is
+possible to establish a socket connection). Second, failures of hosts are
+handled whenever communication is attempted: whenever a host $h$ intends to
+send a message to a host $h'$ where $h' \neq h$, it is checked whether
+$\text{failed}(h')$. If it is the case that $\text{failed}(h')$, either the
+corresponding location (silo or future) is declared as failed (and fault
+handling deferred), or a suitable fault handler is located and a recovery step
+is attempted. In the following we explain the extended reduction rules shown in
+Figure~\ref{fig:opsem-faults}.
 
 In rule \textsc{RF-Send}, the host of the requested silo $r$ is detected to
 have failed. However, the parent silos of $r$ are all located on the same
