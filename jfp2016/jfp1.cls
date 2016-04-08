@@ -1369,7 +1369,7 @@ United Kingdom}}%
 %%%%%
 \def\gray{\special{color CMYK 0 0 0 0.5}}
 \def\@questionmark{\vbox to 0pt{\vskip13pc\hskip-5pc
-                  \hbox to \textwidth{\special{color push}\gray\fontsize{270}{270}\selectfont ?
+                  \hbox to \textwidth{\special{color push}\gray\fontsize{270}{270}\selectfont 
                   \special{color pop}\hss}}}
 \def\questionmark#1{\xdef\@questionmark{#1}}%
 %
