@@ -535,18 +535,19 @@ Spark.}
 % The function passing model attempts to more naturally the paradigm of
 % data-centric programming by extending monadic programming to the network.
 
-The function passing model brings together immutable, persistent data
-structures, monadic higher-order functions, strong static typing, and deferred
-evaluation--pillars of functional programming--to provide a more type-safe, and
-easy to reason about foundation upon which to build data-centric distributed
-systems. Interestingly, we found that deferred evaluation was an enabler in our
-model, without complicating the ability to reason about programs as we will soon
-show. Without optimizations based on deferred evaluation, we found this model
-would be impractically inefficient in memory and time.\todo[inline]{The emphasis
-on "lazyness" confuses me a bit. Isn't lazyness inherent to FP rsp. a
-consequence of the property of referential transparency? Said in other words,
-don't we get that for free, alone due to the fact that be base our model on the
-FP paradigm?} 
+The function passing model brings together immutable, persistent 
+\todo{"immutable" and "persistent", aren't those terms equivalent? 
+https://goo.gl/eXXA5K} data structures, monadic higher-order functions, strong 
+static typing, and deferred evaluation--pillars of functional programming--to 
+provide a more type-safe, and easy to reason about foundation upon which to 
+build data-centric distributed systems. Interestingly, we found that deferred 
+evaluation was an enabler in our model, without complicating the ability to 
+reason about programs as we will soon show. Without optimizations based on 
+deferred evaluation, we found this model would be impractically inefficient in 
+memory and time.\todo[inline]{The emphasis on "lazyness" confuses me a bit. 
+Isn't lazyness inherent to FP rsp. a consequence of the property of referential 
+transparency? Said in other words, don't we get that for free, alone due to the 
+fact that be base our model on the FP paradigm?} 
 
 One important contribution of our model is a precise specification of the
 semantics of functional fault recovery. The \todo[inline]{Here I would
@@ -586,32 +587,34 @@ This paper makes the following contributions:
 
 \item {\bf\em A new data-centric programming model for functional processing of
   distributed data} which makes important concerns like fault tolerance simpler
-    by design. The main computational principle is based on the idea of sending
-    safe, guaranteed serializable functions to stationary data. Using standard
-    monadic operations, our model enables creating immutable directed acyclic
-    graphs of computations, supporting decentralized distributed computations.
-    Deferred evaluation enables important optimizations while keeping programs
-    simple to reason about.\todo[inline]{Is the term "programming model"
-    well-understood? Maybe a footnote "We consider a programming model as an
-    abstraction of the underlying computer system that allows for the expression
-    of both algorithms and data structures". In case of the former we utlize
-    monadic operations and in case of the latter we introcude Silos}
+  by design. The main computational principle is based on the idea of sending
+  safe, guaranteed serializable functions to stationary data. Using standard
+  monadic operations, our model enables creating immutable directed acyclic
+  graphs \todo[inline]{First usage of "directed acyclic graphs", so we could
+  already here introduce the abbreviation "DAG".} of computations, supporting
+  decentralized distributed computations. Deferred evaluation enables
+  important optimizations while keeping programs simple to reason
+  about.\todo[inline]{Is the term "programming model" well-understood? Maybe a
+  footnote "We consider a programming model as an abstraction of the
+  underlying computer system that allows for the expression of both algorithms
+  and data structures". In case of the former we utlize monadic operations and
+  in case of the latter we introcude Silos}
                                                        
 \item {\bf\em A formalization of our programming model} based on a small-step
   operational  semantics. To our knowledge it is the first formal account of
-    fault recovery based on lineage in a purely functional setting. Inspired by
-    widespread systems like Spark, our formalization closely models real-world
-    fault recovery mechanisms. The presented semantics is clearly stratified
-    into a deterministic layer and a concurrent/distributed layer. Importantly,
-    reasoning techniques for sequential programs are not invalidated by the
-    distributed layer.
+  fault recovery based on lineage in a purely functional setting. Inspired by
+  widespread systems like Spark, our formalization closely models real-world
+  fault recovery mechanisms. The presented semantics is clearly stratified
+  into a deterministic layer and a concurrent/distributed layer. Importantly,
+  reasoning techniques for sequential programs are not invalidated by the
+  distributed layer.
 
 \item {\bf\em A distributed implementation of the programming model} in and for
   Scala as a middleware. In addition, we present prototype versions we have
-    built of popular frameworks like Spark \todo[inline]{We always called it
-    "Apache Spark" so far} and MBrace \todo{Reference?} using the function
-    passing model, and end-user applications we have built using each of these
-    prototype frameworks.
+  built of popular frameworks like Spark \todo[inline]{We always called it
+  "Apache Spark" so far} and MBrace \todo{Reference?} using the function
+  passing model, and end-user applications we have built using each of these
+  prototype frameworks.
 
   % \fixme{We present experiments that show some of the benefits of the proposed
   % design, and we report on a validation of spores in the context of distributed
@@ -806,34 +809,41 @@ conclude in Section~\ref{sec:conclusion-future-work}.
 \subsection{Essence}
 
 In the broadest sense, the function passing model can be thought of as a sort of
-persistent functional data structure with structural sharing. However, rather
-than containing pure data, instead the data structure represents a directed
-acyclic graph (DAG) of functional transformations on distributed data. The root
-node of is immutable data read from stable storage (\eg Amazon S3); edges
+persistent functional data structure with structural sharing
+\todo[inline]{That's why I want to clarify programming model. It's not only
+about data structures but also about the algorithms utilizing those data
+structures.}. However, rather than containing pure data, instead the data
+structure represents a directed acyclic graph (DAG) of functional
+transformations on distributed data. The root node of is \todo{s/of
+is/contains/} immutable data read from stable storage (\eg Amazon S3); edges
 represent functional transformations on immutable data represented as nodes of
-the DAG.
+the DAG. \todo[inline]{Maybe to clarify matters, after defining various
+transformations starting from the root note, those child nodes are "empty"/
+placeholders/ ... till forcing execution.}
 
 Importantly, since this DAG of computations is a persistent data structure
 itself, it is safe to exchange (copies of) subgraphs of a DAG between remote
 nodes. This enables a robust and easy-to-reason-about model of fault tolerance.
 Subgraphs of the DAG are called \textit{lineages}; lineages enable restoring the data
 of failed nodes through re-applying the transformations represented by their
-DAG. This sequence of applications must begin with data available from stable
-storage.
+DAG.\todo[inline]{If I mentally substitute "lineage" by "subgraph" --- as just 
+introduced --- this sentence is weird. Therefore I'd leave out "represented by 
+their DAG".} This sequence of applications must begin with data available from 
+stable storage.
 
 Central to the function passing model is the careful use of deferred evaluation.
 Computations on distributed data are typically not executed eagerly; instead,
-applying a function to distributed data just creates an immutable lineage. To
-make a network call and thus obtain the result of a computation, it is necessary
-to first ``kick off'' computation, or to force its lineage. Within our
-programming model, this force operation (called \verb|send()|) makes network
-communication (and thus possibilities for latency) explicit, which is considered
-to be a strength when designing distributed systems~\cite{ANoteDistComp}.
-Deferred evaluation also enables optimizing distributed computations through
-operation fusion, which avoids the creation of unnecessary intermediate data
-structures--this is efficient in time as well as space. This kind of
-optimization is particularly important and effective in distributed
-systems~\cite{FlumeJava}.
+applying a function to distributed data just creates an immutable \todo{local?} 
+lineage. To make a network \todo{remote?} call and thus obtain the result of a 
+computation, it is necessary to first ``kick off'' computation, or to force 
+\todo{the traversal of?} its lineage. Within our programming model, this force 
+operation (called \verb|send()|) makes network communication (and thus 
+possibilities for latency) explicit, which is considered to be a strength when 
+designing distributed systems~\cite{ANoteDistComp}. Deferred evaluation also 
+enables optimizing distributed computations through operation fusion, which 
+avoids the creation of unnecessary intermediate data structures--this is 
+efficient in time as well as space. This kind of optimization is particularly 
+important and effective in distributed systems~\cite{FlumeJava}.
 
 % \vspace{-3mm}
 % \begin{center}\noindent\rule{8cm}{0.4pt}\end{center}
@@ -865,25 +875,42 @@ do so using a reference to the silo, a \verb|SiloRef|.
 
 \paragraph{SiloRefs}
 
-Similar to a proxy object, a SiloRef represents, and allows interacting with,
-both local and remote silos. SiloRefs are immutable, storing identifiers to
-locate possibly remote silos. SiloRefs are also typed (\verb|SiloRef[T]|)
-corresponding to the type of their silo's data, leading to well-typed network
-communication. The SiloRef provides three primitive operations/combinators (some
-are lazy, some are not): \verb|map|, \verb|flatMap|, and \verb|send|. The
-\verb|map| method makes use of deferred evaluation; it applies a user-defined
-function to data pointed to by the SiloRef, creating in a new silo containing
-the result of this application, though this application is \textit{deferred}.
-That is, this computation is only kicked off when the \verb|send| method is
-invoked. This makes it possible to queue up or stage transformations in order to
-optimize network communication. Like \verb|map|, the application of
-\verb|flatMap| is deferred. \verb|flatMap| applies a user-defined function to
-data pointed to by the SiloRef. Unlike \verb|map|, however, the user-defined
-function passed to \verb|flatMap| returns a SiloRef whose contents are
-transferred to the new silo returned by \verb|flatMap|. Essentially,
-\verb|flatMap| enables accessing the contents of (local or remote) silos from
-within remote computations. We illustrate these primitives in more detail in
-Section~\ref{sec:primitives}.
+Similar to a proxy object, a SiloRef \todo{put in "{\textbackslash}verb"?} 
+represents, and allows interacting with, both local and remote silos. SiloRefs 
+\todo{put in "{\textbackslash}verb"?}
+are immutable, storing identifiers to locate possibly remote silos. SiloRefs 
+\todo[inline]{In case of we are talking about the concept, I'd call it 
+"reference to silo", and in case of we are talking about the representation 
+within our realization I'd call it SiloRef and put in {\textbackslash}verb. Will 
+not markup further usage of "SiloRef" till we've aggreed on this suggestion.} 
+are also typed (\verb|SiloRef[T]|) corresponding to the type of their silo's 
+data, leading to well-typed network communication. The SiloRef provides three 
+primitive operations/combinators (some are lazy, some are not): \verb|map|, 
+\verb|flatMap|, and \verb|send|. The \verb|map| method makes use of deferred 
+evaluation; it \todo{eventually? and leave out ", though ... deferred} applies a 
+user-defined function to data pointed to by the SiloRef, creating in a new silo 
+containing the result of this application, though this application is 
+\textit{deferred}. That is, this computation is only kicked off when the 
+\verb|send| method is invoked. This makes it possible to queue up or stage 
+\todo{I'd would leave out "or stage"; just take one "queue up" or "stage"} 
+transformations in order to optimize network communication. Like \verb|map|, the 
+application of \verb|flatMap| is deferred. \verb|flatMap| \todo{also?} applies a 
+user-defined function to data pointed to by the SiloRef. Unlike \verb|map|, 
+however, the user-defined function passed to \verb|flatMap| returns a SiloRef 
+whose contents are \todo{content is?} transferred to the new silo returned by 
+\verb|flatMap|. Essentially, \verb|flatMap| enables accessing the contents of 
+(local or remote) silos from within remote computations. We illustrate these 
+primitives in more detail in Section~\ref{sec:primitives}.
+
+\todo[inline,color=red]{To clarify matters: Let's assume we have a silo at a 
+remote machine `m` referenced by a silo ref: `r1[int] --> s1[int]@m`. Now we 
+have a function `f :: int -> SiloRef[str]` which based on integers creates a new 
+silo at a remote machine `n`: `r2[str] --> s2[str]@n`. Flatmapping `f` on 
+`r1[int]` results in `r3[str] --> s3[str]@m`. First `f` creates a silo on `n` 
+and then `flatMap` transfers `s2[str]@n` to `m` yielding `s3[str]@m` with 
+`s2[str] == s3[str]`. For sure, `m` and `n` might be equal. All in all `flatMap`
+is for \emph{sequencing} operations operating within the respective 
+computational context.} 
 
 \paragraph{Spores}
 
@@ -894,6 +921,21 @@ the environment which a closure (provided by client code) can capture. This is
 achieved by (a) enforcing a specific syntactic shape which dictates how the
 environment of a spore is declared, and (b) providing additional type-checking
 to ensure that types being captured have certain properties.
+
+\todo[inline]{
+
+Peter J. Landin defined the term closure in 1964 as having an environment part 
+and a control part.
+
+Joel Moses credits Landin with introducing the term closure to refer to a lambda 
+expression whose open bindings (free variables) have been closed by (or bound 
+in) the lexical environment, resulting in a closed expression, or closure. 
+
+Cf. https://goo.gl/xe9ohw
+
+Therefore --- as to me --- "Spores" are the substantiation of closures, rather 
+than closure-like.
+}
 
 \vspace{3mm}
 \noindent A spore consists of two parts:
@@ -918,9 +960,10 @@ singleton objects (Scala's form of modules). The spore closure is not allowed
 to capture variables other than those declared in the spore header (\ie a spore
 may not capture variables in the environment). By enforcing this shape, the
 environment of a spore is always declared explicitly in the spore header, which
-avoids accidentally capturing problematic references. Moreover, importantly for
-object-oriented languages like Scala, it's no longer possible to accidentally
-capture the \verb|this| reference.
+avoids accidentally capturing problematic references \todo[inline]{Maybe we 
+could add "e.g. SparkContext"}. Moreover, importantly for object-oriented 
+languages like Scala, it's no longer possible to accidentally capture the 
+\verb|this| reference.
 
 Spores also come with additional type-checking. Type information corresponding
 to captured variables are included in the type of a spore. This enables authors
@@ -931,11 +974,14 @@ including information about excluded types (or other type-based properties) in
 the signature of a method. A concrete example would be to ensure that the
 \verb|map| method on \verb|RDD|s in Spark (a distributed collection) accepts
 only spores which do not capture \verb|SparkContext| (a non-serializable
-internal framework class).
+internal framework class). \todo[inline]{Would that be on the signature of `map` 
+or rather in the respective spores header? Maybe a short code snippet could 
+clarify matters?}
 
 For a deeper understanding of spores, see
 % either Appendix~\ref{appendix:spores} which covers the semantics of spores or
-the corresponding publication~\cite{Spores}.
+the corresponding publication~\cite{Spores}. \todo[inline]{I'd remove this 
+citation, as being redundant to the one at the beginning of this paragraph}
 
 \begin{figure}[t!]
 \centering\includegraphics[width=0.8\columnwidth]{basic-diagram.pdf}
@@ -954,31 +1000,37 @@ the function passing model.
 The main handle users have to the framework is via SiloRefs. A SiloRef can be
 thought of as an immutable handle to distributed data contained within a
 corresponding silo. Users interact with this distributed data by applying
-functions (as spores) to SiloRefs, which are transmitted over the wire and later
-applied to the data within the corresponding silo. As is the case for persistent
-data structures, when a function is applied to a piece of distributed data via a
-SiloRef, a SiloRef representing a new silo containing the transformed data is
-returned.
+functions (as spores) to SiloRefs, which \todo[inline]{This "which" could be 
+understood to refer to "SiloRefs". So, I'd rephrase to: Users interact with this 
+distributed data by applying functions (as spores) to SiloRefs. Those functions
+are transmitted over the wire and later ... } are transmitted over the wire and 
+later applied to the data within the corresponding silo. As is the case for 
+persistent data structures, when a function is applied to a piece of distributed 
+data via a SiloRef, a \todo{new?} SiloRef representing a new silo containing the 
+transformed data is returned.
 
 The simplest illustration of the model is shown in
-Figure~\ref{fig:basic-diagram} (time flows vertically from top to bottom).
+Figure~\ref{fig:basic-diagram} \todo[color=gray]{BTW, which tool did you use to 
+  create those diagrams?}(time flows vertically from top to bottom).
 Here, we start with a \verb|SiloRef[T]| which points to a piece of remote data
 contained within a \verb|Silo[T]|. When the function shown as $\lambda$ of type
 $T \Rightarrow S$ is applied to \verb|SiloRef[T]| and ``forced'' (sent over the
 wire), a new SiloRef of type \verb|SiloRef[S]| is immediately returned. Note
 that \verb|SiloRef[S]| contains a reference to its parent SiloRef,
 \verb|SiloRef[T]|. (This is how {\em lineages} are constructed.) Meanwhile, the
-function is asynchronously sent over the wire and is applied to \verb|Silo[T]|,
-eventually producing a new \verb|Silo[S]| containing the data transformed by
-function $\lambda$. This new \verb|SiloRef[S]| can be used even before its
-corresponding silo is materialized (\ie before the data in \verb|Silo[S]| is
-computed) – the function passing framework queues up operations applied to \verb|SiloRef[S]|
-and applies them when \verb|Silo[S]| is fully materialized.
+function is asynchronously sent over the wire and is \todo{then?} applied to 
+\verb|Silo[T]|, eventually producing a new \verb|Silo[S]| containing the data 
+transformed by function $\lambda$. This new \verb|SiloRef[S]| can be used even 
+before its corresponding silo is materialized (\ie before the data in 
+\verb|Silo[S]| is computed) – the function passing framework queues up 
+operations applied to \verb|SiloRef[S]| and applies them when \verb|Silo[S]| is 
+fully materialized.
 
 Different sorts of complex DAGs can be asynchronously built up in this way.
 Though first, to see how this is possible, we need to develop a clearer idea of
 the primitive operations available on SiloRefs and their semantics. We describe
-these in the following section.
+these in the following section. \todo[inline]{If we run low on space, this last 
+sentence could be dismissed.}
 
 \begin{figure}[t!]
 \centering\includegraphics[width=\columnwidth]{bigger-dag.pdf}
