@@ -1040,11 +1040,14 @@ sentence could be dismissed.}
 \subsection{Primitives}
 \label{sec:primitives}
 
-There are four basic primitive operations on SiloRefs that together can be used
-to build the higher-order operations common to popular data-centric distributed
-systems (how to build some of these higher-order operations is described in
-Section~\ref{sec:higher-order-operations}). In this section we'll introduce
-these primitives in the context of a running example. These primitives include:
+There are four basic primitive operations on SiloRefs that together can be used 
+to build the \todo{I'd leave off the "the"} higher-order operations common to 
+popular data-centric distributed systems (how to build some of these 
+higher-order operations is described in 
+Section~\ref{sec:higher-order-operations}). In this section we'll introduce 
+these primitives in the context of a running example \todo[inline]{I'd leave off 
+this sentence as it is redundant to the paragraph subsequent to `map`}. These 
+primitives include:
 
 \begin{itemize}[noitemsep,nolistsep]
 \item \verb|map|
@@ -1052,6 +1055,9 @@ these primitives in the context of a running example. These primitives include:
 \item \verb|send|
 \item \verb|cache|
 \end{itemize}
+
+\todo[inline]{To save space, I'd inline this itemization, like (0) map, (1) 
+flatMap, ...}
 
 \paragraph{map}%
 %
@@ -1062,23 +1068,36 @@ silo associated with the given SiloRef. Rather than immediately sending the
 spore across the network, and waiting for the operation to finish, the
 \verb|map| method's evaluation is \emph{deferred}. Without involving any network
 communication, it immediately returns a SiloRef referring to a new,
-soon-to-be-created silo. This new SiloRef only contains lineage information,
-namely, a reference to the original SiloRef, a reference to the argument spore,
-and the information that it is the result of a \verb|map| invocation. As we
-explain below, another method, \verb|send| or \verb|cache|, must be called
-explicitly to force the materialization of the result silo.
+soon-to-be-created \todo{Nice, but I'd leave off "soon"} silo. This new SiloRef 
+only contains lineage information, namely, a reference to the original SiloRef, 
+a reference to the argument spore, and the information that it is the result of 
+a \verb|map| invocation. As we explain below, another method, \verb|send| or 
+\verb|cache|, must be called explicitly to force the materialization of the 
+result silo.
 
 To better understand how DAGs are created and how remote silos are
-materialized, we will develop a running example throughout this section. Given
+materialized, we will develop a running example \todo[inline]{Do we have a Gist 
+for that? Or at least have the implemenation in the samples directory of our f-p
+repository?} throughout this section. Given
 a silo containing a list of \verb|Person| records, the following application of
 \verb|map| defines a (not-yet-materialized) silo containing only the records of
 adults (graphically shown in Figure~\ref{fig:bigger-dag}, part 1):
 
+%\begin{lstlisting}
+%val persons: SiloRef[List[Person]] = ...
+%val adults =
+%  persons.map(spore { ps => ps.filter(p => p.age >= 18) })
+%\end{lstlisting}
+
 \begin{lstlisting}
+// The references are persisted at machine 1 but the actual data,
+// the silo, is hosted at machine 2.
 val persons: SiloRef[List[Person]] = ...
-val adults =
-  persons.map(spore { ps => ps.filter(p => p.age >= 18) })
+val isGrown: Person => Boolean = ps => ps.filter(p => p.age >= 18)
+val adults: SiloRef[List[Person]] = persons.map(spore { isGrown })
 \end{lstlisting}
+
+%\inline{As this is an illustrative example, I'd fully annotate the types, i.e., adults: SiloRef[List[Person]]`}
 
 \paragraph{flatMap}%
 %
