@@ -268,7 +268,7 @@
 \title{Function Passing: A Model for Typed, Distributed Functional Programming}
 %\subtitle{Subtitle Text, if any}
 
-\authorinfo{Authors Omitted}
+\authorinfo{Author Omitted}
            {For review}
           %  {heather.miller@epfl.ch}
 
@@ -470,35 +470,48 @@ programming language begs the question--has it been our programming languages
 that have limited us? Could it be that the primitives we build our systems upon
 are too low-level, causing us to struggle to reinvent the same tricky wheel over
 and over again? As these large-scale data processing applications continue to
-grow in importance, what can we as language designers do to make it easier for
-more of these frameworks to rise?
+grow in importance, what can we as language designers \todo[inline]{Sounds like
+we propose improvements to those languages; F-P is more an interlayer between
+such a language and the frameworks to enable better framework design} do to make
+it easier for more of these frameworks to rise?
 
 This paper presents a new programming model called the {\em function passing}
-model which has been designed to be a more principled substrate (or middleware)
-upon which to build data-centric distributed systems. It can be viewed as a
-generalization of the MapReduce/Spark programming model--though it is not
-limited to the MapReduce/Spark programming model alone as we will later show.
+model which has been designed to be a more principled substrate (or
+middleware\todo{Yes!}) upon which to build data-centric distributed systems. It
+can be viewed as a generalization of the MapReduce/Spark programming
+model--though it is not limited to the MapReduce/Spark programming model alone
+as we will later show.
 % For example, the function passing
 % model attempts to more naturally model the paradigm of data-centric programming by
 % extending monadic programming to the network. In addition, it simplifies the task of
 
 The key idea behind the function passing model is to keep distributed
 (immutable) data stationary, and to instead send functionality as function
-closures over the network. This enables two important benefits for distributed
-system builders; (a) since all computations are functional transformations on
-immutable data, fault-tolerance is made simple by design, and (b) communication
-is made well-typed by design, a common pain point for builders of distributed
-systems in Scala. Said another way, the function passing model attempts to more
-naturally model the paradigm of data-centric programming by extending monadic
-programming to the network.
-On this note, one might observe that the function passing model can actually be
-interpreted as somewhat of a dual to the actor model;\footnote{There are many
-variations and interpretations of the actor model; in saying our model is
-somewhat of a dual, we simply mean to highlight that programmers need not focus
-on programming with typically stationary message handlers. Instead, our model
-focuses on a monadic interface for programming with data (and sending functions
-instead).} rather than keeping functionality stationary and sending data, in our
-model, we keep data stationary and send functionality to the data.
+closures over the network. \todo[inline]{Sounds like it's our idea to keep data
+stationary and instead send functionality over the wire. But reading "White -
+2012 - Hadoop The Definitive Guide" and "Zaharia - 2015 - Learning Spark", both
+resources state at the very beginning --- resumed in my own words: Whereas
+traditional parallelism brings the data to the compute, [Hadoop MapReduce |
+Apache Spark] does the opposite--it brings the compute to the data. So, here, we
+should emphasize the term "closure" to hint the reader to our actual key idea.}
+This enables two important benefits for distributed system builders; (a) since
+all computations are functional transformations on immutable data,
+fault-tolerance is made simple by design, and (b) communication is made
+well-typed by design, a common pain point for builders of distributed systems in
+Scala \todo{Just "in Scala"?}. Said another way, the function passing model
+attempts to more naturally model the paradigm of data-centric programming by
+extending monadic programming to the network. On this note, one might observe
+that the function passing model can actually be interpreted as somewhat of a
+dual to the actor model;\footnote{There are many variations and interpretations
+of the actor model; in saying our model is somewhat of a dual, we simply mean to
+highlight that programmers need not focus on programming with typically
+stationary message handlers. Instead, our model focuses on a monadic interface
+for programming with data (and sending functions instead).} rather than keeping
+functionality stationary and sending data, in our model, we keep data stationary
+and send functionality to the data.\todo[inline]{Here, once again, I --- as a
+"normal" reader --- get the impression that the authors are presenting a new
+model that brings compute to data, but this is already known to me by Hadoop and
+Spark.}
 
 % More concretely, the function passing model can be thought of as a persistent
 % data structure whose nodes span compute nodes. These nodes of this data
@@ -529,20 +542,28 @@ easy to reason about foundation upon which to build data-centric distributed
 systems. Interestingly, we found that deferred evaluation was an enabler in our
 model, without complicating the ability to reason about programs as we will soon
 show. Without optimizations based on deferred evaluation, we found this model
-would be impractically inefficient in memory and time.
+would be impractically inefficient in memory and time.\todo[inline]{The emphasis
+on "lazyness" confuses me a bit. Isn't lazyness inherent to FP rsp. a
+consequence of the property of referential transparency? Said in other words,
+don't we get that for free, alone due to the fact that be base our model on the
+FP paradigm?} 
 
 One important contribution of our model is a precise specification of the
-semantics of functional fault recovery. The fault-recovery mechanisms of
-widespread systems such as Apache Spark, MapReduce~\cite{MapReduce} and
+semantics of functional fault recovery. The \todo[inline]{Here I would
+substitute "The" with "This" or emphasize the term "functional". Otherwise it
+sounds to me that we are specifying a "functional fault recovery" oposed to the
+fault recovery mechanism of those widespread system.} fault-recovery mechanisms
+of widespread systems such as Apache Spark, MapReduce~\cite{MapReduce} and
 Dryad~\cite{Dryad} are based on the concept of a \emph{lineage}~\cite{Lineage1,
 Lineage2}. Essentially, the lineage of a data set combines (a) an initial data
-set available on stable storage and (b) a sequence of transformations applied
-to initial and subsequent data sets. Maintaining such lineages enables fault
-recovery through recomputation. Practical implementations of lineage-based
-fault recovery suffer from complex code bases, typically eschewing strong
-static typing. This paper presents a principled approach to lineage-based fault
-recovery in a purely functional setting--to our knowledge a novelty in the PL
-literature.
+set available on stable storage and (b) a sequence of transformations applied to
+initial and subsequent data sets. Maintaining such lineages enables fault
+recovery through recomputation. Practical implementations of lineage-based fault
+recovery suffer from complex code bases, typically eschewing strong static
+typing. This paper presents a principled approach to lineage-based fault
+recovery in a purely functional \todo[inline]{Highlighting "purely functiona"
+would make out point clear re my previous comment.} setting--to our knowledge a
+novelty in the PL literature.
 
 % Our programming model is also designed to enable adoption in real-world
 % languages and systems. On the one hand, our model can be thought of as a
@@ -564,27 +585,33 @@ This paper makes the following contributions:
 \begin{itemize} %[noitemsep]
 
 \item {\bf\em A new data-centric programming model for functional processing of
-  distributed data} which makes important concerns like fault tolerance simpler by
-  design. The main computational principle is based on the
-  idea of sending safe, guaranteed serializable functions to stationary data.
-  Using standard monadic operations, our model enables creating immutable
-  directed acyclic graphs of computations, supporting decentralized distributed
-  computations. Deferred evaluation enables important optimizations while keeping
-  programs simple to reason about.
-
+  distributed data} which makes important concerns like fault tolerance simpler
+    by design. The main computational principle is based on the idea of sending
+    safe, guaranteed serializable functions to stationary data. Using standard
+    monadic operations, our model enables creating immutable directed acyclic
+    graphs of computations, supporting decentralized distributed computations.
+    Deferred evaluation enables important optimizations while keeping programs
+    simple to reason about.\todo[inline]{Is the term "programming model"
+    well-understood? Maybe a footnote "We consider a programming model as an
+    abstraction of the underlying computer system that allows for the expression
+    of both algorithms and data structures". In case of the former we utlize
+    monadic operations and in case of the latter we introcude Silos}
+                                                       
 \item {\bf\em A formalization of our programming model} based on a small-step
   operational  semantics. To our knowledge it is the first formal account of
-  fault recovery based on lineage in a purely functional setting. Inspired by
-  widespread systems like Spark, our formalization closely models real-world
-  fault recovery mechanisms. The presented semantics is clearly stratified into
-  a deterministic layer and a concurrent/distributed layer. Importantly,
-  reasoning techniques for sequential programs are not invalidated by the
-  distributed layer.
+    fault recovery based on lineage in a purely functional setting. Inspired by
+    widespread systems like Spark, our formalization closely models real-world
+    fault recovery mechanisms. The presented semantics is clearly stratified
+    into a deterministic layer and a concurrent/distributed layer. Importantly,
+    reasoning techniques for sequential programs are not invalidated by the
+    distributed layer.
 
 \item {\bf\em A distributed implementation of the programming model} in and for
-  Scala as a middleware. In addition, we present prototype versions we have built
-  of popular frameworks like Spark and MBrace using the function passing model, and
-  end-user applications we have built using each of these prototype frameworks.
+  Scala as a middleware. In addition, we present prototype versions we have
+    built of popular frameworks like Spark \todo[inline]{We always called it
+    "Apache Spark" so far} and MBrace \todo{Reference?} using the function
+    passing model, and end-user applications we have built using each of these
+    prototype frameworks.
 
   % \fixme{We present experiments that show some of the benefits of the proposed
   % design, and we report on a validation of spores in the context of distributed
@@ -1480,7 +1507,6 @@ materialized. The aggregation result is then combined with a silo
 \verb|info| on some host different from the local host. The final
 result is written to a distributed file system:
 
-\vspace{-0.8mm}
 \begin{lstlisting}
 object Utils {
   def aggregate(vs: SiloRef[List[Vehicle]],
