@@ -1388,12 +1388,13 @@ trivial SiloRef causes the resulting future to be completed as soon as
 \subsection{Fault Handling}
 \label{sec:fault-handling}
 
-The function passing model includes overloaded variants of the primitives discussed so far which
-enable the definition of flexible fault handling semantics. The main idea is to
-specify fault handlers for \emph{subgraphs of computation DAGs}. Our guiding
-principle is to make the definition of the failure-free path through a
-computation DAG as simple as possible, while still enabling the handling of
-faults at the fine-granular level of individual SiloRefs.
+The function passing model includes overloaded variants of the primitives 
+discussed so far which enable the definition of flexible fault handling 
+semantics. The main idea is to specify fault handlers for \emph{subgraphs of 
+computation DAGs}. Our guiding principle is to make the definition of the 
+failure-free path through a computation DAG as simple as possible, while still 
+enabling the handling of faults at the fine-granular level of individual 
+SiloRefs.
 
 \paragraph{Defining fault handlers}
 
@@ -1404,17 +1405,16 @@ fault handler:
 
 \begin{lstlisting}
 val persons: SiloRef[List[Person]] = ...
+val adults: SiloRef[List[Person]] = ...
 val vehicles: SiloRef[List[Vehicle]] = ...
+
 // copy of `vehicles` on different host `h`
 val vehicles2 = SiloRef.fromFun(h)(spore {
   val localVehicles = vehicles
   () => localVehicles
 })
 
-val adults =
-  persons.map(spore { ps => ps.filter(p => p.age >= 18) })
-
-// adults that own a vehicle
+// persons that own a vehicle
 def computeOwners(v: SiloRef[List[Vehicle]]) =
   spore {
     val localVehicles = v
