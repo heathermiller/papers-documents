@@ -1443,8 +1443,8 @@ instead.
 \section{Higher-Order Operations}
 \label{sec:higher-order-operations}
 
-The introduced primitives enable expressing surprisingly intricate
-computational patterns.
+The introduced primitives enable expressing surprisingly intricate \todo{Why 
+"intricate"?} computational patterns.
 
 Higher-order operations such as variants of \verb|map|, \verb|reduce|, and
 \verb|join|, operating on collections of data partitions, distributed across a
@@ -1456,6 +1456,8 @@ In addition, even more patterns are possible thanks to the decentralized nature
 of our programming model, which removes the limitations of master/worker host
 configurations. Section~\ref{sec:decentral} shows examples of peer-to-peer
 patterns that are still fault-tolerant.
+
+\todo[inline]{What is the introduction of this section telling the author?}
 
 % \verb|union|, \verb|groupByKey|, or
 % \verb|join|
@@ -1524,7 +1526,7 @@ val combined = s12.flatMap(spore {
 The combined silo contains triples of type \verb|(K, Option[A], Option[B])|.
 Using an additional \verb|map|, the collection can be sorted by key, and
 adjacent triples be combined, yielding a \texttt{SiloRef[List[(K, (A, B))]]} as
-required.
+required. \todo{One additional map?}
 
 \paragraph{Partitioning and groupByKey}
 
@@ -1550,6 +1552,8 @@ implemented as follows:
 \item Using \verb|flatMap|, each pair of silos containing keys of the same
   range can be combined and materialized on the right destination host.
 \end{itemize}
+
+\todo{Here we should add a footnote with a link to the actual implementation}
 
 Using just the primitives introduced earlier, applying the partitioning
 function in this way would require $N$ \verb|map| invocations per silo. Thus,
