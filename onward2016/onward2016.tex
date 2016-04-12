@@ -1167,7 +1167,8 @@ val owners: SiloRef[List[(Person,Vehicle)]] =
       ) )
   }) })
 \end{lstlisting}
-\todo[inline]{Code comments should be incorporated into text if aggreed}
+\todo[inline]{Code comments should be incorporated into text if aggreed; maybe 
+not here but within the paragraph of `send`.}
 \noindent
 Note that the spore passed to \verb|flatMap| declares the capturing of the 
 \verb|vehicles| SiloRef in its so-called ``spore header.'' \todo{Why 
@@ -1197,7 +1198,7 @@ DAGs (\eg operation fusion~\cite{FlumeJava}).
 %
 As mentioned earlier, the execution of computations built using SiloRefs is
 deferred. The \verb|send| operation {\em forces} the deferred computation defined
-by the given SiloRef.  Forcing is explicit in our model, because it requires
+by the given SiloRef. Forcing is explicit in our model, because it requires
 sending the lineage to the remote node on which the result silo should be
 created. Given that network communication has a latency several orders of
 magnitude greater than accessing a word in main memory, providing an explicit
@@ -1215,15 +1216,15 @@ on a distributed collection).
 %
 \texttt{def cache(): Future[Unit]} \newline
 %
-The performance of typical data analytics jobs can be increased dramatically by
-caching large data sets in memory~\cite{Spark}. To do this, the silo containing
-the computed data set needs to be materialized. So far, the only way to
-materialize a silo that we have shown is using the \verb|send| primitive.
-However, \verb|send| additionally transfers the contents of a silo to the
-requesting node--too much if a large remote data set should merely be cached in
-memory remotely.  Therefore, an additional primitive called \verb|cache| is
-provided, which forces the materialization of the given SiloRef, returning
-\verb|Future[Unit]|.
+The performance of typical data analytics jobs can be increased dramatically by 
+caching large data sets in memory~\cite{Spark}. To do this, the silo containing 
+the computed data set needs to be materialized. So far, the only way to 
+materialize a silo that we have shown is using the \verb|send| primitive. 
+However, \verb|send| additionally transfers the contents of a silo to the 
+requesting node--too much if a large remote data set should merely be cached in 
+memory remotely.  Therefore, an additional primitive called \verb|cache| is 
+provided, which forces the \todo{remote} materialization of the given SiloRef, 
+returning \verb|Future[Unit]|.
 
 Given the running example so far, we can add another subgraph branching off of
 \verb|adults|, which sorts each \verb|Person| by age, produces a \verb|String|
@@ -1245,6 +1246,9 @@ Figure~\ref{fig:bigger-dag}. Note that \verb|vehicles|
 is not a regular parent in the lineage of \verb|owners|; it is an indirect
 input used to compute \verb|owners| by virtue of being {\em captured} by the
 spore used to compute \verb|owners|.
+
+\todo[inline]{Isn't in the figure the silo of `owners` missing?}
+\todo[inline]{What is a "regular parent"?}
 
 % For example, Figure ?? shows the effect of invoking
 % \verb|send| on the \verb|labels| SiloRef from above.
@@ -1271,23 +1275,32 @@ singleton object (Scala's form of modules). The singleton object provides
 factory methods for obtaining SiloRefs referring to silos populated with some
 initial data:\footnote{For clarity, only method signatures are shown.}
 
+%\begin{lstlisting}
+%object SiloRef {
+%  def fromTextFile(host: Host)(file: File): SiloRef[List[String]]
+%  def fromFun[T](host: Host)(s: Spore[Unit, T]): SiloRef[T]
+%  def fromLineage[T](host: Host)(s: SiloRef[T]): SiloRef[T]
+%}
+%\end{lstlisting}
 \begin{lstlisting}
 object SiloRef {
-  def fromTextFile(host: Host)(file: File): SiloRef[List[String]]
-  def fromFun[T](host: Host)(s: Spore[Unit, T]): SiloRef[T]
-  def fromLineage[T](host: Host)(s: SiloRef[T]): SiloRef[T]
+  def fromTextFile(to: Host)(file: File): SiloRef[List[String]]
+  def fromFun[T](to: Host)(s: Spore[Unit, T]): SiloRef[T]
+  def fromLineage[T](to: Host)(s: SiloRef[T]): SiloRef[T]
 }
 \end{lstlisting}
 \noindent
-Each of the factory methods has a \verb|host| parameter that specifies the
-target host (address/port) on which to create the silo. Note that the
-\verb|fromFun| method takes a spore closure as an argument to make sure it can
-be serialized and sent to \verb|host|. In each case, the returned SiloRef
-contains its \verb|host| as well as a host-unique identifier. The
-\verb|fromLineage| method is particularly interesting as it creates a copy of a
-previously existing silo based on the lineage of a SiloRef \verb|s|. Note that
-only the SiloRef is necessary for this operation to successfully complete; the
-silo originally hosting \verb|s| might already have failed.
+Each of the factory methods has a \verb|Host| parameter that specifies the 
+target host (address/port) on which to create the silo. Note that the 
+\verb|fromFun| method takes a spore closure\todo{remove "closure"} as an 
+argument to make sure it can be serialized and sent to \verb|Host|. In each 
+case, the returned SiloRef contains its \verb|Host| as well as a host-unique 
+identifier. \todo[inline]{Why do we here mention theses constituents of a 
+SiloRef?} The \verb|fromLineage| method is particularly interesting as it 
+creates a copy of a previously existing silo based on the lineage of a SiloRef 
+\verb|s|. Note that only the SiloRef is necessary for this operation to 
+successfully complete; the silo originally hosting \verb|s| might already have 
+failed.
 
 \subsubsection{Type Polymorphism and Silos/SiloRefs}
 
@@ -1332,6 +1345,9 @@ operation. The reason why \verb|map| is provided as one of the main operations
 of SiloRefs is that direct uses of \verb|map| enable an important optimization
 based on operation fusion.
 
+\todo[inline]{Here we leave the reader alone; at least a short description re 
+operation fusion applied should be added}
+
 \paragraph{Expressing \texttt{cache}}
 
 The \verb|cache| operation can be expressed using \verb|flatMap| and
@@ -1345,11 +1361,15 @@ def cache(): Future[Unit] = this.flatMap(spore {
 
 \end{lstlisting}
 \noindent
-Here, we first use \verb|flatMap| to create a new silo that will be completed
-with the trivial value of the \verb|DoneSiloRef| singleton object (\eg
-\verb|Unit|). Essentially, invoking \verb|send| on this trivial SiloRef causes
-the resulting future to be completed as soon as \verb|this| SiloRef has been
-materialized in memory.
+Here, we first use \verb|flatMap| to create a new silo that will be completed 
+with the trivial value of the \verb|DoneSiloRef| singleton object (\eg 
+\verb|Unit|). \todo[inline]{The `send` forces flatMap's spore to be send to the 
+silo referened by `this`. Then `res => SiloRef[Unit]()` is applied to the data 
+in the silo creating a new silo with value `()` in it. How does this enforce 
+that the silo referenced by `this` is now in memory at the respective host? 
+Don't understand this caching.} Essentially, invoking \verb|send| on this 
+trivial SiloRef causes the resulting future to be completed as soon as 
+\verb|this| SiloRef has been materialized in memory.
 
 
 % This optimization is explained following the
