@@ -1167,16 +1167,18 @@ owners   @ m1 --> Silo[List[(Person,Vehicle)]]  @ m2
 \end{lstlisting}
 \noindent
 Work in progress is to leave results where they are and introduce the concept of 
-a {\emph{silo reference proxies}}, delegating to the actual data. I.e., the 
-anonymous silo reference created at \verb|m2| will not be ruled out but function 
-as proxy delegating requests re \verb|owners| to the data hosted at \verb|m3|. 
-This alleviates network communication and scales up transformation execution.  
+a {\emph{silo reference proxies}}, delegating to the actual data:
 
 \begin{lstlisting}
 adults   @ m1                --> Silo[List[Person]]            @ m2
 vehicles @ m1                --> Silo[List[Vehicle]]           @ m3
 owners   @ m1 --> proxy @ m3 --> Silo[List[(Person,Vehicle)]]  @ m3
 \end{lstlisting}
+\noindent
+The anonymous silo reference created at \verb|m2| will not be ruled out but 
+function as proxy delegating requests re \verb|owners| to the data hosted at 
+\verb|m3|. This alleviates network communication and scales up transformation 
+execution.
 
 \paragraph{cache}%
 %
@@ -1199,8 +1201,7 @@ caching the result in remote memory (graphically shown in
 Figure~\ref{fig:bigger-dag}, part 3 and 4):
 
 \begin{lstlisting}
-val sorted =
-  adults.map(spore { ps => ps.sortWith(p => p.age) })
+val sorted = adults.map(spore { ps => ps.sortWith(p => p.age) })
 val labels =
   sorted.map(spore { ps => ps.map(p => "Welcome, " + p.name) })
 labels.cache()
@@ -1208,12 +1209,10 @@ labels.cache()
 \noindent
 Assuming we would also cache the \verb|owners| SiloRef from the previous
 example, the resulting lineage graph would look as illustrated in
-Figure~\ref{fig:bigger-dag}. Note that \verb|vehicles|
-is not a regular parent in the lineage of \verb|owners|; it is an indirect
-input used to compute \verb|owners| by virtue of being {\em captured} by the
-spore used to compute \verb|owners|.
-
-\todo[inline]{Isn't in the figure the silo of `owners` missing?}
+Figure~\ref{fig:bigger-dag}. \todo[inline]{Isn't in the figure the silo of 
+`owners` missing?} Note that \verb|vehicles| is not a regular parent in the 
+lineage of \verb|owners|; it is an indirect input used to compute \verb|owners| 
+by virtue of being {\em captured} by the spore used to compute \verb|owners|. 
 \todo[inline]{What is a "regular parent"?}
 
 % For example, Figure ?? shows the effect of invoking
@@ -1261,7 +1260,7 @@ target host (address/port) on which to create the silo. Note that the
 \verb|fromFun| method takes a spore as an argument to make sure it can be 
 serialized and sent to \verb|Host|. In each case, the returned SiloRef contains 
 its \verb|Host| as well as a host-unique identifier. \todo[inline]{Why do we 
-here mention theses constituents of a SiloRef?} The \verb|fromLineage| method is 
+mention theses constituents of a SiloRef?} The \verb|fromLineage| method is 
 particularly interesting as it creates a copy of a previously existing silo 
 based on the lineage of a SiloRef \verb|s|. Note that only the SiloRef is 
 necessary for this operation to successfully complete; the silo originally 
@@ -1491,7 +1490,7 @@ val combined = s12.flatMap(spore {
 The combined silo contains triples of type \verb|(K, Option[A], Option[B])|.
 Using an additional \verb|map|, the collection can be sorted by key, and
 adjacent triples be combined, yielding a \texttt{SiloRef[List[(K, (A, B))]]} as
-required. \todo{One additional map?}
+required, e.g. \verb|combined.map(spore { ts => (merge compose sort) ts })|.
 
 \paragraph{Partitioning and groupByKey}
 
@@ -1517,8 +1516,8 @@ implemented as follows:
 \item Using \verb|flatMap|, each pair of silos containing keys of the same
   range can be combined and materialized on the right destination host.
 \end{itemize}
-
-\todo{Here we should add a footnote with a link to the actual implementation}
+\todo[inline]{Here we should add a footnote with a link to the actual 
+implementation}
 
 Using just the primitives introduced earlier, applying the partitioning
 function in this way would require $N$ \verb|map| invocations per silo. Thus,
@@ -1527,28 +1526,26 @@ specialized combinator, say, ``mapPartition'' that would apply a given
 partitioning function to each key-value pair, simultaneously populating $N$
 silos (where $N$ is the number of ``buckets'' of the partitioning function).
 
-XXX
-
 \subsection{Peer-to-Peer Patterns}
 \label{sec:decentral}
 
 \subsubsection{Essence}
 
-So far, our examples have focused on master-worker topologies that underly
-models like Spark--\ie a master node specifies identical DAGs of computation for
-all worker nodes to follow.
+So far, our examples have focused on master-worker topologies underlying
+models like Apache Spark--\ie a master node specifies identical DAGs of 
+computation for all worker nodes to follow.
 
 The function passing model, however, is not limited to these sorts of
 topologies. It is indeed possible to develop decentralized, peer-to-peer
 topologies on top of the function passing model. For example, a single compute
-node may host silos that are remotely referenced by remote SiloRefs, as well as
+node may host silos, that are remotely referenced by remote SiloRefs, as well as
 SiloRefs remotely referencing silos on other compute nodes.
 
 Further, as we show in the following example, it's also possible for multiple
-clients to build completely different DAGs of computation off of some source
-silo. In effect, this enables datasets to be shared--they exist once in memory
-on some node, but can be used and transformed in different ways by different
-clients.
+clients to build completely different DAGs of computation starting off of some 
+source silo. In effect, this enables datasets to be shared--they exist once in 
+memory on some node, but can be used and transformed in different ways by 
+different clients.
 
 Consider the following example. We start by populating an initial silo
 representing a dataset of \verb|Vehicle| objects on
@@ -1567,10 +1564,11 @@ val silo2 = vehicles.map(spore {
     // extract US state from license plate string, e.g, "FL329098"
     vs.map(v => (v.licensePlate.take(2), v)).toMap
 })
+
 val vehiclesPerState = silo2.send()
 
 // client #2
-// get siloref for silo that is being materialized due to client #1
+// get ref for silo that is being materialized due to client #1
 val vehicles: SiloRef[List[Vehicle]] =
   Silo.fromTextFile(lmpsrv1)("hdfs://...")
 
@@ -1578,18 +1576,19 @@ val silo2 = vehicles.map(spore {
   // list all vehicles manufactured since 2013
   (vs: List[Vehicle]) => vs.filter(v => v.yearManufactured >= 2013)
 })
+
 val vehiclesSince2013 = silo2.send()
 \end{lstlisting}
 
-Here, client \#1 would like to perform some sort of computation based on the
-states that vehicles are registered in. Another client, client \#2 would also
-like to access this dataset. To do so, one must simply once again invoke
-\verb|fromTextFile| on the same host, \verb|Host("lmpsrv1.scala-lang.org",9999)|
-to obtain a SiloRef that points to a corresponding silo that is already or
-soon to be materialized. From here, client \#2 is able to build an entirely
-different DAG of computations, for instance in this example, filtering the
-original \verb|vehicle| dataset to obtain only vehicles manufactured
-since 2013.
+Here, client \#1 would like to perform some sort of computation based on a 
+collection of \verb|Vehicle| records. Another client, client \#2, would also 
+like to access this dataset\todo{data set or dataset?}. To do so, one must 
+simply once again invoke \verb|fromTextFile| on the same host, 
+\verb|Host("lmpsrv1.scala-lang.org",9999)| to obtain a SiloRef that points to a 
+corresponding silo that is already or soon to be materialized. From here, client 
+\#2 is able to build an entirely different DAG of computations, for instance in 
+this example, filtering the original \verb|vehicles| dataset to obtain only 
+vehicles manufactured since 2013.
 
 \subsubsection{Decentralized Fault-Handling}
 
@@ -1677,20 +1676,19 @@ recovered.cache() // force computation on backup host
 \end{lstlisting}
 \noindent
 
-First, the local variables \verb|doCombine| and \verb|doWrite| refer to the
-verbatim spores passed to \verb|flatMap| and \verb|map| above. Second,
-\verb|backup| is a dummy silo on a backup host \verb|hostb|. It is used to send
-a spore to the backup host in a way that allows it to detect whether the
-host of \verb|done|/\verb|info| has failed. The fault handling is done by calling \verb|flatMap|
-on \verb|backup|, passing (a) a spore for the non-failure case and (b) a spore for
-the failure case. The spore for the non-failure case simply returns the
-\verb|done| SiloRef. Importantly, this enables \verb|hostb| to detect failures
-of the host of \verb|done|. Upon detecting such a failure, \verb|backup.flatMap|
-applies the spore for the failure case. In this case, the lineage of the
-captured \verb|info| SiloRef is used to restore its original contents in a new
-silo created on the backup host \verb|hostb|. Its SiloRef is then used to retry
-the original computation.
-
+First, the local variables \verb|doCombine| and \verb|doWrite| refer to the 
+verbatim spores passed to \verb|flatMap| and \verb|map| above. Second, 
+\verb|backup| is a dummy silo on a backup host \verb|hostb|. It is used to send 
+a spore to the backup host in a way that allows it to detect whether the host of 
+\verb|done|/\verb|info| has failed. The fault handling is done by calling 
+\verb|flatMap| on \verb|backup|, passing (a) a spore for the non-failure case 
+and (b) a spore for the failure case. The spore for the non-failure case simply 
+returns the \verb|done| SiloRef. Importantly, this enables \verb|hostb| to 
+detect failures of the host of \verb|done|. Upon detecting such a failure, 
+\verb|backup.flatMap| applies the spore for the failure case. In this case, the 
+lineage of the captured \verb|info| SiloRef is used to restore its original 
+contents in a new silo created on the backup host \verb|hostb|. Its SiloRef is 
+then used to retry the original computation.
 
 % To illustrate the decentralized nature of our model, consider the following
 % example: the local host aggregates some data as soon as two silos
