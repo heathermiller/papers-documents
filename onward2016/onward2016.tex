@@ -1072,51 +1072,7 @@ other details only found in the \verb|adults| silo. In the following,
 the names of person and vehicle owner match (graphically shown in 
 Figure~\ref{fig:bigger-dag}, part 2):
 
-%\begin{lstlisting}
-%val vehicles: SiloRef[List[Vehicle]] = ...
-%// adults that own a vehicle
-%val owners = adults.flatMap(spore {
-%  val localVehicles = vehicles // spore header
-%  ps =>
-%    localVehicles.map(spore {
-%      val localps = ps // spore header
-%      vs =>
-%        localps.flatMap(p =>
-%          // list of (p, v) for a single person p
-%          vs.flatMap {
-%            v => if (v.owner.name == p.name) List((p, v)) else Nil
-%          }
-%        )
-%    })
-%})
-%\end{lstlisting}
-\begin{lstlisting}[numbers=right,numbersep=5pt,stepnumber=2]
-// The references are persisted at machine 1
-// but the actual data is distributed:
-//   adults   @m1 --> Silo[List[Person]]            @m2
-//   vehicles @m1 --> Silo[List[Vehicle]]           @m3
-//   owners   @m1 --> Silo[List[(Person,Verhicle)]] @m3
-// In order to create `owners`, we combine data hosted
-// at `m2` and `m3` and store the result at `m3`.
-
-// In case of materialization is forced,
-// first transfer to `m2` the vehicles
-// SiloRef and the closure (line 18).
-
-// Next, transfer to `m3` the
-// adults from `m2` and the closure (line 20).
-
-// Now, at `m3`, we've the adults `ps` and vehicles `vs` and can
-// combine correspondingly, resulting in a new SiloRef at `m2`
-// referencing the new silo of List[(Person,Vehicle)] at `m3`.
-
-// Eventually this new SiloRef at `m2` is used to transfer its data
-// from `m3` to `m2`, the origin of the `flatMap`.
-
-// Future work: Leave the result where it is and introduce the
-// concept of a "SiloRefProxy" delegating to the actual data. I.e.,
-// the proxy would be at m2 but the data would stay at m3.
-
+\begin{lstlisting}%[numbers=right,numbersep=5pt,stepnumber=2]
 val vehicles: SiloRef[List[Vehicle]] = ...
 val owners: SiloRef[List[(Person,Vehicle)]] =
   adults.flatMap(spore {
@@ -1130,8 +1086,6 @@ val owners: SiloRef[List[(Person,Vehicle)]] =
       ) )
   }) })
 \end{lstlisting}
-\todo[inline]{Code comments should be incorporated into text if aggreed; maybe 
-not here but within the paragraph of `send`.}
 \noindent
 Note that the spore passed to \verb|flatMap| declares the capturing of the 
 \verb|vehicles| SiloRef in its spore header. The spore header spans all variable 
@@ -1140,14 +1094,14 @@ closure. The spore header defines the variables that the spore's closure is
 allowed to access. Essentially, spores limit the free variables of their 
 closure's body to the closure's parameters and the variables declared in the 
 spore's header. \todo[inline]{Spores have been already explained} Within the 
-spore's closure, it is necessary to read the data of the \verb|vehicles| silo in 
-addition to the \verb|ps| list of \verb|Person| records. This requires calling 
-\verb|map| on \verb|localVehicles|. However, \verb|map| returns a SiloRef; thus, 
-invoking \verb|map| on \verb|adults| instead of \verb|flatMap| would be 
-impossible, since there would be no way to get the data out of the silo returned 
-by \verb|localVehicles.map(..)|. With the use of \verb|flatMap|, however, the 
-call to \verb|localVehicles.map(..)| creates the final result silo, whose data 
-is then also contained in the silo returned by \verb|flatMap|.
+spore's closure, it is necessary to read the data of the silo referenced by 
+\verb|vehicles| in addition to the \verb|ps| list of \verb|Person| records. This 
+requires calling \verb|map| on \verb|localVehicles|. However, \verb|map| returns 
+a SiloRef; thus, invoking \verb|map| on \verb|adults| instead of \verb|flatMap| 
+would be impossible, since there would be no way to get the data out of the silo 
+returned by \verb|localVehicles.map(..)|. With the use of \verb|flatMap|, 
+however, the call to \verb|localVehicles.map(..)| creates the final result silo, 
+whose data is then also contained in the silo returned by \verb|flatMap|.
 
 Although the expressiveness of the \verb|flatMap| combinator subsumes that of
 the \verb|map| combinator (see Section~\ref{sec:expr}), keeping \verb|map| as a
@@ -1173,6 +1127,56 @@ is then asynchronously completed with the data of the given silo. Since calling
 \verb|send| should only be called on silos with reasonably small data (for
 example, in the implementation of an aggregate operation such as \verb|reduce|
 on a distributed collection).
+
+Let's come back to our previous example and kick off materialization to 
+investigate data flow and location of persistence:
+
+\begin{lstlisting}
+val adults: SiloRef[List[Person]] = ...
+val vehicles: SiloRef[List[Vehicle]] = ...
+val owners: SiloRef[List[(Person,Vehicle)]] =
+  adults.flatMap(...).send()
+\end{lstlisting}
+\noindent
+We assume that the silo references are persisted at machine \verb|m1| but the 
+actual data is distributed:
+
+\begin{lstlisting}
+adults   @ m1 --> Silo[List[Person]]            @ m2
+vehicles @ m1 --> Silo[List[Vehicle]]           @ m3
+owners   @ m1 --> Silo[List[(Person,Vehicle)]]  ???
+\end{lstlisting}
+\noindent
+To create \verb|owners|, we must combine data hosted at \verb|m2| with data 
+hosted at \verb|m3|. First, \verb|adults.flatMap| transfers the spore, i.e., the 
+silo reference \verb|vehicles| and the closure \verb|ps => ...|, to \verb|m2| 
+hosting the referenced silo of grown-up \verb|Person| records. Next, 
+\verb|localVehicles.map| transfers the spore, i.e., the collection of adults 
+\verb|ps| and the closure \verb|vs => ...|, to \verb|m3| hosting the referenced 
+silo of \verb|Vehicle| records. Now, at \verb|m3|, we have all required 
+information, the adults \verb|ps| and vehicles \verb|vs| and can combine those  
+correspondingly, resulting in a new (anonymous) silo reference at \verb|m2| 
+referencing the new silo of \verb|(Person,Vehicle)| records hosted at \verb|m3|. 
+Eventually the new silo reference at \verb|m2| is used to transfer its 
+referenced data from \verb|m3| to \verb|m2|, the origin of the \verb|flatMap|:
+
+\begin{lstlisting}
+adults   @ m1 --> Silo[List[Person]]            @ m2
+vehicles @ m1 --> Silo[List[Vehicle]]           @ m3
+owners   @ m1 --> Silo[List[(Person,Vehicle)]]  @ m2
+\end{lstlisting}
+\noindent
+Work in progress is to leave results where they are and introduce the concept of 
+a {\emph{silo reference proxies}}, delegating to the actual data. I.e., the 
+anonymous silo reference created at \verb|m2| will not be ruled out but function 
+as proxy delegating requests re \verb|owners| to the data hosted at \verb|m3|. 
+This alleviates network communication and scales up transformation execution.  
+
+\begin{lstlisting}
+adults   @ m1                --> Silo[List[Person]]            @ m2
+vehicles @ m1                --> Silo[List[Vehicle]]           @ m3
+owners   @ m1 --> proxy @ m3 --> Silo[List[(Person,Vehicle)]]  @ m3
+\end{lstlisting}
 
 \paragraph{cache}%
 %
