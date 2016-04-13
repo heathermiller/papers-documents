@@ -31,3 +31,30 @@ val owners: SiloRef[List[(Person,Vehicle)]] =
           else Nil
         ) )
   }) })
+
+
+// The references are persisted at machine 1
+// but the actual data is distributed:
+//   adults   @m1 --> Silo[List[Person]]            @m2
+//   vehicles @m1 --> Silo[List[Vehicle]]           @m3
+//   owners   @m1 --> Silo[List[(Person,Verhicle)]] @m3
+// In order to create `owners`, we combine data hosted
+// at `m2` and `m3` and store the result at `m3`.
+
+// In case of materialization is forced,
+// first transfer to `m2` the vehicles
+// SiloRef and the closure (line 18).
+
+// Next, transfer to `m3` the
+// adults from `m2` and the closure (line 20).
+
+// Now, at `m3`, we've the adults `ps` and vehicles `vs` and can
+// combine correspondingly, resulting in a new SiloRef at `m2`
+// referencing the new silo of List[(Person,Vehicle)] at `m3`.
+
+// Eventually this new SiloRef at `m2` is used to transfer its data
+// from `m3` to `m2`, the origin of the `flatMap`.
+
+// Future work: Leave the result where it is and introduce the
+// concept of a "SiloRefProxy" delegating to the actual data. I.e.,
+// the proxy would be at m2 but the data would stay at m3.

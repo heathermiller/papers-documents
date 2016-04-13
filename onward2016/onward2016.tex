@@ -1,4 +1,4 @@
-{}%-----------------------------------------------------------------------------
+%-----------------------------------------------------------------------------
 %
 %               Template for sigplanconf LaTeX Class
 %
@@ -1801,7 +1801,9 @@ then used to retry the original computation.
   \centering
 
   $\ba[t]{l@{\hspace{2mm}}l}
-t ::=     x                                 & \mbox{variable}
+  t ::=                                     & \mbox{{\it{terms:}}}
+\\
+\gap \:\:\:  x                              & \mbox{variable}
 \\
 \gap ~|~  (x: T) \Rightarrow t              & \mbox{abstraction}
 \\
@@ -1823,26 +1825,28 @@ t ::=     x                                 & \mbox{variable}
 \\
 \gap ~|~  \texttt{await}(\iota)             & \mbox{await future}
 \\
-\gap ~|~  r                                 & \mbox{SiloRef}
+\gap ~|~  r                                 & \mbox{silo reference}
 \\
 \gap ~|~  \iota                             & \mbox{future}
 \\
  & \\
-v ::=     (x: T) \Rightarrow t              & \mbox{abstraction}
+v ::=                                       & \mbox{{\it{values:}}}
+\\
+\gap \:\:\: (x: T) \Rightarrow t            & \mbox{abstraction value}
 \\
 \gap ~|~  \{ \seq{l = v} \}                 & \mbox{record value}
 \\
 \gap ~|~  p                                 & \mbox{spore value}
 \\
-\gap ~|~  r                                 & \mbox{SiloRef}
+\gap ~|~  r                                 & \mbox{silo reference}
 \\
 \gap ~|~  \iota                             & \mbox{future}
 \\
- & \\
 p ::=     \texttt{spore}~\{~\seq{x : T = v}~; (x: T) \Rightarrow t~\}  & \mbox{spore value}
 \\
  & \\
-T ::=     T \Rightarrow T                   & \mbox{function type} \\
+T ::=                                       & \mbox{{\it{types:}}} \\
+\gap \:\:\: T \Rightarrow T                 & \mbox{function type} \\
 \gap ~|~  \{ \seq{l : T} \}                 & \mbox{record type}   \\
 \gap ~|~  \mathcal{S}                       & \mbox{}
 \\
@@ -1853,20 +1857,19 @@ T ::=     T \Rightarrow T                   & \mbox{function type} \\
 \ea$
 
   % \vspace{1mm}
-  \caption{Core language syntax.}
+  \caption{Core language abstract syntax.}
   \label{fig:syntax}
   % \vspace{1mm}
 \end{figure}
 
 We formalize our programming model in the context of a standard, typed lambda
-calculus with records. Figure~\ref{fig:syntax} shows the syntax of our core
-language. Terms are standard except for the \texttt{spore}, \texttt{map},
-\texttt{flatMap}, \texttt{send}, and \texttt{await} terms. A \texttt{spore}
-term creates a new spore. It contains a list of variable definitions (the spore
-header) and the spore's closure. A term $\texttt{await}(\iota)$ blocks
-execution until the future $\iota$ has been completed asynchronously. The
-\texttt{map}, \texttt{flatMap}, and \texttt{send} primitives have been
-discussed earlier.
+calculus with records. Figure~\ref{fig:syntax} shows the abstract syntax of our 
+core language. Terms are standard except for the \texttt{spore}, \texttt{map}, 
+\texttt{flatMap}, \texttt{send}, and \texttt{await} terms. A \texttt{spore} term 
+creates a new spore. It contains a list of variable definitions (the spore 
+header) and the spore's closure. A term $\texttt{await}(\iota)$ blocks execution 
+until the future $\iota$ has been completed asynchronously. The \texttt{map}, 
+\texttt{flatMap}, and \texttt{send} primitives have been discussed earlier.
 
 \subsection{Operational semantics}
 \label{sec:opsem}
