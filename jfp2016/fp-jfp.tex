@@ -7,8 +7,8 @@
 
 \documentclass{jfp1}
 
-\usepackage{amsmath}
-\usepackage{amsthm}
+%\usepackage{amsmath}
+%\usepackage{amsthm}
 \usepackage{amssymb}
 \usepackage{bcprules}
 \usepackage{prooftree}
@@ -23,7 +23,7 @@
 \usepackage{setspace}
 \usepackage{wasysym}
 \usepackage{url}
-  \usepackage{csquotes}
+\usepackage{csquotes}
 \usepackage{enumitem}
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -1638,20 +1638,20 @@ i \in \mathbb{N} &
 \iota  ::=  (h, i)                               & \mbox{location}
 \\
  & \\
-r ::=     \text{Mat}(\iota) & \mbox{materialized}
+r ::=     \mbox{Mat}(\iota) & \mbox{materialized}
 \\
-\gap ~|~  \text{Mapped}(\iota, h, r, p, opt_f)   & \mbox{lineage with \texttt{map}}
+\gap ~|~  \mbox{Mapped}(\iota, h, r, p, opt_f)   & \mbox{lineage with \texttt{map}}
 \\
-\gap ~|~  \text{FMapped}(\iota, h, r, p, opt_f)  & \mbox{lineage with \texttt{flatMap}}
+\gap ~|~  \mbox{FMapped}(\iota, h, r, p, opt_f)  & \mbox{lineage with \texttt{flatMap}}
 \\
  & \\
 E      ::=  \epsilon & \mbox{message queue}
 \\
-\gap ~|~    \text{Res}(\iota, v) \texttt{::} E      & \mbox{response}
+\gap ~|~    \mbox{Res}(\iota, v) \texttt{::} E      & \mbox{response}
 \\
-\gap ~|~    \text{Req}(h, r, \iota) \texttt{::} E   & \mbox{request}
+\gap ~|~    \mbox{Req}(h, r, \iota) \texttt{::} E   & \mbox{request}
 \\
-\gap ~|~    \text{ReqF}(h, r, \iota) \texttt{::} E  & \mbox{request (fault)}
+\gap ~|~    \mbox{ReqF}(h, r, \iota) \texttt{::} E  & \mbox{request (fault)}
 \\
   \ea$
 
@@ -1675,34 +1675,34 @@ property with some existing approaches such as~\cite{ConcurrentHaskell}.
 \begin{mathpar}
 
 \inferrule[\textsc{R-Map}]
-{ host(r) = h' \quad i~\text{fresh} \\
-  r' = \text{Mapped}((h, i), h', r, p, \text{None})
-}
+{ host(r) = h' \quad i~\mbox{fresh} \quad r' = \mbox{Mapped}((h, i), h', r, p, \mbox{None}) }
 { (R[\texttt{map}(r, p)], E, S)^h \longrightarrow (R[r'], E, S)^h }
 
-\inferrule[\textsc{R-FMap}]
-{ host(r) = h' \quad i~\text{fresh} \\
-  r' = \text{FMapped}((h, i), h', r, p, \text{None})
-}
-{ (R[\texttt{flatMap}(r, p)], E, S)^h \longrightarrow (R[r'], E, S)^h }
-
-\inferrule[\textsc{R-Await}]
-{ S(\iota) = \text{Some}(v)
-}
-{ (R[\texttt{await}(\iota)], E, S)^h \longrightarrow (R[v], E, S)^h }
-
-\inferrule[\textsc{R-Res}]
-{ E = \text{Res}(\iota, v) \texttt{::} E' \quad S' = S + (\iota \mapsto v)
-}
-{ (R[\texttt{await}(\iota_f)], E, S)^h \longrightarrow (R[\texttt{await}(\iota_f)], E', S')^h }
-
-\inferrule[\textsc{R-ReqLocal}]
-{ E = \text{Req}(h', r, \iota'') \texttt{::} E' \quad r = \text{Mapped}(\iota, h, r', p, \text{None}) \quad r' \neq \text{Mat}(\iota_s) \quad S(\iota) = \text{None} \\
-  loc(r') = \iota' \quad S(\iota') = \text{None} \\
-  E'' = \text{Req}(h, r', \iota') \texttt{::} E
-}
-{ (R[\texttt{await}(\iota_f)], E, S)^h \rightarrow (R[\texttt{await}(\iota_f)], E'', S)^h
-}
+%\inferrule[\textsc{R-FMap}]
+%{ host(r) = h' \quad i~\mbox{fresh} \\
+%  r' = \mbox{FMapped}((h, i), h', r, p, \mbox{None})
+%}
+%{ (R[\texttt{flatMap}(r, p)], E, S)^h \longrightarrow (R[r'], E, S)^h }
+%
+%\inferrule[\textsc{R-Await}]
+%{ S(\iota) = \mbox{Some}(v)
+%}
+%{ (R[\texttt{await}(\iota)], E, S)^h \longrightarrow (R[v], E, S)^h }
+%
+%\inferrule[\textsc{R-Res}]
+%{ E = \mbox{Res}(\iota, v) \texttt{::} E' \quad S' = S + (\iota \mapsto v)
+%}
+%{ (R[\texttt{await}(\iota_f)], E, S)^h \longrightarrow (R[\texttt{await}(\iota_f)], E', S')^h }
+%
+%\inferrule[\textsc{R-ReqLocal}]
+%{ E = \mbox{Req}(h', r, \iota'') \texttt{::} E' \quad r = \mbox{Mapped}(\iota,
+%  h, r', p, \mbox{None}) \quad r' \neq \mbox{Mat}(\iota_s) \quad S(\iota) =
+%  \mbox{None} \\
+%  loc(r') = \iota' \quad S(\iota') = \mbox{None} \\
+%  E'' = \mbox{Req}(h, r', \iota') \texttt{::} E
+%}
+%{ (R[\texttt{await}(\iota_f)], E, S)^h \rightarrow (R[\texttt{await}(\iota_f)], E'', S)^h
+%}
 
 \end{mathpar}
   % \vspace{-3mm}
@@ -1711,12 +1711,16 @@ property with some existing approaches such as~\cite{ConcurrentHaskell}.
   % \vspace{-3mm}
 \end{figure*}
 
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\end{document}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
 \paragraph{Notation and conventions.}
 
 We write $S' = S + (\iota \mapsto v)$ to express the fact that $S'$ maps
 $\iota$ to $v$ and otherwise agrees with $S$. We write $S(\iota) =
-\text{Some}(v)$ to express the fact that $S$ maps $\iota$ to $v$. We write
-$S(\iota) = \text{None}$ if $S$ does not have a mapping for $\iota$. Reduction
+\mbox{Some}(v)$ to express the fact that $S$ maps $\iota$ to $v$. We write
+$S(\iota) = \mbox{None}$ if $S$ does not have a mapping for $\iota$. Reduction
 is defined using reduction contexts~\cite{TAPL}. We omit the definition of
 reduction contexts, since they are completely standard.
 
