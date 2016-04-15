@@ -1,0 +1,24 @@
+\begin{figure}
+\figrule
+\programmath
+\[
+\begin{array}{lcl}
+exp                   & :: & Exp \rightarrow Arr \rightarrow Val \\
+exp~(Var~i)~a         & =  & index~i~a \\
+exp~(Const~v)~a       & =  & v \\
+exp~(Plus~e_1~e_2)~a  & =  & exp~e_1~a+exp~e_2~a \\
+\\
+com                   & :: & Com \rightarrow Arr \rightarrow Arr \\
+com~(Asgn~i~e)~a      & =  & update~i~(exp~e~a)~a \\
+com~(Seq~c_1~c_2)~a   & =  & com~c_2~(com~c_1~a) \\
+com~(If~e~c_1~c_2)~a  & =  & \textrm{if } exp~e~a \dequals 0 \textrm{ then }
+                                      com~c_1~a \textrm{ else } com~c_2~a \\
+\\
+prog                  & :: & Prog \rightarrow Val\\
+prog~(Prog~c~e)       & =  & exp~e~(com~c~(newarray~0))
+\end{array}
+\]
+\unprogrammath
+\caption{Example program in mathematical style.}\label{mathfigure}
+\figrule
+\end{figure}
