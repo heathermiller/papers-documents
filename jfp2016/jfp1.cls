@@ -352,7 +352,7 @@
     {\normalfont\normalsize\rmfamily\raggedright}%
 }
 
-\def\@seccntformat#1{\csname the#1\endcsname\hskip5pt}%
+\def\@seccntformat#1{\csname the#1\endcsname\hskip5pt}% 
 
 \newcommand\appendixname{Appendix}
 
@@ -691,12 +691,12 @@ $\m@th\bullet$\fi}
   \epe@rl{Functional pearl}%
 }
 
-\def\edpe@rl{\spe@rl E\ls D\ls U\ls C\ls A\ls T\ls I\ls O\ls N\ls A\ls L\ns
+\def\edpe@rl{\spe@rl E\ls D\ls U\ls C\ls A\ls T\ls I\ls O\ls N\ls A\ls L\ns 
   P\ls E\ls A\ls R\ls L\ls S%
   \epe@rl{Educational pearls}%
 }
 
-\def\Edpe@rl{\spe@rl E\ls D\ls U\ls C\ls A\ls T\ls I\ls O\ls N\ls A\ls L\ns
+\def\Edpe@rl{\spe@rl E\ls D\ls U\ls C\ls A\ls T\ls I\ls O\ls N\ls A\ls L\ns 
   P\ls E\ls A\ls R\ls L%
   \epe@rl{Educational pearl}%
 }
@@ -859,7 +859,7 @@ c}}%
   \def\@journal{%
   \vbox to 8.6\p@{\noindent\parbox[t]{4.8in}{\normalfont\onlineaffilsize\rmfamily
     {\itshape JFP\/}\ {\bf \@volume}\ (\@issue):\ \ifonepage\thepage\else\thepage--\pageref{lastpage}\fi* %
-      (First pubd online \@cpyyear)\hskip5pt \Copyright\
+      (First pubd online \@cpyyear)\hskip5pt \Copyright\ 
       \@cpyyear\ Cambridge University Press\ doi:\@doi\\[2\p@]
     *Provisional -- final page numbers to be inserted when paper edition is published}% published
   \vss}}
@@ -875,7 +875,7 @@ c}}%
   \def\@journal{%
     \vbox to 8.6\p@{\noindent\parbox[t]{4.8in}{\sluglinefont%
     {\itshape JFP\/}\ {\bf \@volume}\ (\@issue):\ \ifonepage\thepage\else\thepage--\pageref{lastpage}\fi, %
-     \@pubyear.\hskip7.5pt \Copyright\
+     \@pubyear.\hskip7.5pt \Copyright\ 
       \@cpyyear\ Cambridge University Press\\[2\p@]
       doi:\@doi\hskip5pt \ifx\@pubonline\empty\else First published online \@pubonline\fi\hskip5pt  {Printed in the United Kingdom}}%{Printed in the United Kingdom}}%
   \vss}%
@@ -889,7 +889,7 @@ c}}%
      \ }%
   \vss}%
 }
-%%
+%% 
 \def\bookrevmark#1{\gdef\@bookrevmark{#1}}
 \bookrevmark{Book review}
 %
@@ -1369,7 +1369,7 @@ United Kingdom}}%
 %%%%%
 \def\gray{\special{color CMYK 0 0 0 0.5}}
 \def\@questionmark{\vbox to 0pt{\vskip13pc\hskip-5pc
-                  \hbox to \textwidth{\special{color push}\gray\fontsize{270}{270}\selectfont 
+                  \hbox to \textwidth{\special{color push}\gray\fontsize{270}{270}\selectfont ?
                   \special{color pop}\hss}}}
 \def\questionmark#1{\xdef\@questionmark{#1}}%
 %
@@ -1446,7 +1446,7 @@ United Kingdom}}%
        \catcode`\^=7
        \catcode`\_=8
        \catcode`\&=4
-       \catcode`\$=3
+       \catcode`\$=3  
        \catcode`\@11
        \catcode`\#6
        \catcode`\"=12
@@ -1558,7 +1558,7 @@ United Kingdom}}%
     }\vfill
     \hbox to \trimwidth{\hbox{\hskip-3.5pc\vrule height\trimrule width2pc}\vbox to 3pc{\vspace*{4.5pc}\hbox{\hskip1.5pc\vrule width\trimrule height2pc}}\hfill
     \vbox to 3.5pc{\vskip5pc\hbox{\vrule height2pc width\trimrule}}\rlap{\hskip1.5pc\vrule width2pc height\trimrule}}}}%
-%
+%    
   \else
     \vbox to 0pt{\hsize\trimwidth\offinterlineskip
     \parindent0pt\leftskip0pt\rightskip0pt
@@ -1619,7 +1619,7 @@ United Kingdom}}%
       \ifx\@thirdarg\empty
          \global\figheight=#1
          \global\figwidth=#2
-      \else
+      \else 
          \setbox\figtempbox=\hbox{\epsfbox{\ArtDir\@thirdarg}}%
          \global\figwidth=\wd\figtempbox
          \global\figheight=\ht\figtempbox
@@ -1657,7 +1657,7 @@ United Kingdom}}%
   \else
   			\global\tabledim0pt
   \fi
-  \global\tableleftskip\tabledim
+  \global\tableleftskip\tabledim 
   \global\tablerightskip\tabledim plus.5fill
   \global\tabnoteleftskip\tabledim
   \global\tabnoterightskip\tabledim
@@ -1674,7 +1674,7 @@ United Kingdom}}%
 \def\x{@{\extracolsep{\fill}}}
 \def\tablefont{\fontsize{9}{11}\selectfont}%\leftskip\tableleftskip\rightskip\tablerightskip\mathversion{normal}}% use plus 1fill if needed
 \def\tablecaptionfont{\fontsize{10}{12}\selectfont\itshape\leftskip\tableleftskip\rightskip\tablerightskip}%\itshape
-\def\tablecaptionnumfont{\reset@font\fontsize{10}{12}\selectfont}%
+\def\tablecaptionnumfont{\reset@font\fontsize{10}{12}\selectfont}% 
 \def\TCHfont{\fontsize{9}{13}\selectfont}%
 \def\TSCHfont{}%
 \def\tabnotefont{\fontsize{9}{11}\selectfont\leftskip\tabnoteleftskip\rightskip\tabnoterightskip}% use plus 1fill if needed
