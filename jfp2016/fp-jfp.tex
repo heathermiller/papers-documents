@@ -187,8 +187,8 @@ sharing. However, rather than containing pure data, instead the data structure
 represents a DAG of functional transformations on distributed data. The root
 node contains immutable data read from stable storage (\eg Amazon S3); edges
 represent functional transformations\comment{on immutable data represented as
-nodes of the DAG.}\comment{\fixme{ yielding child nodes as placeholders, \ie, immutable
-data resulting from those to be executed transformations.}}
+nodes of the DAG.}\comment{\fixme{ yielding child nodes as placeholders, \ie,
+immutable data resulting from those to be executed transformations.}}.
 
 Importantly, since this DAG of computations is a persistent data structure
 itself, it is safe to exchange (copies of) subgraphs of a DAG between remote
