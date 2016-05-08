@@ -651,38 +651,13 @@ $\omega$ on host $h'$ using value $v$. Rules \textsc{R-Req1-3} and
 reduction rules. The main difference is that messages are exchanged
 between different hosts in the case of non-deterministic reduction.
 
-
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %
 % Type assignment.
 %
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-\begin{figure}[ht!]
-\begin{mathpar}
-
-\inferrule[\textsc{S-Record}] {
-  \forall T_i \in \seq{T}.~serializable(T_i)
-} {
-  serializable(\{ \seq{l : T} \})
-}
-
-\inferrule[\textsc{S-Spore}] {
-  \forall T_i \in \seq{T}.~serializable(T_i)
-} {
-  serializable(T \Rightarrow T'~\{~\texttt{type}~\mathcal{C} = \seq{T}~\})
-}
-
-\inferrule[\textsc{S-SiloRef}] {} {
-  serializable(\texttt{SiloRef}[T])
-}
-
-\end{mathpar}
-\caption{Serializable types.}
-\end{figure}
-
-
-\begin{figure}[ht!]
+\begin{figure}
 \begin{mathpar}
 % variable
 \inferrule[\textsc{T-Var}] {
@@ -802,10 +777,79 @@ between different hosts in the case of non-deterministic reduction.
 } {
   \Gamma ; \Sigma ; \Delta \vdash \texttt{await}(t) : T
 }
-
 \end{mathpar}
-\caption{Type assignment.}
+\caption{Type assignment.}\label{fig:type-rules}
 \end{figure}
+
+\subsection{Type Assignment}
+
+Type assignment is based on a judgment of the form $\Gamma ; \Sigma ;
+\Delta \vdash t : T$ which assigns term $t$ type $T$. $\Gamma$ is a
+standard type environment; $\Sigma$ is a standard store typing;
+$\Delta$ is a {\em silo store typing} which is new. $\Delta$ maps
+identifiers $\omega$ to types, thereby providing a typing for silo
+stores $S$. Figure~\ref{fig:type-rules} shows the rules for type
+assignment. Rules \textsc{T-Var}, \textsc{T-Loc}, \textsc{T-Abs},
+\textsc{T-App}, \textsc{T-Record}, and \textsc{T-Select} are unchanged
+compared to a standard typed lambda calculus with records~\cite{TAPL}.
+
+\begin{figure}
+\begin{mathpar}
+\inferrule[\textsc{S-Record}] {
+  \forall T_i \in \seq{T}.~serializable(T_i)
+} {
+  serializable(\{ \seq{l : T} \})
+}
+
+\inferrule[\textsc{S-Spore}] {
+  \forall T_i \in \seq{T}.~serializable(T_i)
+} {
+  serializable(T \Rightarrow T'~\{~\texttt{type}~\mathcal{C} = \seq{T}~\})
+}
+
+\inferrule[\textsc{S-SiloRef}] {} {
+  serializable(\texttt{SiloRef}[T])
+}
+\end{mathpar}
+\caption{Serializable types.}\label{fig:ser-types}
+\end{figure}
+
+Rule \textsc{T-Spore} assigns a type to spore literals. Importantly,
+the body of the spore's closure, $t$, must be well-typed in a type
+environment containing only the closure parameter $x$ and the
+variables $\seq{x}$ in the spore's header, as well as an empty store
+typing. Furthermore, the types of captured variables must be
+serializable. The predicate $serializable$ is defined in
+Figure~\ref{fig:ser-types}. These constraints ensure that spore values
+are always independent of the environment and store of the creating
+host. This independence is expressed by the following theorem:
+
+\begin{thm}
+\emph{(Serializable Values)}\label{lem:ser-values}
+If $\Gamma ; \Sigma ; \Delta \vdash v : T$ and $serializable(T)$ then
+$\emptyset ; \emptyset ; \Delta \vdash v : T$.
+\end{thm}
+\begin{proof}
+By induction on the derivation of $\Gamma ; \Sigma ; \Delta \vdash v :
+T$. See Appendix~\ref{app:ser-values}.
+\end{proof}
+
+Rule \textsc{T-AppSpore} is analogous to rule \textsc{T-App}. Rule
+\textsc{T-Spawn} requires argument $t$ to be a spore with domain type
+unit; the result has type $\texttt{Host}$.  Rule \textsc{T-Populate}
+leverages the $serializable$ predicate to ensure the value of the silo
+to be populated is independent of its source context. Rules
+\textsc{T-Map}, \textsc{T-FMap}, and \textsc{T-Persist} are
+straightforward; note that \verb|map| and \verb|flatMap| are
+polymorphic in the types of the captured variables of their spore
+argument types. Rules \textsc{T-Send} and \textsc{T-Await} are
+entirely unsurprising. Rule \textsc{T-SiloRef} is the only rule that
+uses the silo store typing $\Delta$. Analogous to rule \textsc{T-Loc},
+the type of silo $id(r)$ is looked up in $\Delta$. Furthermore,
+\textsc{T-SiloRef} requires $r$ to be well-formed in $\Delta$, written
+$\Delta \vdash r$ (see below).
+
+
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %
@@ -944,15 +988,6 @@ If $\Delta ; \Sigma \vdash Q$ and $\Delta ; \Sigma \vdash Q'$ then $\Delta ; \Si
 \end{lemma}
 \begin{proof}
 By induction on the length of $Q$. See Appendix~\ref{app:queue-concat}.
-\end{proof}
-
-
-\begin{thm}
-\emph{(Serializable Values)}\label{lem:ser-values}
-If $\Gamma ; \Sigma ; \Delta \vdash v : T$ and $serializable(T)$ then $\emptyset ; \emptyset ; \Delta \vdash v : T$.
-\end{thm}
-\begin{proof}
-By induction on the derivation of $\Gamma ; \Sigma ; \Delta \vdash v : T$. See Appendix~\ref{app:ser-values}.
 \end{proof}
 
 
