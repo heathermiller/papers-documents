@@ -12,7 +12,7 @@
 
 \input{macros}
 
-\title[Journal of Functional Programming]{A Programming Model and Foundations for Lineage-Based Distributed Computation}
+\title[Journal of Functional Programming]{A Programming Model and Foundation for Lineage-Based Distributed Computation}
 
 \author[H. Miller, P. Haller and N. M{\"u}ller]{%
   HEATHER MILLER\\ EPFL, Switzerland\\[1ex]%\email{heather.miller@epfl.ch}
@@ -76,7 +76,7 @@ distributed over tens to thousands of nodes, provides a more natural way for
 end-users and data scientists to reason about data.
 
 While leveraging functional programming {\em concepts}, popular implementations
-of Google's MapReduce~\cite{MapReduce} model, such as Apache Hadoop's MapReduce
+of \\Google's MapReduce~\cite{MapReduce} model, such as Apache Hadoop's MapReduce
 Framework~\cite{Hadoop} for Java, have been developed without making use of
 functional language {\em features} such as closures. For nearly a decade, the
 Apache Hadoop open source interpretation of this model swelled in size,
@@ -183,7 +183,7 @@ sorts of distributed frameworks built atop the function passing model. Finally,
 we discuss related work in Section~\ref{sec:related-work}, and conclude in
 Section~\ref{sec:conclusion-future-work}.
 
-\section{Overview of Model}
+\section{Overview}
 \label{sec:basic-model}
 
 \subsection{Essence}
@@ -220,7 +220,7 @@ distributed systems~\cite{FlumeJava}. For these reasons, we believe that
 deferred evaluation should be viewed as an enabler in the design of distributed
 systems.
 
-\subsection{The Model}
+\subsection{Programming Model}
 
 The function passing model consists of three main components: \textbf{Silos}
 stationary, typed, immutable data containers, \textbf{Silo references} to local
@@ -1140,7 +1140,7 @@ some of these example applications in section~\ref{sec:examples}.
 % linked to in talks and from other various webpages meaning it already gets
 % public traffic. One may visit it without identity concerns.}
 
-\subsection{Serialization in the presence of existential quantification}
+%\subsection{Serialization in the presence of existential quantification}
 
 Initially, to serialize most message types exchanged by the network
 communication layer, runtime-based unpicklers had to be used (meaning unpickling
