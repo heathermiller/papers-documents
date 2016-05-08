@@ -394,18 +394,14 @@ $\omega$. Rule \textsc{R-ReqF2} delays such a request in case silo
 $\omega$ is not yet materialized by moving the request to the back of
 the queue.
 
-
-
 % Important that Res message contains correct P, since R-Res
 % updates silo store.
 % Goal: theorem which states that persist sets are "correct".
 % We don't lose hosts from persist sets.
 
-\begin{figure}[ht!]
+\begin{figure}
 \centering
-
 \begin{mathpar}
-
 \inferrule[\textsc{R-Res}] {
   Q  = {\Res \omega v P} :: Q'          \\
   S' = [\omega \mapsto (\Val{v}, P)]S
@@ -484,10 +480,33 @@ the queue.
   \longrightarrow
   (E[\texttt{await}(\iota)], \mu, Q' \cdot {\Req h {r'} {id(r')}} \cdot {\Req {h'} r \omega}, S)^h
 }
-
 \end{mathpar}
-\caption{Deterministic reduction (silo).}
+\caption{Deterministic reduction (silo).}\label{fig:determ-rules2}
 \end{figure}
+
+Figure~\ref{fig:determ-rules2} shows the remaining deterministic
+reduction rules. Rule \textsc{R-Res} processes a message ${\Res \omega
+  v P}$ by materializing silo $\omega$ with value $v$, yielding silo
+store $S'$. Rules \textsc{R-Req1Local} and \textsc{R-Req2Local}
+process a message ${\Req h r \omega}$ where silo store $S$ forwards
+$id(r)$ to another silo $id(r')$. Rules \textsc{R-ReqMapLocal} and
+\textsc{R-ReqFMapLocal} evaluate a silo reference containing {\em
+  Mapped} or {\em FMapped}, respectively, in case the parent silo
+reference is materialized. In both cases, spore value $p$, stored in
+$r$, is applied to the value of the parent silo.  In case of
+\textsc{R-ReqMapLocal}, the silo store is updated with the
+materialization result $v'$. In case of \textsc{R-ReqFMapLocal}, the
+silo store is updated with a forwarding reference to $r''$, the result
+of the spore application. Finally, the parent silo $id(r')$ is
+consumed (removed from silo store $S''$) in case the persist set $P$
+is empty, which means that $id(r')$ was not persisted.  Rule
+\textsc{R-ReqPersistLocal} materializes silo $\omega'$ under a persist
+set $P'$ which is obtained by modifying the persist set $P$ of parent
+silo $id(r')$ according to the operator $\star$ stored in $r$.  Rule
+\textsc{R-ReqParentLocal} enqueues a materialization request ${\Req h
+  {r'} {id(r')}}$ in case the parent $id(r')$ of a requested silo
+$id(r)$ is not materialized yet.
+
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %
