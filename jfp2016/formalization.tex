@@ -258,7 +258,13 @@ materialization of identifier $\omega$. A message of the form ${\Res
 identifier $\omega$ to be materialized, value $v$, and persist set $P$
 (the set of hosts which have persisted the silo identified by
 $\omega$). A message of the form ${\ReqF \iota \omega}$ requests
-future $\iota$ to be completed with the value of silo $\omega$.
+future $\iota$ to be completed with the value of silo $\omega$.  A
+{\em silo store} $S$ is a partial function mapping identifiers
+$\omega$ to values of the form $(\Val{v}, P)$ or $(\Fwd{r}, P)$ where
+$P$ is a set of hosts which have persisted the silo (the persist set).
+The former represents a materialized silo with value $v$. The latter
+represents a {\em proxy} forwarding to the silo specified by lineage
+$r$.
 
 The deterministic reduction rules use helper functions $host$, $id$,
 $parent$, and $consume$, which are defined as follows:
@@ -305,7 +311,6 @@ $parent$, and $consume$, which are defined as follows:
   \ea\right.$
 \end{defn}
 
-
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %
 % Deterministic reduction.
@@ -314,7 +319,6 @@ $parent$, and $consume$, which are defined as follows:
 
 \begin{figure}
 \centering
-
 \begin{mathpar}
 \inferrule[\textsc{R-Seq}] { 
   E[t]~|~\mu \rightarrow^h E[t']~|~\mu'
@@ -323,8 +327,6 @@ $parent$, and $consume$, which are defined as follows:
   \longrightarrow
   (E[t'], \mu', Q, S)^h
 }
-
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 \inferrule[\textsc{R-Send1Local}] {
   host(r) = h                               \quad
@@ -367,37 +369,39 @@ $parent$, and $consume$, which are defined as follows:
   \longrightarrow
   (E[\texttt{await}(\iota')], \mu, Q' \cdot {\ReqF \iota \omega}, S)^h
 }
-
 \end{mathpar}
-\caption{Deterministic reduction (future).}
+\caption{Deterministic reduction (future).}\label{fig:determ-rules1}
 \end{figure}
 
 % Note: design approach is to *not* replace Fwds in the silo store, since
 % it would require copying data. Instead, we leverage the flexibility of
 % Req messages to correctly forward requests.
 
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-
-
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-%
-% Elements of the operational model.
-%
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-
-
-
+We discuss the deterministic reduction rules in two steps. First, we
+discuss the rules shown in Figure~\ref{fig:determ-rules1}. Rule
+\textsc{R-Seq} reduces host $(E[t], \mu, Q, S)^h$ in case $E[t]$
+reduces in $\mu$. Rule \textsc{R-Send1Local} reduces
+$\texttt{send}(r)$ to a completed future $\iota$ if the corresponding
+silo is already materialized in silo store $S$. Rule
+\textsc{R-Send2Local} covers the case where the requested silo is not
+yet materialized. In this case, two request messages are added to the
+queue: a first message ${\Req h r {id(r)}}$ requesting the
+materialization of silo $id(r)$, and a second message requesting the
+value of silo $id(r)$ for completing future $\iota$. Rule
+\textsc{R-ReqF1} processes a message ${\ReqF \iota \omega}$ by
+completing future $\iota$ with the value of the materialized silo
+$\omega$. Rule \textsc{R-ReqF2} delays such a request in case silo
+$\omega$ is not yet materialized by moving the request to the back of
+the queue.
 
 % Important that Res message contains correct P, since R-Res
 % updates silo store.
 % Goal: theorem which states that persist sets are "correct".
 % We don't lose hosts from persist sets.
 
-\begin{figure}[ht!]
+\begin{figure}
 \centering
-
 \begin{mathpar}
-
 \inferrule[\textsc{R-Res}] {
   Q  = {\Res \omega v P} :: Q'          \\
   S' = [\omega \mapsto (\Val{v}, P)]S
@@ -476,10 +480,32 @@ $parent$, and $consume$, which are defined as follows:
   \longrightarrow
   (E[\texttt{await}(\iota)], \mu, Q' \cdot {\Req h {r'} {id(r')}} \cdot {\Req {h'} r \omega}, S)^h
 }
-
 \end{mathpar}
-\caption{Deterministic reduction (silo).}
+\caption{Deterministic reduction (silo).}\label{fig:determ-rules2}
 \end{figure}
+
+Figure~\ref{fig:determ-rules2} shows the remaining deterministic
+reduction rules. Rule \textsc{R-Res} processes a message ${\Res \omega
+  v P}$ by materializing silo $\omega$ with value $v$, yielding silo
+store $S'$. Rules \textsc{R-Req1Local} and \textsc{R-Req2Local}
+process a message ${\Req h r \omega}$ where silo store $S$ forwards
+$id(r)$ to another silo $id(r')$. Rules \textsc{R-ReqMapLocal} and
+\textsc{R-ReqFMapLocal} evaluate a silo reference containing {\em
+  Mapped} or {\em FMapped}, respectively, in case the parent silo
+reference is materialized. In both cases, spore value $p$, stored in
+$r$, is applied to the value of the parent silo.  In case of
+\textsc{R-ReqMapLocal}, the silo store is updated with the
+materialization result $v'$. In case of \textsc{R-ReqFMapLocal}, the
+silo store is updated with a forwarding reference to $r''$, the result
+of the spore application. Finally, the parent silo $id(r')$ is
+consumed (removed from silo store $S''$) in case the persist set $P$
+is empty, which means that $id(r')$ was not persisted.  Rule
+\textsc{R-ReqPersistLocal} materializes silo $\omega'$ under a persist
+set $P'$ which is obtained by modifying the persist set $P$ of parent
+silo $id(r')$ according to the operator $\star$ stored in $r$.  Rule
+\textsc{R-ReqParentLocal} enqueues a materialization request ${\Req h
+  {r'} {id(r')}}$ in case the parent $id(r')$ of a requested silo
+$id(r)$ is not materialized yet.
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %
@@ -508,10 +534,9 @@ $parent$, and $consume$, which are defined as follows:
 %
 %   S(id) = (Some(v), C)   | (None, C)
 
-
-\begin{figure}[ht!]
+\begin{figure}
 \begin{mathpar}
-\inferrule[\textsc{R-Determ}] {
+\inferrule[\textsc{R-Schedule}] {
   (t, \mu, Q, S)^h \rightarrow (t', \mu', Q', S')^h
 } { 
   \{ (t, \mu, Q, S)^h \} \cup H
@@ -608,10 +633,23 @@ $parent$, and $consume$, which are defined as follows:
   \twoheadrightarrow
   \{ (E[\iota], \mu'', Q, S)^h, (t', \mu', Q' \cdot m, S')^{h'} \} \cup H
 }
-
 \end{mathpar}
-\caption{Non-deterministic reduction.}
+\caption{Non-deterministic reduction.}\label{fig:nondeterm-rules}
 \end{figure}
+
+Figure~\ref{fig:nondeterm-rules} shows the non-deterministic reduction
+rules. The non-deterministic reduction relation has the form $H
+\twoheadrightarrow H'$ where $H$ and $H'$ are sets of hosts of the
+form $(t, \mu, Q, S)^h$. Rule \textsc{R-Schedule} reduces a host
+chosen non-deterministically from the set of hosts. Rule
+\textsc{R-Spawn} creates a new host whose initial term is given by the
+application of the provided spore to the unit value $\{\}$. The new
+host has an empty store, an empty queue, and an empty silo store.
+Rule \textsc{R-Populate} materializes a silo with a fresh identifier
+$\omega$ on host $h'$ using value $v$. Rules \textsc{R-Req1-3} and
+\textsc{R-Send} are analogous to the corresponding deterministic
+reduction rules. The main difference is that messages are exchanged
+between different hosts in the case of non-deterministic reduction.
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %
@@ -619,31 +657,7 @@ $parent$, and $consume$, which are defined as follows:
 %
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-\begin{figure}[ht!]
-\begin{mathpar}
-
-\inferrule[\textsc{S-Record}] {
-  \forall T_i \in \seq{T}.~serializable(T_i)
-} {
-  serializable(\{ \seq{l : T} \})
-}
-
-\inferrule[\textsc{S-Spore}] {
-  \forall T_i \in \seq{T}.~serializable(T_i)
-} {
-  serializable(T \Rightarrow T'~\{~\texttt{type}~\mathcal{C} = \seq{T}~\})
-}
-
-\inferrule[\textsc{S-SiloRef}] {} {
-  serializable(\texttt{SiloRef}[T])
-}
-
-\end{mathpar}
-\caption{Serializable types.}
-\end{figure}
-
-
-\begin{figure}[ht!]
+\begin{figure}
 \begin{mathpar}
 % variable
 \inferrule[\textsc{T-Var}] {
@@ -763,10 +777,79 @@ $parent$, and $consume$, which are defined as follows:
 } {
   \Gamma ; \Sigma ; \Delta \vdash \texttt{await}(t) : T
 }
-
 \end{mathpar}
-\caption{Type assignment.}
+\caption{Type assignment.}\label{fig:type-rules}
 \end{figure}
+
+\subsection{Type Assignment}
+
+Type assignment is based on a judgment of the form $\Gamma ; \Sigma ;
+\Delta \vdash t : T$ which assigns term $t$ type $T$. $\Gamma$ is a
+standard type environment; $\Sigma$ is a standard store typing;
+$\Delta$ is a {\em silo store typing} which is new. $\Delta$ maps
+identifiers $\omega$ to types, thereby providing a typing for silo
+stores $S$. Figure~\ref{fig:type-rules} shows the rules for type
+assignment. Rules \textsc{T-Var}, \textsc{T-Loc}, \textsc{T-Abs},
+\textsc{T-App}, \textsc{T-Record}, and \textsc{T-Select} are unchanged
+compared to a standard typed lambda calculus with records~\cite{TAPL}.
+
+\begin{figure}
+\begin{mathpar}
+\inferrule[\textsc{S-Record}] {
+  \forall T_i \in \seq{T}.~serializable(T_i)
+} {
+  serializable(\{ \seq{l : T} \})
+}
+
+\inferrule[\textsc{S-Spore}] {
+  \forall T_i \in \seq{T}.~serializable(T_i)
+} {
+  serializable(T \Rightarrow T'~\{~\texttt{type}~\mathcal{C} = \seq{T}~\})
+}
+
+\inferrule[\textsc{S-SiloRef}] {} {
+  serializable(\texttt{SiloRef}[T])
+}
+\end{mathpar}
+\caption{Serializable types.}\label{fig:ser-types}
+\end{figure}
+
+Rule \textsc{T-Spore} assigns a type to spore literals. Importantly,
+the body of the spore's closure, $t$, must be well-typed in a type
+environment containing only the closure parameter $x$ and the
+variables $\seq{x}$ in the spore's header, as well as an empty store
+typing. Furthermore, the types of captured variables must be
+serializable. The predicate $serializable$ is defined in
+Figure~\ref{fig:ser-types}. These constraints ensure that spore values
+are always independent of the environment and store of the creating
+host. This independence is expressed by the following theorem:
+
+\begin{thm}
+\emph{(Serializable Values)}\label{lem:ser-values}
+If $\Gamma ; \Sigma ; \Delta \vdash v : T$ and $serializable(T)$ then
+$\emptyset ; \emptyset ; \Delta \vdash v : T$.
+\end{thm}
+\begin{proof}
+By induction on the derivation of $\Gamma ; \Sigma ; \Delta \vdash v :
+T$. See Appendix~\ref{app:ser-values}.
+\end{proof}
+
+Rule \textsc{T-AppSpore} is analogous to rule \textsc{T-App}. Rule
+\textsc{T-Spawn} requires argument $t$ to be a spore with domain type
+unit; the result has type $\texttt{Host}$.  Rule \textsc{T-Populate}
+leverages the $serializable$ predicate to ensure the value of the silo
+to be populated is independent of its source context. Rules
+\textsc{T-Map}, \textsc{T-FMap}, and \textsc{T-Persist} are
+straightforward; note that \verb|map| and \verb|flatMap| are
+polymorphic in the types of the captured variables of their spore
+argument types. Rules \textsc{T-Send} and \textsc{T-Await} are
+entirely unsurprising. Rule \textsc{T-SiloRef} is the only rule that
+uses the silo store typing $\Delta$. Analogous to rule \textsc{T-Loc},
+the type of silo $id(r)$ is looked up in $\Delta$. Furthermore,
+\textsc{T-SiloRef} requires $r$ to be well-formed in $\Delta$, written
+$\Delta \vdash r$ (see below).
+
+
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %
@@ -905,15 +988,6 @@ If $\Delta ; \Sigma \vdash Q$ and $\Delta ; \Sigma \vdash Q'$ then $\Delta ; \Si
 \end{lemma}
 \begin{proof}
 By induction on the length of $Q$. See Appendix~\ref{app:queue-concat}.
-\end{proof}
-
-
-\begin{thm}
-\emph{(Serializable Values)}\label{lem:ser-values}
-If $\Gamma ; \Sigma ; \Delta \vdash v : T$ and $serializable(T)$ then $\emptyset ; \emptyset ; \Delta \vdash v : T$.
-\end{thm}
-\begin{proof}
-By induction on the derivation of $\Gamma ; \Sigma ; \Delta \vdash v : T$. See Appendix~\ref{app:ser-values}.
 \end{proof}
 
 
