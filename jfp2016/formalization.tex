@@ -853,7 +853,7 @@ By induction on a derivation of $\Gamma ; \Sigma ; \Delta \vdash v : T$ with a c
 \end{proof}
 
 \begin{thm}
-\emph{(Subject Reduction)}\label{th:pres}
+\emph{(Subject Reduction)}\label{th:subject-reduction}
 
 \begin{enumerate}
 
@@ -866,6 +866,14 @@ By induction on a derivation of $\Gamma ; \Sigma ; \Delta \vdash v : T$ with a c
 \end{enumerate}
 
 \end{thm}
+\begin{proof}
+  Part 1: by induction on the derivation of $t~|~\mu \rightarrow^h
+  t'~|~\mu'$. Part 2: by induction on the derivation of $(t, \mu, Q,
+  S)^h \longrightarrow (t', \mu', Q', S')^h$. Part 3: by induction on
+  the derivation of $H \twoheadrightarrow H'$. See
+  Appendix~\ref{app:subject-reduction} for the complete proof.
+\end{proof}
+
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %%
