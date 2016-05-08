@@ -1,5 +1,3 @@
-\section{Formalization}\label{sec:formalization}
-
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %
 % Core language abstract syntax.
@@ -60,3 +58,421 @@ execution until the future $\iota$ has been completed asynchronously. The
 \texttt{map}, \texttt{flatMap}, and \texttt{send} primitives have been
 discussed earlier.
 
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%
+%% OLD
+%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+%\begin{figure}[t!]
+%  \centering
+%
+%  $\ba[t]{l@{\hspace{2mm}}l}
+%t ::=     x                                 & \mbox{variable}
+%\\
+%\gap ~|~  (x: T) \Rightarrow t              & \mbox{abstraction}
+%\\
+%\gap ~|~  t~t                               & \mbox{application}
+%\\
+%\gap ~|~  \texttt{let}~x = t~\texttt{in}~t  & \mbox{let binding}
+%\\
+%\gap ~|~  \{ \seq{l = t} \}                 & \mbox{record construction}
+%\\
+%\gap ~|~  t.l                               & \mbox{selection}
+%\\
+%\gap ~|~  \texttt{spore}~\{~\seq{x : T = t}~; (x: T) \Rightarrow t~\}  & \mbox{spore}
+%\\
+%\gap ~|~  \texttt{map}(r, t[, t])           & \mbox{map}
+%\\
+%\gap ~|~  \texttt{flatMap}(r, t[, t])       & \mbox{flatMap}
+%\\
+%\gap ~|~  \texttt{send}(r)                  & \mbox{send}
+%\\
+%\gap ~|~  \texttt{await}(\iota)             & \mbox{await future}
+%\\
+%\gap ~|~  r                                 & \mbox{SiloRef}
+%\\
+%\gap ~|~  \iota                             & \mbox{future}
+%\\
+% & \\
+%v ::=     (x: T) \Rightarrow t              & \mbox{abstraction}
+%\\
+%\gap ~|~  \{ \seq{l = v} \}                 & \mbox{record value}
+%\\
+%\gap ~|~  p                                 & \mbox{spore value}
+%\\
+%\gap ~|~  r                                 & \mbox{SiloRef}
+%\\
+%\gap ~|~  \iota                             & \mbox{future}
+%\\
+% & \\
+%p ::=     \texttt{spore}~\{~\seq{x : T = v}~; (x: T) \Rightarrow t~\}  & \mbox{spore value}
+%\\
+% & \\
+%T ::=     T \Rightarrow T                   & \mbox{function type} \\
+%\gap ~|~  \{ \seq{l : T} \}                 & \mbox{record type}   \\
+%\gap ~|~  \mathcal{S}                       & \mbox{}
+%\\
+%\mathcal{S} ::= T \Rightarrow T~\{~\texttt{type}~\mathcal{C} = \seq{T}~\}   & \mbox{spore type}
+%\\
+%\gap ~|~  T \Rightarrow T~\{~\texttt{type}~\mathcal{C}~\}   & \mbox{abstract spore type}
+%\\
+%\ea$
+%
+%  % \vspace{1mm}
+%  \caption{Core language syntax.}
+%  \label{fig:syntax}
+%  % \vspace{1mm}
+%\end{figure}
+%
+%We formalize our programming model in the context of a standard, typed lambda
+%calculus with records. Figure~\ref{fig:syntax} shows the syntax of our core
+%language. Terms are standard except for the \texttt{spore}, \texttt{map},
+%\texttt{flatMap}, \texttt{send}, and \texttt{await} terms. A \texttt{spore}
+%term creates a new spore. It contains a list of variable definitions (the spore
+%header) and the spore's closure. A term $\texttt{await}(\iota)$ blocks
+%execution until the future $\iota$ has been completed asynchronously. The
+%\texttt{map}, \texttt{flatMap}, and \texttt{send} primitives have been
+%discussed earlier.
+%
+%\subsection{Operational semantics}
+%\label{sec:opsem}
+%
+%\begin{figure}[ht!]
+%  \centering
+%
+%  $\ba[t]{l@{\hspace{2mm}}l}
+%h \in Hosts &
+%\\
+%i \in \mathbb{N} &
+%\\
+% & \\
+%\iota  ::=  (h, i)                               & \mbox{location}
+%\\
+% & \\
+%r ::=     \text{Mat}(\iota) & \mbox{materialized}
+%\\
+%\gap ~|~  \text{Mapped}(\iota, h, r, p, opt_f)   & \mbox{lineage with \texttt{map}}
+%\\
+%\gap ~|~  \text{FMapped}(\iota, h, r, p, opt_f)  & \mbox{lineage with \texttt{flatMap}}
+%\\
+% & \\
+%E      ::=  \epsilon & \mbox{message queue}
+%\\
+%\gap ~|~    \text{Res}(\iota, v) \texttt{::} E      & \mbox{response}
+%\\
+%\gap ~|~    \text{Req}(h, r, \iota) \texttt{::} E   & \mbox{request}
+%\\
+%\gap ~|~    \text{ReqF}(h, r, \iota) \texttt{::} E  & \mbox{request (fault)}
+%\\
+%  \ea$
+%
+%  \vspace{1mm}
+%  \caption{Elements of the operational model.}
+%  \label{fig:elems-opsem}
+%  \vspace{1mm}
+%\end{figure}
+%
+%In the following we give a small-step operational semantics of the primitives
+%of our language. The semantics is clearly stratified into a deterministic layer
+%and a non-deterministic (concurrent) layer. Importantly, this means our
+%programming model can benefit from existing reasoning techniques for sequential
+%programs. Program transformations that are correct for sequential programs are
+%also correct for distributed programs. Our programming model shares this
+%property with some existing approaches such as~\cite{ConcurrentHaskell}.
+%
+%\begin{figure*}[t!]
+%  \centering
+%% \vspace{-7mm}
+%\begin{mathpar}
+%
+%\inferrule[\textsc{R-Map}]
+%{ host(r) = h' \quad i~\text{fresh} \\
+%  r' = \text{Mapped}((h, i), h', r, p, \text{None})
+%}
+%{ (R[\texttt{map}(r, p)], E, S)^h \longrightarrow (R[r'], E, S)^h }
+%
+%\inferrule[\textsc{R-FMap}]
+%{ host(r) = h' \quad i~\text{fresh} \\
+%  r' = \text{FMapped}((h, i), h', r, p, \text{None})
+%}
+%{ (R[\texttt{flatMap}(r, p)], E, S)^h \longrightarrow (R[r'], E, S)^h }
+%
+%\inferrule[\textsc{R-Await}]
+%{ S(\iota) = \text{Some}(v)
+%}
+%{ (R[\texttt{await}(\iota)], E, S)^h \longrightarrow (R[v], E, S)^h }
+%
+%\inferrule[\textsc{R-Res}]
+%{ E = \text{Res}(\iota, v) \texttt{::} E' \quad S' = S + (\iota \mapsto v)
+%}
+%{ (R[\texttt{await}(\iota_f)], E, S)^h \longrightarrow (R[\texttt{await}(\iota_f)], E', S')^h }
+%
+%\inferrule[\textsc{R-ReqLocal}]
+%{ E = \text{Req}(h', r, \iota'') \texttt{::} E' \quad r = \text{Mapped}(\iota, h, r', p, \text{None}) \quad r' \neq \text{Mat}(\iota_s) \quad S(\iota) = \text{None} \\
+%  loc(r') = \iota' \quad S(\iota') = \text{None} \\
+%  E'' = \text{Req}(h, r', \iota') \texttt{::} E
+%}
+%{ (R[\texttt{await}(\iota_f)], E, S)^h \rightarrow (R[\texttt{await}(\iota_f)], E'', S)^h
+%}
+%
+%\end{mathpar}
+%  % \vspace{-3mm}
+%  \caption{Deterministic reduction.}
+%  \label{fig:opsem-determ}
+%  % \vspace{-3mm}
+%\end{figure*}
+%
+%\paragraph{Notation and conventions.}
+%
+%We write $S' = S + (\iota \mapsto v)$ to express the fact that $S'$ maps
+%$\iota$ to $v$ and otherwise agrees with $S$. We write $S(\iota) =
+%\text{Some}(v)$ to express the fact that $S$ maps $\iota$ to $v$. We write
+%$S(\iota) = \text{None}$ if $S$ does not have a mapping for $\iota$. Reduction
+%is defined using reduction contexts~\cite{TAPL}. We omit the definition of
+%reduction contexts, since they are completely standard.
+%
+%\paragraph{Configurations.}
+%
+%The reduction rules of the deterministic layer define transitions of \emph{host
+%configurations} $(t, E, S)^h$ of host $h$ where $t$ is a term, $E$ is a message
+%queue, and $S$ is a silo store. The reduction rules of the non-deterministic
+%layer define transitions of sets $H$ of host configurations. The reduced host
+%configurations are chosen non-deterministically in order to express concurrency
+%between hosts.
+%
+%\paragraph{Fault handling.}
+%
+%In the interest of clarity we present the reduction rules in two steps. In the
+%first step we explain simplified rules without fault handling semantics
+%(Sections~\ref{sec:det-layer} and~\ref{sec:nondet-layer}). In the second step
+%we explain how these simplified rules have to be refined in order to support
+%the fault handling principles of our model (Section~\ref{sec:faults-opsem}).
+%
+%\subsubsection{Decentralized identification}
+%
+%A important property of our programming model is the fact that silos are
+%uniquely identified using \emph{decentralized identifiers}. A decentralized
+%identifier $\iota$ has two components: (a) the identifier of the host $h$ that
+%created $\iota$, and (b) a name $i$ created fresh on $h$ (e.g., an integer
+%value): $\iota = (h, i)$. Decentralized identifiers are important, since they
+%reconcile two conflicting properties central to our model. The first property
+%is building computation DAGs locally, without remote communication. This is
+%possible using decentralized identifiers, since each host can generate new
+%identifiers independently of other remote hosts. The second property is
+%allowing SiloRefs to be freely copied between remote hosts. This is possible,
+%since decentralized identifiers uniquely identify silos without the need for
+%subsequent updates of their information; decentralized identifiers are
+%immutable. This latter property is essential to enable computation DAGs that
+%are \emph{immutable upon construction}. In our programming model, computation
+%DAGs are created using the standard monadic operations of SiloRefs. In
+%particular, the \texttt{flatMap} operation (monadic bind) in general requires
+%that its argument spore captures SiloRefs that are subsequently copied to a
+%remote host. Hence it is essential that SiloRefs and the decentralized
+%identifiers they contain be freely copyable between remote hosts.
+%
+%\begin{figure*}[t!]
+%  \centering
+%% \vspace{-7mm}
+%\begin{mathpar}
+%
+%\inferrule[\textsc{R-Send}]
+%{ host(r) = h' \quad h' \neq h \quad i~\text{fresh} \\
+%  \iota = (h, i) \quad m = \text{Req}(h, r, \iota)
+%}
+%{ \{ (R[\texttt{send}(r)], E, S)^h, (t, E', S')^{h'} \} \cup H \rightarrow \{ (R[\iota], E, S)^h, (t, E' \cdot m, S')^{h'} \} \cup H
+%}
+%
+%\inferrule[\textsc{R-Req1}]
+%{ E = \text{Req}(h', r, \iota') \texttt{::} E' \quad r = \text{Mat}(\iota) \\
+%  S(\iota) = \text{Some}(v) \quad m = \text{Res}(\iota', v)
+%}
+%{ \{ (R[\texttt{await}(\iota_f)], E, S)^h, (t, E'', S')^{h'} \} \cup H \rightarrow \{ (R[\texttt{await}(\iota_f)], E', S)^h, (t, E'' \cdot m, S')^{h'} \} \cup H
+%}
+%
+%\inferrule[\textsc{R-Req2}]
+%{ E = \text{Req}(h', r, \iota') \texttt{::} E' \quad r = \text{Mapped}(\iota, h, r', p, \text{None}) \quad r' = \text{Mat}(\iota_s) \quad S(\iota) = \text{None} \\
+%  S(\iota_s) = \text{Some}(v) \quad p(v) = v' \quad S' = S + (\iota \mapsto v') \quad m = \text{Res}(\iota', v')
+%}
+%{ \{ (R[\texttt{await}(\iota_f)], E, S)^h, (t, E'', S'')^{h'} \} \cup H \rightarrow \{ (R[\texttt{await}(\iota_f)], E', S')^h, (t, E'' \cdot m, S'')^{h'} \} \cup H
+%}
+%
+%\inferrule[\textsc{R-Req3}]
+%{ E = \text{Req}(h'', r, \iota'') \texttt{::} E'' \quad r = \text{FMapped}(\iota, h, \text{Mat}(\iota_s), p, \text{None}) \quad S(\iota) = \text{None} \quad S(\iota_s) = \text{Some}(v) \\
+%  \quad p(v) = r' \quad loc(r') = \iota' \quad S(\iota') = \text{None} \quad host(r') = h' \quad m = \text{Req}(h, r', \iota') \quad E''' = \text{Req}(h'', r', \iota'') \texttt{::} E''
+%}
+%{ \{ (R[\texttt{await}(\iota_f)], E, S)^h, (t, E', S')^{h'} \} \cup H \rightarrow \{ (R[\texttt{await}(\iota_f)], E''', S)^h, (t, E' \cdot m, S')^{h'} \} \cup H
+%}
+%
+%\inferrule[\textsc{R-Req4}]
+%{ E = \text{Req}(h'', r, \iota'') \texttt{::} E'' \quad r = \text{FMapped}(\iota, h, \text{Mat}(\iota_s), p, \text{None}) \quad S(\iota) = \text{None} \quad S(\iota_s) = \text{Some}(v) \\
+%  \quad p(v) = r' \quad loc(r') = \iota' \quad S(\iota') = \text{Some}(v') \quad S'' = S + (\iota \mapsto v') \quad m = \text{Res}(\iota'', v')
+%}
+%{ \{ (R[\texttt{await}(\iota_f)], E, S)^h, (t, E', S')^{h''} \} \cup H \rightarrow \{ (R[\texttt{await}(\iota_f)], E'', S'')^h, (t, E' \cdot m, S')^{h''} \} \cup H
+%}
+%
+%\end{mathpar}
+%  % \vspace{-3mm}
+%  \caption{Nondeterministic reduction.}
+%  \label{fig:opsem-nondeterm}
+%  % \vspace{-3mm}
+%\end{figure*}
+%
+%\subsubsection{Deterministic layer}
+%\label{sec:det-layer}
+%
+%We first consider the reduction rules of the deterministic layer shown in
+%Figure~\ref{fig:opsem-determ}. The reduction rules for \texttt{map}
+%(\textsc{R-Map}) and \texttt{flatMap} (\textsc{R-FMap}) do not involve
+%communication with other hosts. In each case, a new SiloRef $r'$ is created
+%that is derived from SiloRef $r$. The execution of the actual operation
+%(\texttt{map} or \texttt{flatMap}, respectively) is deferred, and an object
+%representing this derivation is returned. In both cases, the new SiloRef $r'$
+%refers to a silo created on host $h'$ by applying the spore value $p$ to the
+%value of silo $r$. The first component of the Mapped and FMapped objects, $(h,
+%i)$, is a fresh \emph{location} created by host $h$ to uniquely identify the
+%result silo.
+%
+%Most reduction rules are enabled when the current redex is an \texttt{await}
+%term. The reduction of a term $\texttt{await}(\iota)$ only continues when store
+%$S$ maps location $\iota$ to value $v$. In all other cases, the current host
+%removes the next message from its message queue $E$. As shown in
+%Figure~\ref{fig:elems-opsem} there are two types of messages: requests (Req)
+%and responses (Res). A response $\text{Res}(\iota, v)$ tells its receiver that
+%the silo at location $\iota$ has value $v$. A request $\text{Req}(h, r, \iota)$
+%is sent on behalf of host $h$ to request the value of silo $r$ at location
+%$\iota$. The reception of a response $\text{Res}(\iota, v)$ is handled by
+%adding a mapping $(\iota \mapsto v)$ to the store (rule \textsc{R-Res}). The
+%reception of a request $\text{Req}(h', r, \iota'')$ is handled locally if
+%materialization of the requested silo $r$ is deferred and the parent silo $r'$
+%in $r$'s lineage has not been materialized either. In this case, the host sends
+%a request to materialize $r'$ to itself.
+%
+%
+%
+%\subsubsection{Nondeterministic layer}
+%\label{sec:nondet-layer}
+%
+%All reduction rules in the nondeterministic layer, shown in
+%Figure~\ref{fig:opsem-nondeterm}, involve communication between two hosts.
+%
+%Reducing a term $\texttt{send}(r)$ appends a request $\text{Req}(h, r, \iota)$
+%to the message queue of host $h'$ of the requested silo $r$. In this case, host
+%$h$ creates a unique location $\iota = (h, i)$ to identify the silo
+%subsequently. Rules \textsc{R-Req1}, \textsc{R-Req2}, and \textsc{R-Req3}
+%define the handling of request messages that cannot be handled locally. If the
+%request can be serviced immediately (\textsc{R-Req1}), a response with the
+%value $v$ of the requested silo $r$ is appended to the message queue of the
+%requesting host $h'$. Rules \textsc{R-Req2} and \textsc{R-Reg3} handle cases
+%where the requested silo is not already available in materialized form.
+%
+%% Failures may be detected whenever a message is sent to a non-local host. Note that this does not mean that message sends must be synchronous. Instead, our implementation interprets a failure to establish a network connection with a remote host as a failure of the remote host and thus a failure of all silos that it hosts.
+%
+%\begin{figure*}[t!]
+%  \centering
+%% \vspace{-7mm}
+%\begin{mathpar}
+%
+%\inferrule[\textsc{RF-Send}]
+%{ host(r) = h' \quad h' \neq h \quad \text{failed}(h') \\
+%  \quad i~\text{fresh} \quad \iota = (h, i) \quad S'' = S + (\iota \mapsto \bot)
+%}
+%{ \{ (R[\texttt{send}(r)], E, S)^h \} \cup H \rightarrow \{ (R[\iota], E, S'')^h \} \cup H
+%}
+%
+%\inferrule[\textsc{RF-Req4}]
+%{ E = \text{Req}(h'', r, \iota'') \texttt{::} E'' \quad r = \text{FMapped}(\iota, h, r'', p, \text{Some}(p_f)) \quad S(\iota) = \text{None} \\
+%  loc(r'') = \iota_s \quad S(\iota_s) = \text{Some}(v) \quad p(v) = r' \quad \text{failed}(host(r')) \quad p_f(v) = r_f \quad host(r_f) = h_f \quad \lnot \text{failed}(h_f) \\
+%  loc(r_f) = \iota_f \quad S(\iota_f) = \text{None} \quad m = \text{Req}(h, r_f, \iota_f) \quad E''' = \text{Req}(h'', r_f, \iota'') \texttt{::} E''
+%}
+%{ \{ (R[\texttt{await}(\iota_f)], E, S)^h, (t, E', S')^{h_f} \} \cup H \rightarrow \{ (R[\texttt{await}(\iota_f)], E''', S)^h, (t, E' \cdot m, S')^{h_f} \} \cup H
+%}
+%
+%\inferrule[\textsc{RF-Req5}]
+%{ E = \text{Req}(h'', r, \iota'') \texttt{::} E' \quad r = \text{FMapped}(\iota, h, r'', p, \text{None}) \quad S(\iota) = \text{None} \quad loc(r'') = \iota_s \quad S(\iota_s) = \text{Some}(v) \\
+%  p(v) = r' \quad \text{failed}(host(r')) \quad i_p, i_a~\text{fresh} \quad \iota_p = (h, i_p), \iota_a = (h, i_a) \quad m_p = \text{ReqF}(h, r'', \iota_p) \\
+%  r_a = \text{FMapped}(\iota_a, h, \text{Mat}(\iota_p), p, \text{None}) \quad E'' = m_p \texttt{::} \text{Req}(h'', r_a, \iota'') \texttt{::} E'
+%}
+%{ (R[\texttt{await}(\iota_f)], E, S)^h \longrightarrow (R[\texttt{await}(\iota_f)], E'', S)^h
+%}
+%
+%\inferrule[\textsc{RF-ReqF}]
+%{ E = \text{ReqF}(h, r, \iota') \texttt{::} E' \quad r = \text{Mapped}(\iota, h, r'', p, \text{Some}(p_f)) \\
+%  loc(r'') = \iota_s \quad S(\iota_s) = \text{Some}(v) \quad E'' = \text{Res}(\iota', p_f(v)) \texttt{::} E'
+%}
+%{ (R[\texttt{await}(\iota_f)], E, S)^h \longrightarrow (R[\texttt{await}(\iota_f)], E'', S)^h
+%}
+%
+%\end{mathpar}
+%  \vspace{-3mm}
+%  \caption{Fault handling.}
+%  \label{fig:opsem-faults}
+%  \vspace{-3mm}
+%\end{figure*}
+%
+%% \vspace{-2.25mm}
+%\subsection{Fault handling}
+%\label{sec:faults-opsem}
+%% \vspace{-1mm}
+%The key principles of the fault handling mechanism are:
+%% \vspace{-1mm}
+%\begin{itemize}
+%\item Whenever a message is sent to a non-local host $h$, it is checked whether
+%  $h$ is alive; if it is not, any silos located on $h$ are declared to have
+%  failed.
+%\item Whenever the value of a silo $r$ cannot be obtained due to another failed
+%  silo, $r$ is declared to have failed.
+%\item Whenever the failure of a silo $r$ is detected, the nearest predecessor
+%  $r'$ in $r$'s lineage that is not located on the same host is determined. If
+%  $r'$ has a fault handler $f$ registered, the execution of $f$ is requested.
+%  Otherwise, $r'$ is declared to have failed.
+%\end{itemize}
+%
+%% A host either (a) discovers itself that a remote silo has failed (e.g., because it could not establish a network connection to the remote host), or (b) is notified that a remote silo has failed by a healthy host involved in its materialization.
+%
+%These principles are embodied in the reduction as follows. First, we use the
+%predicate $\text{failed}(h)$ as a way to check whether it is possible to
+%communicate with host $h$ (e.g., an implementation could check whether it is
+%possible to establish a socket connection). Second, failures of hosts are
+%handled whenever communication is attempted: whenever a host $h$ intends to
+%send a message to a host $h'$ where $h' \neq h$, it is checked whether
+%$\text{failed}(h')$. If it is the case that $\text{failed}(h')$, either the
+%corresponding location (silo or future) is declared as failed (and fault
+%handling deferred), or a suitable fault handler is located and a recovery step
+%is attempted. In the following we explain the extended reduction rules shown in
+%Figure~\ref{fig:opsem-faults}.
+%
+%In rule \textsc{RF-Send}, the host of the requested silo $r$ is detected to
+%have failed. However, the parent silos of $r$ are all located on the same
+%(failed) host. Thus, in this case silo $r$ is simply declared as failed, and
+%fault handling is delegated to other parts of the computation DAG that require
+%the value of $r$ (if any). Since \texttt{send} is essentially a ``sink'' of a
+%DAG, no suitable fault handler can be located at this point.
+%
+%This is different in rule \textsc{RF-Req4}. Here, host $h$ processes a message
+%requesting silo $r$ which is the result of a \texttt{flatMap} call.
+%Materializing $r$ requires obtaining the value of silo $r'$, the result of
+%applying spore $p$ to the value $v$ of the materialized parent $r''$.
+%Importantly, if the host of $r'$ is failed, it means the computation of the DAG
+%defined by spore $p$ did not result in a silo on an available host.
+%Consequently, if the \texttt{flatMap} call deriving $r$ specified a fault
+%handler $p_f$, $p_f$ is applied to $v$ in order to recover from the failure.
+%If the host of the resulting silo $r_f$ is not failed, the original request for
+%$r$ is ``modified'' to request $r_f$ instead. This is done by removing message
+%$\text{Req}(h'', r, \iota'')$ from the message queue and prepending message
+%$\text{Req}(h'', r_f, \iota'')$. Moreover, host $h$ sends a message to itself,
+%requesting the value of silo $r_f$.
+%
+%Rule \textsc{RF-Req5} shows fault recovery in the case where the lineage of a
+%requested silo does not specify a fault handler itself. In this case, host $h$
+%creates two fresh locations $\iota_p, \iota_a$. $\iota_p$ is supposed to be
+%eventually mapped to the result value of executing the fault handler of parent
+%silo $r''$. Host $h$ requests this value from itself using a special message
+%$\text{ReqF}(h, r'', \iota_p)$. Finally, the original request for silo $r$ in
+%message queue $E$ is replaced with a request for silo $r_a$. The silo $r_a$ is
+%created analogous to $r$, but using silo $\text{Mat}(\iota_p)$ as parent
+%(eventually, location $\iota_p$ is mapped to the result of applying the
+%parent's fault handler). As demonstrated by rule \textsc{RF-ReqF}, ReqF
+%messages used to request the application of the fault handler are handled in a
+%way that is completely analogous to the way regular Req messages are handled,
+%except that fault handlers $p_f$ are applied as opposed to regular spores $p$.
