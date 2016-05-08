@@ -12,12 +12,12 @@
 
 \input{macros}
 
-\title[Journal of Functional Programming]{F-P \dots\todo{Title}}
+\title[Journal of Functional Programming]{A Programming Model and Foundations for Lineage-Based Distributed Computation}
 
 \author[H. Miller, P. Haller and N. M{\"u}ller]{%
-  HEATHER MILLER\\ EPFL\\[1ex]%\email{heather.miller@epfl.ch}
-  PHILIPP HALLER\\ KTH Royal Institute of Technology\\[1ex]%\email{phaller@kth.se}
-  NORMEN M{\"U}LLER\\ Trivadis GmbH}%\\ \email{normen.mueller@trivadis.com}}
+  HEATHER MILLER\\ EPFL, Switzerland\\[1ex]%\email{heather.miller@epfl.ch}
+  PHILIPP HALLER\\ KTH Royal Institute of Technology, Sweden\\[1ex]%\email{phaller@kth.se}
+  NORMEN M{\"U}LLER\\ Trivadis GmbH, Germany}%\\ \email{normen.mueller@trivadis.com}}
 
 \jdate{April 2016}
 \pubyear{2016}
@@ -33,26 +33,33 @@
 \maketitle
 
 \begin{abstract}
-  The most successful systems for ``big data'' processing have all adopted
-  functional APIs. We present a new programming model we call {\FP} designed to
-  provide a more principled substrate on which to build data-centric distributed
-  systems. A key idea is to build up a persistent functional data structure
-  representing transformations on distributed immutable data by passing
-  well-typed serializable functions over the wire and applying them to this
-  distributed data. Thus, the function passing model can be thought of as a
-  persistent functional data structure that is {\em distributed}, where
-  transformations to data are stored in its nodes rather than the distributed
-  data itself. The model simplifies failure recovery by design--data is
-  recovered by replaying function applications atop immutable data loaded from
-  stable storage. Deferred evaluation is also central to our model; by
-  incorporating deferred evaluation into our design only at the point of
-  initiating network communication, the function passing model remains easy to
-  reason about while remaining efficient in time and memory. We formalize our
-  programming model in the form of a small-step operational semantics which
-  includes a semantics of functional fault recovery, and we provide an
-  open-source implementation of our model in and for the Scala programming
-  language, along with a case study of several example frameworks and end-user
-  programs written atop of this model.
+  The most successful systems for ``big data'' processing have all
+  adopted functional APIs. We present a new programming model we call
+  {\FP} designed to provide a more principled substrate on which to
+  build data-centric distributed systems. A key idea is to build up a
+  persistent functional data structure representing transformations on
+  distributed immutable data by passing well-typed serializable
+  functions over the wire and applying them to this distributed
+  data. Thus, the function passing model can be thought of as a
+  persistent functional data structure that is {\em distributed},
+  where transformations to data are stored in its nodes rather than
+  the distributed data itself. The model simplifies failure recovery
+  by design--data is recovered by replaying function applications atop
+  immutable data loaded from stable storage. Deferred evaluation is
+  also central to our model; by incorporating deferred evaluation into
+  our design only at the point of initiating network communication,
+  the function passing model remains easy to reason about while
+  remaining efficient in time and memory. Moreover, we provide a
+  complete formalization of the programming model in order to study
+  the foundations of lineage-based distributed computation. In
+  particular, we develop a theory of safe, mobile lineages based on a
+  subject reduction theorem for a typed core language. Thus, the
+  formal model may serve as a basis for further developments of the
+  theory of data-centric distributed programming, including aspects
+  such as fault tolerance. We provide an open-source implementation of
+  our model in and for the Scala programming language, along with a
+  case study of several example frameworks and end-user programs
+  written atop of this model.
 \end{abstract}
 
 \tableofcontents
