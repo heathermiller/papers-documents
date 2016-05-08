@@ -32,7 +32,17 @@ v ::=                                                                  & \mbox{{
 \gap ~|~  \iota                                                        & \mbox{location} \\
 \gap ~|~  r                                                            & \mbox{silo reference} \\
                                                                        & \\
-p ::= \texttt{spore}~\{~\seq{x : T = v}~; (x: T) \Rightarrow t~\}      &
+p ::= \texttt{spore}~\{~\seq{x : T = v}~; (x: T) \Rightarrow t~\}      & \\
+& \\
+T ::=                                                                  & \mbox{{\it{types:}}} \\
+\gap \:\:\:\: T \Rightarrow T                                          & \mbox{abstraction type} \\
+\gap ~|~  \{ \seq{l : T} \}                                            & \mbox{record type} \\
+\gap ~|~  \mathcal{S}                                                  & \mbox{} \\
+\gap ~|~  \texttt{Host}                                                & \mbox{host type} \\
+\gap ~|~  \texttt{SiloRef}[T]                                          & \mbox{silo reference type} \\
+\gap ~|~  \texttt{Future}[T]                                           & \mbox{future type} \\
+\mathcal{S} ::= T \Rightarrow T~\{~\texttt{type}~\mathcal{C} = \seq{T}~\} & \mbox{spore type} \\
+\gap ~|~ T \Rightarrow T~\{~\texttt{type}~\mathcal{C}~\}                  & \mbox{abstract spore type}
 \ea$
 \caption{Abstract syntax of core language.}\label{fig:syntax}
 \end{figure}
@@ -48,23 +58,6 @@ closure. \note{summarize spawn and populate} A term
 $\texttt{await}(t)$ blocks execution until the future $t$ has been
 completed asynchronously. The \verb|map|, \verb|flatMap|, and
 \verb|send| primitives have been discussed earlier.
-
-
-\begin{figure}
-\centering
-$\ba[t]{l@{\hspace{2mm}}l}
-T ::=                                                                       & \mbox{{\it{types:}}} \\
-\gap \:\:\:\: T \Rightarrow T                                               & \mbox{abstraction type} \\
-\gap ~|~  \{ \seq{l : T} \}                                                 & \mbox{record type} \\
-\gap ~|~  \mathcal{S}                                                       & \mbox{} \\
-\gap ~|~  \texttt{Host}                                                     & \mbox{host type} \\
-\gap ~|~  \texttt{SiloRef}[T]                                               & \mbox{silo reference type} \\
-\gap ~|~  \texttt{Future}[T]                                                & \mbox{future type} \\
-\mathcal{S} ::= T \Rightarrow T~\{~\texttt{type}~\mathcal{C} = \seq{T}~\}   & \mbox{spore type} \\
-\gap ~|~ T \Rightarrow T~\{~\texttt{type}~\mathcal{C}~\}                    & \mbox{abstract spore type}
-\ea$
-\caption{Type language.}\label{fig:types}
-\end{figure}
 
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -110,14 +103,13 @@ Q      ::=                                             & \mbox{{\it{message queu
     \end{array}\right.$
 \end{defn}
 
-Analogous to~\cite{TAPL}, we introduce the notion of an evaluation
-context and write $E[t]$ for the term obtained by replacing the hole
-in evaluation context $E$ with term $t$. Evaluation contexts capture
-the notion of the ``next subterm to be evaluated.''
+Analogous to~\cite{TAPL}, Figure~\ref{fig:eval-ctx} defines the notion
+of an evaluation context. We write $E[t]$ for the term obtained by
+replacing the hole in evaluation context $E$ with term $t$. Evaluation
+contexts capture the notion of the ``next subterm to be evaluated.''
 
-\begin{defn}[Evaluation Context]
-  The set of evaluation contexts is defined as follows:
-
+\begin{figure}
+\centering
  $\ba[t]{l@{\hspace{2mm}}l}
 E ::=                                                                                                     & \mbox{\it{evaluation contexts:}} \\
 \gap \:\:\:\: [~]                                                                                         & \mbox{hole} \\
@@ -137,7 +129,9 @@ E ::=                                                                           
 \gap ~|~  \texttt{send}(E)                                                                                & \mbox{send} \\
 \gap ~|~  \texttt{await}(E)                                                                               & \mbox{await} \\
 \ea$
-\end{defn}
+\caption{Evaluation context.}\label{fig:eval-ctx}
+\end{figure}
+
 
 \begin{defn}[Silo reference identifier]
     $id(r) := \left\{\ba{ll}
