@@ -32,7 +32,17 @@ v ::=                                                                  & \mbox{{
 \gap ~|~  \iota                                                        & \mbox{location} \\
 \gap ~|~  r                                                            & \mbox{silo reference} \\
                                                                        & \\
-p ::= \texttt{spore}~\{~\seq{x : T = v}~; (x: T) \Rightarrow t~\}      &
+p ::= \texttt{spore}~\{~\seq{x : T = v}~; (x: T) \Rightarrow t~\}      & \\
+& \\
+T ::=                                                                  & \mbox{{\it{types:}}} \\
+\gap \:\:\:\: T \Rightarrow T                                          & \mbox{abstraction type} \\
+\gap ~|~  \{ \seq{l : T} \}                                            & \mbox{record type} \\
+\gap ~|~  \mathcal{S}                                                  & \mbox{} \\
+\gap ~|~  \texttt{Host}                                                & \mbox{host type} \\
+\gap ~|~  \texttt{SiloRef}[T]                                          & \mbox{silo reference type} \\
+\gap ~|~  \texttt{Future}[T]                                           & \mbox{future type} \\
+\mathcal{S} ::= T \Rightarrow T~\{~\texttt{type}~\mathcal{C} = \seq{T}~\} & \mbox{spore type} \\
+\gap ~|~ T \Rightarrow T~\{~\texttt{type}~\mathcal{C}~\}                  & \mbox{abstract spore type}
 \ea$
 \caption{Abstract syntax of core language.}\label{fig:syntax}
 \end{figure}
@@ -48,23 +58,6 @@ closure. \note{summarize spawn and populate} A term
 $\texttt{await}(t)$ blocks execution until the future $t$ has been
 completed asynchronously. The \verb|map|, \verb|flatMap|, and
 \verb|send| primitives have been discussed earlier.
-
-
-\begin{figure}
-\centering
-$\ba[t]{l@{\hspace{2mm}}l}
-T ::=                                                                       & \mbox{{\it{types:}}} \\
-\gap \:\:\:\: T \Rightarrow T                                               & \mbox{abstraction type} \\
-\gap ~|~  \{ \seq{l : T} \}                                                 & \mbox{record type} \\
-\gap ~|~  \mathcal{S}                                                       & \mbox{} \\
-\gap ~|~  \texttt{Host}                                                     & \mbox{host type} \\
-\gap ~|~  \texttt{SiloRef}[T]                                               & \mbox{silo reference type} \\
-\gap ~|~  \texttt{Future}[T]                                                & \mbox{future type} \\
-\mathcal{S} ::= T \Rightarrow T~\{~\texttt{type}~\mathcal{C} = \seq{T}~\}   & \mbox{spore type} \\
-\gap ~|~ T \Rightarrow T~\{~\texttt{type}~\mathcal{C}~\}                    & \mbox{abstract spore type}
-\ea$
-\caption{Type language.}\label{fig:types}
-\end{figure}
 
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -110,14 +103,13 @@ Q      ::=                                             & \mbox{{\it{message queu
     \end{array}\right.$
 \end{defn}
 
-Analogous to~\cite{TAPL}, we introduce the notion of an evaluation
-context and write $E[t]$ for the term obtained by replacing the hole
-in evaluation context $E$ with term $t$. Evaluation contexts capture
-the notion of the ``next subterm to be evaluated.''
+Analogous to~\cite{TAPL}, Figure~\ref{fig:eval-ctx} defines the notion
+of an evaluation context. We write $E[t]$ for the term obtained by
+replacing the hole in evaluation context $E$ with term $t$. Evaluation
+contexts capture the notion of the ``next subterm to be evaluated.''
 
-\begin{defn}[Evaluation Context]
-  The set of evaluation contexts is defined as follows:
-
+\begin{figure}
+\centering
  $\ba[t]{l@{\hspace{2mm}}l}
 E ::=                                                                                                     & \mbox{\it{evaluation contexts:}} \\
 \gap \:\:\:\: [~]                                                                                         & \mbox{hole} \\
@@ -137,7 +129,9 @@ E ::=                                                                           
 \gap ~|~  \texttt{send}(E)                                                                                & \mbox{send} \\
 \gap ~|~  \texttt{await}(E)                                                                               & \mbox{await} \\
 \ea$
-\end{defn}
+\caption{Evaluation context.}\label{fig:eval-ctx}
+\end{figure}
+
 
 \begin{defn}[Silo reference identifier]
     $id(r) := \left\{\ba{ll}
@@ -416,6 +410,538 @@ as~\cite{ConcurrentHaskell}.
 \caption{Deterministic reduction (silo).}
 \end{figure}
 
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%
+% Non-deterministic reduction.
+%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+%
+% (t, Q, S)^h_c -> <crash>
+% H' = { h' | h \in H \land h' = crashed(h_c, h) }
+% --------------------------------------------------
+%    { (t, Q, S)^h_c } \cup H -->> H'
+%
+%
+% update silo store to reflect crash of h_c
+% S' = { id -> (v, C') | id -> (v, C) \in S \land C' = C[h_c -> 0] }
+% ---------------------------------------------------------------------
+%    crashed(h_c, (t, Q, S)^h) = (t, Q, S')^h
+%
+%
+%   S(id) =  Some(v)       |  None
+%
+%   S(id) = (Some(v), cnt) | (None, cnt)
+%
+%   S(id) = (Some(v), [h -> 3, h' -> 2]) | (None, ...)
+%
+%   S(id) = (Some(v), C)   | (None, C)
+
+
+\begin{figure}[ht!]
+\begin{mathpar}
+\inferrule[\textsc{R-Determ}] {
+  (t, \mu, Q, S)^h \rightarrow (t', \mu', Q', S')^h
+} { 
+  \{ (t, \mu, Q, S)^h \} \cup H
+  \twoheadrightarrow
+  \{ (t', \mu', Q', S')^h \} \cup H
+}
+
+\inferrule[\textsc{R-Spawn}] { 
+  h'~\text{fresh}    \quad
+  \iota~\text{fresh} \quad
+  \mu' = [\iota \mapsto h']\mu
+} {
+  \{ (E[\texttt{spawn}(\texttt{spore}~\{~\seq{x : T = v}~; (x: T) \Rightarrow t~\})], \mu, Q, S)^h \} \cup H
+  \\ \twoheadrightarrow
+  \{ (E[\iota], \mu', Q, S)^h, ((\texttt{spore}~\{~\seq{x : T = v}~; (x: T) \Rightarrow t~\})~\{\}, \epsilon, \epsilon, \epsilon)^{h'} \} \cup H
+}
+
+% TODO send spore instead of a value `v`
+\inferrule[\textsc{R-Populate}] { 
+  \mu(\iota) = h'                                         \quad
+  S''        = [\omega \mapsto ({\Val v}, \emptyset)]S'   \quad
+  \omega     = (h', i)                                    \quad
+  i~\text{fresh}
+} {
+  \{ (E[\texttt{populate}(\iota, v)], \mu, Q, S)^h, (t', \mu', Q', S')^{h'} \} \cup H
+  \twoheadrightarrow
+  \{ (E[\text{Mat}(\omega)], \mu, Q, S)^h, (t', \mu', Q', S'')^{h'} \} \cup H
+}
+
+\inferrule[\textsc{R-Req1}] {
+  Q        = {\Req {h'} r \omega} :: Q''  \quad
+  S(id(r)) = (\Val{v}, P)                 \quad
+  m        = {\Res \omega v P}
+} {
+  \{ (E[\texttt{await}(\iota)], \mu, Q, S)^h, (t', \mu', Q', S')^{h'} \} \cup H
+  \twoheadrightarrow
+  \{ (E[\texttt{await}(\iota)], \mu, Q'', S)^h, (t', \mu', Q' \cdot m, S')^{h'} \} \cup H
+}
+
+% Rules that send Req:
+% R-Send: true (append)
+% (R-Req2Map: true (prepend))
+% R-Req2Fwd: true (prepend)
+% 
+% if a rule sends Req(h, r) to h', is it true that host(r) == h'?
+% XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX
+
+\inferrule[\textsc{R-Req2}] {
+  Q         = {\Req {h'} r \omega} :: Q''           \quad %
+  S(id(r))  = (\Fwd{r'}, P)             \\ %
+  S(id(r')) = (\Val{v}, P')             \quad %
+  m         = {\Res \omega v P}
+} {
+  \{ (E[\texttt{await}(\iota)], \mu, Q, S)^h, (t', \mu', Q', S')^{h'} \} \cup H
+  \twoheadrightarrow
+  \{ (E[\texttt{await}(\iota)], \mu, Q'', S)^h, (t', \mu', Q' \cdot m, S')^{h'} \} \cup H
+}
+
+% 1. Angenommen Host h hat einen \Fwd{r'}, dann wissen wir nicht, 
+%    auf welchem Host r' liegt. Das war der eigentliche Grund, Fwd
+%    einzufuehren, weil dann ein flatMap keine Daten transferieren muss.
+%    D.h. wir wollen zulassen, dass eine Referenz in einem Fwd auf
+%    einem beliebigen Host liegen kann.
+% Jetzt kann es sein, dass ich auf Host h ein r = r0.flatMap(p) mache.
+% diese Referenz r kann ich an einen anderen Host h' geben.
+% Jetzt macht Host h' ein r.send(). D.h., h' schickt einen Req(h', r) an h.
+% Jetzt sagt Host h: S(id(r)) = Fwd(r'), und r' kann auch auf Host h' sein
+% (da Host von r' beliebig wie oben erwaehnt).
+% Und in diesem Fall gilt, dass host(r') = h' ist, und daher Host h
+% einen Req(h', r' r) an h'' = h' sendet. Das hat zur Folge, das Host h'
+% jetzt einen Req(h', r', r) bearbeiten muss. Daher muessen auch die lokalen
+% Regeln mit zwei unterschiedlichen Referenzen umgehen koennen, weil
+% r definitiv ungleich r' ist.
+\inferrule[\textsc{R-Req3}] {
+  Q         = {\Req {h''} r \omega} :: Q''           \quad %
+  S(id(r))  = (\Fwd{r'}, P)                          \\ %
+  id(r') \notin dom(S)                               \quad %
+  h'        = host(r')                               \quad %
+  m         = {\Req {h''} {r'} \omega}
+} {
+  \{ (E[\texttt{await}(\iota)], \mu, Q, S)^h, (t', \mu', Q', S')^{h'} \} \cup H
+  \twoheadrightarrow
+  \{ (E[\texttt{await}(\iota)], \mu, Q'', S)^h, (t', \mu', Q' \cdot m, S')^{h'} \} \cup H
+}
+
+\inferrule[\textsc{R-Send}] {
+  host(r) = h'                          \quad
+  h' \neq h                             \quad
+  m = {\Req h r {id(r)}}                \quad
+  \iota~\text{fresh}                    \quad
+  \mu'' = [\iota \mapsto \text{None}]\mu
+} {
+  \{ (E[\texttt{send}(r)], \mu, Q, S)^h, (t', \mu', Q', S')^{h'} \} \cup H
+  \twoheadrightarrow
+  \{ (E[\iota], \mu'', Q, S)^h, (t', \mu', Q' \cdot m, S')^{h'} \} \cup H
+}
+
+\end{mathpar}
+\caption{Non-deterministic reduction.}
+\end{figure}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%
+% Type assignment.
+%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\begin{figure}[ht!]
+\begin{mathpar}
+
+\inferrule[\textsc{S-Record}] {
+  \forall T_i \in \seq{T}.~serializable(T_i)
+} {
+  serializable(\{ \seq{l : T} \})
+}
+
+\inferrule[\textsc{S-Spore}] {
+  \forall T_i \in \seq{T}.~serializable(T_i)
+} {
+  serializable(T \Rightarrow T'~\{~\texttt{type}~\mathcal{C} = \seq{T}~\})
+}
+
+\inferrule[\textsc{S-SiloRef}] {} {
+  serializable(\texttt{SiloRef}[T])
+}
+
+\end{mathpar}
+\caption{Serializable types.}
+\end{figure}
+
+
+\begin{figure}[ht!]
+\begin{mathpar}
+% variable
+\inferrule[\textsc{T-Var}] {
+  x : T \in \Gamma
+} { 
+  \Gamma ; \Sigma ; \Delta \vdash x : T
+}
+
+\inferrule[\textsc{T-Loc}] {
+  \Sigma(\iota) : T
+} {
+  \Gamma ; \Sigma ; \Delta \vdash \iota : T
+}
+
+% abstraction
+\inferrule[\textsc{T-Abs}] {
+  \Gamma, x : T ; \Sigma ; \Delta \vdash t : T'
+} {
+  \Gamma ; \Sigma ; \Delta \vdash ((x: T) \Rightarrow t) : T \Rightarrow T'
+}
+
+% application
+\inferrule[\textsc{T-App}] {
+  \Gamma ; \Sigma ; \Delta \vdash t : T \Rightarrow T' \quad
+  \Gamma ; \Sigma ; \Delta \vdash t' : T
+} { 
+  \Gamma ; \Sigma ; \Delta \vdash (t~t') : T'
+}
+
+% record
+\inferrule[\textsc{T-Record}] {
+  \Gamma ; \Sigma ; \Delta \vdash \seq{t} : \seq{T}
+} {
+  \Gamma ; \Sigma ; \Delta \vdash \{ \seq{l = t} \} : \{ \seq{l : T} \}
+}
+
+% selection
+\inferrule[\textsc{T-Select}] {
+  \Gamma ; \Sigma ; \Delta \vdash t : \{ \seq{l : T} \}
+} {
+  \Gamma ; \Sigma ; \Delta \vdash t.l_i : T_i
+}
+
+% spore
+\inferrule[\textsc{T-Spore}] {
+  \Gamma ; \Sigma ; \Delta \vdash \seq{t} : \seq{T}  \quad
+  \seq{x : T}, x : T ; \emptyset ; \Delta \vdash t : T' \quad
+  \forall T_i \in \seq{T}.~serializable(T_i)
+} { 
+  \Gamma ; \Sigma ; \Delta \vdash (\texttt{spore}~\{~\seq{x : T = t}~; (x: T) \Rightarrow t~\}) : T \Rightarrow T'~\{~\texttt{type}~\mathcal{C} = \seq{T}~\}
+}
+
+\inferrule[\textsc{T-AppSpore}] {
+  \Gamma ; \Sigma ; \Delta \vdash t : T \Rightarrow T'~\{~\texttt{type}~\mathcal{C} = \seq{T}~\} \quad
+  \Gamma ; \Sigma ; \Delta \vdash t' : T
+} { 
+  \Gamma ; \Sigma ; \Delta \vdash (t~t') : T'
+}
+
+% spawn
+\inferrule[\textsc{T-Spawn}] {
+  \Gamma ; \Sigma ; \Delta \vdash t : (\{\} \Rightarrow T~\{~\texttt{type}~\mathcal{C} = \seq{T}~\})
+} {
+  \Gamma ; \Sigma ; \Delta \vdash \texttt{spawn}(t) : \texttt{Host}
+}
+
+% populate
+% TODO make async (Future[SiloRef[T]]); cf. R-Populate
+\inferrule[\textsc{T-Populate}] {
+  \Gamma ; \Sigma ; \Delta \vdash t : \texttt{Host} \quad
+  \Gamma ; \Sigma ; \Delta \vdash t' : T            \quad
+  serializable(T)
+} {
+  \Gamma ; \Sigma ; \Delta \vdash \texttt{populate}(t, t') : \texttt{SiloRef}[T]
+}
+
+% map
+\inferrule[\textsc{T-Map}] {
+  \Gamma ; \Sigma ; \Delta \vdash t : \texttt{SiloRef}[T] \quad
+  \Gamma ; \Sigma ; \Delta \vdash t' : (T \Rightarrow T'~\{~\texttt{type}~\mathcal{C} = \seq{T}~\})
+} {
+  \Gamma ; \Sigma ; \Delta \vdash \texttt{map}(t, t') : \texttt{SiloRef}[T']
+}
+
+% flatMap
+\inferrule[\textsc{T-FMap}] {
+  \Gamma ; \Sigma ; \Delta \vdash t : \texttt{SiloRef}[T] \quad
+  \Gamma ; \Sigma ; \Delta \vdash t' : (T \Rightarrow \texttt{SiloRef}[T']~\{~\texttt{type}~\mathcal{C} = \seq{T}~\})
+} {
+  \Gamma ; \Sigma ; \Delta \vdash \texttt{flatMap}(t, t') : \texttt{SiloRef}[T']
+}
+
+% persist
+\inferrule[\textsc{T-Persist}] {
+  \Gamma ; \Sigma ; \Delta \vdash t : \texttt{SiloRef}[T]
+} {
+  \Gamma ; \Sigma ; \Delta \vdash \texttt{persist}(t) : \texttt{SiloRef}[T]
+}
+
+% send
+\inferrule[\textsc{T-Send}] {
+  \Gamma ; \Sigma ; \Delta \vdash t : \texttt{SiloRef}[T]
+} {
+  \Gamma ; \Sigma ; \Delta \vdash \texttt{send}(t) : \texttt{Future}[T]
+}
+
+\inferrule[\textsc{T-SiloRef}] {
+  \Delta(id(r)) = T \quad
+  \Delta \vdash r
+} {
+  \Gamma ; \Sigma ; \Delta \vdash r : \texttt{SiloRef}[T]
+}
+
+% await
+\inferrule[\textsc{T-Await}] {
+  \Gamma ; \Sigma ; \Delta \vdash t : \texttt{Future}[T]
+} {
+  \Gamma ; \Sigma ; \Delta \vdash \texttt{await}(t) : T
+}
+
+\end{mathpar}
+\caption{Type assignment.}
+\end{figure}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%
+% Subject reduction.
+%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\begin{figure}[ht!]
+\begin{mathpar}
+
+\inferrule[\textsc{WF-Store1}] {} {
+  \emptyset \vdash \emptyset
+}
+
+\inferrule[\textsc{WF-Store2}] {
+  \Sigma \vdash \mu
+} {
+  [\iota \mapsto T]\Sigma \vdash [\iota \mapsto v]\mu
+}
+
+\inferrule[\textsc{WF-Ref1}] {
+  \Delta(\omega) = T  \quad
+  \Delta(id(r)) = T' \quad
+  \exists \Gamma, \Sigma.~\Gamma ; \Sigma ; \Delta \vdash p : T' \Rightarrow T~\{\ldots\} \quad
+  \Delta \vdash r
+} {
+  \Delta \vdash \text{Mapped}(\omega, r, p)
+}
+
+\inferrule[\textsc{WF-Ref2}] {
+  \Delta(\omega) = T  \quad
+  \Delta(id(r)) = T' \quad
+  \exists \Gamma, \Sigma.~\Gamma ; \Sigma ; \Delta \vdash p : T' \Rightarrow \texttt{SiloRef}[T]~\{\ldots\} \quad
+  \Delta \vdash r
+} {
+  \Delta \vdash \text{FMapped}(\omega, r, p)
+}
+
+\inferrule[\textsc{WF-Ref3}] {
+  \Delta(\omega) = T  \quad
+  \Delta(id(r)) = T   \quad
+  \Delta \vdash r
+} {
+  \Delta \vdash {\Per \omega r {\star}}
+}
+
+\inferrule[\textsc{WF-Ref4}] {
+  \omega \in dom(\Delta)
+} {
+  \Delta \vdash {\text{Mat}(\omega)}
+}
+
+\inferrule[\textsc{WF-SiloStore1}] {} {
+  \Delta \vdash \emptyset
+}
+
+\inferrule[\textsc{WF-SiloStore2}] {
+  \Delta(\omega) = T                  \quad
+  \emptyset ; \emptyset ; \Delta \vdash v : T  \quad
+  \Delta \vdash S
+} {
+  \Delta \vdash [\omega \mapsto ({\Val v}, P)]S
+}
+
+\inferrule[\textsc{WF-SiloStore3}] {
+  \Delta(id(r)) = \Delta(\omega)      \quad
+  \Delta \vdash r                     \quad
+  \Delta \vdash S
+} {
+  \Delta \vdash [\omega \mapsto ({\Fwd r}, P)]S
+}
+
+\inferrule[\textsc{WF-Q1}] {} {
+  \Delta ; \Sigma \vdash \epsilon
+}
+
+\inferrule[\textsc{WF-Q2}] {
+  \Delta(\omega) = T                  \quad
+  \Sigma(\iota)  = \texttt{Future}[T] \quad
+  \Delta ; \Sigma \vdash Q
+} {
+  \Delta ; \Sigma \vdash {\ReqF \iota \omega} :: Q
+}
+
+\inferrule[\textsc{WF-Q3}] {
+  \Delta(\omega) = T                  \quad
+  \emptyset ; \emptyset ; \Delta \vdash v : T  \quad
+  \Delta ; \Sigma \vdash Q
+} {
+  \Delta ; \Sigma \vdash {\Res \omega v P} :: Q
+}
+
+\inferrule[\textsc{WF-Q4}] {
+  \Delta(id(r)) = \Delta(\omega) \quad
+  \Delta \vdash r \quad
+  \Delta ; \Sigma \vdash Q
+} {
+  \Delta ; \Sigma \vdash {\Req h r \omega} :: Q
+}
+
+\inferrule[\textsc{WF-HostConfig}] {
+  \Sigma \vdash \mu              \quad
+  \Delta \vdash S                \quad
+  \Delta ; \Sigma \vdash Q       \quad
+  \Gamma ; \Sigma ; \Delta \vdash t : T
+} {
+  \Delta ; \Sigma \vdash (t, \mu, Q, S)^h
+}
+
+\inferrule[\textsc{WF-Host1}] {} { 
+  \Delta \vdash \emptyset
+}
+
+\inferrule[\textsc{WF-Host2}] {
+  \exists \Sigma.~\Delta ; \Sigma \vdash (t, \mu, Q, S)^h  \quad
+  \Delta \vdash H
+} {
+  \Delta \vdash \{ (t, \mu, Q, S)^h \} \cup H
+}
+
+\end{mathpar}
+\caption{Well-formedness.}
+\end{figure}
+
+\begin{thm}
+\emph{(Substitution Lemma)}\label{th:subst}
+If $\Gamma , x : T' ; \Sigma ; \Delta \vdash t : T$ and $\Gamma ; \Sigma ; \Delta \vdash v : T'$ then $\Gamma ; \Sigma ; \Delta \vdash [x \mapsto v]t : T$.
+\end{thm}
+\begin{proof}
+By induction on the derivation of $\Gamma , x : T' ; \Sigma ; \Delta \vdash t : T$.
+\end{proof}
+
+\begin{thm}
+\emph{(Queue Concat)}\label{lem:queue-concat}
+If $\Delta ; \Sigma \vdash Q$ and $\Delta ; \Sigma \vdash Q'$ then $\Delta ; \Sigma \vdash Q ::: Q'$.
+\end{thm}
+\begin{proof}
+By induction on the length of $Q$. The case where $Q = \epsilon$ is trivial.
+
+Case $Q = m :: Q''$.
+\begin{enumerate}
+\item[A1.] By WF-Q1-4, $\Delta ; \Sigma \vdash Q''$.
+\item[A2.] By the IH, $\Delta ; \Sigma \vdash Q'' ::: Q'$.
+\end{enumerate}
+
+\begin{itemize}
+\item Case $m = {\ReqF \iota \omega}$.
+\begin{enumerate}
+% 1.
+\item By the assumption and WF-Q2
+  \begin{enumerate}[label=(\alph*)]
+  \item $\Delta(\omega) = T$
+  \item $\Sigma(\iota) = \texttt{Future}[T]$
+  \item $\Delta ; \Sigma \vdash Q''$
+  \end{enumerate}
+% 2.
+\item By A2., 1.a-b), and WF-Q2, $\Delta ; \Sigma \vdash m :: Q'' ::: Q'$.
+\end{enumerate}
+
+\item Case $m = {\Res \omega v P}$.
+\begin{enumerate}
+% 1.
+\item By the assumption and WF-Q3
+  \begin{enumerate}[label=(\alph*)]
+  \item $\Delta(\omega) = T$
+  \item $\emptyset ; \emptyset \vdash v : T$
+  \item $\Delta ; \Sigma \vdash Q''$
+  \end{enumerate}
+% 2.
+\item By A2., 1.a-b), and WF-Q3, $\Delta ; \Sigma \vdash m :: Q'' ::: Q'$.
+\end{enumerate}
+
+\item Case $m = {\Req h r \omega}$.
+\begin{enumerate}
+% 1.
+\item By the assumption and WF-Q4
+  \begin{enumerate}[label=(\alph*)]
+  \item $\Delta(id(r)) = \Delta(\omega)$
+  \item $\Delta ; \Sigma \vdash Q''$
+  \item $\Delta \vdash r$
+  \end{enumerate}
+% 2.
+\item By A2., 1.a,c), and WF-Q4, $\Delta ; \Sigma \vdash m :: Q'' ::: Q'$.
+\end{enumerate}
+\end{itemize}
+\end{proof}
+
+\begin{thm}
+\emph{(Queue Ordering)}\label{lem:queue-ordering}
+If $\Delta ; \Sigma \vdash m :: Q$ then $\Delta ; \Sigma \vdash Q \cdot m$.
+\end{thm}
+\begin{proof}
+By the assumption and WF-Q1-4, $\Delta ; \Sigma \vdash m :: \epsilon$ and $\Delta ; \Sigma \vdash Q$. By Lemma~\ref{lem:queue-concat}, $\Delta ; \Sigma \vdash Q ::: (m :: \epsilon)$.
+\end{proof}
+
+\begin{thm}
+\emph{(Serializable Values)}\label{lem:ser-values}
+If $\Gamma ; \Sigma ; \Delta \vdash v : T$ and $serializable(T)$ then $\emptyset ; \emptyset ; \Delta \vdash v : T$.
+\end{thm}
+\begin{proof}
+By induction on a derivation of $\Gamma ; \Sigma ; \Delta \vdash v : T$ with a case analysis on the last applied rule.
+
+\begin{itemize}
+\item Case T-SiloRef follows trivially.
+
+\item Case T-Record.
+\begin{enumerate}
+% 1.
+\item By the assumptions
+  \begin{enumerate}[label=(\alph*)]
+  \item $\Gamma ; \Sigma ; \Delta \vdash v : T$
+  \item $serializable(T)$
+  \end{enumerate}
+% 2.
+\item By T-Record
+  \begin{enumerate}[label=(\alph*)]
+  \item $v = \{\seq{l = v}\}$
+  \item $T = \{\seq{l : T}\}$
+  \item $\Gamma ; \Sigma ; \Delta \vdash \seq{v} : \seq{T}$
+  \end{enumerate}
+% 3.
+\item By 2.b) and S-Record, $\forall T_i \in \seq{T}.~serializable(T_i)$.
+% 4.
+\item By 2.c), 3., and the IH, $\emptyset ; \emptyset ; \Delta \vdash \seq{v} : \seq{T}$.
+% 5.
+\item By 4. and T-Record, $\emptyset ; \emptyset ; \Delta \vdash \{\seq{l = v}\} : \{\seq{l : T}\}$.
+\end{enumerate}
+
+\item Case T-Spore is analogous to case T-Record.
+\end{itemize}
+\end{proof}
+
+\begin{thm}
+\emph{(Subject Reduction)}\label{th:pres}
+
+\begin{enumerate}
+
+\item If $\Gamma ; \Sigma ; \Delta \vdash t : T$, $\Sigma \vdash \mu$, and $t~|~\mu \rightarrow^h t'~|~\mu'$ then $\Gamma ; \Sigma' ; \Delta' \vdash t' : T$, and $\Sigma' \vdash \mu'$ for some $\Sigma' \supseteq \Sigma$ and $\Delta' \supseteq \Delta$.
+
+\item If $\Delta ; \Sigma \vdash (t, \mu, Q, S)^h$ and $(t, \mu, Q, S)^h \longrightarrow (t', \mu', Q', S')^h$ then $\Delta' ; \Sigma' \vdash (t', \mu', Q', S')^h$ for some $\Delta' \supseteq \Delta$ and $\Sigma' \supseteq \Sigma$.
+
+\item If $\Delta \vdash H$ and $H \twoheadrightarrow H'$ then $\Delta' \vdash H'$ for some $\Delta' \supseteq \Delta$.
+
+\end{enumerate}
+
+\end{thm}
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %%
