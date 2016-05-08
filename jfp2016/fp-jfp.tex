@@ -1364,21 +1364,22 @@ Scala extensions:
 
 \begin{itemize}
 
-  \item First, Pickling~\cite{Pickling},\footnote{\url{https://github.com/scala/pickling}}
-  a type-safe and performant serialization library with an accompanying, optional
-  macro extension that is focused on distributed programming. It is used for
-  all serialization tasks. Our function passing implementation benefits from the maturity of
-  Pickling, which supports pickling/unpickling a wide range of Scala type
-  constructors. Pickling has evolved from a research prototype to a
-  production-ready serialization framework that is now in widespread commercial
-  use.
+  \item First, Pickling~\cite{Pickling},
+    \footnote{\url{https://github.com/scala/pickling}} a type-safe and
+    performant serialization library with an accompanying, optional macro
+    extension that is focused on distributed programming. It is used for all
+    serialization tasks. Our function passing implementation benefits from the
+    maturity of Pickling, which supports pickling/unpickling a wide range of
+    Scala type constructors. Pickling has evolved from a research prototype to a
+    production-ready serialization framework that is now in widespread
+    commercial use.
 
-\item Second, the programming model makes extensive use of spores, closure-like
-  objects with explicit, typed environments. While~\cite{Spores} has reported an
-  an empirical evaluation of spores, our presented programming model and
-  implementation turned out to be an extensive validation of spores in the context
-  of distributed programming. In addition, our implementation required a thorough
-  refinement of the way spores are pickled.
+  \item Second, the programming model makes extensive use of spores,
+    closure-like objects with explicit, typed environments. While~\cite{Spores}
+    has reported an an empirical evaluation of spores, our presented programming
+    model and implementation turned out to be an extensive validation of spores
+    in the context of distributed programming. In addition, our implementation
+    required a thorough refinement of the way spores are pickled.
 
 \end{itemize}
 
@@ -1388,37 +1389,24 @@ and example data analytics applications, such as word count and group-by-join
 pipelines. We give an introduction and step through some of these example
 applications in section~\ref{sec:examples}.
 
-% Our prototype has also served as an experimentation platform for
-% type-based optimizations, which we present in more detail below.
+% Our prototype has also served as an experimentation platform for type-based
+% optimizations, which we present in more detail below.
 
 % Further, we maintain a growing collection of these toy distributed frameworks
-% (built on top of function passing) and applications on top of them (such as data analytics)
-% at \url{http://lampwww.epfl.ch/~hmiller/f-p/}.\footnote{Review note: this site
-%   is publicly accessible, has no tracking capabilities, and is linked to in
-% talks and from other various webpages meaning it already gets public traffic.
-% One may visit it without identity concerns.}
+% (built on top of function passing) and applications on top of them (such as
+% data analytics) at \url{http://lampwww.epfl.ch/~hmiller/f-p/}.\footnote{Review
+% note: this site is publicly accessible, has no tracking capabilities, and is
+% linked to in talks and from other various webpages meaning it already gets
+% public traffic. One may visit it without identity concerns.}
 
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-\newpage
-
-\appendix
-\label{sec:appendix}
-\input{appendix}
-
-\bibliography{bib}
-
-\label{lastpage}
-
-\end{document}
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \subsection{Serialization in the presence of existential quantification}
 
 Initially, to serialize most message types exchanged by the network
-communication layer, runtime-based unpicklers had to be used (meaning
-unpickling code discovering the structure of a type through introspection at
-runtime). A major disadvantage of runtime-based unpickling is its significant
-impact on performance. The reason for its initial necessity was that message
-types are typically generic, but the generic type arguments are {\em
+communication layer, runtime-based unpicklers had to be used (meaning unpickling
+code discovering the structure of a type through introspection at runtime). A
+major disadvantage of runtime-based unpickling is its significant impact on
+performance. The reason for its initial necessity was that message types are
+typically generic, but the generic type arguments are {\em
 existentially-quantified type variables} on the receiver's side. For example,
 the lineage of a SiloRef may contain instances of a type Mapped. This generic
 type has four type parameters. The receiver of a freshly unpickled Mapped
@@ -1436,17 +1424,17 @@ type-safety:
 val newSilo = new LocalSilo[v, s](mapped.fun(value))
 \end{lstlisting}
 
-However, it is impossible to generate type-specific code to unpickle a type
-like \verb|Mapped[u, t, v, s]|. As a solution to this problem we propose what
-we call ``self-describing'' pickles. Basically, the idea is to augment the
-serialized representation with additional information about how to unpickle.
-The key is to capture the type-specific pickler and unpickler when the
-fully-concrete type of a \verb|Mapped| instance is known:
+However, it is impossible to generate type-specific code to unpickle a type like
+\verb|Mapped[u, t, v, s]|. As a solution to this problem we propose what we call
+``self-describing'' pickles. Basically, the idea is to augment the serialized
+representation with additional information about how to unpickle. The key is to
+capture the type-specific pickler and unpickler when the fully-concrete type of
+a \verb|Mapped| instance is known:
 
 \begin{lstlisting}
 def doPickle[T](msg: T)
   (implicit pickler: Pickler[T],
-               unpickler: Unpickler[T]): Array[Byte] = ...
+          unpickler: Unpickler[T]): Array[Byte] = ...
 \end{lstlisting}
 
 Essentially, this means when \verb|doPickle| is called with a concrete type
@@ -1464,22 +1452,21 @@ message is pickled using the pickler, yielding a byte array. Then, an instance
 of the following simple record-like class is created:
 
 \begin{lstlisting}
-case class SelfDescribing(blob: Array[Byte],
-                          unpicklerClassName: String)
+case class SelfDescribing(blob: Array[Byte], unpicklerClassName: String)
 \end{lstlisting}
 
 Besides the just produced byte array, it contains the class name of the type-
-specific unpickler. This enables, using this fully type-specific unpickler,
-even when the message type to be unpickled is only partially known. All that is
+specific unpickler. This enables, using this fully type-specific unpickler, even
+when the message type to be unpickled is only partially known. All that is
 required is an unpickler for type \verb|SelfDescribing|. First, it reads the
 byte array and class name from the pickle. Second, it instantiates the type-
 specific unpickler reflectively using the class name. (Note that this is
-possible on both the JVM as well as on JavaScript runtimes using Scala's
-current JavaScript backend.) Finally, the unpickler is used to unpickle the
-byte array. In conclusion, this approach ensures (a) that a type that is
-pickleable using a type-specific pickler is guaranteed to be unpickleable by
-the receiver of the pickled SelfDescribing instance, and (b) that unpickling is
-as efficient as pickling, thanks to using type-specific unpicklers.
+possible on both the JVM as well as on JavaScript runtimes using Scala's current
+JavaScript backend.) Finally, the unpickler is used to unpickle the byte array.
+In conclusion, this approach ensures (a) that a type that is pickleable using a
+type-specific pickler is guaranteed to be unpickleable by the receiver of the
+pickled SelfDescribing instance, and (b) that unpickling is as efficient as
+pickling, thanks to using type-specific unpicklers.
 
 % \subsection{Type-based optimization of serialization}
 
@@ -1494,12 +1481,12 @@ as efficient as pickling, thanks to using type-specific unpicklers.
 % performance. In our benchmark application, a group of 4 silos is distributed
 % across 4 different nodes/JVMs. Each silo is populated with a collection of
 % ``person'' records. The application first transforms each silo using
-% \emph{map}, and then using \emph{groupBy} and \emph{join}. For the benchmark we
-% measure the running time for a varying number of records.
+% \emph{map}, and then using \emph{groupBy} and \emph{join}. For the benchmark
+% we measure the running time for a varying number of records.
 %
-% We ran our experiments on a 2.3 GHz Intel Core i7 with 16 GB RAM under Mac OS X
-% 10.9.5 using Java HotSpot Server 1.8.0-b132. For each input size we report the
-% median of 7 runs. Figure~\ref{fig:multiple-jvm} shows the results.
+% We ran our experiments on a 2.3 GHz Intel Core i7 with 16 GB RAM under Mac OS
+% X 10.9.5 using Java HotSpot Server 1.8.0-b132. For each input size we report
+% the median of 7 runs. Figure~\ref{fig:multiple-jvm} shows the results.
 % Interestingly, for an input size of 100,000 records, the use of type-specific
 % serializers resulted in an overall speedup of about 48\% with respect to the
 % same system using runtime-based serializers.
@@ -1542,8 +1529,7 @@ val loremWord = lorem.flatMap(line => {
   line.split(' ').toList
 }).map(word => (word.length, word))
 
-val res: Map[Int, Set[String]] =
-  contentWord.join[Set, Map](loremWord).collectMap()
+val res: Map[Int, Set[String]] = contentWord.join[Set, Map](loremWord).collectMap()
 \end{lstlisting}
 
 In this example, the closure inside the RDD's \verb|flatMap| method called on
@@ -1557,8 +1543,8 @@ detailed example programs using Spark on the function passing model are
 available on GitHub~\footnote{URL withheld for blind review.}
 
 In the context of MBrace, we also implemented the K-Means Clustering example
-available on the MBrace's
-website\footnote{\url{http://mbrace.io/starterkit/HandsOnTutorial/examples/200-kmeans-clustering-example.html}},
+available on the MBrace's website
+\footnote{\url{http://mbrace.io/starterkit/HandsOnTutorial/examples/200-kmeans-clustering-example.html}},
 an excerpt of which is shown below. Our implementation of a distributed K-Means
 using the function passing model is an almost identical port of the MBrace’s
 version written in F\#. K-Means is an algorithm to categorize data points across
@@ -1618,11 +1604,6 @@ cluster for its local set of points (using the \verb|kmeansLocal| function). The
 results are then sent back to the master node to compute the new centroids, and
 to verify the algorithm's convergence condition.
 
-
-
-
-
-
 % \section{Evaluation}
 % \label{sec:evaluation}
 
@@ -1651,27 +1632,27 @@ contrast, in our model spores are sent between passive, persistent silos. In
 contrast, in our model spores are sent between passive, persistent silos.
 Moreover, the coordination of concurrent activity is based on futures, instead
 of message passing. Closures and continuations in Termite
-Scheme~\cite{TermiteScheme} are always serializable; references to non-serializable
-objects (like open files) are automatically wrapped in processes
-that are serialized as their process ID. Similar to Cloud Haskell, Termite is
-inspired by Erlang. In contrast to Termite, the function passing model is statically typed, enabling
-advanced type-based optimizations. In non-process-oriented models, parallel
-closures~\cite{ParallelClosures} and RiverTrail~\cite{RiverTrail} address
-important safety issues of closures in a concurrent setting. However,
-RiverTrail currently does not support capturing variables in closures, which is
-critical for the flatMap combinator in the function passing model. In contrast to parallel closures,
-spores do not require a type system extension in Scala.
+Scheme~\cite{TermiteScheme} are always serializable; references to
+non-serializable objects (like open files) are automatically wrapped in
+processes that are serialized as their process ID. Similar to Cloud Haskell,
+Termite is inspired by Erlang. In contrast to Termite, the function passing
+model is statically typed, enabling advanced type-based optimizations. In
+non-process-oriented models, parallel closures~\cite{ParallelClosures} and
+RiverTrail~\cite{RiverTrail} address important safety issues of closures in a
+concurrent setting. However, RiverTrail currently does not support capturing
+variables in closures, which is critical for the flatMap combinator in the
+function passing model. In contrast to parallel closures, spores do not require
+a type system extension in Scala.
 
 Acute ML~\cite{AcuteML} is a dialect of ML which proposes numerous primitives
 for distributed programming, such as type-safe serialization, dynamic linking
-and rebinding, and versioning. The function passing model, in contrast, is based on spores, which ship
-with their serialized environment or they fail to compile, obviating the need
-for dynamic rebinding. HashCaml~\cite{DistOCaml} is a practical evolution of
-Acute ML's ideas in the form of an extension to the OCaml bytecode compiler,
-which focuses on type-safe serialization and providing globally meaningful type
-names. In contrast, function passing is merely a programming model, which does not require
-extensions to the Scala compiler.
-
+and rebinding, and versioning. The function passing model, in contrast, is based
+on spores, which ship with their serialized environment or they fail to compile,
+obviating the need for dynamic rebinding. HashCaml~\cite{DistOCaml} is a
+practical evolution of Acute ML's ideas in the form of an extension to the OCaml
+bytecode compiler, which focuses on type-safe serialization and providing
+globally meaningful type names. In contrast, function passing is merely a
+programming model, which does not require extensions to the Scala compiler.
 % compiler, which focuses on transmitting safe functions to work on remote
 % distributed data.
 
@@ -1681,9 +1662,9 @@ transitively (for all values reachable from captured values), which is stronger
 than what plain spores provide. However, type constraints allow spores to
 require properties not limited to mobility. Transitive properties are supported
 either using type constraints based on type classes which enforce a transitive
-property or by integrating with type systems that enforce transitive
-properties. Unlike ML5, spores do not require a type system extension. Further,
-the function passing model sits on top of these primitives to provide a full programming
+property or by integrating with type systems that enforce transitive properties.
+Unlike ML5, spores do not require a type system extension. Further, the function
+passing model sits on top of these primitives to provide a full programming
 model for distribution, which also integrates spores and type-safe pickling.
 
 % However, type constraints allow spores to require properties not limited to
@@ -1693,41 +1674,41 @@ model for distribution, which also integrates spores and type-safe pickling.
 % not require a type system extension.
 
 Systems like Spark~\cite{Spark}, MapReduce~\cite{MapReduce}, and
-Dryad~\cite{Dryad} are just that--distributed systems. The function passing model is meant to act as
-more of a middleware to facilitate the design and implementation of such
-systems, and as a result provides much finer-grained control over details such
-as fault handling and network topology (\ie peer-to-peer vs master/worker).
+Dryad~\cite{Dryad} are just that--distributed systems. The function passing
+model is meant to act as more of a middleware to facilitate the design and
+implementation of such systems, and as a result provides much finer-grained
+control over details such as fault handling and network topology (\ie
+peer-to-peer vs master/worker).
 
 The Clojure programming language proposes agents~\cite{Clojure}--stationary
 mutable data containers that users apply functions to in order to update an
-agent's state. The function passing model, in contrast, proposes that data in stationary containers be
-immutable, and that transformations by function application form a persistent
-data structure. Further, Clojure's agents are designed to manage state in a
-shared memory scenario, whereas the function passing model is designed with remote references for a
-distributed scenario.
+agent's state. The function passing model, in contrast, proposes that data in
+stationary containers be immutable, and that transformations by function
+application form a persistent data structure. Further, Clojure's agents are
+designed to manage state in a shared memory scenario, whereas the function
+passing model is designed with remote references for a distributed scenario.
 
-The function passing model is also related to the actor model of concurrency~\cite{Actors},
-which features multiple implementations in
+The function passing model is also related to the actor model of
+concurrency~\cite{Actors}, which features multiple implementations in
 Scala~\cite{ScalaActors,Akka,TypedActors}. Actors can serve as in-memory data
 containers in a distributed system, like our silos. Unlike silos, actors
-encapsulate behavior in addition to immutable or mutable values. While only
-some actor implementations support mobile actors (none in Scala), mobile
-behavior in the form of serializable closures is central to the function passing model.
+encapsulate behavior in addition to immutable or mutable values. While only some
+actor implementations support mobile actors (none in Scala), mobile behavior in
+the form of serializable closures is central to the function passing model.
 
-% Session
-% Types~\cite{SessionTypes}. AmbientTalk~\cite{AmbientTalk}. E
+% Session Types~\cite{SessionTypes}. AmbientTalk~\cite{AmbientTalk}. E
 % Language~\cite{ELang}.
 
 % Other clean slate language designs have been proposed to broadly address
 % issues related to distributed programming. Thorn~\cite{Thorn} was designed
 % with concurrency and the need to interact with remote services in mind. Though
 % a main design goal of Thorn is to evolve scripts into typed programs via
-% gradual typing. function passing on the other hand is not a language, but a programming
-% model, which is designed to inject types into distributed programs from the
-% get-go.
+% gradual typing. function passing on the other hand is not a language, but a
+% programming model, which is designed to inject types into distributed programs
+% from the get-go.
 
-% function passing integrates a distributed, persistent data structure. Other prior work
-% related to spores is discussed in~\cite{Spores}.
+% function passing integrates a distributed, persistent data structure. Other
+% prior work related to spores is discussed in~\cite{Spores}.
 
 % Type-safe distributed programming in ML5~\cite{Tom7} introduces a notion of a
 % typed context called a ``world'' and permits functions to be executed given a
@@ -1783,53 +1764,53 @@ MBrace's cloud-based asynchronous tasks.
 % We have presented the function passing model, a new programming model and new
 % substrate or middleware upon which to build data-centric distributed systems.
 %
-% This enables two important benefits for distributed
-% system builders; (a) since all computations are functional transformations on
-% immutable data, fault-tolerance is made simple by design, and (b) communication
-% is made well-typed by design, a common pain point for builders of distributed
-% systems in Scala. Said another way, the function passing model attempts to more
+% This enables two important benefits for distributed system builders; (a) since
+% all computations are functional transformations on immutable data,
+% fault-tolerance is made simple by design, and (b) communication is made
+% well-typed by design, a common pain point for builders of distributed systems
+% in Scala. Said another way, the function passing model attempts to more
 % naturally model the paradigm of data-centric programming by extending monadic
 % programming to the network.
 %
-% This new model is designed to make it easier to reason about One insight of our
-% model is that lineage-based fault recovery mechanisms, used in widespread
-% frameworks for distribution, can be modeled elegantly in a functional way using
-% persistent data structures.
+% This new model is designed to make it easier to reason about One insight of
+% our model is that lineage-based fault recovery mechanisms, used in widespread
+% frameworks for distribution, can be modeled elegantly in a functional way
+% using persistent data structures.
 %
-% Our operational
-% semantics shows that this approach makes it even amenable to formal treatment.
+% Our operational semantics shows that this approach makes it even amenable to
+% formal treatment.
 %
-% We have also shown that the function passing model is able to express patterns of computation richer
-% than those supported by common ``big data'' frameworks while maintaining
+% We have also shown that the function passing model is able to express patterns
+% of computation richer than those supported by common ``big data'' frameworks
+% while maintaining fault-tolerance--such as decentralized peer-to-peer patterns
+% of communication.
+%
+% Finally, we have implemented our approach in and for Scala, as well as
+% numerous applications on top. We've shown , and have discovered new ways to
+% reconcile type-specific serializers with patterns of static typing common in
+% distributed systems.
+
+% We have presented the function passing model, a new programming model and
+% principled substrate for building data-centric distributed systems. Built atop
+% a foundation consisting of performant and type-safe serialization, and safe,
+% serializable closures, we have shown that it's possible to build elegant
+% fault-tolerant functional systems. One insight of our model is that
+% lineage-based fault recovery mechanisms, used in widespread frameworks for
+% distribution, can be modeled elegantly in a functional way using persistent
+% data structures. Our operational semantics shows that this approach makes it
+% even amenable to formal treatment. We have also shown that the function
+% passing model is able to express patterns of computation richer than those
+% supported by common ``big data'' frameworks while maintaining
 % fault-tolerance--such as decentralized peer-to-peer patterns of communication.
-%
-% Finally, we have implemented our approach in and for Scala, as well as numerous
-% applications on top. We've shown
-%
-% , and have discovered new ways to reconcile type-specific
-% serializers with patterns of static typing common in distributed systems.
-
-
-
-% We have presented the function passing model, a new programming model and principled substrate for
-% building data-centric distributed systems. Built atop a foundation consisting
-% of performant and type-safe serialization, and safe, serializable closures, we
-% have shown that it's possible to build elegant fault-tolerant functional
-% systems. One insight of our model is that lineage-based fault recovery
-% mechanisms, used in widespread frameworks for distribution, can be modeled
-% elegantly in a functional way using persistent data structures. Our operational
-% semantics shows that this approach makes it even amenable to formal treatment.
-% We have also shown that the function passing model is able to express patterns of computation richer
-% than those supported by common ``big data'' frameworks while maintaining
-% fault-tolerance--such as decentralized peer-to-peer patterns of communication.
-% Finally, we have implemented our approach in and for Scala, as well as numerous
-% applications on top, and have discovered new ways to reconcile type-specific
-% serializers with patterns of static typing common in distributed systems.
+% Finally, we have implemented our approach in and for Scala, as well as
+% numerous applications on top, and have discovered new ways to reconcile
+% type-specific serializers with patterns of static typing common in distributed
+% systems.
 %
 % A great deal of future work remains. In the short-term, we aim to continue to
-% build different sorts of distributed frameworks and applications atop the function passing model in an
-% effort to work towards a production-ready implementation of our model for
-% consumption by the Scala community at large.
+% build different sorts of distributed frameworks and applications atop the
+% function passing model in an effort to work towards a production-ready
+% implementation of our model for consumption by the Scala community at large.
 
 % Adapt this model for streaming computation. This would take coming up with a
 % solution to null out references in the {\em lineage}. This would make it
@@ -1842,14 +1823,14 @@ MBrace's cloud-based asynchronous tasks.
 % present a new programming model we call  {\em function passing} designed to
 % overcome many of these issues by providing a more principled substrate on
 % which to build data-centric distributed systems. A key idea is to pass safe,
-% well-typed serializable functions to immutable distributed data.  The function passing
-% model itself can be thought of as a distributed persistent functional data
-% structure, which stores in its nodes transformations to data rather than the
-% distributed data itself.  Thus, the model simplifies failure recovery by
+% well-typed serializable functions to immutable distributed data.  The function
+% passing model itself can be thought of as a distributed persistent functional
+% data structure, which stores in its nodes transformations to data rather than
+% the distributed data itself.  Thus, the model simplifies failure recovery by
 % design--data is recovered by replaying function applications atop immutable
-% data loaded from stable storage. Lazy evaluation is also central to our
-% model; by carefully incorporating laziness into our design (only at the point
-% of initiating network communication), our model remains easy to reason about
+% data loaded from stable storage. Lazy evaluation is also central to our model;
+% by carefully incorporating laziness into our design (only at the point of
+% initiating network communication), our model remains easy to reason about
 % while remaining efficient in time and memory. We formalize our programming
 % model in the form of a small-step operational semantics which includes a
 % precise specification of the semantics of functional fault recovery. We
@@ -1866,19 +1847,18 @@ MBrace's cloud-based asynchronous tasks.
 
 % \subsection{Old Intro}
 
-% % From the ivory tower, it may not be evident,
-% % It might not seem this way from the ivory tower,
-% % but
+% % From the ivory tower, it may not be evident, % It might not seem this way
+% from the ivory tower, % but
 
 % While it might not seem that way at a glance, mainstream software development
 % has become largely distributed. Two {\em styles} of distribution dominate the
 % current landscape; (1) systems composed of microservices, % or designed to be
 % software as a service (SaaS), and (2) systems for ``big data'' processing.
-% Names like Netflix, SoundCloud, and Twitter have established their
-% competitive offerings by way of one or both of these types of systems.
+% Names like Netflix, SoundCloud, and Twitter have established their competitive
+% offerings by way of one or both of these types of systems.
 
-% Microservices are small, independent (separately-compiled) services running
-% on different machines which communicate with each other to together make up a
+% Microservices are small, independent (separately-compiled) services running on
+% different machines which communicate with each other to together make up a
 % single and complex application. ``Big data''-style applications on the other
 % hand are typically single applications whose data cannot fit into the memory
 % of one machine alone. Such applications are typically singly-compiled, with
@@ -1914,8 +1894,8 @@ MBrace's cloud-based asynchronous tasks.
 % untyped, in particular when operating on data types that are also shipped
 % remotely. In our approach we now go ahead and make types work so that they
 % benefit both users (helping catch common errors) \emph{and} distributed
-% systems builders. Our approach leverages types to provide (1)
-% type-specialized picklers, and (2) type-specialized collections/builders.
+% systems builders. Our approach leverages types to provide (1) type-specialized
+% picklers, and (2) type-specialized collections/builders.
 
 % The approach is novel, because noone talks about making sure the unpicklers
 % and builders themselves are serializable, but that's actually fundamental to
@@ -1925,8 +1905,8 @@ MBrace's cloud-based asynchronous tasks.
 
 % \item We have to make the point that serialization is like a primitive in
 % systems design, not some extra thing you figure out how to do later, like in
-% typical PLs. so maybe one central point that we should try to make is that
-% for distributed systems, serializability is like a key primitive, along with
+% typical PLs. so maybe one central point that we should try to make is that for
+% distributed systems, serializability is like a key primitive, along with
 % latency and other things.
 
 % \item we want to prove that typed distributed systems are a good idea. right
@@ -1977,39 +1957,46 @@ MBrace's cloud-based asynchronous tasks.
 % with runtime unpickling, and with all static. because we have those numbers
 % for babyspark then the interpolation will be much more precise.
 
-\begin{thebibliography}{}
- \bibitem[\protect\citename{Augustsson and Johnsson, }1987]{AJ187}
-   Augustsson,~L. and Johnsson,~T. (1987) LML users' manual. PMG
-   Report, Department of Computer Science, Chalmers University of
-   Technology, Goteborg, Sweden.
- \bibitem[\protect\citename{Butcher, }1981]{Butcher}
-   Butcher,~J. (1981) Copy-editing: the Cambridge handbook.
-   Cambridge University Press.
- \bibitem[\protect\citename{Chicago, }1982]{Chicago}
-   The Chicago manual of style. University of Chicago Press.
- \bibitem[\protect\citename{Conklin, }1987]{JC87}
-   Conklin,~J. (1987) Hypertext: an introduction and survey.
-   \emph{IEEE Computer}, 20~(9): pp.~17--41.
- \bibitem[\protect\citename{Dijkstra, }1976]{EWD76}
-   Dijkstra,~E.~W. (1976) \emph{A Discipline of Programming}.
-   Prentice-Hall.
- \bibitem[\protect\citename{Knuth, }1984]{DEK84}
-   Knuth,~D.~E. (1984) Literate programming. \emph{BCS Comput. J.}
-   27~(2): 97--111 (May).
- \bibitem[\protect\citename{Lamport, }1986]{LaTeX}
-   Lamport,~L. (1986) \LaTeX: a document preparation system
-   (2nd edition). Addison-Wesley, New York.
- \bibitem[\protect\citename{Reynolds, }1969]{JCR69}
-   Reynolds,~J.~C. (1969) Transformation systems and the
-   algebraic structure of atomic formulas. In B. Meltzer and
-   D. Michie (editors), \emph{Machine Intelligence 5}, pp.~135--151.
-   Edinburgh University Press.
- \bibitem[\protect\citename{Toyn \emph{et al.}, }1987]{TDR87}
-   Toyn,~I., Dix,~A. and Runciman,~C. (1987) Performance
-   polymorphism. In \emph{Functional Programming Languages and
-   Computer Architecture, Lecture Notes in Computer Science, 274},
-   pp.~325--346. Springer-Verlag.
-\end{thebibliography}
+\newpage
+
+\appendix
+\label{sec:appendix}
+\input{appendix}
+
+\bibliography{bib}
+%\begin{thebibliography}{}
+% \bibitem[\protect\citename{Augustsson and Johnsson, }1987]{AJ187}
+%   Augustsson,~L. and Johnsson,~T. (1987) LML users' manual. PMG
+%   Report, Department of Computer Science, Chalmers University of
+%   Technology, Goteborg, Sweden.
+% \bibitem[\protect\citename{Butcher, }1981]{Butcher}
+%   Butcher,~J. (1981) Copy-editing: the Cambridge handbook.
+%   Cambridge University Press.
+% \bibitem[\protect\citename{Chicago, }1982]{Chicago}
+%   The Chicago manual of style. University of Chicago Press.
+% \bibitem[\protect\citename{Conklin, }1987]{JC87}
+%   Conklin,~J. (1987) Hypertext: an introduction and survey.
+%   \emph{IEEE Computer}, 20~(9): pp.~17--41.
+% \bibitem[\protect\citename{Dijkstra, }1976]{EWD76}
+%   Dijkstra,~E.~W. (1976) \emph{A Discipline of Programming}.
+%   Prentice-Hall.
+% \bibitem[\protect\citename{Knuth, }1984]{DEK84}
+%   Knuth,~D.~E. (1984) Literate programming. \emph{BCS Comput. J.}
+%   27~(2): 97--111 (May).
+% \bibitem[\protect\citename{Lamport, }1986]{LaTeX}
+%   Lamport,~L. (1986) \LaTeX: a document preparation system
+%   (2nd edition). Addison-Wesley, New York.
+% \bibitem[\protect\citename{Reynolds, }1969]{JCR69}
+%   Reynolds,~J.~C. (1969) Transformation systems and the
+%   algebraic structure of atomic formulas. In B. Meltzer and
+%   D. Michie (editors), \emph{Machine Intelligence 5}, pp.~135--151.
+%   Edinburgh University Press.
+% \bibitem[\protect\citename{Toyn \emph{et al.}, }1987]{TDR87}
+%   Toyn,~I., Dix,~A. and Runciman,~C. (1987) Performance
+%   polymorphism. In \emph{Functional Programming Languages and
+%   Computer Architecture, Lecture Notes in Computer Science, 274},
+%   pp.~325--346. Springer-Verlag.
+%\end{thebibliography}
 
 \label{lastpage}
 
