@@ -2,6 +2,7 @@
 \usepackage{todonotes}
 
 \usepackage{url}
+\usepackage{listings}
 
 %%% Terms
 \newcommand{\FP}{{\emph{function passing}}}
@@ -13,6 +14,32 @@
 %%% Drafting
 \newcommand{\comment}[1]{}
 \newcommand{\fixme}[1]{{\color{gray}\itshape#1}}
+
+%%% Listings
+\lstdefinelanguage{Scala}%
+{morekeywords={abstract,case,catch,char,class,%
+    def,else,extends,final,%
+    if,import,%
+    match,module,new,null,object,override,package,private,protected,%
+    public,return,super,this,throw,trait,try,type,val,var,with,implicit,%
+    macro,sealed,%
+  },%
+  sensitive,%
+  morecomment=[l]//,%
+  morecomment=[s]{/*}{*/},%
+  morestring=[b]",%
+  morestring=[b]',%
+  showstringspaces=false%
+}[keywords,comments,strings]%
+
+\lstset{language=Scala,%
+  mathescape=true,%
+  columns=[c]fixed,%
+  basewidth={0.5em, 0.40em},%
+  basicstyle=\tt,%
+  commentstyle=\color{gray}\itshape\ttfamily,
+  xleftmargin=0.0cm
+}
 
 \title[Journal of Functional Programming]{F-P \dots}
 
@@ -576,11 +603,9 @@ to ensure that types being captured have certain properties.
 
 \noindent This shape is illustrated below.
 
-% \vspace{-1mm}
 \begin{figure}[h!]
 \centering\includegraphics[width=0.75\columnwidth]{pic/spore-shape.pdf}
 \end{figure}
-% \vspace{-1mm}
 
 The characteristic property of a spore is that the spore body is only allowed to
 access its parameter, the values in the spore header, as well as top-level
@@ -612,28 +637,13 @@ the corresponding publication~\cite{Spores}.
 \caption{Basic function passing model.}\label{fig:basic-diagram}
 \end{figure}
 
-\include{formalization}
-
-\newpage
-
-\include{appendix}
-%\appendix
-%\section{...}
-
-\bibliography{bib}
-
-\label{lastpage}
-
-\end{document}
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \subsection{Basic Usage}
 
-We begin with a simple visual example to illustrate the basics of
-the function passing model.
-% \footnote{We also feel that, to visually illustrate a system
+We begin with a simple visual example to illustrate the basics of the function
+passing model. % \footnote{We also feel that, to visually illustrate a system
 %   evolving in both space and time, nothing beats a video animation. So, we've
-%   produced a short animation to provide visual intuition of the function passing model:
-% \url{https://vimeo.com/120415626}}
+%   produced a short animation to provide visual intuition of the function
+%   passing model: \url{https://vimeo.com/120415626}}
 
 The main handle users have to the framework is via SiloRefs. A SiloRef can be
 thought of as an immutable handle to distributed data contained within a
@@ -645,8 +655,8 @@ SiloRef, a SiloRef representing a new silo containing the transformed data is
 returned.
 
 The simplest illustration of the model is shown in
-Figure~\ref{fig:basic-diagram} (time flows vertically from top to bottom).
-Here, we start with a \verb|SiloRef[T]| which points to a piece of remote data
+Figure~\ref{fig:basic-diagram} (time flows vertically from top to bottom). Here,
+we start with a \verb|SiloRef[T]| which points to a piece of remote data
 contained within a \verb|Silo[T]|. When the function shown as $\lambda$ of type
 $T \Rightarrow S$ is applied to \verb|SiloRef[T]| and ``forced'' (sent over the
 wire), a new SiloRef of type \verb|SiloRef[S]| is immediately returned. Note
@@ -656,18 +666,13 @@ function is asynchronously sent over the wire and is applied to \verb|Silo[T]|,
 eventually producing a new \verb|Silo[S]| containing the data transformed by
 function $\lambda$. This new \verb|SiloRef[S]| can be used even before its
 corresponding silo is materialized (\ie before the data in \verb|Silo[S]| is
-computed) – the function passing framework queues up operations applied to \verb|SiloRef[S]|
-and applies them when \verb|Silo[S]| is fully materialized.
+computed) – the function passing framework queues up operations applied to
+\verb|SiloRef[S]| and applies them when \verb|Silo[S]| is fully materialized.
 
 Different sorts of complex DAGs can be asynchronously built up in this way.
 Though first, to see how this is possible, we need to develop a clearer idea of
 the primitive operations available on SiloRefs and their semantics. We describe
 these in the following section.
-
-\begin{figure}[t!]
-\centering\includegraphics[width=\columnwidth]{bigger-dag.pdf}
-\caption{A simple DAG in the function passing model.}\label{fig:bigger-dag}
-\end{figure}
 
 \subsection{Primitives}
 \label{sec:primitives}
@@ -677,13 +682,7 @@ to build the higher-order operations common to popular data-centric distributed
 systems (how to build some of these higher-order operations is described in
 Section~\ref{sec:higher-order-operations}). In this section we'll introduce
 these primitives in the context of a running example. These primitives include:
-
-\begin{itemize}[noitemsep,nolistsep]
-\item \verb|map|
-\item \verb|flatMap|
-\item \verb|send|
-\item \verb|cache|
-\end{itemize}
+\verb|map|, \verb|flatMap|, \verb|send|, and \verb|cache|.
 
 \paragraph{map}%
 %
@@ -700,18 +699,34 @@ and the information that it is the result of a \verb|map| invocation. As we
 explain below, another method, \verb|send| or \verb|cache|, must be called
 explicitly to force the materialization of the result silo.
 
-To better understand how DAGs are created and how remote silos are
-materialized, we will develop a running example throughout this section. Given
-a silo containing a list of \verb|Person| records, the following application of
+To better understand how DAGs are created and how remote silos are materialized,
+we will develop a running example throughout this section. Given a silo
+containing a list of \verb|Person| records, the following application of
 \verb|map| defines a (not-yet-materialized) silo containing only the records of
 adults (graphically shown in Figure~\ref{fig:bigger-dag}, part 1):
 
 \begin{lstlisting}
 val persons: SiloRef[List[Person]] = ...
-val adults =
-  persons.map(spore { ps => ps.filter(p => p.age >= 18) })
+val adults = persons.map(spore { ps => ps.filter(p => p.age >= 18) })
 \end{lstlisting}
 
+\begin{figure}[t!]
+\centering\includegraphics[width=\columnwidth]{pic/bigger-dag.pdf}
+\caption{A simple DAG in the function passing model.}\label{fig:bigger-dag}
+\end{figure}
+
+\include{formalization}
+
+\newpage
+
+\include{appendix}
+
+\bibliography{bib}
+
+\label{lastpage}
+
+\end{document}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \paragraph{flatMap}%
 %
 \texttt{def flatMap[S](s: Spore[T, SiloRef[S]]): SiloRef[S]} \newline
