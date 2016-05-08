@@ -1,11 +1,11 @@
 \section{Full Proofs}
 
-\subsection{Proof of Theorem~\ref{lem:queue-concat}}\label{app:queue-concat}
+\subsection{Proof of Lemma~\ref{lem:queue-concat}}\label{app:queue-concat}
 
-\begin{thmun}
-\emph{(Queue Concat)}
+\begin{lemmaun}
+\emph{(Queue Concatenation)}
 If $\Delta ; \Sigma \vdash Q$ and $\Delta ; \Sigma \vdash Q'$ then $\Delta ; \Sigma \vdash Q ::: Q'$.
-\end{thmun}
+\end{lemmaun}
 \begin{proof}
 By induction on the length of $Q$. The case where $Q = \epsilon$ is trivial.
 
@@ -144,7 +144,7 @@ Part 1: by induction on the derivation of $t~|~\mu \rightarrow^h t'~|~\mu'$ with
 % 5.
 \item By 4.a) and T-Abs, $\Gamma , x : T' ; \Sigma ; \Delta \vdash t'' : T''$.
 % 6.
-\item By 4.b), 5., and Lemma~\ref{th:subst}, $\Gamma ; \Sigma ; \Delta \vdash [x \mapsto v']t'' : T''$.
+\item By 4.b), 5., and Lemma~\ref{lem:subst}, $\Gamma ; \Sigma ; \Delta \vdash [x \mapsto v']t'' : T''$.
 % 7.
 \item By 1.a), 2.a-b), 3., and 6., $\Gamma ; \Sigma ; \Delta \vdash t' : T$.
 % 8.
