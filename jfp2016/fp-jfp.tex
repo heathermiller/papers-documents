@@ -78,7 +78,7 @@ this one implementation for most all large-scale data processing needs.
 
 However, in recent years, a new generation of distributed systems for
 large-scale data processing have suddenly cropped up, built on top of emerging
-functional languages like Scala~\cite{ScalaBook}; such systems include Apache
+functional languages like Scala~\cite{Odersky10}; such systems include Apache
 Spark~\cite{Spark}, Twitter's Scalding~\cite{Scalding}, and
 Scoobi~\cite{Scoobi}. These systems make use of functional language features in
 Scala in order to provide high-level, declarative APIs to end-users. Further,
@@ -111,7 +111,7 @@ of transformations on immutable, stationary data.
 The programming model is based on functional abstractions for lineage-based
 distributed computation. In order to prevent common usage errors, the model
 builds upon two previous veins of work--type-safe serialization based on
-functional pickler combinators~\cite{Kennedy,Elsman,Pickling,AliceML}, and
+functional pickler combinators~\cite{Kennedy2004,Elsman2005,Pickling,AliceML}, and
 serializable closures~\cite{CloudHaskell,Spores}. We believe this unique
 combination of functional programming techniques provides a more principled
 substrate upon which to build data-centric, distributed systems.
