@@ -92,28 +92,28 @@ as concurrency.
 
 % \begin{itemize}
 %
-% \item \fixme{{\bf Difficulty of Use}These systems' APIs cannot statically prevent
-%   {\em common usage errors} resulting from some language features not being
-%   designed with distribution in mind, often confronting users with
-%   hard-to-debug runtime errors. A common example is unsafe closure
-%   serialization~\cite{Spores}.}
+% \item \fixme{{\bf Difficulty of Use}These systems' APIs cannot statically
+% prevent {\em common usage errors} resulting from some language features not
+% being designed with distribution in mind, often confronting users with
+% hard-to-debug runtime errors. A common example is unsafe closure
+% serialization~\cite{Spores}.}
 %
-% \item \fixme{{\bf Complicated Maintenance} Typically, only high-level user-facing
-%   abstractions are statically typed.  The absence of static types in lower
-%   layers of the system makes maintenance tasks, such as code refactorings, more
-%   difficult.}
+% \item \fixme{{\bf Complicated Maintenance} Typically, only high-level
+% user-facing abstractions are statically typed.  The absence of static types in
+% lower layers of the system makes maintenance tasks, such as code refactorings,
+% more difficult.}
 %
-% \item \fixme{{\bf Lost Optimization Opportunities} The absence of certain kinds of
-%   static type information precludes systems-centric optimizations. Importantly,
-%   type-based static meta-programming enables fast
-%   serialization~\cite{Pickling}, but this is only possible if also lower layers
-%   (namely those dealing with object serialization) are statically typed.
-%   Several studies~\cite{JavaSerialization, JavaRMI, MoreEfficientJavaRMI,
-%   Jaguar} report on the high overhead of serialization in widely-used runtime
-%   environments such as the JVM. This overhead is so important in practice that
-%   popular systems, like Spark~\cite{Spark} and Akka~\cite{Akka}, leverage
-%   alternative serialization frameworks such as Protocol
-%   Buffers~\cite{Protobuf}, Apache Avro~\cite{Avro}, or Kryo~\cite{Kryo}.}
+% \item \fixme{{\bf Lost Optimization Opportunities} The absence of certain
+% kinds of static type information precludes systems-centric optimizations.
+% Importantly, type-based static meta-programming enables fast
+% serialization~\cite{Pickling}, but this is only possible if also lower layers
+% (namely those dealing with object serialization) are statically typed. Several
+% studies~\cite{JavaSerialization, JavaRMI, MoreEfficientJavaRMI, Jaguar} report
+% on the high overhead of serialization in widely-used runtime environments such
+% as the JVM. This overhead is so important in practice that popular systems,
+% like Apache Spark~\cite{Spark} and Akka~\cite{Akka}, leverage alternative
+% serialization frameworks such as Protocol Buffers~\cite{Protobuf}, Apache
+% Avro~\cite{Avro}, or Kryo~\cite{Kryo}.}
 %
 % \end{itemize}
 
@@ -262,7 +262,6 @@ literature.
 This paper makes the following contributions:
 
 \begin{description}
-
   \item[A new data-centric programming model for functional processing of
     distributed data] which makes important concerns like fault tolerance
     simpler by design. The main computational principle is based on the idea of
@@ -595,8 +594,8 @@ of distributed frameworks to customize type-checking of spores to, for example,
 Authors of distributed frameworks may kick on this type-checking by simply
 including information about excluded types (or other type-based properties) in
 the signature of a method. A concrete example would be to ensure that the
-\verb|map| method on \verb|RDD|s in Spark (a distributed collection) accepts
-only spores which do not capture \verb|SparkContext| (a non-serializable
+\verb|map| method on \verb|RDD|s in Apache Spark (a distributed collection)
+accepts only spores which do not capture \verb|SparkContext| (a non-serializable
 internal framework class).
 
 For a deeper understanding of spores, see
@@ -645,8 +644,8 @@ Though first, to see how this is possible, we need to develop a clearer idea of
 the primitive operations available on SiloRefs and their semantics. We describe
 these in the following section.
 
-\begin{figure}[t!]
-\centering\includegraphics[width=\columnwidth]{pic/bigger-dag.pdf}
+\begin{figure}[ht!]
+\centering\includegraphics[scale=0.35]{pic/bigger-dag.pdf}
 \caption{A simple DAG in the function passing model.}\label{fig:bigger-dag}
 \end{figure}
 
@@ -714,8 +713,9 @@ val owners = adults.flatMap(spore {
     val localps = ps // spore header
     vs => localps.flatMap(p =>
       // list of (p, v) for a single person p
-      vs.flatMap {
-        v => if (v.owner.name == p.name) List((p, v)) else Nil
+      vs.flatMap { v => 
+        if (v.owner.name == p.name) List((p, v))
+        else Nil
       }
     )
   })
@@ -785,7 +785,8 @@ Figure~\ref{fig:bigger-dag}, part 3 and 4):
 
 \begin{lstlisting}
 val sorted = adults.map(spore { ps => ps.sortWith(p => p.age) })
-val labels = sorted.map(spore { ps => ps.map(p => "Welcome, " + p.name) })
+val labels = sorted.map(spore { ps =>
+  ps.map(p => "Welcome, " + p.name) })
 labels.cache()
 \end{lstlisting}
 \noindent
@@ -851,8 +852,8 @@ access patterns. Given that different data types may have specialized operations
 (e.g., a tree map could provide a range projection), the key to enabling this
 type polymorphism is the fact that a spore sent to a silo may apply arbitrary
 functions to the silo's data. Thus, the SiloRef API itself is not limited to
-providing just a fixed set of built-in operations (in contrast to RDDs in Spark,
-for example).
+providing just a fixed set of built-in operations (in contrast to RDDs in Apache
+Spark, for example).
 
 \subsubsection{Expressiveness}
 \label{sec:expr}
@@ -940,7 +941,8 @@ val vehicles2 = SiloRef.fromFun(h)(spore {
   () => localVehicles
 })
 
-val adults = persons.map(spore { ps => ps.filter(p => p.age >= 18) })
+val adults = persons.map(spore { ps =>
+  ps.filter(p => p.age >= 18) })
 
 // adults that own a vehicle
 def computeOwners(v: SiloRef[List[Vehicle]]) = spore {
@@ -975,7 +977,7 @@ patterns.
 
 Higher-order operations such as variants of \verb|map|, \verb|reduce|, and
 \verb|join|, operating on collections of data partitions, distributed across a
-set of hosts, are required when implementing abstractions like Spark's
+set of hosts, are required when implementing abstractions like Apache Spark's
 distributed collections~\cite{Spark}. Section~\ref{sec:dist-coll} demonstrates
 the implementation of some such operations in terms of silos.
 
@@ -1091,8 +1093,8 @@ silos (where $N$ is the number of ``buckets'' of the partitioning function).
 \subsubsection{Essence}
 
 So far, our examples have focused on master-worker topologies that underly
-models like Spark--\ie a master node specifies identical DAGs of computation for
-all worker nodes to follow.
+models like Apache Spark--\ie a master node specifies identical DAGs of
+computation for all worker nodes to follow.
 
 The function passing model, however, is not limited to these sorts of
 topologies. It is indeed possible to develop decentralized, peer-to-peer
@@ -1197,8 +1199,8 @@ node in the event of a failure:
 val doCombine = spore {
   val localVehicles = vehicles
   val localPersons  = persons
-  (localInfo: Info) =>
-    aggregate(localVehicles, localPersons).map(spore {
+  (localInfo: Info) => aggregate(localVehicles, localPersons).map(
+    spore {
       val in = localInfo
       res => combine(res, in)
     })
@@ -1383,11 +1385,11 @@ Scala extensions:
 
 \end{itemize}
 
-So far, we have used our implementation to build a small Spark-like distributed
-collections abstraction, a simple version of the MBrace~\cite{MBrace} framework,
-and example data analytics applications, such as word count and group-by-join
-pipelines. We give an introduction and step through some of these example
-applications in section~\ref{sec:examples}.
+So far, we have used our implementation to build a small Apache Spark-like
+distributed collections abstraction, a simple version of the
+MBrace~\cite{MBrace} framework, and example data analytics applications, such as
+word count and group-by-join pipelines. We give an introduction and step through
+some of these example applications in section~\ref{sec:examples}.
 
 % Our prototype has also served as an experimentation platform for type-based
 % optimizations, which we present in more detail below.
@@ -1452,7 +1454,8 @@ message is pickled using the pickler, yielding a byte array. Then, an instance
 of the following simple record-like class is created:
 
 \begin{lstlisting}
-case class SelfDescribing(blob: Array[Byte], unpicklerClassName: String)
+case class SelfDescribing(blob: Array[Byte],
+                          unpicklerClassName: String)
 \end{lstlisting}
 
 Besides the just produced byte array, it contains the class name of the type-
@@ -1497,25 +1500,26 @@ pickling, thanks to using type-specific unpicklers.
 To show that the function passing model is able to serve as a substrate upon
 which to build different sorts of data-centric distributed frameworks, we
 provide two miniaturized example systems built on top of F-P that are inspired
-by popular big data frameworks; Spark's RDD (Resilient Distributed
+by popular big data frameworks; Apache Spark's RDD (Resilient Distributed
 Datasets)~\cite{Spark}, and MBrace~\cite{MBrace}. Using each example system,
 we've implemented several example applications, excerpts of some of which are
 explained below.
 
-Spark's RDDs provide a set of operations to execute parallel operations on
-distributed data. MBrace extends F\#’s asynchronous workflows, a way to declare
-asynchronous tasks, to distribute computation in the cloud.
+Apache Spark's RDDs provide a set of operations to execute parallel operations
+on distributed data. MBrace extends F\#’s asynchronous workflows, a way to
+declare asynchronous tasks, to distribute computation in the cloud.
 
 Our simplified RDD implementation lets you use data structures distributed
 inside Silos using the function passing model. We've implemented some of the
-operations of Spark’s RDD such as \verb|map|, \verb|reduce|, \verb|groupBy| and
-\verb|join| in terms of the function passing model's primitives. Methods on RDDs
-like \verb|flatMap| or \verb|filter| that don’t need to communicate across Silos
-are implemented with the function passing model’s \verb|map| using the
-corresponding method on the underlying Scala’s collections, while \verb|join| is
-implemented using the function passing model’s \verb|flatMap|. Below, we use it
-to show a simple application associating the length of all words in two
-documents in a \verb|Map| to a set of words with the corresponding length.
+operations of Apache Spark’s RDD such as \verb|map|, \verb|reduce|,
+\verb|groupBy| and \verb|join| in terms of the function passing model's
+primitives. Methods on RDDs like \verb|flatMap| or \verb|filter| that don’t need
+to communicate across Silos are implemented with the function passing model’s
+\verb|map| using the corresponding method on the underlying Scala’s collections,
+while \verb|join| is implemented using the function passing model’s
+\verb|flatMap|. Below, we use it to show a simple application associating the
+length of all words in two documents in a \verb|Map| to a set of words with the
+corresponding length.
 
 \begin{lstlisting}
 val content: RDD[String, List[String]] = ...
@@ -1529,7 +1533,8 @@ val loremWord = lorem.flatMap(line => {
   line.split(' ').toList
 }).map(word => (word.length, word))
 
-val res: Map[Int, Set[String]] = contentWord.join[Set, Map](loremWord).collectMap()
+val res: Map[Int, Set[String]] =
+  contentWord.join[Set, Map](loremWord).collectMap()
 \end{lstlisting}
 
 In this example, the closure inside the RDD's \verb|flatMap| method called on
@@ -1539,7 +1544,7 @@ tuple containing its length and the word. Finally, we do an inner join, which in
 turn associates each length to the set of words of the same length, removing
 duplicate words in the process. Finally, we collect the final result in a
 \verb|Map| using the \verb|collectMap| method on RDDs. Several other more
-detailed example programs using Spark on the function passing model are
+detailed example programs using Apache Spark on the function passing model are
 available on GitHub~\footnote{URL withheld for blind review.}
 
 In the context of MBrace, we also implemented the K-Means Clustering example
@@ -1555,10 +1560,9 @@ def kMeansIterate(
   partitionedPoints: Seq[SiloRef[Array[Point]]],
   centroids: Array[Point],
   iteration: Int): Array[Point] = {
-
   // Running iteration...
-  val clusterParts = partitionedPoints.map(silo => {
-    silo.map(spore {
+  val clusterParts =
+    partitionedPoints.map(silo => { silo.map(spore {
       val lCentroids = centroids
       points => kmeansLocal(points, lCentroids)
     }).send()
@@ -1590,7 +1594,6 @@ def kMeansIterate(
   }
 }
 \end{lstlisting}
-
 The algorithm proceeds with two steps. It first assigns data points to the
 closest cluster. Then it assigns to each cluster a new centroid by computing the
 mean of the points assigned to the clusters. It stops when the centroids stop
@@ -1673,7 +1676,7 @@ model for distribution, which also integrates spores and type-safe pickling.
 % with type systems that enforce transitive properties. Unlike ML5, spores do
 % not require a type system extension.
 
-Systems like Spark~\cite{Spark}, MapReduce~\cite{MapReduce}, and
+Systems like Apache Spark~\cite{Spark}, MapReduce~\cite{MapReduce}, and
 Dryad~\cite{Dryad} are just that--distributed systems. The function passing
 model is meant to act as more of a middleware to facilitate the design and
 implementation of such systems, and as a result provides much finer-grained
@@ -1758,7 +1761,7 @@ of computation richer than those supported by common ``big data'' frameworks
 while maintaining fault-tolerance--such as decentralized peer-to-peer patterns
 of communication. Finally, we have implemented our approach in and for Scala,
 and have shown that it's possible to support different popular patterns of
-distributed processing, such as  batch processing with Spark's RDDs  and
+distributed processing, such as  batch processing with Apache Spark's RDDs and
 MBrace's cloud-based asynchronous tasks.
 
 % We have presented the function passing model, a new programming model and new
