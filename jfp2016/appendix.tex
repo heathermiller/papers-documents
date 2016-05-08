@@ -2,10 +2,10 @@
 
 \subsection{Proof of Theorem~\ref{lem:queue-concat}}\label{app:queue-concat}
 
-\begin{thm}
+\begin{thmun}
 \emph{(Queue Concat)}
 If $\Delta ; \Sigma \vdash Q$ and $\Delta ; \Sigma \vdash Q'$ then $\Delta ; \Sigma \vdash Q ::: Q'$.
-\end{thm}
+\end{thmun}
 \begin{proof}
 By induction on the length of $Q$. The case where $Q = \epsilon$ is trivial.
 
@@ -59,10 +59,10 @@ Case $Q = m :: Q''$.
 
 \subsection{Proof of Theorem~\ref{lem:ser-values}}\label{app:ser-values}
 
-\begin{thm}
+\begin{thmun}
 \emph{(Serializable Values)}
 If $\Gamma ; \Sigma ; \Delta \vdash v : T$ and $serializable(T)$ then $\emptyset ; \emptyset ; \Delta \vdash v : T$.
-\end{thm}
+\end{thmun}
 \begin{proof}
 By induction on the derivation of $\Gamma ; \Sigma ; \Delta \vdash v : T$ with a case analysis on the last applied rule.
 
@@ -98,7 +98,7 @@ By induction on the derivation of $\Gamma ; \Sigma ; \Delta \vdash v : T$ with a
 
 \subsection{Proof of Theorem~\ref{th:subject-reduction}}\label{app:subject-reduction}
 
-\begin{thm}
+\begin{thmun}
 \emph{(Subject Reduction)}
 
 \begin{enumerate}
@@ -111,7 +111,7 @@ By induction on the derivation of $\Gamma ; \Sigma ; \Delta \vdash v : T$ with a
 
 \end{enumerate}
 
-\end{thm}
+\end{thmun}
 \begin{proof}
 
 Part 1: by induction on the derivation of $t~|~\mu \rightarrow^h t'~|~\mu'$ with case analysis of the last applied rule.
