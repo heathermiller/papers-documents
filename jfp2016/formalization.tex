@@ -251,6 +251,171 @@ as~\cite{ConcurrentHaskell}.
 \caption{Sequential reduction.}\label{fig:seq-reduction}
 \end{figure}
 
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%
+% Deterministic reduction.
+%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\begin{figure}[ht!]
+\centering
+
+\begin{mathpar}
+\inferrule[\textsc{R-Seq}] { 
+  E[t]~|~\mu \rightarrow^h E[t']~|~\mu'
+} {
+  (E[t], \mu, Q, S)^h
+  \longrightarrow
+  (E[t'], \mu', Q, S)^h
+}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\inferrule[\textsc{R-Send1Local}] {
+  host(r) = h                               \quad
+  S(id(r)) = (\Val{v}, P)                   \\
+  \iota~\text{fresh}                       \quad
+  \mu' = [\iota \mapsto \text{Some}(v)]\mu
+} {
+  (E[\texttt{send}(r)], \mu, Q, S)^h
+  \longrightarrow
+  (E[\iota], \mu', Q, S)^h
+}
+
+\inferrule[\textsc{R-Send2Local}] {
+  host(r)    = h                         \quad
+  id(r) \notin dom(S)                    \\
+  \iota~\text{fresh}                    \quad
+  \mu' = [\iota \mapsto \text{None}]\mu
+} {
+  (E[\texttt{send}(r)], \mu, Q, S)^h
+  \longrightarrow
+  (E[\iota], \mu', Q \cdot {\Req h r {id(r)}} \cdot {\ReqF {\iota} {id(r)}}, S)^h
+}
+
+\inferrule[\textsc{R-ReqF1}] {
+  Q         = {\ReqF \iota \omega} :: Q' \quad
+  S(\omega) = (\Val{v}, P)               \\
+  S'        = {\consume \omega P S}      \quad
+  \mu'      = [\iota \mapsto \text{Some}(v)]\mu
+} {
+  (E[\texttt{await}(\iota')], \mu, Q, S)^h
+  \longrightarrow
+  (E[\texttt{await}(\iota')], \mu', Q', S')^h
+}
+
+\inferrule[\textsc{R-ReqF2}] {
+  Q           = {\ReqF \iota \omega} :: Q'    \quad
+  \omega \notin dom(S)
+} {
+  (E[\texttt{await}(\iota')], \mu, Q, S)^h
+  \longrightarrow
+  (E[\texttt{await}(\iota')], \mu, Q' \cdot {\ReqF \iota \omega}, S)^h
+}
+
+\end{mathpar}
+\caption{Deterministic reduction (future).}
+\end{figure}
+
+% Note: design approach is to *not* replace Fwds in the silo store, since
+% it would require copying data. Instead, we leverage the flexibility of
+% Req messages to correctly forward requests.
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+% Important that Res message contains correct P, since R-Res
+% updates silo store.
+% Goal: theorem which states that persist sets are "correct".
+% We don't lose hosts from persist sets.
+
+\begin{figure}[ht!]
+\centering
+
+\begin{mathpar}
+
+\inferrule[\textsc{R-Res}] {
+  Q  = {\Res \omega v P} :: Q'          \\
+  S' = [\omega \mapsto (\Val{v}, P)]S
+} {
+  (E[\texttt{await}(\iota)], \mu, Q, S)^h
+  \longrightarrow
+  (E[\texttt{await}(\iota)], \mu, Q', S')^h
+}
+
+\inferrule[\textsc{R-Req1Local}] {
+  Q         = {\Req h r \omega} :: Q'        \quad %
+  S(id(r))  = (\Fwd{r'}, P)                  \quad %
+  S(id(r')) = (\Val{v}, P')                  \quad %
+} {
+  (E[\texttt{await}(\iota)], \mu, Q, S)^h
+  \longrightarrow
+  (E[\texttt{await}(\iota)], \mu, Q' \cdot {\Res \omega v P}, S)^h
+}
+
+\inferrule[\textsc{R-Req2Local}] {
+  Q         = {\Req h r \omega} :: Q'              \quad %
+  S(id(r))  = (\Fwd{r'}, P)                        \quad %
+  id(r') \notin dom(S)                             \quad %
+} {
+  (E[\texttt{await}(\iota)], \mu, Q, S)^h
+  \longrightarrow
+  (E[\texttt{await}(\iota)], \mu, Q' \cdot {\Req h {r'} \omega}, S)^h
+}
+
+\inferrule[\textsc{R-ReqMapLocal}] {
+  Q          = {\Req {h'} r \omega} :: Q'               \quad %
+  r          = \text{Mapped}(\omega', r', p)            \quad %
+  S(id(r'))  = (\Val{v}, P)                             \\
+  v'         = p(v)                                          \quad %
+  S'         = [\omega' \mapsto (\Val{v'}, \emptyset)]S      \quad %
+  S''        = {\consume {id(r')} P {S'}}
+} {
+  (E[\texttt{await}(\iota)], \mu, Q, S)^h
+  \longrightarrow
+  (E[\texttt{await}(\iota)], \mu, Q' \cdot {\Req {h'} r \omega}, S'')^h
+}
+
+\inferrule[\textsc{R-ReqFMapLocal}] {
+  Q          = {\Req {h'} r \omega} :: Q'      \quad %
+  r          = \text{FMapped}(\omega', r', p)  \quad %
+  S(id(r'))  = (\Val{v}, P)                    \\
+  r''        = p(v)                                        \quad %
+  S'         = [\omega' \mapsto (\Fwd{r''}, \emptyset)]S   \quad
+  S''        = {\consume {id(r')} P {S'}}
+} {
+  (E[\texttt{await}(\iota)], \mu, Q, S)^h
+  \longrightarrow
+  (E[\texttt{await}(\iota)], \mu, Q' \cdot {\Req {h'} {r''} \omega}, S'')^h
+}
+
+\inferrule[\textsc{R-ReqPersistLocal}] {
+  Q          = {\Req {h'} r \omega} :: Q'                      \quad %
+  r          = {\Per {\omega'} {r'} \star}                  \quad %
+  \omega'    = (h'', i)                                      \quad %
+  S(id(r'))  = (\Val{v}, P)                               \\
+  P'         = P \star \{h''\}                               \quad %
+  S'         = [\omega' \mapsto (\Val{v}, P')]S            \quad %
+  S''        = {\consume {id(r')} P {S'}}
+} {
+  (E[\texttt{await}(\iota)], \mu, Q,  S)^h
+  \longrightarrow
+  (E[\texttt{await}(\iota)], \mu, Q' \cdot {\Res \omega v {P'}}, S'')^h
+}
+
+\inferrule[\textsc{R-ReqParentLocal}] {
+  Q               = {\Req {h'} r \omega} :: Q'  \quad %
+  \text{Some}(r') = parent(r)                  \quad %
+  id(r') \notin dom(S)                          \\
+} {
+  (E[\texttt{await}(\iota)], \mu, Q, S)^h
+  \longrightarrow
+  (E[\texttt{await}(\iota)], \mu, Q' \cdot {\Req h {r'} {id(r')}} \cdot {\Req {h'} r \omega}, S)^h
+}
+
+\end{mathpar}
+\caption{Deterministic reduction (silo).}
+\end{figure}
+
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %%
