@@ -72,20 +72,20 @@ While leveraging functional programming {\em concepts}, popular implementations
 of the MapReduce~\cite{MapReduce} model, such as Apache Hadoop
 MapReduce~\cite{Hadoop} for Java, have been developed without making use of
 functional language {\em features} such as closures. For nearly a decade, the
-open source interpretation of this model, Apache Hadoop, swelled in size,
+Apache Hadoop open source interpretation of this model swelled in size,
 remaining largely unchallenged--causing nearly all of industry to synchronize on
 this one implementation for most all large-scale data processing needs.
 
 However, in recent years, a new generation of distributed systems for
 large-scale data processing have suddenly cropped up, built on top of emerging
-functional languages like Scala; such systems include Apache Spark~\cite{Spark},
-Twitter's Scalding~\cite{Scalding}, and Scoobi~\cite{Scoobi}. These systems make
-use of functional language features in Scala in order to provide high-level,
-declarative APIs to end-users. Further, the benefits provided by functional
-programming have also won over framework designers as well--some have noticed
-that immutability, and data transformation via higher-order functions makes it
-much easier, by design, to tackle concerns central to distributed systems such
-as concurrency.
+functional languages like Scala~\todo{Reference}; such systems include Apache
+Spark~\cite{Spark}, Twitter's Scalding~\cite{Scalding}, and
+Scoobi~\cite{Scoobi}. These systems make use of functional language features in
+Scala in order to provide high-level, declarative APIs to end-users. Further,
+the benefits provided by functional programming have also won over framework
+designers as well--some have noticed that immutability, and data transformation
+via higher-order functions makes it much easier, by design, to tackle concerns
+central to distributed systems such as concurrency.
 
 % We believe it's possible to take these benefits further to other
 % pain points for distributed system builders
