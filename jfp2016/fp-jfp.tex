@@ -485,8 +485,8 @@ primitive operations/combinators (some are lazy, some are not): \verb|map|,
 \verb|flatMap|, and \verb|send|. The \verb|map| method makes use of deferred
 evaluation; it {\em eventually} applies a user-defined function to data pointed
 to by the \verb|SiloRef[T]|, creating a new silo containing the result of this
-application, though this application. That is, this computation is only kicked
-off when the \verb|send| method is invoked. This makes it possible to queue up
+application, though this application. That is, this computation is only ``kicked
+off'' when the \verb|send| method is invoked. This makes it possible to queue up
 transformations in order to optimize network communication. Like \verb|map|, the
 application of \verb|flatMap| is {\em deferred}. \verb|flatMap| also applies a
 user-defined function to data pointed to by the silo reference; unlike
@@ -765,43 +765,34 @@ execution. }}
 \texttt{def cache(): Future[Unit]} \newline
 %
 The performance of typical data analytics jobs can be increased dramatically by
-caching large data sets in memory~\cite{Spark}. To do this, the silo containing
-the computed data set needs to be materialized. So far, the only way to
-materialize a silo that we have shown is using the \verb|send| primitive.
-However, \verb|send| additionally transfers the contents of a silo to the
-requesting node--too much if a large remote data set should merely be cached in
-memory remotely.  Therefore, an additional primitive called \verb|cache| is
-provided, which forces the remote materialization of the given SiloRef,
-returning \verb|Future[Unit]|.
+caching large data sets in memory~\cite{Spark}. To do this, the silo, containing
+the computed data set, needs to be materialized. The only way, that we have
+shown so far, to materialize a silo is using the \verb|send| primitive. However,
+\verb|send| additionally transfers the contents of a silo to the requesting
+node--too much if a large remote data set should merely be cached in memory
+remotely. Therefore, an additional primitive called \verb|cache| is provided,
+which forces the remote materialization of the given \verb|SiloRef|, returning
+\verb|Future[Unit]|.
 
-Given the running example so far, we can add another subgraph branching off of
-\verb|adults|, which sorts each \verb|Person| by age, produces a \verb|String|
-gretting, and then ``kicks-off'' remote computation by calling \verb|cache| and
-caching the result in remote memory (graphically shown in
-Figure~\ref{fig:bigger-dag}, part 3 and 4):
+Given the running example so far, we can add another lineage branching off of
+\verb|adults| by sorting the list of \verb|Person| records by age, producing a
+greeting \verb|String|, and then ``kicking off'' remote computation by calling
+\verb|cache|, rather than \verb|send|, in order to stash the result in remote
+memory (graphically shown in Figure~\ref{fig:bigger-dag}, part 3 and 4):
 
 \begin{lstlisting}
 val sorted = adults.map(spore { ps => ps.sortWith(p => p.age) })
-val labels = sorted.map(spore { ps =>
-  ps.map(p => "Welcome, " + p.name) })
+val labels = sorted.map(spore { ps => ps.map(p => "Hi " + p.name) })
 labels.cache()
 \end{lstlisting}
 \noindent
-Assuming we would also cache the \verb|owners| SiloRef from the previous
-example, the resulting lineage graph would look as illustrated in
+Assuming we would also cache \verb|owners| from the previous example, the
+resulting lineage graph would look as illustrated in
 Figure~\ref{fig:bigger-dag}. Note that \verb|vehicles| is not a regular parent
 in the lineage of \verb|owners|; it is an indirect input used to compute
 \verb|owners| by virtue of being {\em captured} by the spore used to compute
 \verb|owners|.
 
-% For example, Figure ?? shows the effect of invoking \verb|send| on the
-% \verb|labels| SiloRef from above.
-
-% The \verb|send| operation can also be used to simply cache a silo in main
-% memory, for example, because the silo is known to be accessed subsequently:
-
-% \paragraph{cache}
-%
 % The \verb|cache| method can be provided for convenience. It invokes
 % \verb|send| not directly on the given SiloRef (which would transfer all data
 % of the silo to the current node); instead, it first uses \verb|flatMap| to
