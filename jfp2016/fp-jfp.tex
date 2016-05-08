@@ -10,7 +10,7 @@
 \usepackage{enumitem}
 \usepackage{listings}
 
-\include{macros}
+\input{macros}
 
 \title[Journal of Functional Programming]{F-P \dots}
 
@@ -1315,9 +1315,8 @@ then used to retry the original computation.
 % done.cache()      // force computation on local host
 % recovered.cache() // force computation on backup host
 % \end{lstlisting}
-% \noindent
-% First, the local variables \verb|doCombine| and \verb|doWrite| refer to the
-% verbatim spores passed to \verb|flatMap| and \verb|map| above. Second,
+% \noindent First, the local variables \verb|doCombine| and \verb|doWrite| refer
+% to the verbatim spores passed to \verb|flatMap| and \verb|map| above. Second,
 % \verb|backup| is a dummy silo on a backup host \verb|hostb|. It is used to
 % send a spore to the backup host in a way that allows it to detect whether the
 % original host has failed. The fault handling is done by calling \verb|flatMap|
@@ -1351,35 +1350,21 @@ then used to retry the original computation.
 
 \section{Formalization}
 \label{sec:formalization}
-\include{formalization}
-
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-\newpage
-
-\appendix
-\label{sec:appendix}
-\include{appendix}
-
-\bibliography{bib}
-
-\label{lastpage}
-
-\end{document}
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\input{formalization}
 
 \section{Implementation}
 \label{sec:implementation}
 
 The presented programming model has been fully implemented in Scala, a
 functional programming language that runs on both JVMs and JavaScript runtimes.
-The function passing model is compiled and run using Scala 2.11.8, and considers only the JVM backend
-for now. Our implementation, which has been published as an open-source
-project,\footnote{URL withheld for blind review.} builds on two
-main Scala extensions:
+The function passing model is compiled and run using Scala 2.11.8, and considers
+only the JVM backend for now. Our implementation, which has been published as an
+open-source project,\footnote{URL withheld for blind review.} builds on two main
+Scala extensions:
 
 \begin{itemize}
 
-\item First, Pickling~\cite{Pickling},\footnote{\url{https://github.com/scala/pickling}}
+  \item First, Pickling~\cite{Pickling},\footnote{\url{https://github.com/scala/pickling}}
   a type-safe and performant serialization library with an accompanying, optional
   macro extension that is focused on distributed programming. It is used for
   all serialization tasks. Our function passing implementation benefits from the maturity of
@@ -1413,6 +1398,19 @@ applications in section~\ref{sec:examples}.
 % talks and from other various webpages meaning it already gets public traffic.
 % One may visit it without identity concerns.}
 
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\newpage
+
+\appendix
+\label{sec:appendix}
+\input{appendix}
+
+\bibliography{bib}
+
+\label{lastpage}
+
+\end{document}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \subsection{Serialization in the presence of existential quantification}
 
 Initially, to serialize most message types exchanged by the network
