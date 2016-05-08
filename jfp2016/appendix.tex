@@ -1,2 +1,97 @@
-\section{Proof of Theorem X}
+\section{Full Proofs}
 
+\subsection{Proof of Theorem~\ref{lem:queue-concat}}\label{app:queue-concat}
+
+\begin{thm}
+\emph{(Queue Concat)}
+If $\Delta ; \Sigma \vdash Q$ and $\Delta ; \Sigma \vdash Q'$ then $\Delta ; \Sigma \vdash Q ::: Q'$.
+\end{thm}
+\begin{proof}
+By induction on the length of $Q$. The case where $Q = \epsilon$ is trivial.
+
+Case $Q = m :: Q''$.
+\begin{enumerate}
+\item[A1.] By WF-Q1-4, $\Delta ; \Sigma \vdash Q''$.
+\item[A2.] By the IH, $\Delta ; \Sigma \vdash Q'' ::: Q'$.
+\end{enumerate}
+
+\begin{itemize}
+\item Case $m = {\ReqF \iota \omega}$.
+\begin{enumerate}
+% 1.
+\item By the assumption and WF-Q2
+  \begin{enumerate}[label=(\alph*)]
+  \item $\Delta(\omega) = T$
+  \item $\Sigma(\iota) = \texttt{Future}[T]$
+  \item $\Delta ; \Sigma \vdash Q''$
+  \end{enumerate}
+% 2.
+\item By A2., 1.a-b), and WF-Q2, $\Delta ; \Sigma \vdash m :: Q'' ::: Q'$.
+\end{enumerate}
+
+\item Case $m = {\Res \omega v P}$.
+\begin{enumerate}
+% 1.
+\item By the assumption and WF-Q3
+  \begin{enumerate}[label=(\alph*)]
+  \item $\Delta(\omega) = T$
+  \item $\emptyset ; \emptyset ; \Delta \vdash v : T$
+  \item $\Delta ; \Sigma \vdash Q''$
+  \end{enumerate}
+% 2.
+\item By A2., 1.a-b), and WF-Q3, $\Delta ; \Sigma \vdash m :: Q'' ::: Q'$.
+\end{enumerate}
+
+\item Case $m = {\Req h r \omega}$.
+\begin{enumerate}
+% 1.
+\item By the assumption and WF-Q4
+  \begin{enumerate}[label=(\alph*)]
+  \item $\Delta(id(r)) = \Delta(\omega)$
+  \item $\Delta ; \Sigma \vdash Q''$
+  \item $\Delta \vdash r$
+  \end{enumerate}
+% 2.
+\item By A2., 1.a,c), and WF-Q4, $\Delta ; \Sigma \vdash m :: Q'' ::: Q'$.
+\end{enumerate}
+\end{itemize}
+\end{proof}
+
+\subsection{Proof of Theorem~\ref{lem:ser-values}}\label{app:ser-values}
+
+\begin{thm}
+\emph{(Serializable Values)}
+If $\Gamma ; \Sigma ; \Delta \vdash v : T$ and $serializable(T)$ then $\emptyset ; \emptyset ; \Delta \vdash v : T$.
+\end{thm}
+\begin{proof}
+By induction on a derivation of $\Gamma ; \Sigma ; \Delta \vdash v : T$ with a case analysis on the last applied rule.
+
+\begin{itemize}
+\item Case T-SiloRef follows trivially.
+
+\item Case T-Record.
+\begin{enumerate}
+% 1.
+\item By the assumptions
+  \begin{enumerate}[label=(\alph*)]
+  \item $\Gamma ; \Sigma ; \Delta \vdash v : T$
+  \item $serializable(T)$
+  \end{enumerate}
+% 2.
+\item By T-Record
+  \begin{enumerate}[label=(\alph*)]
+  \item $v = \{\seq{l = v}\}$
+  \item $T = \{\seq{l : T}\}$
+  \item $\Gamma ; \Sigma ; \Delta \vdash \seq{v} : \seq{T}$
+  \end{enumerate}
+% 3.
+\item By 2.b) and S-Record, $\forall T_i \in \seq{T}.~serializable(T_i)$.
+% 4.
+\item By 2.c), 3., and the IH, $\emptyset ; \emptyset ; \Delta \vdash \seq{v} : \seq{T}$.
+% 5.
+\item By 4. and T-Record, $\emptyset ; \emptyset ; \Delta \vdash \{\seq{l = v}\} : \{\seq{l : T}\}$.
+\end{enumerate}
+
+\item Case T-Spore is analogous to case T-Record.
+\end{itemize}
+\end{proof}
