@@ -47,17 +47,23 @@ T ::=                                                                  & \mbox{{
 \caption{Abstract syntax of core language.}\label{fig:syntax}
 \end{figure}
 
-We formalize our programming model in the context of a standard, typed
-lambda calculus with records. Figure~\ref{fig:syntax} shows the
-abstract syntax of our core language. Terms are standard except for
-the \verb|spore|, \verb|spawn|, \verb|populate|, \verb|map|,
-\verb|flatMap|, \verb|persist|, \verb|send|, and \verb|await| terms. A
+We formalize our programming model in the context of a typed lambda
+calculus with records. Figure~\ref{fig:syntax} shows the abstract
+syntax of our core language. Besides standard terms, the language
+includes terms related to (a) spores, (b) silos, and (c) futures. The
 \verb|spore| term creates a new spore. It contains a list of variable
-definitions (the spore header) and the spore's
-closure. \note{summarize spawn and populate} A term
-$\texttt{await}(t)$ blocks execution until the future $t$ has been
-completed asynchronously. The \verb|map|, \verb|flatMap|, and
-\verb|send| primitives have been discussed earlier.
+definitions, the spore header, and a closure which may only refer to
+its parameter and variables in the spore header. The \verb|spawn| term
+creates a new host capable of hosting silos. The \verb|populate| term
+initializes a new silo on a given host with a given data value.  The
+\verb|map|, \verb|flatMap|, and \verb|persist| terms create lineages
+of silo transformations represented as silo references.  The
+\verb|send| term forces the materialization of the silo corresponding
+to its argument silo reference; \verb|send| returns a future which is
+asynchronously completed with the silo's value. The \verb|await| term
+waits for the completion of its argument future and returns the
+future's value.  Locations $\iota$ are used to refer to futures and
+hosts, both of which can be created dynamically using the above terms.
 
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
