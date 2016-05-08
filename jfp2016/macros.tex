@@ -1,0 +1,67 @@
+%%% Terms
+\newcommand{\FP}{{\emph{function passing}}}
+
+%%% Abbreviations and emphasis
+\newcommand{\ie}{{\em i.e.,~}}
+\newcommand{\eg}{{\em e.g.,~}}
+
+%%% Drafting
+\newcommand{\comment}[1]{}
+\newcommand{\fixme}[1]{{\color{gray}\itshape#1}}
+
+%%% Listings
+\lstdefinelanguage{Scala}%
+{morekeywords={abstract,case,catch,char,class,%
+    def,else,extends,final,%
+    if,import,%
+    match,module,new,null,object,override,package,private,protected,%
+    public,return,super,this,throw,trait,try,type,val,var,with,implicit,%
+    macro,sealed,%
+  },%
+  sensitive,%
+  morecomment=[l]//,%
+  morecomment=[s]{/*}{*/},%
+  morestring=[b]",%
+  morestring=[b]',%
+  showstringspaces=false%
+}[keywords,comments,strings]%
+
+\lstset{language=Scala,%
+  mathescape=true,%
+  columns=[c]fixed,%
+  basewidth={0.5em, 0.40em},%
+  basicstyle=\tt,%
+  commentstyle=\color{gray}\itshape\ttfamily,
+  xleftmargin=0.0cm
+}
+
+%%% Spacing
+\newcommand{\gap}{\quad\quad}
+
+%%% Arrays
+\newcommand{\ba}{\begin{array}}
+\newcommand{\ea}{\end{array}}
+
+%%% Syntax
+% Member sequences
+\newcommand{\seq}[1]{\overline{#1}}
+
+%%% Operational model
+\newcommand{\Req}[3]{\text{Req}_s(#1, #2, #3)}
+\newcommand{\Res}[3]{\text{Res}_s(#1, #2, #3)}
+\newcommand{\ReqF}[2]{\text{Req}_{\iota}(#1, #2)}
+\newcommand{\ReqE}[3]{\text{Req}_f(#1, #2, #3)}
+\newcommand{\Per}[3]{\text{Persist}(#1, #2, #3)}
+
+%%% Calculus abbreviations
+\newcommand{\None}{\text{None}}
+\newcommand{\Some}[1]{\text{Some}(#1)}
+
+\newcommand{\Val}[1]{\text{Val}(#1)}
+\newcommand{\Fwd}[1]{\text{Fwd}(#1)}
+
+%% Util
+\newcommand{\consume}[3]{\text{consume}(#1, #2, #3)}
+
+%% Misc
+\newcommand{\note}[1]{{\bf $\clubsuit$ #1 $\spadesuit$}}
