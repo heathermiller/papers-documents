@@ -499,7 +499,7 @@ primitives in more detail in Section~\ref{sec:primitives}.
 \paragraph{Spores}
 
 Spores~\cite{Spores} are safe closures that are guaranteed to be serializable
-and thus distributable. They are a closure-like abstraction and type system
+and thus distributable. They are a closure-like abstraction and a type system
 which gives authors of distributed frameworks a principled way of controlling
 the environment which a closure (provided by client code) can capture. This is
 achieved by (a) enforcing a specific syntactic shape which dictates how the
@@ -507,21 +507,17 @@ environment of a spore is declared, and (b) providing additional type-checking
 to ensure that types being captured have certain properties.
 
 \vspace{3mm}
-\noindent A spore consists of two parts:
-
-\begin{description}
-  \item[the spore header], composed of a list of value definitions.
-  
-  \item[the spore body] (sometimes referred to as the “spore closure”), a
-    regular closure.
-\end{description}
-
-\noindent This shape is illustrated below.
+\noindent A spore consists of two parts: the \textbf{spore header}, composed of
+a list of value definitions, and the \textbf{spore body} a regular closure;
+sometimes referred to as the “spore closure”. This shape is illustrated in
+Figure~\ref{fig:spore-shape}.
 
 \begin{figure}[h!]
 \centering\includegraphics[width=0.75\columnwidth]{pic/spore-shape.pdf}
+\label{fig:spore-shape}
 \end{figure}
 
+\vspace{3mm}
 The characteristic property of a spore is that the spore body is only allowed to
 access its parameter, the values in the spore header, as well as top-level
 singleton objects (Scala's form of modules). The spore closure is not allowed to
@@ -543,9 +539,8 @@ the signature of a method. A concrete example would be to ensure that the
 accepts only spores which do not capture \verb|SparkContext| (a non-serializable
 internal framework class).
 
-For a deeper understanding of spores, see
-% either Appendix~\ref{appendix:spores} which covers the semantics of spores or
-the corresponding publication~\cite{Spores}.
+For a deeper understanding of spores, see the corresponding
+publication~\cite{Spores}.
 
 \begin{figure}[t!]
 \centering\includegraphics[width=0.8\columnwidth]{pic/basic-diagram.pdf}
@@ -560,25 +555,26 @@ passing model. % \footnote{We also feel that, to visually illustrate a system
 %   produced a short animation to provide visual intuition of the function
 %   passing model: \url{https://vimeo.com/120415626}}
 
-The main handle users have to the framework is via SiloRefs. A SiloRef can be
-thought of as an immutable handle to distributed data contained within a
-corresponding silo. Users interact with this distributed data by applying
-functions (as spores) to SiloRefs. Those functions are transmitted over the wire
-and later applied to the data within the corresponding silo. As is the case for
-persistent data structures, when a function is applied to a piece of distributed
-data via a SiloRef, a new SiloRef representing a new silo containing the
-transformed data is returned.
+The main handle users have to the framework is via \verb|SiloRef[T]|s. A
+\verb|SiloRef[T]| can be thought of as an immutable handle to distributed data
+\verb|T| contained within a corresponding silo. Users interact with this
+distributed data by applying functions (as spores) to silo references. Those
+functions are transmitted over the wire and later applied to the data within the
+corresponding silo. As is the case for persistent data structures, when a
+function is applied to a piece of distributed data via a \verb|SiloRef[T]|, a
+new \verb|SiloRef[T']|, representing a new silo containing the transformed data
+\verb|T'|, is returned.
 
 The simplest illustration of the model is shown in
 Figure~\ref{fig:basic-diagram} (time flows vertically from top to bottom). Here,
 we start with a \verb|SiloRef[T]| which points to a piece of remote data
-contained within a \verb|Silo[T]|. When the function shown as $\lambda$ of type
-$T \Rightarrow S$ is applied to \verb|SiloRef[T]| and ``forced'' (sent over the
-wire), a new SiloRef of type \verb|SiloRef[S]| is immediately returned. Note
-that \verb|SiloRef[S]| contains a reference to its parent SiloRef,
-\verb|SiloRef[T]|. (This is how {\em lineages} are constructed.) Meanwhile, the
-function is asynchronously sent over the wire and is then applied to
-\verb|Silo[T]|, eventually producing a new \verb|Silo[S]| containing the data
+contained within a \verb|Silo[T]|. When the function, shown as $\lambda$, of
+type $T \Rightarrow S$ is applied to \verb|SiloRef[T]| and ``forced'' (sent over
+the wire), a new silo reference of type \verb|SiloRef[S]| is immediately
+returned. Note that \verb|SiloRef[S]| contains a reference to its parent silo
+reference, \verb|SiloRef[T]| (This is how {\em lineages} are constructed.).
+Meanwhile, the function is asynchronously sent over the wire and is then applied
+to \verb|Silo[T]|, eventually producing a new \verb|Silo[S]| containing the data
 transformed by function $\lambda$. This new \verb|SiloRef[S]| can be used even
 before its corresponding silo is materialized (\ie before the data in
 \verb|Silo[S]| is computed) – the function passing framework queues up
@@ -587,8 +583,8 @@ fully materialized.
 
 Different sorts of complex DAGs can be asynchronously built up in this way.
 Though first, to see how this is possible, we need to develop a clearer idea of
-the primitive operations available on SiloRefs and their semantics. We describe
-these in the following section.
+the primitive operations available on silo references and their semantics. We
+describe these in the following section.
 
 \begin{figure}[ht!]
 \centering\includegraphics[scale=0.35]{pic/bigger-dag.pdf}
