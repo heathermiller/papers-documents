@@ -239,8 +239,8 @@ initial and subsequent data sets. Maintaining such lineages enables fault
 recovery through recomputation. Practical implementations of lineage-based fault
 recovery suffer from complex code bases, typically eschewing strong static
 typing. This paper presents a principled approach to lineage-based fault
-recovery in a purely functional setting--to our knowledge a novelty in the PL
-literature.
+recovery in a {\em purely functional} setting--to our knowledge a novelty in the
+PL literature.
 
 % Our programming model is also designed to enable adoption in real-world
 % languages and systems. On the one hand, our model can be thought of as a
@@ -265,7 +265,7 @@ This paper makes the following contributions:
     simpler by design. The main computational principle is based on the idea of
     sending safe, guaranteed serializable functions to stationary data. Using
     standard monadic operations, our model enables creating immutable directed
-    acyclic graphs of computations, supporting decentralized distributed
+    acyclic graphs (DAG) of computations, supporting decentralized distributed
     computations. Deferred evaluation enables important optimizations while
     keeping programs simple to reason about.
 
@@ -280,9 +280,9 @@ This paper makes the following contributions:
 
   \item[A distributed implementation of the programming model] in and for Scala
     as a middleware. In addition, we present prototype versions we have built of
-    popular frameworks like Apache Spark and MBrace using the function passing
-    model, and end-user applications we have built using each of these prototype
-    frameworks.
+    popular frameworks like Apache Spark and MBrace~\todo{Reference} using the
+    function passing model, and end-user applications we have built using each
+    of these prototype frameworks.
 
     % \fixme{We present experiments that show some of the benefits of the proposed
     % design, and we report on a validation of spores in the context of
@@ -474,11 +474,10 @@ in Section~\ref{sec:conclusion-future-work}.
 
 In the broadest sense, the function passing model can be thought of as a sort of
 persistent functional data structure with structural sharing. However, rather
-than containing pure data, instead the data structure represents a directed
-acyclic graph (DAG) of functional transformations on distributed data. The root
-node of is immutable data read from stable storage (\eg Amazon S3); edges
-represent functional transformations on immutable data represented as nodes of
-the DAG.
+than containing pure data, instead the data structure represents a DAG of
+functional transformations on distributed data. The root node of is immutable
+data read from stable storage (\eg Amazon S3); edges represent functional
+transformations on immutable data represented as nodes of the DAG.
 
 Importantly, since this DAG of computations is a persistent data structure
 itself, it is safe to exchange (copies of) subgraphs of a DAG between remote
@@ -490,9 +489,10 @@ stable storage.
 
 Central to the function passing model is the careful use of deferred evaluation.
 Computations on distributed data are typically not executed eagerly; instead,
-applying a function to distributed data just creates an immutable lineage. To
+applying a function to distributed data just creates an immutable, local lineage. To
 make a network call and thus obtain the result of a computation, it is necessary
-to first ``kick off'' computation, or to force its lineage. Within our
+to first ``kick off'' the computation in order to materialize the 
+nodes of its lineage. Within our
 programming model, this force operation (called \verb|send()|) makes network
 communication (and thus possibilities for latency) explicit, which is considered
 to be a strength when designing distributed systems~\cite{ANoteDistComp}.
@@ -616,11 +616,11 @@ passing model. % \footnote{We also feel that, to visually illustrate a system
 The main handle users have to the framework is via SiloRefs. A SiloRef can be
 thought of as an immutable handle to distributed data contained within a
 corresponding silo. Users interact with this distributed data by applying
-functions (as spores) to SiloRefs, which are transmitted over the wire and later
-applied to the data within the corresponding silo. As is the case for persistent
-data structures, when a function is applied to a piece of distributed data via a
-SiloRef, a SiloRef representing a new silo containing the transformed data is
-returned.
+functions (as spores) to SiloRefs. Those functions are transmitted over the wire
+and later applied to the data within the corresponding silo. As is the case for
+persistent data structures, when a function is applied to a piece of distributed
+data via a SiloRef, a new SiloRef representing a new silo containing the
+transformed data is returned.
 
 The simplest illustration of the model is shown in
 Figure~\ref{fig:basic-diagram} (time flows vertically from top to bottom). Here,
@@ -630,12 +630,13 @@ $T \Rightarrow S$ is applied to \verb|SiloRef[T]| and ``forced'' (sent over the
 wire), a new SiloRef of type \verb|SiloRef[S]| is immediately returned. Note
 that \verb|SiloRef[S]| contains a reference to its parent SiloRef,
 \verb|SiloRef[T]|. (This is how {\em lineages} are constructed.) Meanwhile, the
-function is asynchronously sent over the wire and is applied to \verb|Silo[T]|,
-eventually producing a new \verb|Silo[S]| containing the data transformed by
-function $\lambda$. This new \verb|SiloRef[S]| can be used even before its
-corresponding silo is materialized (\ie before the data in \verb|Silo[S]| is
-computed) – the function passing framework queues up operations applied to
-\verb|SiloRef[S]| and applies them when \verb|Silo[S]| is fully materialized.
+function is asynchronously sent over the wire and is then applied to
+\verb|Silo[T]|, eventually producing a new \verb|Silo[S]| containing the data
+transformed by function $\lambda$. This new \verb|SiloRef[S]| can be used even
+before its corresponding silo is materialized (\ie before the data in
+\verb|Silo[S]| is computed) – the function passing framework queues up
+operations applied to \verb|SiloRef[S]| and applies them when \verb|Silo[S]| is
+fully materialized.
 
 Different sorts of complex DAGs can be asynchronously built up in this way.
 Though first, to see how this is possible, we need to develop a clearer idea of
@@ -666,7 +667,7 @@ silo associated with the given SiloRef. Rather than immediately sending the
 spore across the network, and waiting for the operation to finish, the
 \verb|map| method's evaluation is \emph{deferred}. Without involving any network
 communication, it immediately returns a SiloRef referring to a new,
-soon-to-be-created silo. This new SiloRef only contains lineage information,
+to-be-created silo. This new SiloRef only contains lineage information,
 namely, a reference to the original SiloRef, a reference to the argument spore,
 and the information that it is the result of a \verb|map| invocation. As we
 explain below, another method, \verb|send| or \verb|cache|, must be called
@@ -761,6 +762,60 @@ is then asynchronously completed with the data of the given silo. Since calling
 example, in the implementation of an aggregate operation such as \verb|reduce|
 on a distributed collection).
 
+{{\color{gray}\itshape
+Let's come back to our previous example and kick off materialization to 
+investigate data flow and location of persistence:
+
+\begin{lstlisting}
+val adults: SiloRef[List[Person]] = ...
+val vehicles: SiloRef[List[Vehicle]] = ...
+val owners: SiloRef[List[(Person,Vehicle)]] =
+  adults.flatMap(...).send()
+\end{lstlisting}
+\noindent
+We assume that the silo references are persisted at machine \verb|m1| but the 
+actual data is distributed:
+
+\begin{lstlisting}
+adults   @ m1 --> Silo[List[Person]]            @ m2
+vehicles @ m1 --> Silo[List[Vehicle]]           @ m3
+owners   @ m1 --> Silo[List[(Person,Vehicle)]]  ???
+\end{lstlisting}
+\noindent
+To create \verb|owners|, we must combine data hosted at \verb|m2| with data 
+hosted at \verb|m3|. First, \verb|adults.flatMap| transfers the spore, i.e., the 
+silo reference \verb|vehicles| and the closure \verb|ps => ...|, to \verb|m2| 
+hosting the referenced silo of grown-up \verb|Person| records. Next, 
+\verb|localVehicles.map| transfers the spore, i.e., the collection of adults 
+\verb|ps| and the closure \verb|vs => ...|, to \verb|m3| hosting the referenced 
+silo of \verb|Vehicle| records. Now, at \verb|m3|, we have all required 
+information, the adults \verb|ps| and vehicles \verb|vs| and can combine those  
+correspondingly, resulting in a new (anonymous) silo reference at \verb|m2| 
+referencing the new silo of \verb|(Person,Vehicle)| records hosted at \verb|m3|. 
+Eventually the new silo reference at \verb|m2| is used to transfer its 
+referenced data from \verb|m3| to \verb|m2|, the origin of the \verb|flatMap|:
+
+\begin{lstlisting}
+adults   @ m1 --> Silo[List[Person]]            @ m2
+vehicles @ m1 --> Silo[List[Vehicle]]           @ m3
+owners   @ m1 --> Silo[List[(Person,Vehicle)]]  @ m2
+\end{lstlisting}
+\noindent
+Work in progress is to leave results where they are and introduce the concept of 
+a {\emph{silo reference proxies}}, delegating to the actual data:~\todo{Still
+Valid?}
+
+\begin{lstlisting}
+adults   @ m1                --> Silo[List[Person]]            @ m2
+vehicles @ m1                --> Silo[List[Vehicle]]           @ m3
+owners   @ m1 --> proxy @ m3 --> Silo[List[(Person,Vehicle)]]  @ m3
+\end{lstlisting}
+\noindent
+The anonymous silo reference created at \verb|m2| will not be ruled out but 
+function as proxy delegating requests re \verb|owners| to the data hosted at 
+\verb|m3|. This alleviates network communication and scales up transformation 
+execution. }}
+
 \paragraph{cache}%
 %
 \texttt{def cache(): Future[Unit]} \newline
@@ -772,8 +827,8 @@ materialize a silo that we have shown is using the \verb|send| primitive.
 However, \verb|send| additionally transfers the contents of a silo to the
 requesting node--too much if a large remote data set should merely be cached in
 memory remotely.  Therefore, an additional primitive called \verb|cache| is
-provided, which forces the materialization of the given SiloRef, returning
-\verb|Future[Unit]|.
+provided, which forces the remote materialization of the given SiloRef,
+returning \verb|Future[Unit]|.
 
 Given the running example so far, we can add another subgraph branching off of
 \verb|adults|, which sorts each \verb|Person| by age, produces a \verb|String|
@@ -1097,14 +1152,14 @@ computation for all worker nodes to follow.
 The function passing model, however, is not limited to these sorts of
 topologies. It is indeed possible to develop decentralized, peer-to-peer
 topologies on top of the function passing model. For example, a single compute
-node may host silos that are remotely referenced by remote SiloRefs, as well as
+node may host silos, that are remotely referenced by remote SiloRefs, as well as
 SiloRefs remotely referencing silos on other compute nodes.
 
 Further, as we show in the following example, it's also possible for multiple
-clients to build completely different DAGs of computation off of some source
-silo. In effect, this enables datasets to be shared--they exist once in memory
-on some node, but can be used and transformed in different ways by different
-clients.
+clients to build completely different DAGs of computation starting off of some
+source silo. In effect, this enables datasets to be shared--they exist once in
+memory on some node, but can be used and transformed in different ways by
+different clients.
 
 Consider the following example. We start by populating an initial silo
 representing a dataset of \verb|Vehicle| objects on
@@ -1126,7 +1181,7 @@ val silo2 = vehicles.map(spore {
 val vehiclesPerState = silo2.send()
 
 // client #2
-// get siloref for silo that is being materialized due to client #1
+// get ref for silo that is being materialized due to client #1
 val vehicles: SiloRef[List[Vehicle]] =
   Silo.fromTextFile(lmpsrv1)("hdfs://...")
 
