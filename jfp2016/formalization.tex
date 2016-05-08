@@ -507,7 +507,6 @@ silo $id(r')$ according to the operator $\star$ stored in $r$.  Rule
   {r'} {id(r')}}$ in case the parent $id(r')$ of a requested silo
 $id(r)$ is not materialized yet.
 
-
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %
 % Non-deterministic reduction.
@@ -535,10 +534,9 @@ $id(r)$ is not materialized yet.
 %
 %   S(id) = (Some(v), C)   | (None, C)
 
-
-\begin{figure}[ht!]
+\begin{figure}
 \begin{mathpar}
-\inferrule[\textsc{R-Determ}] {
+\inferrule[\textsc{R-Schedule}] {
   (t, \mu, Q, S)^h \rightarrow (t', \mu', Q', S')^h
 } { 
   \{ (t, \mu, Q, S)^h \} \cup H
@@ -635,10 +633,24 @@ $id(r)$ is not materialized yet.
   \twoheadrightarrow
   \{ (E[\iota], \mu'', Q, S)^h, (t', \mu', Q' \cdot m, S')^{h'} \} \cup H
 }
-
 \end{mathpar}
-\caption{Non-deterministic reduction.}
+\caption{Non-deterministic reduction.}\label{fig:nondeterm-rules}
 \end{figure}
+
+Figure~\ref{fig:nondeterm-rules} shows the non-deterministic reduction
+rules. The non-deterministic reduction relation has the form $H
+\twoheadrightarrow H'$ where $H$ and $H'$ are sets of hosts of the
+form $(t, \mu, Q, S)^h$. Rule \textsc{R-Schedule} reduces a host
+chosen non-deterministically from the set of hosts. Rule
+\textsc{R-Spawn} creates a new host whose initial term is given by the
+application of the provided spore to the unit value $\{\}$. The new
+host has an empty store, an empty queue, and an empty silo store.
+Rule \textsc{R-Populate} materializes a silo with a fresh identifier
+$\omega$ on host $h'$ using value $v$. Rules \textsc{R-Req1-3} and
+\textsc{R-Send} are analogous to the corresponding deterministic
+reduction rules. The main difference is that messages are exchanged
+between different hosts in the case of non-deterministic reduction.
+
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %
