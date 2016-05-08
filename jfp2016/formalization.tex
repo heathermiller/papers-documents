@@ -820,29 +820,22 @@ as~\cite{ConcurrentHaskell}.
 \caption{Well-formedness.}
 \end{figure}
 
-\begin{thm}
-\emph{(Substitution Lemma)}\label{th:subst}
+\begin{lemma}
+\emph{(Substitution)}\label{lem:subst}
 If $\Gamma , x : T' ; \Sigma ; \Delta \vdash t : T$ and $\Gamma ; \Sigma ; \Delta \vdash v : T'$ then $\Gamma ; \Sigma ; \Delta \vdash [x \mapsto v]t : T$.
-\end{thm}
+\end{lemma}
 \begin{proof}
 By induction on the derivation of $\Gamma , x : T' ; \Sigma ; \Delta \vdash t : T$.
 \end{proof}
 
-\begin{thm}
-\emph{(Queue Concat)}\label{lem:queue-concat}
+\begin{lemma}
+\emph{(Queue Concatenation)}\label{lem:queue-concat}
 If $\Delta ; \Sigma \vdash Q$ and $\Delta ; \Sigma \vdash Q'$ then $\Delta ; \Sigma \vdash Q ::: Q'$.
-\end{thm}
+\end{lemma}
 \begin{proof}
 By induction on the length of $Q$. See Appendix~\ref{app:queue-concat}.
 \end{proof}
 
-\begin{thm}
-\emph{(Queue Ordering)}\label{lem:queue-ordering}
-If $\Delta ; \Sigma \vdash m :: Q$ then $\Delta ; \Sigma \vdash Q \cdot m$.
-\end{thm}
-\begin{proof}
-By the assumption and WF-Q1-4, $\Delta ; \Sigma \vdash m :: \epsilon$ and $\Delta ; \Sigma \vdash Q$. By Lemma~\ref{lem:queue-concat}, $\Delta ; \Sigma \vdash Q ::: (m :: \epsilon)$.
-\end{proof}
 
 \begin{thm}
 \emph{(Serializable Values)}\label{lem:ser-values}
@@ -851,6 +844,7 @@ If $\Gamma ; \Sigma ; \Delta \vdash v : T$ and $serializable(T)$ then $\emptyset
 \begin{proof}
 By induction on the derivation of $\Gamma ; \Sigma ; \Delta \vdash v : T$. See Appendix~\ref{app:ser-values}.
 \end{proof}
+
 
 \begin{thm}
 \emph{(Subject Reduction)}\label{th:subject-reduction}
