@@ -1,247 +1,34 @@
-% This is file JFP2egui.tex
-% release v1.02, 27th September 2001
-%   (based on JFPguide.tex v1.11 for LaTeX 2.09)
-% Copyright (C) 2001 Cambridge University Press
-
-\NeedsTeXFormat{LaTeX2e}
-
 \documentclass{jfp1}
+\usepackage{todonotes}
 
-\usepackage{amsmath}
-\usepackage{amsthm}
-\usepackage{amssymb}
-\usepackage{bcprules}
-\usepackage{prooftree}
-\usepackage{multicol}
-\usepackage{mathpartir}
-\usepackage{listings}
-\usepackage{xspace}
-\usepackage{mdframed}
-\usepackage{xcolor}
-\usepackage{fontspec}
-\usepackage{graphicx}
-\usepackage{setspace}
-\usepackage{wasysym}
 \usepackage{url}
-  \usepackage{csquotes}
-\usepackage{enumitem}
 
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-%   General                           %
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%% Terms
+\newcommand{\FP}{{\emph{function passing}}}
 
-\lstdefinelanguage{Scala}%
-{morekeywords={abstract,case,catch,char,class,%
-    def,else,extends,final,%
-    if,import,%
-    match,module,new,null,object,override,package,private,protected,%
-    public,return,super,this,throw,trait,try,type,val,var,with,implicit,%
-    macro,sealed,%
-  },%
-  sensitive,%
-  morecomment=[l]//,%
-  morecomment=[s]{/*}{*/},%
-  morestring=[b]",%
-  morestring=[b]',%
-  showstringspaces=false%
-}[keywords,comments,strings]%
-
-\lstset{language=Scala,%
-  mathescape=true,%
-  columns=[c]fixed,%
-  basewidth={0.5em, 0.40em},%
-  basicstyle=\tt,%
-  commentstyle=\color{gray}\itshape\ttfamily,
-  xleftmargin=0.0cm
-}
-% \lstset{tabsize=2,
-% basicstyle=\ttfamily\fontsize{9pt}{1em}\selectfont,
-% commentstyle=\color{gray}\itshape\ttfamily,
-% numbers=left, numberstyle=\scriptsize\color{gray}\ttfamily, language=scala,moredelim=[il][\sffamily]{?},mathescape=false,showspaces=false,showstringspaces=false,xleftmargin=15pt,escapechar=@, morekeywords=[1]{let,fn,val},deletekeywords={for},classoffset=0,belowskip=\smallskipamount
-% }
-%
-% \theoremstyle{definition}
-% \newmdtheoremenv[hidealllines=true,topline=true,bottomline=true,skipabove=\baselineskip,skipbelow=\baselineskip]{defn}{Definition}[section]
-% \theoremstyle{definition}
-% \newmdtheoremenv[hidealllines=true,topline=true,bottomline=true,skipabove=\baselineskip,skipbelow=\baselineskip]{prop}{Property}[section]
-% % \theoremstyle{nonumberplain}
-% % \theoremstyle{definition}
-% % \newmdtheoremenv*[hidealllines=true,topline=true,bottomline=true,skipabove=\baselineskip,skipbelow=\baselineskip]{defnn}{Definition}[section]
-% \newtheorem*{defn*}{Definition}
-% \newtheorem{defn}{Definition}[section]
-% \newenvironment{defn}
-  % {\begin{mdframed}[style=warning]\begin{mdef}}
-  % {\end{mdef}\end{mdframed}}
-
-% Comments and notes
-\newcommand{\comment}[1]{}
-\newcommand{\note}[1]{{\bf $\clubsuit$ #1 $\spadesuit$}}
-\newcommand{\ifreport}[1]{#1}
-%\newcommand{\ifreport}[1]{}
-
-% Abbreviations and emphasis
+%%% Abbreviations and emphasis
 \newcommand{\ie}{{\em i.e.,~}}
-% \newcommand{\eg}{{\em e.g.,~}}
-\newcommand{\term}[1]{\mbox{\texttt{#1}}}
-\newcommand{\itl}[1]{\mbox{\textit{#1}}}
+\newcommand{\eg}{{\em e.g.,~}}
 
-% Commas and semicolons
-\newcommand{\comma}{,\,}
-\newcommand{\commadots}{\comma \ldots \comma}
-\newcommand{\semi}{;\mbox{;};}
-\newcommand{\semidots}{\semi \ldots \semi}
-
-% Spacing
-\newcommand{\gap}{\quad\quad}
-\newcommand{\biggap}{\quad\quad\quad}
-\newcommand{\nextline}{\\ \\}
-\newcommand{\htabwidth}{0.5cm}
-\newcommand{\tabwidth}{1cm}
-\newcommand{\htab}{\hspace{\htabwidth}}
-\newcommand{\tab}{\hspace{\tabwidth}}
-\newcommand{\linesep}{\ \hrulefill \ \smallskip}
-
-\newcommand{\sectionline}{%
-  \nointerlineskip \vspace{\baselineskip}%
-  \hspace{\fill}\rule{0.5\linewidth}{.7pt}\hspace{\fill}%
-  \par\nointerlineskip \vspace{\baselineskip}
-}
-
-% % Figures
-% \newcommand{\figurebox}[1]
-%         {\fbox{\begin{minipage}{\textwidth} #1 \medskip\end{minipage}}}
-% \newcommand{\twofig}[3]
-%         {\begin{figure*}[t]#3\ \hrulefill\
-%         \caption{\label{#1}#2}\end{figure*}}
-% \newcommand{\boxfig}[3]
-%         {\begin{figure*}\figurebox{#3\caption{\label{#1}#2}}\end{figure*}}
-% \newcommand{\figref}[1]
-%         {Figure~\ref{#1}}
-
-% Arrays
-\newcommand{\ba}{\begin{array}}
-\newcommand{\ea}{\end{array}}
-\newcommand{\bda}{\[\ba}
-\newcommand{\eda}{\ea\]}
-\newcommand{\ei}{\end{array}}
-\newcommand{\bcases}{\left\{\begin{array}{ll}}
-\newcommand{\ecases}{\end{array}\right.}
-
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-%   Language abstraction commands     %
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-
-%% Relations
-% Subtype
-\newcommand{\sub}{<:}
-% Type assignment
-\newcommand{\typ}{:}
-% Reduction
-\newcommand{\reduces}{\;\rightarrow\;}
-% Well-formedness
-\newcommand{\wf}{\;\mbox{\textbf{wf}}}
-
-%% Operators
-% Type selection
-\newcommand{\tsel}{\#}
-% Function type
-\newcommand{\tfun}{\rightarrow}
-\newcommand{\dfun}[3]{(#1\!:\!#2) \Rightarrow #3}
-% Conjunction
-\newcommand{\tand}{\wedge}
-% Disjunction
-\newcommand{\tor}{\vee}
-% Singleton type suffix
-\newcommand{\sing}{.\textbf{type}}
-
-%% Syntax
-% Header for typing rules
-\newcommand{\judgement}[2]{{\bf #1} \hfill \fbox{#2}}
-% Refinement
-\newcommand{\refine}[2]{\left\{#1 \Rightarrow #2 \right\}}
-% Field definitions
-\newcommand{\ldefs}[1]{\left\{#1\right\}}
-% Member sequences
-\newcommand{\seq}[1]{\overline{#1}}
-% Lambda
-\newcommand{\dabs}[3]{(#1\!:\!#2)\Rightarrow #3}
-\newcommand{\abs}[3]{\lambda #1\!:\!#2.#3}
-% Application
-\newcommand{\app}[2]{#1\;#2}
-% Substitution
-\newcommand{\subst}[3]{[#1/#2]#3}
-% Object creation
-\newcommand{\new}[3]{\textbf{val }#1 = \textbf{new }#2 ;\; #3}
-%\renewcommand{\new}[3]{#1 \leftarrow #2 \,\textbf{in}\, #3}
-% Field declaration
-\newcommand{\Ldecl}[3]{#1 \typ #2..#3}%{#1 \operatorname{>:} #2 \operatorname{<:} #3}
-\newcommand{\ldecl}[2]{#1 \typ #2}
-% Top and Bottom
-\newcommand{\Top}{\top}%{\textbf{Top}}
-\newcommand{\Bot}{\bot}%\textbf{Bot}}
-% Environment extension
-\newcommand{\envplus}[1]{\uplus \{ #1 \}}
-
-\newcommand{\reduction}[4]{#1, #2 \reduces #3, #4}
-\newcommand{\reducebig}[6]{#1, #2, #3 \;\Downarrow\; #4, #5, #6}
-\newcommand{\evaluate}[5]{#1, #2, #3 \;\Downarrow\; #4, #5}
-\newcommand{\evalcap}[8]{#1, #2, #3, #4 \;\Downarrow\; #5, #6, #7, #8}
-\newcommand{\evalcapbreak}[8]{#1, #2, #3, #4 \;\Downarrow\; \\ #5, #6, #7, #8}
-\newcommand{\evalcapfin}[9]{#2, #3, #4, #5 \;\Downarrow_{#1}\; #6, #7, #8, #9}
-
-\newcommand{\sframe}[3]{\langle #1, #2, #3 \rangle}
-\newcommand{\stack}[4]{#1 \sframe {#2} {#3} {#4}}
-\newcommand{\reduce}[4]{#1, #2 \;\longrightarrow\; #3, #4}
-\newcommand{\reducebreak}[4]{#1, #2 \\ \;\longrightarrow\; #3, #4}
-
-\newcommand{\sreduce}[6]{#1, #2, #3 \;\longrightarrow\; #4, #5, #6}
-\newcommand{\sreducebreak}[6]{#1, #2, #3 \\ \;\longrightarrow\; #4, #5, #6}
-\newcommand{\sreducestar}[6]{#1, #2, #3 \;\longrightarrow^{\ast}\; #4, #5, #6}
-\newcommand{\sreducestarbreak}[6]{#1, #2, #3 \\ \;\longrightarrow^{\ast}\; #4, #5, #6}
-
-% Misc identifiers
-\newcommand{\dom}{\mbox{\sl dom}}
-\newcommand{\fn}{\mbox{\sl fn}}
-\newcommand{\bn}{\mbox{\sl bn}}
-\newcommand{\sig}{\mbox{\sl sig}}
-\newcommand{\IF}{\mbox{\mathem if}}
-\newcommand{\OTHERWISE}{\mbox{\mathem otherwise}}
-\newcommand{\strongexpand}{\prec\!\!\prec}
-\newcommand{\weakexpand}{\prec}
-\newcommand{\spcomma}{~,~}
-
+%%% Drafting
+\newcommand{\comment}[1]{}
 \newcommand{\fixme}[1]{{\color{gray}\itshape#1}}
 
-%%% Macros for the guide only %%%
-\providecommand\AMSLaTeX{AMS\,\LaTeX}
-\newcommand\eg{\emph{e.g.}\ }
-\newcommand\etc{\emph{etc.}}
-\newcommand\bcmdtab{\noindent\bgroup\tabcolsep=0pt%
-  \begin{tabular}{@{}p{10pc}@{}p{20pc}@{}}}
-\newcommand\ecmdtab{\end{tabular}\egroup}
-\newcommand\rch[1]{$\longrightarrow\rlap{$#1$}$\hspace{1em}}
-\newcommand\lra{\ensuremath{\quad\longrightarrow\quad}}
+\title[Journal of Functional Programming]{F-P \dots}
 
-\title[Journal of Functional Programming]
-      {\LaTeXe\ guide for the Journal of Functional Programming}
+\author[H. Miller, P. Haller and N. M{\"u}ller]{%
+  HEATHER MILLER\\ EPFL\\[1ex]%\email{heather.miller@epfl.ch}
+  PHILIPP HALLER\\ KTH Royal Institute of Technology\\[1ex]%\email{phaller@kth.se}
+  NORMEN M{\"U}LLER\\ Trivadis GmbH}%\\ \email{normen.mueller@trivadis.com}}
 
- \author[M. A. Reed]
-        {MARK A. REED\\
-         Cambridge University Press, Cambridge CB2 2BS, UK\\
-         \email{texline@cambridge.org}}
-
-\jdate{September 2001, update April 2007}
-\pubyear{2001}
+\jdate{April 2016}
+\pubyear{2016}
 \pagerange{\pageref{firstpage}--\pageref{lastpage}}
-\doi{S0956796801004857}
+\doi{...}
 
-\newtheorem{lemma}{Lemma}[section]
+\bibliographystyle{jfp}
 
 \begin{document}
-
-% Requires XeTeX/ LuaTeX
-\setmainfont[Mapping=tex-text]{Times New Roman}
-\setmonofont[Scale=0.8,BoldFont={Consolas Bold}]{Consolas}
 
 \label{firstpage}
 
@@ -249,20 +36,20 @@
 
 \begin{abstract}
   The most successful systems for ``big data'' processing have all adopted
-  functional APIs. We present a new programming model we call {\em function
-  passing} designed to provide a more principled substrate on which to build
-  data-centric distributed systems. A key idea is to build up a persistent
-  functional data structure representing transformations on distributed
-  immutable data by passing well-typed serializable functions over the wire and
-  applying them to this distributed data. Thus, the function passing model can
-  be thought of as a persistent functional data structure that is {\em
-  distributed}, where transformations to data are stored in its nodes rather
-  than the distributed data itself. The model simplifies failure recovery by
-  design--data is recovered by replaying function applications atop immutable
-  data loaded from stable storage. Deferred evaluation is also central to our
-  model; by incorporating deferred evaluation into our design only at the point
-  of initiating network communication, the function passing model remains easy
-  to reason about while remaining efficient in time and memory. We formalize our
+  functional APIs. We present a new programming model we call {\FP} designed to
+  provide a more principled substrate on which to build data-centric distributed
+  systems. A key idea is to build up a persistent functional data structure
+  representing transformations on distributed immutable data by passing
+  well-typed serializable functions over the wire and applying them to this
+  distributed data. Thus, the function passing model can be thought of as a
+  persistent functional data structure that is {\em distributed}, where
+  transformations to data are stored in its nodes rather than the distributed
+  data itself. The model simplifies failure recovery by design--data is
+  recovered by replaying function applications atop immutable data loaded from
+  stable storage. Deferred evaluation is also central to our model; by
+  incorporating deferred evaluation into our design only at the point of
+  initiating network communication, the function passing model remains easy to
+  reason about while remaining efficient in time and memory. We formalize our
   programming model in the form of a small-step operational semantics which
   includes a semantics of functional fault recovery, and we provide an
   open-source implementation of our model in and for the Scala programming
@@ -277,18 +64,18 @@
 It is difficult to deny that data-centric programming is growing in importance.
 At the same time, it is no secret that the most successful systems for
 programming with ``big data'' have all adopted ideas from functional
-programming; \ie programming with first-class functions and higher-order
-functions. These functional ideas are often touted to be the key to the success
-of these frameworks. It is not hard to imagine why--a functional, declarative
-interface to data distributed over tens to thousands of nodes provides a more
-natural way for end-users and data scientists to reason about data.
+programming; \ie programming with first-class functions. These functional ideas
+are often touted to be the key to the success of these frameworks. It is not
+hard to imagine why--a functional, declarative interface to data, distributed
+over tens to thousands of nodes, provides a more natural way for end-users and
+data scientists to reason about data.
 
 While leveraging functional programming {\em concepts}, popular implementations
 of the MapReduce~\cite{MapReduce} model, such as Hadoop MapReduce~\cite{Hadoop}
-for Java, have been developed without making use of functional language features
-such as closures. For nearly a decade, the open source interpretation of this
-model, Hadoop, swelled in size, remaining largely unchallenged--causing nearly
-all of industry to synchronize on this one implementation for most all
+for Java, have been developed without making use of functional language {\em
+features} such as closures. For nearly a decade, the open source interpretation
+of this model, Hadoop, swelled in size, remaining largely unchallenged--causing
+nearly all of industry to synchronize on this one implementation for most all
 large-scale data processing needs.
 
 However, in recent years, a new generation of distributed systems for
@@ -304,8 +91,6 @@ as concurrency.
 
 % We believe it's possible to take these benefits further to other
 % pain points for distributed system builders
-
-
 
 % \begin{itemize}
 %
@@ -345,14 +130,19 @@ programming language begs the question--has it been our programming languages
 that have limited us? Could it be that the primitives we build our systems upon
 are too low-level, causing us to struggle to reinvent the same tricky wheel over
 and over again? As these large-scale data processing applications continue to
-grow in importance, what can we as language designers do to make it easier for
+grow in importance, what can we as language designers~\todo{"language
+designers"?}\comment{sounds like we want to adapt/ modify/ improve one of those
+previously mentioned "emerging programming languages"}do to make it easier for
 more of these frameworks to rise?
 
-This paper presents a new programming model called the {\em function passing}
-model which has been designed to be a more principled substrate (or middleware)
-upon which to build data-centric distributed systems. It can be viewed as a
-generalization of the MapReduce/Spark programming model--though it is not
-limited to the MapReduce/Spark programming model alone as we will later show.
+This paper presents a new programming model\footnote{An abstraction of the
+underlying computer system that allows for the expression of both algorithms and
+data structures.}called the {\FP} model which has been designed to be a more
+principled substrate (or middleware) upon which to build data-centric
+distributed systems. It can be viewed as a generalization of the programming
+models classififed by MapReduce/Apache Spark--though it is not limited to, as we
+will later show.
+
 % For example, the function passing
 % model attempts to more naturally model the paradigm of data-centric programming by
 % extending monadic programming to the network. In addition, it simplifies the task of
@@ -366,6 +156,43 @@ is made well-typed by design, a common pain point for builders of distributed
 systems in Scala. Said another way, the function passing model attempts to more
 naturally model the paradigm of data-centric programming by extending monadic
 programming to the network.
+
+%% ------------------------------------------------------------------
+%% Intension:
+%% In the subsequent two paragraphs, without going into details, I
+%% want to clarify what we adopt and, on the other hand, to differentiate our
+%% approach from those other programming models.
+\fixme{Alternative to the previous paragraph:\\
+Traditional parallelism brings data to compute, whereas the aforementioned class
+of programming models does the opposite--it brings compute to data. We adopt
+this feature, known as {\emph{data locality}}, but elevate communication and
+expressiveness via our unique combination of a framework for object-oriented
+pickler combinators~\cite{Pickling} and a type-based foundation for
+closures~\cite{Spores} with a novel concept of statically typed, yet
+flexible\todo{Unlike RDD}\comment{Here I'm trying to hint the reader to the fact
+that the concept of silos is more flexible than RDDs in terms of operations on
+the "silo'd" data}, monadic silos\comment{How is our approach more flexible rsp.
+more general than those other programming models? Pickling and Spores are one
+thing, but how are silos more flexible than RDD[T]?}. These stationary,
+immutable data structures can be remotely referenced. Transformations are
+executed via the application of those closures, which are guaranteed to be
+serializable. Performance and simplicity of persisting runtime objects are
+ensured by the pickler framework.
+
+This innovation enables two important benefits for distributed system builders:
+(a) since all computations are functional transformations on type-flexible
+monadic silos\footnote{In contrast to Apache Spark's RDDs~\cite{RDD}, those
+statically typed, first order type constructors, give maximum freedom for user
+defined operations on the siloed data.},\todo{RDD[T]'s map, flatMap give the
+same degree of freedom?}\comment{If we do not differenciate our approach here,
+item (a) is given by the adoptation, \ie does not belong to our innovation}
+fault-tolerance is made simple by design, and (b) communication is made
+well-typed by design, a common pain point for builders of distributed systems.
+
+Said another way, the {\FP} model attempts to more naturally model the paradigm
+of data-centric programming by extending monadic programming to the network.}
+%% ------------------------------------------------------------------
+
 On this note, one might observe that the function passing model can actually be
 interpreted as somewhat of a dual to the actor model;\footnote{There are many
 variations and interpretations of the actor model; in saying our model is
@@ -377,22 +204,22 @@ model, we keep data stationary and send functionality to the data.
 
 % More concretely, the function passing model can be thought of as a persistent
 % data structure whose nodes span compute nodes. These nodes of this data
-% structure are called \textit{silos}--stationary, immutable data containers that
-% can be remotely referenced and transformed via the application of functions sent
-% over the wire from other nodes. The achieve this idea of {\em functionality
-% being sent to stationary immutable data}, the model is built using Scala
-% spores~\cite{Spores}, closures that are guaranteed to be serializable.
+% structure are called \textit{silos}--stationary, immutable data containers
+% that can be remotely referenced and transformed via the application of
+% functions sent over the wire from other nodes. The achieve this idea of {\em
+% functionality being sent to stationary immutable data}, the model is built
+% using Scala spores~\cite{Spores}, closures that are guaranteed to be
+% serializable.
 
-
-% The function passing model
-% can be thought of as a persistent data structure whose nodes span compute nodes.
-% It builds upon two previous veins of work--an approach for statically generating
-% type-safe and performant pickler combinators~\cite{Pickling}, and
-% spores~\cite{Spores}, closures that are guaranteed to be serializable. The
-% function passing model adds the concept of a \textit{silo}--stationary,
-% immutable data containers that can be remotely referenced and transformed via
-% the application of spores sent over the wire from other nodes--as well as
-% communication primitives based on function application.
+% The function passing model can be thought of as a persistent data structure
+% whose nodes span compute nodes. It builds upon two previous veins of work--an
+% approach for statically generating type-safe and performant pickler
+% combinators~\cite{Pickling}, and spores~\cite{Spores}, closures that are
+% guaranteed to be serializable. The function passing model adds the concept of
+% a \textit{silo}--stationary, immutable data containers that can be remotely
+% referenced and transformed via the application of spores sent over the wire
+% from other nodes--as well as communication primitives based on function
+% application.
 
 % The function passing model attempts to more naturally the paradigm of
 % data-centric programming by extending monadic programming to the network.
@@ -411,11 +238,11 @@ semantics of functional fault recovery. The fault-recovery mechanisms of
 widespread systems such as Apache Spark, MapReduce~\cite{MapReduce} and
 Dryad~\cite{Dryad} are based on the concept of a \emph{lineage}~\cite{Lineage1,
 Lineage2}. Essentially, the lineage of a data set combines (a) an initial data
-set available on stable storage and (b) a sequence of transformations applied
-to initial and subsequent data sets. Maintaining such lineages enables fault
-recovery through recomputation. Practical implementations of lineage-based
-fault recovery suffer from complex code bases, typically eschewing strong
-static typing. This paper presents a principled approach to lineage-based fault
+set available on stable storage and (b) a sequence of transformations applied to
+initial and subsequent data sets. Maintaining such lineages enables fault
+recovery through recomputation. Practical implementations of lineage-based fault
+recovery suffer from complex code bases, typically eschewing strong static
+typing. This paper presents a principled approach to lineage-based fault
 recovery in a purely functional setting--to our knowledge a novelty in the PL
 literature.
 
@@ -436,44 +263,44 @@ literature.
 
 This paper makes the following contributions:
 
-\begin{itemize} %[noitemsep]
+\begin{description}
 
-\item {\bf\em A new data-centric programming model for functional processing of
-  distributed data} which makes important concerns like fault tolerance simpler by
-  design. The main computational principle is based on the
-  idea of sending safe, guaranteed serializable functions to stationary data.
-  Using standard monadic operations, our model enables creating immutable
-  directed acyclic graphs of computations, supporting decentralized distributed
-  computations. Deferred evaluation enables important optimizations while keeping
-  programs simple to reason about.
+  \item[A new data-centric programming model for functional processing of
+    distributed data] which makes important concerns like fault tolerance
+    simpler by design. The main computational principle is based on the idea of
+    sending safe, guaranteed serializable functions to stationary data. Using
+    standard monadic operations, our model enables creating immutable directed
+    acyclic graphs of computations, supporting decentralized distributed
+    computations. Deferred evaluation enables important optimizations while
+    keeping programs simple to reason about.
 
-\item {\bf\em A formalization of our programming model} based on a small-step
-  operational  semantics. To our knowledge it is the first formal account of
-  fault recovery based on lineage in a purely functional setting. Inspired by
-  widespread systems like Spark, our formalization closely models real-world
-  fault recovery mechanisms. The presented semantics is clearly stratified into
-  a deterministic layer and a concurrent/distributed layer. Importantly,
-  reasoning techniques for sequential programs are not invalidated by the
-  distributed layer.
+  \item[A formalization of our programming model] based on a small-step
+    operational  semantics. To our knowledge it is the first formal account of
+    fault recovery based on lineage in a purely functional setting. Inspired by
+    widespread systems like Apache Spark, our formalization closely models
+    real-world fault recovery mechanisms. The presented semantics is clearly
+    stratified into a deterministic layer and a concurrent/distributed layer.
+    Importantly, reasoning techniques for sequential programs are not
+    invalidated by the distributed layer.
 
-\item {\bf\em A distributed implementation of the programming model} in and for
-  Scala as a middleware. In addition, we present prototype versions we have built
-  of popular frameworks like Spark and MBrace using the function passing model, and
-  end-user applications we have built using each of these prototype frameworks.
+  \item[A distributed implementation of the programming model] in and for Scala
+    as a middleware. In addition, we present prototype versions we have built of
+    popular frameworks like Apache Spark and MBrace using the function passing
+    model, and end-user applications we have built using each of these prototype
+    frameworks.
 
-  % \fixme{We present experiments that show some of the benefits of the proposed
-  % design, and we report on a validation of spores in the context of distributed
-  % programming.}
+    % \fixme{We present experiments that show some of the benefits of the proposed
+    % design, and we report on a validation of spores in the context of
+    % distributed programming.}
 
-% \item {\bf\em A small experimental evaluation} to show the benefits of some
-  % of  the proposed design decisions, and a validation of spores in the
-  % context of distributed programming.
+% \item {\bf\em A small experimental evaluation} to show the benefits of some of
+    % the proposed design decisions, and a validation of spores in the context
+    % of distributed programming.
 
-% An experimental evaluation comparing the performance of our framework with
-  % Java serialization and Kryo on a number of data types used in real-world,
-  % large-scale distributed applications and frameworks
-
-\end{itemize}
+    % An experimental evaluation comparing the performance of our framework with
+    % Java serialization and Kryo on a number of data types used in real-world,
+    % large-scale distributed applications and frameworks
+\end{description}
 
 % The rest of our paper is structured as follows.
 
@@ -482,7 +309,7 @@ benefits and trade-offs, and then to zoom in and make each component part of our
 model more precise. We describe the basic model this way in
 Section~\ref{sec:basic-model}. We go on to show in
 Section~\ref{sec:higher-order-operations} how essential higher-order operations
-on distributed frameworks like Spark can be implemented in terms of the
+on distributed frameworks like Apache Spark can be implemented in terms of the
 primitives presented in Section~\ref{sec:basic-model}. We present a
 formalization of our programming model in Section~\ref{sec:formalization}, and
 an overview of its prototypical implementation in
@@ -491,22 +318,21 @@ examples of different sorts of distributed frameworks built atop of the function
 passing model.
 % We show a small experimental evaluation of the efficiency of our model in
 % Section~\ref{sec:evaluation},
-Finally, we discuss related work in Section~\ref{sec:related-work}, and
-conclude in Section~\ref{sec:conclusion-future-work}.
+Finally, we discuss related work in Section~\ref{sec:related-work}, and conclude
+in Section~\ref{sec:conclusion-future-work}.
 
 % In this paper, we present object-oriented pickler combinators and a framework
-% for generating them at compile-time, called scala/pickling, designed to be
-% the default serialization mechanism of the Scala programming language. The
-% static generation of OO picklers enables significant performance
-% improvements, outperforming Java and Kryo in most of our benchmarks. In
-% addition to high performance and the need for little to no boilerplate, our
-% framework is extensible: using the type class pattern, users can provide both
-% (1) custom, easily interchangeable pickle formats and (2) custom picklers, to
-% override the default behavior of the pickling framework. In benchmarks, we
-% compare scala/pickling with other popular industrial frameworks, and present
-% results on time, memory usage, and size when pickling/unpickling a number of
-% data types used in real-world, large-scale distributed applications and
-% frameworks.
+% for generating them at compile-time, called scala/pickling, designed to be the
+% default serialization mechanism of the Scala programming language. The static
+% generation of OO picklers enables significant performance improvements,
+% outperforming Java and Kryo in most of our benchmarks. In addition to high
+% performance and the need for little to no boilerplate, our framework is
+% extensible: using the type class pattern, users can provide both (1) custom,
+% easily interchangeable pickle formats and (2) custom picklers, to override the
+% default behavior of the pickling framework. In benchmarks, we compare
+% scala/pickling with other popular industrial frameworks, and present results
+% on time, memory usage, and size when pickling/unpickling a number of data
+% types used in real-world, large-scale distributed applications and frameworks.
 
 % Yet frameworks that took the leap to invert their models to  are riddled with
 % challenges at the level of the language. Scala is a language --
@@ -532,8 +358,8 @@ conclude in Section~\ref{sec:conclusion-future-work}.
 % every data-centric distributed system keeps reinventing.
 
 % This paper takes a step towards more a more principled foundation for typed,
-% functional distributed programming. We present a new programming model,
-% called {\em function-passing}
+% functional distributed programming. We present a new programming model, called
+% {\em function-passing}
 
 % Our work builds on two previous veins of work--type-safe and performant
 % serialization based on functional pickler combinators, and spores, closures
@@ -568,11 +394,10 @@ conclude in Section~\ref{sec:conclusion-future-work}.
 % Functional programming concepts are making inroads in hot up-and-coming
 % frameworks for distributed computing and, dare we say it, ``big data.''
 % Arguably, MapReduce was one of the first systems to pick up FP concepts,
-% albeit outside the context of functional languages. More recent frameworks
-% are now also leveraging classical functional language features, such as
-% higher- order functions (e.g., Spark). This is a boon for
-% mathematically-oriented data analytics and higher-order functions provide
-% flexible abstraction mechanisms.
+% albeit outside the context of functional languages. More recent frameworks are
+% now also leveraging classical functional language features, such as higher-
+% order functions (e.g., Spark). This is a boon for mathematically-oriented data
+% analytics and higher-order functions provide flexible abstraction mechanisms.
 
 % However, to provide fault tolerance in the context of large-scale distributed
 % computing, such frameworks for distribution are built atop of tall stacks of
@@ -586,9 +411,9 @@ conclude in Section~\ref{sec:conclusion-future-work}.
 
 % Fortunately, FP techniques are not only useful for designing good user-facing
 % APIs. This paper presents a deep connection between the pillars of FP and one
-% of the most important challenges of distributed computing: fault tolerance.
-% To this end we present a new programming model for typed distributed
-% functional programming. This model aims to:
+% of the most important challenges of distributed computing: fault tolerance. To
+% this end we present a new programming model for typed distributed functional
+% programming. This model aims to:
 
 % \begin{itemize}
 %
@@ -599,24 +424,23 @@ conclude in Section~\ref{sec:conclusion-future-work}.
 % consequent implementation of this correspondence, and demonstrates it in
 % executable form in the context of an implementation in and for Scala.
 
-% \item improve type-safety at the boundary of serialized and deserialized
-% data. Importantly, the design and implementation of our programming model
-% shows that even the layer in a distributed system that processes freshly
-% deserialized data (typically, this layer sits right on top of the network
-% communication layer) can not only be written in a strongly-typed way, but it
-% can even leverage performance improvements due to type-specialized
-% serialization.
+% \item improve type-safety at the boundary of serialized and deserialized data.
+% Importantly, the design and implementation of our programming model shows that
+% even the layer in a distributed system that processes freshly deserialized
+% data (typically, this layer sits right on top of the network communication
+% layer) can not only be written in a strongly-typed way, but it can even
+% leverage performance improvements due to type-specialized serialization.
 %
 % \end{itemize}
 
 % Our programming model is centered around a new distributed persistent data
 % structure, the silo. A silo is a typed container for a single (immutable)
-% value. A silo is ``stationary''; it is never moved away from the host on
-% which it was created. Computations on silos are expressed using SiloRefs,
-% proxy objects representing remote silos. The primary means to operate on a
-% silo is by passing a serializable closure to it via a SiloRef. SiloRefs
-% provide a standard monadic interface as well as primitives for defining
-% flexible fault handling strategies.
+% value. A silo is ``stationary''; it is never moved away from the host on which
+% it was created. Computations on silos are expressed using SiloRefs, proxy
+% objects representing remote silos. The primary means to operate on a silo is
+% by passing a serializable closure to it via a SiloRef. SiloRefs provide a
+% standard monadic interface as well as primitives for defining flexible fault
+% handling strategies.
 
 % To ensure safe and efficient distribution of closures, our model leverages
 % both syntactic and type-based restrictions. For instance, closures sent to
@@ -664,10 +488,10 @@ the DAG.
 Importantly, since this DAG of computations is a persistent data structure
 itself, it is safe to exchange (copies of) subgraphs of a DAG between remote
 nodes. This enables a robust and easy-to-reason-about model of fault tolerance.
-Subgraphs of the DAG are called \textit{lineages}; lineages enable restoring the data
-of failed nodes through re-applying the transformations represented by their
-DAG. This sequence of applications must begin with data available from stable
-storage.
+Subgraphs of the DAG are called \textit{lineages}; lineages enable restoring the
+data of failed nodes through re-applying the transformations represented by
+their DAG. This sequence of applications must begin with data available from
+stable storage.
 
 Central to the function passing model is the careful use of deferred evaluation.
 Computations on distributed data are typically not executed eagerly; instead,
@@ -695,13 +519,10 @@ systems~\cite{FlumeJava}.
 
 \subsection{The Model}
 
-The function passing model consists of three main components:
-\begin{itemize}[noitemsep]
-  \item {\bf Silos:} stationary, typed, immutable data containers.
-  \item {\bf SiloRefs:} references to local or remote Silos.
-  \item {\bf Spores:} safe, serializable functions.
-\end{itemize}
-\vspace{1mm}
+The function passing model consists of three main components: \textbf{Silos}
+stationary, typed, immutable data containers, \textbf{SiloRefs}\todo{Silo
+reference vs. \verb|SiloRef|} references to
+local or remote Silos, and \textbf{Spores} safe, serializable functions.
 
 \paragraph{Silos}
 
@@ -746,25 +567,26 @@ to ensure that types being captured have certain properties.
 \vspace{3mm}
 \noindent A spore consists of two parts:
 
-\begin{itemize}[noitemsep]
-\item {\bf the spore header}, composed of a list of value definitions.
-\item {\bf the spore body} (sometimes referred to as the “spore closure”), a
-  regular closure.
-\end{itemize}
+\begin{description}
+  \item[the spore header], composed of a list of value definitions.
+  
+  \item[the spore body] (sometimes referred to as the “spore closure”), a
+    regular closure.
+\end{description}
 
 \noindent This shape is illustrated below.
 
 % \vspace{-1mm}
 \begin{figure}[h!]
-\centering\includegraphics[width=0.75\columnwidth]{spore-shape.pdf}
+\centering\includegraphics[width=0.75\columnwidth]{pic/spore-shape.pdf}
 \end{figure}
 % \vspace{-1mm}
 
-The characteristic property of a spore is that the spore body is only allowed
-to access its parameter, the values in the spore header, as well as top-level
-singleton objects (Scala's form of modules). The spore closure is not allowed
-to capture variables other than those declared in the spore header (\ie a spore
-may not capture variables in the environment). By enforcing this shape, the
+The characteristic property of a spore is that the spore body is only allowed to
+access its parameter, the values in the spore header, as well as top-level
+singleton objects (Scala's form of modules). The spore closure is not allowed to
+capture variables other than those declared in the spore header (\ie a spore may
+not capture variables in the environment). By enforcing this shape, the
 environment of a spore is always declared explicitly in the spore header, which
 avoids accidentally capturing problematic references. Moreover, importantly for
 object-oriented languages like Scala, it's no longer possible to accidentally
@@ -786,10 +608,20 @@ For a deeper understanding of spores, see
 the corresponding publication~\cite{Spores}.
 
 \begin{figure}[t!]
-\centering\includegraphics[width=0.8\columnwidth]{basic-diagram.pdf}
+\centering\includegraphics[width=0.8\columnwidth]{pic/basic-diagram.pdf}
 \caption{Basic function passing model.}\label{fig:basic-diagram}
 \end{figure}
 
+\newpage
+%\appendix
+%\section{...}
+
+\bibliography{bib}
+
+\label{lastpage}
+
+\end{document}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \subsection{Basic Usage}
 
 We begin with a simple visual example to illustrate the basics of
