@@ -1,5 +1,55 @@
 \section{Formalization}\label{sec:formalization}
 
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%
+% Core language abstract syntax.
+%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\begin{figure}[t!]
+\centering
+
+$\ba[t]{l@{\hspace{2mm}}l}
+t ::=                                                                       & \mbox{{\it{terms:}}} \\
+\gap \:\:\:\:  x                                                            & \mbox{variable} \\
+\gap ~|~  (x: T) \Rightarrow t                                              & \mbox{abstraction} \\
+\gap ~|~  t~t                                                               & \mbox{application} \\
+\gap ~|~  \{ \seq{l = t} \}                                                 & \mbox{record construction} \\
+\gap ~|~  t.l                                                               & \mbox{selection} \\
+\gap ~|~  \texttt{spore}~\{~\seq{x : T = t}~; (x: T) \Rightarrow t~\}       & \mbox{spore} \\
+\gap ~|~  \texttt{spawn}(t)                                                 & \mbox{spawn host} \\
+\gap ~|~  \texttt{populate}(t, t)                                           & \mbox{populate silo} \\
+\gap ~|~  \texttt{map}(t, t)                                                & \mbox{map} \\
+\gap ~|~  \texttt{flatMap}(t, t)                                            & \mbox{flatMap} \\
+\gap ~|~  \texttt{persist}(t)                                               & \mbox{persist} \\
+\gap ~|~  \texttt{send}(t)                                                  & \mbox{send} \\           % send  :: Ref a -> Fut a
+\gap ~|~  \texttt{await}(t)                                                 & \mbox{await future} \\   % await :: Fut a -> a
+\gap ~|~  \iota                                                             & \mbox{location} \\
+\gap ~|~  r                                                                 & \mbox{silo reference} \\
+                                                                            & \\
+v ::=                                                                       & \mbox{{\it{values:}}} \\
+\gap \:\:\:\: (x: T) \Rightarrow t                                          & \mbox{abstraction value} \\
+\gap ~|~  \{ \seq{l = v} \}                                                 & \mbox{record value} \\
+\gap ~|~  p                                                                 & \mbox{spore value} \\
+\gap ~|~  \iota                                                             & \mbox{location} \\
+\gap ~|~  r                                                                 & \mbox{silo reference} \\
+                                                                            & \\
+p ::= \texttt{spore}~\{~\seq{x : T = v}~; (x: T) \Rightarrow t~\}           & \\
+                                                                            & \\
+T ::=                                                                       & \mbox{{\it{types:}}} \\
+\gap \:\:\:\: T \Rightarrow T                                               & \mbox{abstraction type} \\
+\gap ~|~  \{ \seq{l : T} \}                                                 & \mbox{record type} \\
+\gap ~|~  \mathcal{S}                                                       & \mbox{} \\
+\gap ~|~  \texttt{Host}                                                     & \mbox{host type} \\
+\gap ~|~  \texttt{SiloRef}[T]                                               & \mbox{silo reference type} \\
+\gap ~|~  \texttt{Future}[T]                                                & \mbox{future type} \\
+\mathcal{S} ::= T \Rightarrow T~\{~\texttt{type}~\mathcal{C} = \seq{T}~\}   & \mbox{spore type} \\
+\gap ~|~ T \Rightarrow T~\{~\texttt{type}~\mathcal{C}~\}                    & \mbox{abstract spore type} \\
+\ea$
+
+\caption{Abstract syntax of core language.}\label{fig:syntax}
+\end{figure}
+
 We formalize our programming model in the context of a standard, typed lambda
 calculus with records. Figure~\ref{fig:syntax} shows the syntax of our core
 language. Terms are standard except for the \texttt{spore}, \texttt{map},
