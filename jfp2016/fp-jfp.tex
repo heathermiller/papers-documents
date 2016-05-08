@@ -12,12 +12,12 @@
 
 \input{macros}
 
-\title[Journal of Functional Programming]{F-P \dots\todo{Title}}
+\title[Journal of Functional Programming]{A Programming Model and Foundations for Lineage-Based Distributed Computation}
 
 \author[H. Miller, P. Haller and N. M{\"u}ller]{%
-  HEATHER MILLER\\ EPFL\\[1ex]%\email{heather.miller@epfl.ch}
-  PHILIPP HALLER\\ KTH Royal Institute of Technology\\[1ex]%\email{phaller@kth.se}
-  NORMEN M{\"U}LLER\\ Trivadis GmbH}%\\ \email{normen.mueller@trivadis.com}}
+  HEATHER MILLER\\ EPFL, Switzerland\\[1ex]%\email{heather.miller@epfl.ch}
+  PHILIPP HALLER\\ KTH Royal Institute of Technology, Sweden\\[1ex]%\email{phaller@kth.se}
+  NORMEN M{\"U}LLER\\ Trivadis GmbH, Germany}%\\ \email{normen.mueller@trivadis.com}}
 
 \jdate{April 2016}
 \pubyear{2016}
@@ -33,26 +33,33 @@
 \maketitle
 
 \begin{abstract}
-  The most successful systems for ``big data'' processing have all adopted
-  functional APIs. We present a new programming model we call {\FP} designed to
-  provide a more principled substrate on which to build data-centric distributed
-  systems. A key idea is to build up a persistent functional data structure
-  representing transformations on distributed immutable data by passing
-  well-typed serializable functions over the wire and applying them to this
-  distributed data. Thus, the function passing model can be thought of as a
-  persistent functional data structure that is {\em distributed}, where
-  transformations to data are stored in its nodes rather than the distributed
-  data itself. The model simplifies failure recovery by design--data is
-  recovered by replaying function applications atop immutable data loaded from
-  stable storage. Deferred evaluation is also central to our model; by
-  incorporating deferred evaluation into our design only at the point of
-  initiating network communication, the function passing model remains easy to
-  reason about while remaining efficient in time and memory. We formalize our
-  programming model in the form of a small-step operational semantics which
-  includes a semantics of functional fault recovery, and we provide an
-  open-source implementation of our model in and for the Scala programming
-  language, along with a case study of several example frameworks and end-user
-  programs written atop of this model.
+  The most successful systems for ``big data'' processing have all
+  adopted functional APIs. We present a new programming model we call
+  {\FP} designed to provide a more principled substrate on which to
+  build data-centric distributed systems. A key idea is to build up a
+  persistent functional data structure representing transformations on
+  distributed immutable data by passing well-typed serializable
+  functions over the wire and applying them to this distributed
+  data. Thus, the function passing model can be thought of as a
+  persistent functional data structure that is {\em distributed},
+  where transformations to data are stored in its nodes rather than
+  the distributed data itself. The model simplifies failure recovery
+  by design--data is recovered by replaying function applications atop
+  immutable data loaded from stable storage. Deferred evaluation is
+  also central to our model; by incorporating deferred evaluation into
+  our design only at the point of initiating network communication,
+  the function passing model remains easy to reason about while
+  remaining efficient in time and memory. Moreover, we provide a
+  complete formalization of the programming model in order to study
+  the foundations of lineage-based distributed computation. In
+  particular, we develop a theory of safe, mobile lineages based on a
+  subject reduction theorem for a typed core language. Thus, the
+  formal model may serve as a basis for further developments of the
+  theory of data-centric distributed programming, including aspects
+  such as fault tolerance. We provide an open-source implementation of
+  our model in and for the Scala programming language, along with a
+  case study of several example frameworks and end-user programs
+  written atop of this model.
 \end{abstract}
 
 \tableofcontents
@@ -641,13 +648,13 @@ Here, we first use \verb|flatMap| to create a new silo that will be completed
 with the trivial value of the \verb|DoneSiloRef| singleton object (\eg
 \verb|Unit|). Essentially, invoking \verb|send| on this trivial \verb|SiloRef| causes
 the resulting future to be completed as soon as \verb|this| silo reference has been
-materialized in memory. {\color{gray}The value type \verb|Unit| ensures no data is
-actually sent of the wire--up to \verb|()|, the only value of type \verb|Unit|.}
+materialized in memory. \comment{{\color{gray}The value type \verb|Unit| ensures no data is
+actually sent of the wire--up to \verb|()|, the only value of type \verb|Unit|.}}
 
 \subsection{Fault Handling}
 \label{sec:fault-handling}
 
-The function passing model includes overloaded\todo{Still valid?} variants of
+The function passing model includes overloaded variants of
 the primitives discussed so far which enable the definition of flexible fault
 handling semantics. The main idea is to specify fault handlers for {\em
 subgraphs of computation DAGs}. Our guiding principle is to make the definition
@@ -702,8 +709,8 @@ thus, in case \verb|vehicles| has failed, the computation is retried using
 \section{Higher-Order Operations}
 \label{sec:higher-order-operations}
 
-\todo{In order to subsume the subsequent subsections, I'd rename this section
-header to "Higher-Order Patterns" or just "High-Order"}
+\comment{\todo{In order to subsume the subsequent subsections, I'd rename this section
+header to "Higher-Order Patterns" or just "High-Order"}}
 
 The introduced primitives enable expressing surprisingly intricate computational
 patterns.
@@ -721,7 +728,7 @@ patterns that are still fault-tolerant.
 
 % \verb|union|, \verb|groupByKey|, or \verb|join|
 
-\subsection{Higher-Order Operations}
+\subsection{Collection Operations}
 \label{sec:dist-coll}
 
 % \paragraph{union}
@@ -822,7 +829,7 @@ silos (where $N$ is the number of ``buckets'' of the partitioning function).
 \subsection{Peer-to-Peer Patterns}
 \label{sec:decentral}
 
-\subsubsection{Essence}
+%\subsubsection{Essence}
 
 So far, our examples have focused on master-worker topologies that underly
 models like Apache Spark--\ie a master node specifies identical DAGs of
@@ -1093,7 +1100,7 @@ The presented programming model has been fully implemented in Scala, a
 functional programming language that runs on both JVMs and JavaScript runtimes.
 The function passing model is compiled and run using Scala 2.11.8, and considers
 only the JVM backend for now. Our implementation, which has been published as an
-open-source project,\footnote{URL withheld for blind review.} builds on two main
+open-source project,\footnote{\url{https://github.com/normenmueller/f-p}} builds on two main
 Scala extensions:
 
 \begin{itemize}
@@ -1159,7 +1166,7 @@ val newSilo = new LocalSilo[v, s](mapped.fun(value))
 \end{lstlisting}
 
 However, it is impossible to generate type-specific code to unpickle a type like
-\verb|Mapped[u, t, v, s]|. As a solution to this problem we propose what we call
+\\\verb|Mapped[u, t, v, s]|. As a solution to this problem we propose what we call
 ``self-describing'' pickles. Basically, the idea is to augment the serialized
 representation with additional information about how to unpickle. The key is to
 capture the type-specific pickler and unpickler when the fully-concrete type of
@@ -1276,11 +1283,11 @@ turn associates each length to the set of words of the same length, removing
 duplicate words in the process. Finally, we collect the final result in a
 \verb|Map| using the \verb|collectMap| method on RDDs. Several other more
 detailed example programs using Apache Spark on the function passing model are
-available on GitHub~\footnote{URL withheld for blind review.}
+available on GitHub.~\footnote{\url{https://github.com/normenmueller/f-p}}
 
 In the context of MBrace, we also implemented the K-Means Clustering example
-available on the MBrace's website
-\footnote{\url{http://mbrace.io/starterkit/HandsOnTutorial/examples/200-kmeans-clustering-example.html}},
+available on the MBrace's website,
+\footnote{\url{http://mbrace.io/starterkit/HandsOnTutorial/examples/200-kmeans-clustering-example.html}}
 an excerpt of which is shown below. Our implementation of a distributed K-Means
 using the function passing model is an almost identical port of the MBrace’s
 version written in F\#. K-Means is an algorithm to categorize data points across
