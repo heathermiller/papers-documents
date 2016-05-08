@@ -95,12 +95,12 @@ Q      ::=                                             & \mbox{{\it{message queu
   The function application $host(r)$ obtains the host of silo $r$;
   $host$ is defined as follows:
 
-  $host(r) := \begin{cases}
-    h        & \text{if } r = Mat((h, i)) \\
-    host(r') & \text{if } r = Mapped(\_, r', \_) \\
-    host(r') & \text{if } r = FMapped(\_, r', \_) \\
-    host(r') & \text{if } r = Persist(\_, r', \_) \\
-    \end{cases}$
+  $host(r) := \left\{\begin{array}{ll}
+      h         & \text{if } r = Mat((h, i)) \\
+      host(r')  & \text{if } r = Mapped(\_, r', \_) \\
+      host(r')  & \text{if } r = FMapped(\_, r', \_) \\
+      host(r')  & \text{if } r = Persist(\_, r', \_)
+    \end{array}\right.$
 \end{defn}
 
 Analogous to~\cite{TAPL}, we introduce the notion of an evaluation
@@ -132,6 +132,7 @@ E ::=                                                                           
 \ea$
 \end{defn}
 
+\comment{
 \begin{defn}[Silo reference identifier]
     $id(r) := \begin{cases}
     \omega  & \text{if } r = Mat(\omega) \\
@@ -157,6 +158,7 @@ Consume silo $\omega$ with persist set $P$ in silo store $S$ \\
   S          & \text{otherwise} \\
   \end{cases}$
 \end{defn}
+}
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %%
