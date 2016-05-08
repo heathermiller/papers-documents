@@ -258,7 +258,13 @@ materialization of identifier $\omega$. A message of the form ${\Res
 identifier $\omega$ to be materialized, value $v$, and persist set $P$
 (the set of hosts which have persisted the silo identified by
 $\omega$). A message of the form ${\ReqF \iota \omega}$ requests
-future $\iota$ to be completed with the value of silo $\omega$.
+future $\iota$ to be completed with the value of silo $\omega$.  A
+{\em silo store} $S$ is a partial function mapping identifiers
+$\omega$ to values of the form $(\Val{v}, P)$ or $(\Fwd{r}, P)$ where
+$P$ is a set of hosts which have persisted the silo (the persist set).
+The former represents a materialized silo with value $v$. The latter
+represents a {\em proxy} forwarding to the silo specified by lineage
+$r$.
 
 The deterministic reduction rules use helper functions $host$, $id$,
 $parent$, and $consume$, which are defined as follows:
@@ -305,7 +311,6 @@ $parent$, and $consume$, which are defined as follows:
   \ea\right.$
 \end{defn}
 
-
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %
 % Deterministic reduction.
@@ -314,7 +319,6 @@ $parent$, and $consume$, which are defined as follows:
 
 \begin{figure}
 \centering
-
 \begin{mathpar}
 \inferrule[\textsc{R-Seq}] { 
   E[t]~|~\mu \rightarrow^h E[t']~|~\mu'
@@ -323,8 +327,6 @@ $parent$, and $consume$, which are defined as follows:
   \longrightarrow
   (E[t'], \mu', Q, S)^h
 }
-
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 \inferrule[\textsc{R-Send1Local}] {
   host(r) = h                               \quad
@@ -367,24 +369,30 @@ $parent$, and $consume$, which are defined as follows:
   \longrightarrow
   (E[\texttt{await}(\iota')], \mu, Q' \cdot {\ReqF \iota \omega}, S)^h
 }
-
 \end{mathpar}
-\caption{Deterministic reduction (future).}
+\caption{Deterministic reduction (future).}\label{fig:determ-rules1}
 \end{figure}
 
 % Note: design approach is to *not* replace Fwds in the silo store, since
 % it would require copying data. Instead, we leverage the flexibility of
 % Req messages to correctly forward requests.
 
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-
-
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-%
-% Elements of the operational model.
-%
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-
+We discuss the deterministic reduction rules in two steps. First, we
+discuss the rules shown in Figure~\ref{fig:determ-rules1}. Rule
+\textsc{R-Seq} reduces host $(E[t], \mu, Q, S)^h$ in case $E[t]$
+reduces in $\mu$. Rule \textsc{R-Send1Local} reduces
+$\texttt{send}(r)$ to a completed future $\iota$ if the corresponding
+silo is already materialized in silo store $S$. Rule
+\textsc{R-Send2Local} covers the case where the requested silo is not
+yet materialized. In this case, two request messages are added to the
+queue: a first message ${\Req h r {id(r)}}$ requesting the
+materialization of silo $id(r)$, and a second message requesting the
+value of silo $id(r)$ for completing future $\iota$. Rule
+\textsc{R-ReqF1} processes a message ${\ReqF \iota \omega}$ by
+completing future $\iota$ with the value of the materialized silo
+$\omega$. Rule \textsc{R-ReqF2} delays such a request in case silo
+$\omega$ is not yet materialized by moving the request to the back of
+the queue.
 
 
 
