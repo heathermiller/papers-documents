@@ -187,8 +187,8 @@ sharing. However, rather than containing pure data, instead the data structure
 represents a DAG of functional transformations on distributed data. The root
 node contains immutable data read from stable storage (\eg Amazon S3); edges
 represent functional transformations\comment{on immutable data represented as
-nodes of the DAG.}\fixme{ yielding child nodes as placeholders, \ie, immutable
-data resulting from those to be executed transformations.}
+nodes of the DAG.}\comment{\fixme{ yielding child nodes as placeholders, \ie, immutable
+data resulting from those to be executed transformations.}}
 
 Importantly, since this DAG of computations is a persistent data structure
 itself, it is safe to exchange (copies of) subgraphs of a DAG between remote
@@ -209,9 +209,9 @@ systems~\cite{ANoteDistComp}. Deferred evaluation also enables optimizing
 distributed computations through operation fusion, which avoids the creation of
 unnecessary intermediate data structures--this is efficient in time as well as
 space. This kind of optimization is particularly important and effective in
-distributed systems~\cite{FlumeJava}.\fixme{ For these reasons, we believe that
+distributed systems~\cite{FlumeJava}. For these reasons, we believe that
 deferred evaluation should be viewed as an enabler in the design of distributed
-systems.}
+systems.
 
 \subsection{The Model}
 
@@ -292,8 +292,8 @@ the signature of a method. A concrete example would be to ensure that the
 accepts only spores which do not capture \verb|SparkContext| (a non-serializable
 internal framework class).
 
-For a deeper understanding of spores, see the corresponding
-publication~\cite{Spores}.
+\comment{For a deeper understanding of spores, see the corresponding
+publication~\cite{Spores}.}
 
 \begin{figure}[t!]
 \centering\includegraphics[width=0.8\columnwidth]{pic/basic-diagram.pdf}
@@ -462,8 +462,7 @@ is then asynchronously completed with the data of the given silo. Since calling
 example, in the implementation of an aggregate operation such as \verb|reduce|
 on a distributed collection).
 
-{{\color{gray}
-Let's come back to our previous example and kick off materialization to 
+Let us revisit our previous example and kick off materialization to
 investigate data flow and location of persistence:
 
 \begin{lstlisting}
@@ -511,7 +510,7 @@ The anonymous silo reference created at \verb|m2| will not be ruled out but
 function as proxy delegating requests re \verb|owners| to the data hosted at
 \verb|m3|. That is, the actual list of persons owing a vehicle is retrieved from
 \verb|m3|. This alleviates network communication and scales up transformation
-execution. }}
+execution.
 
 \paragraph{cache}%
 %
@@ -575,7 +574,7 @@ target host (address/port) on which to create the silo. Note that the
 \verb|fromFun| method takes a spore closure as an argument to make sure it can
 be serialized and sent to \verb|host|. In each case, the returned
 \verb|SiloRef[T]| contains its \verb|host| as well as a
-host-unique\todo{Decentralized?} identifier. The \verb|fromLineage| method is
+host-unique identifier. The \verb|fromLineage| method is
 particularly interesting as it creates a copy of a previously existing silo
 based on the lineage of a silo reference \verb|s|. Note that only the silo
 reference is necessary for this operation to successfully complete; the silo
