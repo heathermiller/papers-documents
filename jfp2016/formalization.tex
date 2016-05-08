@@ -88,6 +88,76 @@ Q      ::=                                             & \mbox{{\it{message queu
 \caption{Elements of the operational model.}\label{fig:elems-opsem}
 \end{figure}
 
+
+\note{describe operational model}
+
+\begin{defn}[Host]
+  The function application $host(r)$ obtains the host of silo $r$;
+  $host$ is defined as follows:
+
+  $host(r) := \begin{cases}
+    h        & \text{if } r = Mat((h, i)) \\
+    host(r') & \text{if } r = Mapped(\_, r', \_) \\
+    host(r') & \text{if } r = FMapped(\_, r', \_) \\
+    host(r') & \text{if } r = Persist(\_, r', \_) \\
+    \end{cases}$
+\end{defn}
+
+Analogous to~\cite{TAPL}, we introduce the notion of an evaluation
+context and write $E[t]$ for the term obtained by replacing the hole
+in evaluation context $E$ with term $t$. Evaluation contexts capture
+the notion of the ``next subterm to be evaluated.''
+
+\begin{defn}[Evaluation Context]
+  The set of evaluation contexts is defined as follows:
+
+ $\ba[t]{l@{\hspace{2mm}}l}
+E ::=                                                                                                     & \mbox{\it{evaluation contexts:}} \\
+\gap \:\:\:\: [~]                                                                                         & \mbox{hole} \\
+\gap ~|~  E~t                                                                                             & \mbox{application (fun)} \\
+\gap ~|~  v~E                                                                                             & \mbox{application (arg)} \\
+\gap ~|~  \{ \seq{l = v} ; l_i = E ; \seq{l' = t} \}                                                      & \mbox{record} \\
+\gap ~|~  E.l                                                                                             & \mbox{selection} \\
+\gap ~|~  \texttt{spore}~\{~\seq{x : T = v} ; x_i : T_i = E ; \seq{x' : T = t} ; (x: T) \Rightarrow t~\}  & \mbox{spore} \\
+\gap ~|~  \texttt{spawn}(E)                                                                               & \mbox{spawn} \\
+\gap ~|~  \texttt{populate}(E, t)                                                                         & \mbox{populate (host)} \\
+\gap ~|~  \texttt{populate}(v, E)                                                                         & \mbox{populate (spore)} \\
+\gap ~|~  \texttt{map}(E, t)                                                                              & \mbox{map (ref)} \\
+\gap ~|~  \texttt{map}(v, E)                                                                              & \mbox{map (fun)} \\
+\gap ~|~  \texttt{flatMap}(E, t)                                                                          & \mbox{flatMap (ref)} \\
+\gap ~|~  \texttt{flatMap}(v, E)                                                                          & \mbox{flatMap (fun)} \\
+\gap ~|~  \texttt{persist}(E)                                                                             & \mbox{persist} \\
+\gap ~|~  \texttt{send}(E)                                                                                & \mbox{send} \\
+\gap ~|~  \texttt{await}(E)                                                                               & \mbox{await} \\
+\ea$
+\end{defn}
+
+\begin{defn}[Silo reference identifier]
+    $id(r) := \begin{cases}
+    \omega  & \text{if } r = Mat(\omega) \\
+    \omega  & \text{if } r = Mapped(\omega, r', \_) \\
+    \omega  & \text{if } r = FMapped(\omega, r', \_) \\
+    \omega  & \text{if } r = Persist(\omega, r', \_) \\
+    \end{cases}$
+\end{defn}
+
+\begin{defn}[Silo reference parent]
+    $parent(r) := \begin{cases}
+    \None     & \text{if } r = Mat(\_) \\
+    \Some{r'} & \text{if } r = Mapped(\_, r', \_) \\
+    \Some{r'} & \text{if } r = FMapped(\_, r', \_) \\
+    \Some{r'} & \text{if } r = Persist(\_, r', \_) \\
+    \end{cases}$
+\end{defn}
+
+\begin{defn}[Consume silo]
+Consume silo $\omega$ with persist set $P$ in silo store $S$ \\
+  $consume(\omega, P, S) := \begin{cases}
+  S - \omega & \text{if } P = \emptyset \\
+  S          & \text{otherwise} \\
+  \end{cases}$
+\end{defn}
+
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %%
 %% OLD
@@ -506,4 +576,3 @@ Q      ::=                                             & \mbox{{\it{message queu
 %messages used to request the application of the fault handler are handled in a
 %way that is completely analogous to the way regular Req messages are handled,
 %except that fault handlers $p_f$ are applied as opposed to regular spores $p$.
-=======
