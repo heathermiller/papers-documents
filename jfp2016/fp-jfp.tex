@@ -85,60 +85,59 @@ Scala in order to provide high-level, declarative APIs to end-users. Further,
 the benefits provided by functional programming have also won over framework
 designers as well--some have noticed that immutability, and data transformation
 via higher-order functions makes it much easier, by design, to tackle concerns
-central to distributed systems such as concurrency.
+central to distributed systems such as concurrency. We believe it's possible to
+take these benefits further to other pain points for distributed system
+builders:
 
-% We believe it's possible to take these benefits further to other
-% pain points for distributed system builders
+\begin{description}
 
-% \begin{itemize}
-%
-% \item \fixme{{\bf Difficulty of Use}These systems' APIs cannot statically
-% prevent {\em common usage errors} resulting from some language features not
-% being designed with distribution in mind, often confronting users with
-% hard-to-debug runtime errors. A common example is unsafe closure
-% serialization~\cite{Spores}.}
-%
-% \item \fixme{{\bf Complicated Maintenance} Typically, only high-level
-% user-facing abstractions are statically typed.  The absence of static types in
-% lower layers of the system makes maintenance tasks, such as code refactorings,
-% more difficult.}
-%
-% \item \fixme{{\bf Lost Optimization Opportunities} The absence of certain
-% kinds of static type information precludes systems-centric optimizations.
-% Importantly, type-based static meta-programming enables fast
-% serialization~\cite{Pickling}, but this is only possible if also lower layers
-% (namely those dealing with object serialization) are statically typed. Several
-% studies~\cite{JavaSerialization, JavaRMI, MoreEfficientJavaRMI, Jaguar} report
-% on the high overhead of serialization in widely-used runtime environments such
-% as the JVM. This overhead is so important in practice that popular systems,
-% like Apache Spark~\cite{Spark} and Akka~\cite{Akka}, leverage alternative
-% serialization frameworks such as Protocol Buffers~\cite{Protobuf}, Apache
-% Avro~\cite{Avro}, or Kryo~\cite{Kryo}.}
-%
-% \end{itemize}
+  \item[Difficulty of Use] These systems' APIs cannot statically prevent {\em
+    common usage errors} resulting from some language features not being
+    designed with distribution in mind, often confronting users with
+    hard-to-debug runtime errors. A common example is unsafe closure
+    serialization~\cite{Spores}.
 
-% While a refreshing trend, building these systems still notoriously hard--a tas.
-% Glued together in , types lost at interfaces. Why not apply a more monadic
-% interface to the network? But why not start with a model that more closely
-% resembles the sorts of
+  \item[Complicated Maintenance] Typically, only high-level user-facing
+    abstractions are statically typed.  The absence of static types in lower
+    layers of the system makes maintenance tasks, such as code refactorings,
+    more difficult.
 
-This sudden proliferation of new frameworks for distributed data-centric
-programming concurrent with the sudden growth in popularity of an emerging
-programming language begs the question--has it been our programming languages
-that have limited us? Could it be that the primitives we build our systems upon
-are too low-level, causing us to struggle to reinvent the same tricky wheel over
-and over again? As these large-scale data processing applications continue to
-grow in importance, what can we as language designers~\todo{"language
-designers"?}\comment{sounds like we want to adapt/ modify/ improve one of those
-previously mentioned "emerging programming languages"}do to make it easier for
-more of these frameworks to rise?
+  \item[Lost Optimization Opportunities] The absence of certain kinds of static
+    type information precludes systems-centric optimizations. Importantly,
+    type-based static meta-programming enables fast
+    serialization~\cite{Pickling}, but this is only possible if also lower
+    layers (namely those dealing with object serialization) are statically
+    typed. Several studies~\cite{JavaSerialization, JavaRMI,
+    MoreEfficientJavaRMI, Jaguar} report on the high overhead of serialization
+    in widely-used runtime environments such as the JVM. This overhead is so
+    important in practice that popular systems, like Apache Spark~\cite{Spark}
+    and Akka~\cite{Akka}, leverage alternative serialization frameworks such as
+    Protocol Buffers~\cite{Protobuf}, Apache Avro~\cite{Avro}, or
+    Kryo~\cite{Kryo}.
+
+    % What makes this problem even worse is the fact that coordinating between
+    % data shards and doing that in a way that is easy to reason about is the
+    % wheel that every data-centric distributed system keeps reinventing.
+
+\end{description}
+
+Those pain points and the sudden proliferation of new frameworks for distributed
+data-centric programming concurrent with the sudden growth in popularity of an
+emerging programming language begs the question--has it been our programming
+languages that have limited us? Could it be that the primitives we build our
+systems upon are too low-level, causing us to struggle to reinvent the same
+tricky wheel over and over again? As these large-scale data processing
+applications continue to grow in importance, what can we as language
+designers~\todo{"language designers"?}\comment{sounds like we want to adapt/
+modify/ improve one of those previously mentioned "emerging programming
+languages"}do to make it easier for more of these frameworks to rise?
 
 This paper presents a new programming model\footnote{An abstraction of the
 underlying computer system that allows for the expression of both algorithms and
 data structures.}called the {\FP} model which has been designed to be a more
 principled substrate (or middleware) upon which to build data-centric
 distributed systems. It can be viewed as a generalization of the programming
-models classififed by MapReduce/Apache Spark--though it is not limited to, as we
+models classified by MapReduce/Apache Spark--though it is not limited to, as we
 will later show.
 
 % For example, the function passing
@@ -177,6 +176,23 @@ executed via the application of those closures, which are guaranteed to be
 serializable. Performance and simplicity of persisting runtime objects are
 ensured by the pickler framework.
 
+% The function passing model can be thought of as a persistent data structure
+% whose nodes span compute nodes. It builds upon two previous veins of work--an
+% approach for statically generating type-safe and performant pickler
+% combinators~\cite{Pickling}, and spores~\cite{Spores}, closures that are
+% guaranteed to be serializable. The function passing model adds the concept of
+% a \textit{silo}--stationary, immutable data containers that can be remotely
+% referenced and transformed via the application of spores sent over the wire
+% from other nodes--as well as communication primitives based on function
+% application.
+
+% Our work builds on two previous veins of work--type-safe and performant
+% serialization based on functional pickler combinators, and spores, closures
+% that are guaranteed to be serializable.
+
+% NOTE: There are even more snippets at the end of Section Introduction which
+% might help to clarify matters and to differentiate our approach! 
+
 This innovation enables two important benefits for distributed system builders:
 (a) since all computations are functional transformations on type-flexible
 monadic silos\footnote{In contrast to Apache Spark's RDDs~\cite{RDD}, those
@@ -198,29 +214,9 @@ somewhat of a dual, we simply mean to highlight that programmers need not focus
 on programming with typically stationary message handlers. Instead, our model
 focuses on a monadic interface for programming with data (and sending functions
 instead).} rather than keeping functionality stationary and sending data, in our
-model, we keep data stationary and send functionality to the data.
-
-% More concretely, the function passing model can be thought of as a persistent
-% data structure whose nodes span compute nodes. These nodes of this data
-% structure are called \textit{silos}--stationary, immutable data containers
-% that can be remotely referenced and transformed via the application of
-% functions sent over the wire from other nodes. The achieve this idea of {\em
-% functionality being sent to stationary immutable data}, the model is built
-% using Scala spores~\cite{Spores}, closures that are guaranteed to be
-% serializable.
-
-% The function passing model can be thought of as a persistent data structure
-% whose nodes span compute nodes. It builds upon two previous veins of work--an
-% approach for statically generating type-safe and performant pickler
-% combinators~\cite{Pickling}, and spores~\cite{Spores}, closures that are
-% guaranteed to be serializable. The function passing model adds the concept of
-% a \textit{silo}--stationary, immutable data containers that can be remotely
-% referenced and transformed via the application of spores sent over the wire
-% from other nodes--as well as communication primitives based on function
-% application.
-
-% The function passing model attempts to more naturally the paradigm of
-% data-centric programming by extending monadic programming to the network.
+model, we keep data stationary and send functionality to the
+data.~\todo{Review}\comment{Sounds like "our model" has the invention of
+"compute to data".}
 
 The function passing model brings together immutable, persistent data
 structures, monadic higher-order functions, strong static typing, and deferred
@@ -232,17 +228,17 @@ show. Without optimizations based on deferred evaluation, we found this model
 would be impractically inefficient in memory and time.
 
 One important contribution of our model is a precise specification of the
-semantics of functional fault recovery. The fault-recovery mechanisms of
-widespread systems such as Apache Spark, MapReduce~\cite{MapReduce} and
-Dryad~\cite{Dryad} are based on the concept of a \emph{lineage}~\cite{Lineage1,
-Lineage2}. Essentially, the lineage of a data set combines (a) an initial data
-set available on stable storage and (b) a sequence of transformations applied to
-initial and subsequent data sets. Maintaining such lineages enables fault
-recovery through recomputation. Practical implementations of lineage-based fault
-recovery suffer from complex code bases, typically eschewing strong static
-typing. This paper presents a principled approach to lineage-based fault
-recovery in a {\em purely functional} setting--to our knowledge a novelty in the
-PL literature.
+semantics of functional fault recovery\todo{Still valid?}. The fault-recovery
+mechanisms of widespread systems such as Apache Spark,
+MapReduce~\cite{MapReduce} and Dryad~\cite{Dryad} are based on the concept of a
+{\em lineage}~\cite{Lineage1, Lineage2}. Essentially, the lineage of a data set
+combines (a) an initial data set available on stable storage and (b) a sequence
+of transformations applied to initial and subsequent data sets. Maintaining such
+lineages enables fault recovery through recomputation. Practical implementations
+of lineage-based fault recovery suffer from complex code bases, typically
+eschewing strong static typing. This paper presents a principled approach to
+lineage-based fault recovery in a {\em purely functional} setting--to our
+knowledge a novelty in the PL literature.\todo{Still Valid?}
 
 % Our programming model is also designed to enable adoption in real-world
 % languages and systems. On the one hand, our model can be thought of as a
@@ -262,6 +258,7 @@ PL literature.
 This paper makes the following contributions:
 
 \begin{description}
+
   \item[A new data-centric programming model for functional processing of
     distributed data] which makes important concerns like fault tolerance
     simpler by design. The main computational principle is based on the idea of
@@ -273,18 +270,18 @@ This paper makes the following contributions:
 
   \item[A formalization of our programming model] based on a small-step
     operational  semantics. To our knowledge it is the first formal account of
-    fault recovery based on lineage in a purely functional setting. Inspired by
-    widespread systems like Apache Spark, our formalization closely models
-    real-world fault recovery mechanisms. The presented semantics is clearly
-    stratified into a deterministic layer and a concurrent/distributed layer.
-    Importantly, reasoning techniques for sequential programs are not
-    invalidated by the distributed layer.
+    fault recovery~\todo{Still valid?} based on lineage in a purely functional
+    setting. Inspired by widespread systems like Apache Spark, our formalization
+    closely models real-world fault recovery mechanisms. The presented semantics
+    is clearly stratified into a deterministic layer and a
+    concurrent/distributed layer. Importantly, reasoning techniques for
+    sequential programs are not invalidated by the distributed layer.
 
   \item[A distributed implementation of the programming model] in and for Scala
     as a middleware. In addition, we present prototype versions we have built of
     popular frameworks like Apache Spark and MBrace~\todo{Reference} using the
     function passing model, and end-user applications we have built using each
-    of these prototype frameworks.
+    of these prototype frameworks.\todo{Links}
 
     % \fixme{We present experiments that show some of the benefits of the proposed
     % design, and we report on a validation of spores in the context of
@@ -297,6 +294,7 @@ This paper makes the following contributions:
     % An experimental evaluation comparing the performance of our framework with
     % Java serialization and Kryo on a number of data types used in real-world,
     % large-scale distributed applications and frameworks
+
 \end{description}
 
 % The rest of our paper is structured as follows.
@@ -317,50 +315,6 @@ passing model.
 % Section~\ref{sec:evaluation},
 Finally, we discuss related work in Section~\ref{sec:related-work}, and conclude
 in Section~\ref{sec:conclusion-future-work}.
-
-% In this paper, we present object-oriented pickler combinators and a framework
-% for generating them at compile-time, called scala/pickling, designed to be the
-% default serialization mechanism of the Scala programming language. The static
-% generation of OO picklers enables significant performance improvements,
-% outperforming Java and Kryo in most of our benchmarks. In addition to high
-% performance and the need for little to no boilerplate, our framework is
-% extensible: using the type class pattern, users can provide both (1) custom,
-% easily interchangeable pickle formats and (2) custom picklers, to override the
-% default behavior of the pickling framework. In benchmarks, we compare
-% scala/pickling with other popular industrial frameworks, and present results
-% on time, memory usage, and size when pickling/unpickling a number of data
-% types used in real-world, large-scale distributed applications and frameworks.
-
-% Yet frameworks that took the leap to invert their models to  are riddled with
-% challenges at the level of the language. Scala is a language --
-% Spark~\cite{Spark}, Scalding~\cite{Scalding}, Kafka~\cite{Kafka}, and
-% Scoobi~\cite{Scoobi} are just a few.
-
-% Yet, software developers still fumble with low-level RPC frameworks.
-
-% In existing systems, types are only in the user-facing API and help the user.
-% However, all too often, the internals of a distributed system are largely
-% untyped, in particular when operating on data types that are also shipped
-% remotely. In our approach we now go ahead and make types work so that they
-% benefit both users (help- ing catch common errors) and distributed systems
-% builders. Our approach leverages types to provide (1) type-specialized
-% picklers, and (2) type-specialized collections/builders.
-
-% Generalization of MapReduce model. Low-level. Inversion of the actor model.
-% Can represent different many models for dis- tributed computing, e.g. Spark,
-% Percolator (we probably can’t vali- date this claim.)
-
-% What makes this problem even worse is the fact that coordinating between data
-% shards and doing that in a way that is easy to reason about is the wheel that
-% every data-centric distributed system keeps reinventing.
-
-% This paper takes a step towards more a more principled foundation for typed,
-% functional distributed programming. We present a new programming model, called
-% {\em function-passing}
-
-% Our work builds on two previous veins of work--type-safe and performant
-% serialization based on functional pickler combinators, and spores, closures
-% that are guaranteed to be serializable.
 
 % Guiding principles.
 
@@ -475,51 +429,42 @@ in Section~\ref{sec:conclusion-future-work}.
 \subsection{Essence}
 
 In the broadest sense, the function passing model can be thought of as a sort of
-persistent functional data structure with structural sharing. However, rather
-than containing pure data, instead the data structure represents a DAG of
-functional transformations on distributed data. The root node of is immutable
-data read from stable storage (\eg Amazon S3); edges represent functional
-transformations on immutable data represented as nodes of the DAG.
+persistent functional data structure with monadic operations and structural
+sharing. However, rather than containing pure data, instead the data structure
+represents a DAG of functional transformations on distributed data. The root
+node contains immutable data read from stable storage (\eg Amazon S3); edges
+represent functional transformations\comment{on immutable data represented as
+nodes of the DAG.}\fixme{ yielding child nodes as placeholders, \ie, immutable
+data resulting from those to be executed transformations.}
 
 Importantly, since this DAG of computations is a persistent data structure
 itself, it is safe to exchange (copies of) subgraphs of a DAG between remote
 nodes. This enables a robust and easy-to-reason-about model of fault tolerance.
-Subgraphs of the DAG are called \textit{lineages}; lineages enable restoring the
-data of failed nodes through re-applying the transformations represented by
-their DAG. This sequence of applications must begin with data available from
-stable storage.
+Subgraphs of the DAG are called \textit{lineages}; lineages enable restoring the 
+data of failed nodes through re-applying their transformations. This sequence of 
+applications must begin with data available from stable storage.
 
 Central to the function passing model is the careful use of deferred evaluation.
 Computations on distributed data are typically not executed eagerly; instead,
-applying a function to distributed data just creates an immutable, local lineage. To
-make a network call and thus obtain the result of a computation, it is necessary
-to first ``kick off'' the computation in order to materialize the 
-nodes of its lineage. Within our
-programming model, this force operation (called \verb|send()|) makes network
-communication (and thus possibilities for latency) explicit, which is considered
-to be a strength when designing distributed systems~\cite{ANoteDistComp}.
-Deferred evaluation also enables optimizing distributed computations through
-operation fusion, which avoids the creation of unnecessary intermediate data
-structures--this is efficient in time as well as space. This kind of
-optimization is particularly important and effective in distributed
-systems~\cite{FlumeJava}.
-
-% \vspace{-3mm}
-% \begin{center}\noindent\rule{8cm}{0.4pt}\end{center}
-% \begin{displayquote}
-% For these reasons, we believe that deferred evaluation should be viewed as an enabler in
-% the design of distributed systems.
-% \end{displayquote}
-% \vspace{-4mm}
-% \begin{center}\noindent\rule{8cm}{0.4pt}\end{center}
-% \vspace{1mm}
+applying a function to distributed data just creates an immutable, local
+lineage. To make a network call and thus obtain the result of a computation, it
+is necessary to first ``kick off'' the computation in order to materialize the
+nodes of its lineage. Within our programming model, this force operation (called
+\verb|send()|) makes network communication (and thus possibilities for latency)
+explicit, which is considered to be a strength when designing distributed
+systems~\cite{ANoteDistComp}. Deferred evaluation also enables optimizing
+distributed computations through operation fusion, which avoids the creation of
+unnecessary intermediate data structures--this is efficient in time as well as
+space. This kind of optimization is particularly important and effective in
+distributed systems~\cite{FlumeJava}.\fixme{ For these reasons, we believe that
+deferred evaluation should be viewed as an enabler in the design of distributed
+systems.}
 
 \subsection{The Model}
 
 The function passing model consists of three main components: \textbf{Silos}
-stationary, typed, immutable data containers, \textbf{SiloRefs}~\todo{Silo
-reference vs. \texttt{SiloRef}.} references to local or remote Silos, and
-\textbf{Spores} safe, serializable functions.
+stationary, typed, immutable data containers, \textbf{Silo references} to local
+or remote Silos, and \textbf{Spores} safe, serializable functions.
 
 \paragraph{Silos}
 
@@ -527,29 +472,29 @@ A silo is a typed and immutable data container. It is stationary in the sense
 that it does not move between machines -- it remains on the machine where it was
 created. Data stored in a silo is typically loaded from stable storage, such as
 a distributed file system. A program operating on data stored in a silo can only
-do so using a reference to the silo, a \verb|SiloRef|.
+do so using a reference to the silo.
 
-\paragraph{SiloRefs}
+\paragraph{Silo references}
 
-Similar to a proxy object, a SiloRef represents, and allows interacting with,
-both local and remote silos. SiloRefs are immutable, storing identifiers to
-locate possibly remote silos. SiloRefs are also typed (\verb|SiloRef[T]|)
-corresponding to the type of their silo's data, leading to well-typed network
-communication. The SiloRef provides three primitive operations/combinators (some
-are lazy, some are not): \verb|map|, \verb|flatMap|, and \verb|send|. The
-\verb|map| method makes use of deferred evaluation; it applies a user-defined
-function to data pointed to by the SiloRef, creating in a new silo containing
-the result of this application, though this application is \textit{deferred}.
-That is, this computation is only kicked off when the \verb|send| method is
-invoked. This makes it possible to queue up or stage transformations in order to
-optimize network communication. Like \verb|map|, the application of
-\verb|flatMap| is deferred. \verb|flatMap| applies a user-defined function to
-data pointed to by the SiloRef. Unlike \verb|map|, however, the user-defined
-function passed to \verb|flatMap| returns a SiloRef whose contents are
-transferred to the new silo returned by \verb|flatMap|. Essentially,
-\verb|flatMap| enables accessing the contents of (local or remote) silos from
-within remote computations. We illustrate these primitives in more detail in
-Section~\ref{sec:primitives}.
+Similar to a proxy object, a silo reference represents, and allows interacting
+with both local and remote silos. Silo references are immutable, storing
+identifiers to locate possibly remote silos. They are also typed
+(\verb|SiloRef[T]|) corresponding to the type \verb|T| of their silo's data,
+leading to well-typed network communication. A silo reference provides three
+primitive operations/combinators (some are lazy, some are not): \verb|map|,
+\verb|flatMap|, and \verb|send|. The \verb|map| method makes use of deferred
+evaluation; it {\em eventually} applies a user-defined function to data pointed
+to by the \verb|SiloRef[T]|, creating a new silo containing the result of this
+application, though this application. That is, this computation is only kicked
+off when the \verb|send| method is invoked. This makes it possible to queue up
+transformations in order to optimize network communication. Like \verb|map|, the
+application of \verb|flatMap| is {\em deferred}. \verb|flatMap| also applies a
+user-defined function to data pointed to by the silo reference; unlike
+\verb|map|, however, the user-defined function passed to \verb|flatMap| returns
+a \verb|SiloRef[T]| whose contents is transferred to the new silo returned by
+\verb|flatMap|. Essentially, \verb|flatMap| enables accessing the contents of
+(local or remote) silos from within remote computations. We illustrate these
+primitives in more detail in Section~\ref{sec:primitives}.
 
 \paragraph{Spores}
 
