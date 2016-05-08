@@ -91,45 +91,14 @@ types $\seq{T}$ of the variables declared in the header of the spore.
 
 \subsection{Operational Semantics}\label{sec:opsem}
 
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-%
-% Elements of the operational model.
-%
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-
-\begin{figure}
-\centering
-
-$\ba[t]{l@{\hspace{2mm}}l}
-Q      ::=                                             & \mbox{{\it{message queue values:}}}  \\
-\gap \:\:\:\: \epsilon                                 & \mbox{empty queue}       \\
-\gap ~|~    {\Res \omega v P} :: Q                     & \mbox{response (silo)}   \\
-\gap ~|~    {\Req h r \omega} :: Q                     & \mbox{request (silo)}    \\
-\gap ~|~    {\ReqF \iota \omega} :: Q                  & \mbox{request (future)}  \\
-\ea$
-
-\caption{Elements of the operational model.}\label{fig:elems-opsem}
-\end{figure}
-
-
-\note{describe operational model}
-
-\begin{defn}[Host]
-  The function application $host(r)$ obtains the host of silo $r$;
-  $host$ is defined as follows:
-
-  $host(r) := \left\{\begin{array}{ll}
-      h         & \text{if } r = Mat((h, i)) \\
-      host(r')  & \text{if } r = Mapped(\_, r', \_) \\
-      host(r')  & \text{if } r = FMapped(\_, r', \_) \\
-      host(r')  & \text{if } r = Persist(\_, r', \_)
-    \end{array}\right.$
-\end{defn}
-
-Analogous to~\cite{TAPL}, Figure~\ref{fig:eval-ctx} defines the notion
-of an evaluation context. We write $E[t]$ for the term obtained by
-replacing the hole in evaluation context $E$ with term $t$. Evaluation
-contexts capture the notion of the ``next subterm to be evaluated.''
+In the following we present a small-step operational semantics of the
+introduced core language. The semantics is clearly stratified into a
+deterministic layer and a non-deterministic (concurrent)
+layer. Importantly, this means our programming model can benefit from
+existing reasoning techniques for sequential programs. Program
+transformations that are correct for sequential programs are also
+correct for distributed programs. Our programming model shares this
+property with some existing approaches~\cite{ConcurrentHaskell}.
 
 \begin{figure}
 \centering
@@ -155,42 +124,14 @@ E ::=                                                                           
 \caption{Evaluation context.}\label{fig:eval-ctx}
 \end{figure}
 
-
-\begin{defn}[Silo reference identifier]
-    $id(r) := \left\{\ba{ll}
-    \omega  & \text{if } r = Mat(\omega) \\
-    \omega  & \text{if } r = Mapped(\omega, r', \_) \\
-    \omega  & \text{if } r = FMapped(\omega, r', \_) \\
-    \omega  & \text{if } r = Persist(\omega, r', \_)
-    \ea\right.$
-\end{defn}
-
-\begin{defn}[Silo reference parent]
-    $parent(r) := \left\{\ba{ll}
-    \None     & \text{if } r = Mat(\_) \\
-    \Some{r'} & \text{if } r = Mapped(\_, r', \_) \\
-    \Some{r'} & \text{if } r = FMapped(\_, r', \_) \\
-    \Some{r'} & \text{if } r = Persist(\_, r', \_)
-    \ea\right.$
-\end{defn}
-
-\begin{defn}[Consume silo]
-Consume silo $\omega$ with persist set $P$ in silo store $S$ \\
-  $consume(\omega, P, S) := \left\{\ba{ll}
-  S - \omega & \text{if } P = \emptyset \\
-  S          & \text{otherwise}
-  \ea\right.$
-\end{defn}
-
-In the following we give a small-step operational semantics of the
-primitives of our language. The semantics is clearly stratified into a
-deterministic layer and a non-deterministic (concurrent)
-layer. Importantly, this means our programming model can benefit from
-existing reasoning techniques for sequential programs. Program
-transformations that are correct for sequential programs are also
-correct for distributed programs. Our programming model shares this
-property with some existing approaches such
-as~\cite{ConcurrentHaskell}.
+The semantics is based on three reduction relations for (a) sequential
+reduction of terms, (b) deterministic reduction of hosts, and (c)
+non-deterministic reduction of sets of hosts.  The reduction relations
+use the definition of evaluation contexts shown in
+Figure~\ref{fig:eval-ctx}. Evaluation contexts capture the notion of
+the ``next subterm to be evaluated.'' Following a standard
+approach~\cite{TAPL}, we write $E[t]$ for the term obtained by
+replacing the hole in evaluation context $E$ with term $t$.
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %
@@ -200,7 +141,6 @@ as~\cite{ConcurrentHaskell}.
 
 \begin{figure}
 \centering
-
 \begin{mathpar}
 \inferrule[\textsc{R-AppAbs}] {} {
   E[((x: T) \Rightarrow t)~v']~|~\mu
@@ -267,6 +207,97 @@ as~\cite{ConcurrentHaskell}.
 \end{mathpar}
 \caption{Sequential reduction.}\label{fig:seq-reduction}
 \end{figure}
+
+Figure~\ref{fig:seq-reduction} shows the rules for sequential
+reduction. The sequential reduction relation has the form $E[t]~|~\mu
+\rightarrow^h E[t']~|~\mu'$ with stores $\mu$ and $\mu'$. Stores are
+required for the dynamic allocation of futures and hosts.  A store
+$\mu$ is a partial function mapping locations $\iota$ to values $v$.
+The annotation with host $h$ is used for creating {\em decentralized
+  identifiers} $\omega = (h, i)$ for silo references.  Rules
+\textsc{R-AppAbs} and \textsc{R-ProjRcd} are completely standard.
+Analogous to rule \textsc{R-AppAbs}, rule \textsc{R-AppSpore}
+describes the application of a spore value to an argument value. Rule
+\textsc{R-Await} reduces $\texttt{await}(\iota)$ to $v$ if future
+$\iota$ is already completed with $v$ in $\mu$.
+
+Rules \textsc{R-Map}, \textsc{R-FMap}, \textsc{R-Persist} and
+\textsc{R-Unpersist} describe the creation of lineages.  Rules
+\textsc{R-Map} and \textsc{R-FMap} create silo reference values using
+the constructors {\em Mapped} and {\em FMapped}, respectively. The new
+silo reference has a fresh identifier $(h, i)$ which uniquely
+identifies the corresponding (logical) silo. In each case, the spore
+value $p$ is stored in the new silo reference; this enables a
+materialization of the silo identified by $(h, i)$ using parent silo
+reference $r$ and spore $p$. Rules \textsc{R-Persist} and
+\textsc{R-Unpersist} create silo reference values using the {\em
+  Persist} constructor. {\em Persist} contains a function enabling
+host $h$ to persist ($\cdot \cup \cdot$) or unpersist ($\cdot
+\setminus \cdot$) silo $r$, respectively.
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%
+% Elements of the operational model.
+%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\begin{figure}
+\centering
+
+$\ba[t]{l@{\hspace{2mm}}l}
+Q      ::=                                             & \mbox{{\it{message queue values:}}}  \\
+\gap \:\:\:\: \epsilon                                 & \mbox{empty queue}       \\
+\gap ~|~    {\Res \omega v P} :: Q                     & \mbox{response (silo)}   \\
+\gap ~|~    {\Req h r \omega} :: Q                     & \mbox{request (silo)}    \\
+\gap ~|~    {\ReqF \iota \omega} :: Q                  & \mbox{request (future)}  \\
+\ea$
+
+\caption{Elements of the operational model.}\label{fig:elems-opsem}
+\end{figure}
+
+
+\note{describe operational model}
+
+\begin{defn}[Host]
+  The function application $host(r)$ obtains the host of silo $r$;
+  $host$ is defined as follows:
+
+  $host(r) := \left\{\begin{array}{ll}
+      h         & \text{if } r = Mat((h, i)) \\
+      host(r')  & \text{if } r = Mapped(\_, r', \_) \\
+      host(r')  & \text{if } r = FMapped(\_, r', \_) \\
+      host(r')  & \text{if } r = Persist(\_, r', \_)
+    \end{array}\right.$
+\end{defn}
+
+
+\begin{defn}[Silo reference identifier]
+    $id(r) := \left\{\ba{ll}
+    \omega  & \text{if } r = Mat(\omega) \\
+    \omega  & \text{if } r = Mapped(\omega, r', \_) \\
+    \omega  & \text{if } r = FMapped(\omega, r', \_) \\
+    \omega  & \text{if } r = Persist(\omega, r', \_)
+    \ea\right.$
+\end{defn}
+
+\begin{defn}[Silo reference parent]
+    $parent(r) := \left\{\ba{ll}
+    \None     & \text{if } r = Mat(\_) \\
+    \Some{r'} & \text{if } r = Mapped(\_, r', \_) \\
+    \Some{r'} & \text{if } r = FMapped(\_, r', \_) \\
+    \Some{r'} & \text{if } r = Persist(\_, r', \_)
+    \ea\right.$
+\end{defn}
+
+\begin{defn}[Consume silo]
+Consume silo $\omega$ with persist set $P$ in silo store $S$ \\
+  $consume(\omega, P, S) := \left\{\ba{ll}
+  S - \omega & \text{if } P = \emptyset \\
+  S          & \text{otherwise}
+  \ea\right.$
+\end{defn}
+
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %
