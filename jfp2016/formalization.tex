@@ -235,66 +235,73 @@ reference $r$ and spore $p$. Rules \textsc{R-Persist} and
 host $h$ to persist ($\cdot \cup \cdot$) or unpersist ($\cdot
 \setminus \cdot$) silo $r$, respectively.
 
-
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-%
-% Elements of the operational model.
-%
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-
 \begin{figure}
 \centering
-
 $\ba[t]{l@{\hspace{2mm}}l}
-Q      ::=                                             & \mbox{{\it{message queue values:}}}  \\
-\gap \:\:\:\: \epsilon                                 & \mbox{empty queue}       \\
-\gap ~|~    {\Res \omega v P} :: Q                     & \mbox{response (silo)}   \\
-\gap ~|~    {\Req h r \omega} :: Q                     & \mbox{request (silo)}    \\
-\gap ~|~    {\ReqF \iota \omega} :: Q                  & \mbox{request (future)}  \\
+Q      ::=                             & \mbox{{\it{message queue values:}}}  \\
+\gap \:\:\:\: \epsilon                 & \mbox{empty queue}       \\
+\gap ~|~    {\Req h r \omega} :: Q     & \mbox{request (silo)}    \\
+\gap ~|~    {\Res \omega v P} :: Q     & \mbox{response (silo)}   \\
+\gap ~|~    {\ReqF \iota \omega} :: Q  & \mbox{request (future)}  \\
 \ea$
-
-\caption{Elements of the operational model.}\label{fig:elems-opsem}
+\caption{Message queues.}\label{fig:queues}
 \end{figure}
 
+The deterministic reduction relation has the form $(E[t], \mu, Q, S)^h
+\longrightarrow (E[t'], \mu', Q', S')^h$ where $Q$ is a {\em message
+  queue} and $S$ is a {\em silo store}. Figure~\ref{fig:queues} shows
+the definition of message queues. A message queue $Q$ may contain
+three kinds of messages. A message of the form ${\Req h r \omega}$
+requests the value of silo $r$ to be sent to host $h$ for
+materialization of identifier $\omega$. A message of the form ${\Res
+  \omega v P}$ represents the corresponding response, containing the
+identifier $\omega$ to be materialized, value $v$, and persist set $P$
+(the set of hosts which have persisted the silo identified by
+$\omega$). A message of the form ${\ReqF \iota \omega}$ requests
+future $\iota$ to be completed with the value of silo $\omega$.
 
-\note{describe operational model}
+The deterministic reduction rules use helper functions $host$, $id$,
+$parent$, and $consume$, which are defined as follows:
 
 \begin{defn}[Host]
-  The function application $host(r)$ obtains the host of silo $r$;
-  $host$ is defined as follows:
+  The host of a silo reference.
 
-  $host(r) := \left\{\begin{array}{ll}
-      h         & \text{if } r = Mat((h, i)) \\
-      host(r')  & \text{if } r = Mapped(\_, r', \_) \\
-      host(r')  & \text{if } r = FMapped(\_, r', \_) \\
-      host(r')  & \text{if } r = Persist(\_, r', \_)
-    \end{array}\right.$
+  $host(r) := \left\{\ba{ll}
+    h         & \text{if } r = Mat((h, i)) \\
+    host(r')  & \text{if } r = Mapped(\_, r', \_) \\
+    host(r')  & \text{if } r = FMapped(\_, r', \_) \\
+    host(r')  & \text{if } r = Persist(\_, r', \_)
+  \ea\right.$
 \end{defn}
 
-
 \begin{defn}[Silo reference identifier]
-    $id(r) := \left\{\ba{ll}
+  The identifier of a silo reference.
+
+  $id(r) := \left\{\ba{ll}
     \omega  & \text{if } r = Mat(\omega) \\
     \omega  & \text{if } r = Mapped(\omega, r', \_) \\
     \omega  & \text{if } r = FMapped(\omega, r', \_) \\
     \omega  & \text{if } r = Persist(\omega, r', \_)
-    \ea\right.$
+  \ea\right.$
 \end{defn}
 
 \begin{defn}[Silo reference parent]
-    $parent(r) := \left\{\ba{ll}
+  The parent of a silo reference.
+
+  $parent(r) := \left\{\ba{ll}
     \None     & \text{if } r = Mat(\_) \\
     \Some{r'} & \text{if } r = Mapped(\_, r', \_) \\
     \Some{r'} & \text{if } r = FMapped(\_, r', \_) \\
     \Some{r'} & \text{if } r = Persist(\_, r', \_)
-    \ea\right.$
+  \ea\right.$
 \end{defn}
 
 \begin{defn}[Consume silo]
-Consume silo $\omega$ with persist set $P$ in silo store $S$ \\
+  Consume silo $\omega$ with persist set $P$ in silo store $S$.
+
   $consume(\omega, P, S) := \left\{\ba{ll}
-  S - \omega & \text{if } P = \emptyset \\
-  S          & \text{otherwise}
+    S - \omega & \text{if } P = \emptyset \\
+    S          & \text{otherwise}
   \ea\right.$
 \end{defn}
 
@@ -305,7 +312,7 @@ Consume silo $\omega$ with persist set $P$ in silo store $S$ \\
 %
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-\begin{figure}[ht!]
+\begin{figure}
 \centering
 
 \begin{mathpar}
@@ -370,6 +377,16 @@ Consume silo $\omega$ with persist set $P$ in silo store $S$ \\
 % Req messages to correctly forward requests.
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%
+% Elements of the operational model.
+%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+
+
 
 % Important that Res message contains correct P, since R-Res
 % updates silo store.
