@@ -34,6 +34,14 @@ v ::=                                                                  & \mbox{{
                                                                        & \\
 p ::= \texttt{spore}~\{~\seq{x : T = v}~; (x: T) \Rightarrow t~\}      & \\
 & \\
+r ::=                                                  & \mbox{{\it{silo reference values:}}} \\
+\gap \:\:\:\: \text{Mat}(\omega)                       & \mbox{materialized}                  \\
+\gap ~|~  \text{Mapped}(\omega, r, p)                  & \mbox{lineage with \texttt{map}}     \\
+\gap ~|~  \text{FMapped}(\omega, r, p)                 & \mbox{lineage with \texttt{flatMap}} \\
+\gap ~|~  \text{Persist}(\omega, r, v)                 & \mbox{lineage with \texttt{persist}} \\
+                                                       & \\
+\omega  ::= (h,i) \quad \text{where}~i \in \mathbb{N}  & \mbox{decentralized identifier}      \\
+& \\
 T ::=                                                                  & \mbox{{\it{types:}}} \\
 \gap \:\:\:\: T \Rightarrow T                                          & \mbox{abstraction type} \\
 \gap ~|~  \{ \seq{l : T} \}                                            & \mbox{record type} \\
@@ -62,15 +70,26 @@ asynchronously completed with the silo's value. The \verb|await| term
 waits for the completion of its argument future and returns the
 future's value.  Locations $\iota$ are used to refer to futures and
 hosts, both of which can be created dynamically using the above terms.
+
 Values in our language are as expected: besides abstractions and
 record values they include spore values, locations, and silo
-references.
+references. Locations and silo references are not part of the
+``surface syntax'' of our language; they are only introduced by
+evaluation (see Section~\ref{sec:opsem}). Silo reference values are
+values of a simple datatype with constructors {\em Mat, Mapped,
+  FMapped}, and {\em Persist}. The constructors include all
+information required for {\em materializing} a silo with the result of
+applying the described transformations. Therefore, a silo reference
+value is also called the {\em lineage} of its corresponding silo. We
+defer a detailed explanation of the transformations described by a
+lineage to the following Section~\ref{sec:opsem}.
 
 In addition to standard function and record types, the language has
 types for spores, hosts, silo references, and futures. A spore type $T
 \Rightarrow T'~\{~\texttt{type}~\mathcal{C} = \seq{T}~\}$ includes the
 types $\seq{T}$ of the variables declared in the header of the spore.
 
+\subsection{Operational Semantics}\label{sec:opsem}
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %
@@ -82,14 +101,6 @@ types $\seq{T}$ of the variables declared in the header of the spore.
 \centering
 
 $\ba[t]{l@{\hspace{2mm}}l}
-r ::=                                                  & \mbox{{\it{silo reference values:}}} \\
-\gap \:\:\:\: \text{Mat}(\omega)                       & \mbox{materialized}                  \\
-\gap ~|~  \text{Mapped}(\omega, r, p)                  & \mbox{lineage with \texttt{map}}     \\
-\gap ~|~  \text{FMapped}(\omega, r, p)                 & \mbox{lineage with \texttt{flatMap}} \\
-\gap ~|~  \text{Persist}(\omega, r, f)                 & \mbox{lineage with \texttt{persist}} \\
-                                                       & \\
-\omega  ::= (h,i) \quad \text{where}~i \in \mathbb{N}  & \mbox{decentralized identifier}      \\
-                                                       & \\
 Q      ::=                                             & \mbox{{\it{message queue values:}}}  \\
 \gap \:\:\:\: \epsilon                                 & \mbox{empty queue}       \\
 \gap ~|~    {\Res \omega v P} :: Q                     & \mbox{response (silo)}   \\
