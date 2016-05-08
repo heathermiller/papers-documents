@@ -855,13 +855,13 @@ Figure~\ref{fig:well-formed} shows the rules for well-formed
 configurations. These rules are essential for establishing subject
 reduction. Rules \textsc{WF-Store1} and \textsc{WF-Store2} are
 standard.  Rules \textsc{WF-Ref1-2} require the types given by the
-silo store typing $\Delta$ to be consistent with corresponding type of
-spore $p$. Rule \textsc{WF-Ref3} requires the type of silo $\omega$ to
-be equal to the type of its parent silo $id(r)$ in silo store typing
-$\Delta$. Rule \textsc{WF-Ref4} requires $\Delta$ to be defined for
-the identifier of a materialized silo. Finally, rules
+silo store typing $\Delta$ to be consistent with the corresponding
+type of spore $p$. Rule \textsc{WF-Ref3} requires the type of silo
+$\omega$ to be equal to the type of its parent silo $id(r)$ in silo
+store typing $\Delta$. Rule \textsc{WF-Ref4} requires $\Delta$ to be
+defined for the identifier of a materialized silo. Finally, rules
 \textsc{WF-Ref1-3} require parent silo references to be well-formed.
-Rules \textsc{WF-SiloStore1-3} requires a well-formed silo store to be
+Rules \textsc{WF-SiloStore1-3} require a well-formed silo store to be
 consistent with silo store typing $\Delta$. Rules \textsc{WF-Q1-4}
 specify well-formedness of message queues in $\Delta$ and $\Sigma$.
 Rules \textsc{WF-HostConfig}, \textsc{WF-Host1}, and \textsc{WF-Host2}
