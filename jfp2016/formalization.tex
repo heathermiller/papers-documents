@@ -4,7 +4,7 @@
 %
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-\begin{figure}[t!]
+\begin{figure}
 \centering
 
 $\ba[t]{l@{\hspace{2mm}}l}
@@ -48,15 +48,45 @@ T ::=                                                                       & \m
 \caption{Abstract syntax of core language.}\label{fig:syntax}
 \end{figure}
 
-We formalize our programming model in the context of a standard, typed lambda
-calculus with records. Figure~\ref{fig:syntax} shows the syntax of our core
-language. Terms are standard except for the \texttt{spore}, \texttt{map},
-\texttt{flatMap}, \texttt{send}, and \texttt{await} terms. A \texttt{spore}
-term creates a new spore. It contains a list of variable definitions (the spore
-header) and the spore's closure. A term $\texttt{await}(\iota)$ blocks
-execution until the future $\iota$ has been completed asynchronously. The
-\texttt{map}, \texttt{flatMap}, and \texttt{send} primitives have been
-discussed earlier.
+We formalize our programming model in the context of a standard, typed
+lambda calculus with records. Figure~\ref{fig:syntax} shows the
+abstract syntax of our core language. Terms are standard except for
+the \verb|spore|, \verb|spawn|, \verb|populate|, \verb|map|,
+\verb|flatMap|, \verb|persist|, \verb|send|, and \verb|await| terms. A
+\verb|spore| term creates a new spore. It contains a list of variable
+definitions (the spore header) and the spore's
+closure. \note{summarize spawn and populate} A term
+$\texttt{await}(t)$ blocks execution until the future $t$ has been
+completed asynchronously. The \verb|map|, \verb|flatMap|, and
+\verb|send| primitives have been discussed earlier.
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%
+% Elements of the operational model.
+%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\begin{figure}
+\centering
+
+$\ba[t]{l@{\hspace{2mm}}l}
+r ::=                                                  & \mbox{{\it{silo reference values:}}} \\
+\gap \:\:\:\: \text{Mat}(\omega)                       & \mbox{materialized}                  \\
+\gap ~|~  \text{Mapped}(\omega, r, p)                  & \mbox{lineage with \texttt{map}}     \\
+\gap ~|~  \text{FMapped}(\omega, r, p)                 & \mbox{lineage with \texttt{flatMap}} \\
+\gap ~|~  \text{Persist}(\omega, r, f)                 & \mbox{lineage with \texttt{persist}} \\
+                                                       & \\
+\omega  ::= (h,i) \quad \text{where}~i \in \mathbb{N}  & \mbox{decentralized identifier}      \\
+                                                       & \\
+Q      ::=                                             & \mbox{{\it{message queue values:}}}  \\
+\gap \:\:\:\: \epsilon                                 & \mbox{empty queue}       \\
+\gap ~|~    {\Res \omega v P} :: Q                     & \mbox{response (silo)}   \\
+\gap ~|~    {\Req h r \omega} :: Q                     & \mbox{request (silo)}    \\
+\gap ~|~    {\ReqF \iota \omega} :: Q                  & \mbox{request (future)}  \\
+\ea$
+
+\caption{Elements of the operational model.}\label{fig:elems-opsem}
+\end{figure}
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %%
@@ -476,3 +506,4 @@ discussed earlier.
 %messages used to request the application of the fault handler are handled in a
 %way that is completely analogous to the way regular Req messages are handled,
 %except that fault handlers $p_f$ are applied as opposed to regular spores $p$.
+=======
