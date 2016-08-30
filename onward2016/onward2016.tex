@@ -2473,9 +2473,10 @@ is notified to decrease the silo's reference count; the host's reference(s) to
 the silo are nulled out when the reference count reaches zero. It is important
 to note that this strategy requires notifying a silo's host whenever a SiloRef
 to the silo reaches a new machine, to increase the silo's reference count. The
-second approach leverages uniqueness types in Scala~\cite{Uniqueness}. Here,
-SiloRefs are locally unique, and the programmer can explicitly declare a SiloRef
-as unused; the type system ensures that such an ``unused'' SiloRef is not used
+second approach leverages uniqueness types in Scala~\cite{Haller10,Haller16}.
+Here, SiloRefs are locally unique, and the programmer can explicitly declare a
+SiloRef as unused (or ``consumed''); the type system ensures that such an
+``unused'' SiloRef is not used
 again subsequently. As in the first approach, upon marking a SiloRef as unused,
 the corresponding silo's host is notified to decrease the silo's reference
 count.
