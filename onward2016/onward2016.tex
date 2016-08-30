@@ -1088,8 +1088,9 @@ materialize a silo that we have shown is using the \verb|send| primitive.
 However, \verb|send| additionally transfers the contents of a silo to the
 requesting node--too much if a large remote data set should merely be cached in
 memory remotely.  Therefore, an additional primitive called \verb|cache| is
-provided, which forces the materialization of the given SiloRef, returning
-\verb|Future[Unit]|.
+provided, which forces the materialization of the given SiloRef.
+
+%, returning \verb|Future[Unit]|.
 
 Given the running example so far, we can add another subgraph branching off of
 \verb|adults|, which sorts each \verb|Person| by age, produces a \verb|String|
@@ -1132,14 +1133,16 @@ spore used to compute \verb|owners|.
 \subsubsection{Creating Silos}
 \label{sec:creating-silos}
 
-Besides a type definition for SiloRef, our framework also provides a companion
-singleton object (Scala's form of modules). The singleton object provides
-factory methods for obtaining SiloRefs referring to silos populated with some
-initial data:\footnote{For clarity, only method signatures are shown.}
+Besides a type definition for SiloRef, our framework provides a
+companion singleton object (a Scala module). The singleton object
+provides factory methods for obtaining SiloRefs referring to silos
+populated with some initial data:\footnote{For clarity, only method
+  signatures are shown.}
 
 \begin{lstlisting}
 object SiloRef {
-  def fromTextFile(host: Host)(file: File): SiloRef[List[String]]
+  def fromTextFile(host: Host)(file: File):
+                                      SiloRef[List[String]]
   def fromFun[T](host: Host)(s: Spore[Unit, T]): SiloRef[T]
   def fromLineage[T](host: Host)(s: SiloRef[T]): SiloRef[T]
 }
@@ -2095,7 +2098,7 @@ The presented programming model has been fully implemented in Scala, a
 functional programming language that runs on both JVMs and JavaScript runtimes.
 The function passing model is compiled and run using Scala 2.11.8, and considers only the JVM backend
 for now. Our implementation, which has been published as an open-source
-project,\footnote{URL withheld for blind review.} builds on two
+project,\footnote{\url{https://github.com/heathermiller/f-p/}} builds on two
 main Scala extensions:
 
 \begin{itemize}
