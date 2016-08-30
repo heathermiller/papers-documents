@@ -1243,7 +1243,7 @@ principle is to make the definition of the failure-free path through a
 computation DAG as simple as possible, while still enabling the handling of
 faults at the fine-granular level of individual SiloRefs.
 
-\paragraph{Defining fault handlers}
+\paragraph{Defining Fault Handlers}
 
 Fault handlers may be specified whenever the lineage of a SiloRef is extended.
 For this purpose, the introduced \verb|map| and \verb|flatMap| primitives are
@@ -1748,7 +1748,7 @@ execution until the future $\iota$ has been completed asynchronously. The
 \texttt{map}, \texttt{flatMap}, and \texttt{send} primitives have been
 discussed earlier.
 
-\subsection{Operational semantics}
+\subsection{Operational Semantics}
 \label{sec:opsem}
 
 \begin{figure}[ht!]
@@ -1836,7 +1836,7 @@ property with some existing approaches such as~\cite{ConcurrentHaskell}.
   % \vspace{-3mm}
 \end{figure*}
 
-\paragraph{Notation and conventions.}
+\paragraph{Notation and Conventions}
 
 We write $S' = S + (\iota \mapsto v)$ to express the fact that $S'$ maps
 $\iota$ to $v$ and otherwise agrees with $S$. We write $S(\iota) =
@@ -1845,7 +1845,7 @@ $S(\iota) = \text{None}$ if $S$ does not have a mapping for $\iota$. Reduction
 is defined using reduction contexts~\cite{TAPL}. We omit the definition of
 reduction contexts, since they are completely standard.
 
-\paragraph{Configurations.}
+\paragraph{Configurations}
 
 The reduction rules of the deterministic layer define transitions of \emph{host
 configurations} $(t, E, S)^h$ of host $h$ where $t$ is a term, $E$ is a message
@@ -1854,7 +1854,7 @@ layer define transitions of sets $H$ of host configurations. The reduced host
 configurations are chosen non-deterministically in order to express concurrency
 between hosts.
 
-\paragraph{Fault handling.}
+\paragraph{Fault Handling}
 
 In the interest of clarity we present the reduction rules in two steps. In the
 first step we explain simplified rules without fault handling semantics
@@ -1862,7 +1862,7 @@ first step we explain simplified rules without fault handling semantics
 we explain how these simplified rules have to be refined in order to support
 the fault handling principles of our model (Section~\ref{sec:faults-opsem}).
 
-\subsubsection{Decentralized identification}
+\subsubsection{Decentralized Identification}
 
 A important property of our programming model is the fact that silos are
 uniquely identified using \emph{decentralized identifiers}. A decentralized
@@ -1931,7 +1931,7 @@ identifiers they contain be freely copyable between remote hosts.
   % \vspace{-3mm}
 \end{figure*}
 
-\subsubsection{Deterministic layer}
+\subsubsection{Deterministic Layer}
 \label{sec:det-layer}
 
 We first consider the reduction rules of the deterministic layer shown in
@@ -1963,7 +1963,7 @@ a request to materialize $r'$ to itself.
 
 
 
-\subsubsection{Nondeterministic layer}
+\subsubsection{Nondeterministic Layer}
 \label{sec:nondet-layer}
 
 All reduction rules in the nondeterministic layer, shown in
@@ -2024,7 +2024,7 @@ where the requested silo is not already available in materialized form.
 \end{figure*}
 
 % \vspace{-2.25mm}
-\subsection{Fault handling}
+\subsection{Fault Handling}
 \label{sec:faults-opsem}
 % \vspace{-1mm}
 The key principles of the fault handling mechanism are:
@@ -2136,7 +2136,7 @@ applications in section~\ref{sec:examples}.
 % talks and from other various webpages meaning it already gets public traffic.
 % One may visit it without identity concerns.}
 
-\subsection{Serialization in the presence of existential quantification}
+\subsection{Serialization and Existential Quantification}
 
 Initially, to serialize most message types exchanged by the network
 communication layer, runtime-based unpicklers had to be used (meaning
