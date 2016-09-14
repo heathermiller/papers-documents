@@ -22,7 +22,7 @@
 %   http://creativecommons.org/licenses/by/3.0/
 % or send a letter to Creative Commons, 171 2nd Street, Suite 300,
 % San Francisco, California, 94105, U.S.A.
-% 
+%
 % Program Chairs may be tempted to make changes to the SIGPLAN LaTeX style
 % sigplanconf.cls. Please don't do this! The style is carefully considered,
 % and the result of over a decade's discussion and development. If you have a
@@ -624,38 +624,50 @@
 
 \def \publicationrights #1{%                                    {type}
   \if \@definedp{\rightsstatement#1}%
-    \gdef \@permission {\@name{\rightsstatement#1}}%
+    \gdef \@toappear {\@name{\rightsstatement#1}}%
   \else
     \@latex@error{The publication right '#1' is invalid}{}%
   \fi}
 
 \expandafter\def \csname rightsstatementauthor-pays\endcsname{%
+  \noindent
   Permission to make digital or hard copies of part or all of this work for
   personal or classroom use is granted without fee provided that copies are
   not made or distributed for profit or commercial advantage and that copies
   bear this notice and the full citation on the first page. Copyrights for
   third-party components of this work must be honored. For all other uses,
-  contact the Owner/Author.}
+  contact the Owner/Author(s). \par
+  \vspace{2pt}
+  \noindent \textsl{\@conferencename}\quad \@conferenceinfo \par
+  \noindent Copyright \copyright\ \@copyrightyear\ held by owner/author(s). \par
+  ACM \@copyrightdata \dots \@reprintprice\par
+  \setcopyrightdoi}
 
 % This is the default rights statement.
 
 \def \rightsstatementlicensed {%
+  \noindent
   Permission to make digital or hard copies of part or all of this work for
   personal or classroom use is granted without fee provided that copies are
   not made or distributed for profit or commercial advantage and that copies
   bear this notice and the full citation on the first page. Copyrights for
   components of this work owned by others than ACM must be honored.
   Abstracting with credit is permitted. To copy otherwise, to republish, to
-  post on servers, or to redistribute to lists, contact the Owner/Author.
+  post on servers, or to redistribute to lists, contact the Owner/Author(s).
   Request permissions from permissions@acm.org or Publications Dept., ACM,
-  Inc., fax +1~(212) 869-0481.  Copyright \@copyrightyear\ held by Owner/Author.
-  Publication Rights Licensed to ACM.}
+  Inc., fax +1~(212) 869-0481. \par
+  \vspace{2pt}
+  \noindent \textsl{\@conferencename}\quad \@conferenceinfo \par
+  \noindent Copyright \copyright\ \@copyrightyear\ held by owner/author(s). Publication rights licensed to ACM. \par
+  ACM \@copyrightdata \dots \@reprintprice\par
+  \setcopyrightdoi}
 
 \if \@notp{\@legacycopyright}%
   \publicationrights{licensed}%
 \fi
 
 \def \rightsstatementtransferred {%
+  \noindent
   Permission to make digital or hard copies of part or all of this work for
   personal or classroom use is granted without fee provided that copies are
   not made or distributed for profit or commercial advantage and that copies
@@ -664,7 +676,11 @@
   Abstracting with credit is permitted. To copy otherwise, to republish, to
   post on servers, or to redistribute to lists, requires prior specific
   permission and/or a fee. Request permissions from permissions@acm.org or
-  Publications Dept., ACM, Inc., fax +1~(212) 869-0481.}
+  Publications Dept., ACM, Inc., fax +1~(212) 869-0481. \par
+  \vspace{2pt}
+  \noindent \textsl{\@conferencename}\quad \@conferenceinfo \par
+  \noindent Copyright \copyright\ \@copyrightyear\ ACM \@copyrightdata \dots \@reprintprice\par
+  \setcopyrightdoi}
 
 \newcommand{\reprintprice}[1]{%
   \gdef \@reprintprice {#1}}
@@ -680,7 +696,7 @@
   \else
     \noindent DOI: http://dx.doi.org/10.1145/\@copyrightdoi\par
   \fi}
-  
+
 
 % Legacy commands.
 
@@ -732,7 +748,7 @@
     not made or distributed for profit or commercial advantage and that copies
     bear this notice and the full citation on the first page. Copyrights for
     third-party components of this work must be honored. For all other uses,
-    contact the Owner/Authorxxx.}%
+    contact the Owner/Author.}%
   \toappear{%
     \noindent \@permission \par
     \vspace{2pt}
@@ -1227,7 +1243,7 @@
     \noindent
     \@authori = 4
     {\let \\ = ,%
-     \loop 
+     \loop
        \textbf{\@name{\@authorname\romannumeral\@authori}},
        \@name{\@authoraffil\romannumeral\@authori},
        email: \@name{\@authoremail\romannumeral\@authori}.%
@@ -1372,7 +1388,7 @@
 %                               environment. Also add to template so it will
 %                               happen with natbib.
 
-%  2009.09.30   PCA     2.3     Remove \softraggedright from thebibliography.  
+%  2009.09.30   PCA     2.3     Remove \softraggedright from thebibliography.
 %                               Just include in the template.
 
 %  2010.05.24   PCA     2.4     Obfuscate class author's email address.
@@ -1412,3 +1428,7 @@
 
 %  2015.12.03   MTF     3.2     Remove use of package mathptmx.  No prior
 %                                 released version used package mathptm.
+
+%  2016.02.14   MTF     3.2b    Tweak copyright and publisher lines for
+%                                 \publicationrights{author-pays} and
+%                                 \publicationrights{licensed}
