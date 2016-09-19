@@ -1803,7 +1803,7 @@ t ::=                                                                  & \mbox{{
 \gap ~|~  \texttt{send}(t)                                             & \mbox{send} \\           % send  :: Ref a -> Fut a
 \gap ~|~  \texttt{await}(t)                                            & \mbox{await future} \\   % await :: Fut a -> a
 \gap ~|~  \iota                                                        & \mbox{location} \\
-\gap ~|~  r                                                            & \mbox{silo reference} \\
+\gap ~|~  r                                                            & \mbox{lineage} \\
                                                                        & \\
 v ::=                                                                  & \mbox{{\it{values:}}} \\
 \gap \:\:\:\: (x: T) \Rightarrow t                                     & \mbox{abstraction} \\
@@ -1850,20 +1850,19 @@ completion of its argument future and returns the future's value.
 Locations $\iota$ are used to refer to both futures and hosts.
 
 Values in our language are as expected: besides abstractions and
-record values they include spore values, locations, and silo
-references. Locations and silo references are not part of the
-``surface syntax'' of our language; they are only introduced by
-reduction (see Section~\ref{sec:reduction}). Silo reference values are
-values of a simple datatype with constructors {\em Mat, Mapped,
-  FMapped}, and {\em Persist}. The constructors include all
-information required for {\em materializing} a silo with the result of
-applying the described transformations. Therefore, a silo reference
-value is also called the {\em lineage} of its corresponding silo. We
-defer a detailed explanation of the transformations described by a
-lineage to the following Section~\ref{sec:reduction}.
+record values they include spore values, locations, and
+lineages. Locations and lineages are not part of the ``surface
+syntax'' of our language; they are only introduced by reduction (see
+Section~\ref{sec:reduction}). A lineage is a value of a simple
+datatype with constructors {\em Mat, Mapped, FMapped}, and {\em
+  Persist}. The constructors include all information required for {\em
+  materializing} a silo with the result of applying the described
+transformations. We defer a detailed explanation of the
+transformations described by a lineage to the following
+Section~\ref{sec:reduction}.
 
 In addition to standard function and record types, the language has
-types for spores, hosts, silo references, and futures. A spore type $T
+types for spores, hosts, lineages, and futures. A spore type $T
 \Rightarrow T'~\{~\texttt{type}~\mathcal{C} = \seq{T}~\}$ includes the
 types $\seq{T}$ of the variables declared in the header of the
 spore. (The name $\mathcal{C}$ stands for ``capture types''.)
