@@ -965,7 +965,7 @@ Spores also come with additional type-checking. Type information corresponding
 to captured variables are included in the type of a spore. This enables authors
 of distributed frameworks to customize type-checking of spores to, for example,
 {\em exclude} a certain type from being captured by user-provided spores.
-Authors of distributed frameworks may kick on this type-checking by simply
+Authors of distributed frameworks opt into this type-checking by simply
 including information about excluded types (or other type-based properties) in
 the signature of a method. A concrete example would be to ensure that the
 \verb|map| method on \verb|RDD|s in Spark (a distributed collection) accepts
@@ -1162,7 +1162,7 @@ provided, which forces the materialization of the given SiloRef.
 
 Given the running example so far, we can add another subgraph branching off of
 \verb|adults|, which sorts each \verb|Person| by age, produces a \verb|String|
-gretting, and then ``kicks-off'' remote computation by calling \verb|cache| and
+greeting, and then ``kicks-off'' remote computation by calling \verb|cache| and
 caching the result in remote memory (graphically shown in
 Figure~\ref{fig:bigger-dag}, part 3 and 4):
 
@@ -2461,8 +2461,7 @@ directly. Thus, calling a received function will not lead to remote invocations.
 
 Cloud Haskell~\cite{CloudHaskell} leverages guaranteed-serializable, static
 closures for a message-passing communication model inspired by Erlang. In
-contrast, in our model spores are sent between passive, persistent silos. In
-contrast, in our model spores are sent between passive, persistent silos.
+contrast, in our model spores are sent between passive, persistent silos. 
 Moreover, the coordination of concurrent activity is based on futures, instead
 of message passing. Closures and continuations in Termite
 Scheme~\cite{TermiteScheme} are always serializable; references to non-serializable
