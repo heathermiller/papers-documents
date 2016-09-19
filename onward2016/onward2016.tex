@@ -1746,6 +1746,130 @@ the original computation.
 \section{Formalization}
 \label{sec:formalization}
 
+While so far we have focused on a high-level description of our model,
+visualizing, and building intuition via examples, we now shift gears
+in an effort to make the primitives of our model more precise. Rather
+than presenting a full formalization of our model, we will zoom in on
+a few interesting highlights that fell out of our formalization. In
+particular:
+\begin{itemize}
+  \item A new treatment of the concept of lineage using tools of the
+    programming languages community as opposed to the way lineage has
+    been studied in the database and systems communities.
+  \item A newly-uncovered connection between type soundness and
+    serializability.
+\end{itemize}
+\noindent
+This is based on a formalization of our programming model in the
+context of a typed lambda calculus with records. The full
+formalization and the proof of a subject reduction theorem can be
+found in the companion technical report~\cite{FPTechReport}.
+
+\subsection{Formalizing Lineages}
+
+In the following we formally model the concept of lineage which has
+existed in other communities (in particular, the database and systems
+communities), but which has not been treated in the context of
+standard PL techniques such as small-step operational semantics.
+Formalizing lineages is interesting for two reasons: first, our formal
+model shows that lineages nicely map to and integrate with concepts
+from functional programming. Second, the reduction relation of the
+computation model is significantly different from standard reduction
+relations for higher-order functional languages.
+
+In the following we first summarize the abstract syntax of a core
+language with essential constructs of our programming model. Then, we
+provide an overview of reduction semantics, highlighting select
+reduction rules for lineages.
+
+\subsubsection{Syntax}
+
+\begin{figure}[ht!]
+\centering
+
+$\ba[t]{l@{\hspace{2mm}}l}
+t ::=                                                                  & \mbox{{\it{terms:}}} \\
+\gap \:\:\:\:  x                                                       & \mbox{variable} \\
+\gap ~|~  (x: T) \Rightarrow t                                         & \mbox{abstraction} \\
+\gap ~|~  t~t                                                          & \mbox{application} \\
+\gap ~|~  \{ \seq{l = t} \}                                            & \mbox{record} \\
+\gap ~|~  t.l                                                          & \mbox{selection} \\
+\gap ~|~  \texttt{spore}~\{~\seq{x : T = t}~; (x: T) \Rightarrow t~\}  & \mbox{spore} \\
+\gap ~|~  \texttt{spawn}(t)                                            & \mbox{spawn host} \\
+\gap ~|~  \texttt{populate}(t, t)                                      & \mbox{populate silo} \\
+\gap ~|~  \texttt{map}(t, t)                                           & \mbox{map} \\
+\gap ~|~  \texttt{flatMap}(t, t)                                       & \mbox{flatMap} \\
+\gap ~|~  \texttt{persist}(t)                                          & \mbox{persist} \\
+\gap ~|~  \texttt{send}(t)                                             & \mbox{send} \\           % send  :: Ref a -> Fut a
+\gap ~|~  \texttt{await}(t)                                            & \mbox{await future} \\   % await :: Fut a -> a
+\gap ~|~  \iota                                                        & \mbox{location} \\
+\gap ~|~  r                                                            & \mbox{silo reference} \\
+                                                                       & \\
+v ::=                                                                  & \mbox{{\it{values:}}} \\
+\gap \:\:\:\: (x: T) \Rightarrow t                                     & \mbox{abstraction} \\
+\gap ~|~  \{ \seq{l = v} \}                                            & \mbox{record value} \\
+\gap ~|~  p                                                            & \mbox{spore value} \\
+\gap ~|~  \iota                                                        & \mbox{location} \\
+\gap ~|~  r                                                            & \mbox{lineage} \\
+                                                                       & \\
+p ::= \texttt{spore}~\{~\seq{x : T = v}~; (x: T) \Rightarrow t~\}      & \\
+& \\
+r ::=                                                  & \mbox{{\it{lineage:}}} \\
+\gap \:\:\:\: \text{Mat}(\omega)                       & \mbox{materialized}             \\
+\gap ~|~  \text{Mapped}(\omega, r, p)                  & \mbox{\texttt{map} lineage}     \\
+\gap ~|~  \text{FMapped}(\omega, r, p)                 & \mbox{\texttt{flatMap} lineage} \\
+\gap ~|~  \text{Persist}(\omega, r, v)                 & \mbox{\texttt{persist} lineage} \\
+                                                       & \\
+\omega  ::= (h,i) \quad \text{where}~i \in \mathbb{N}  & \mbox{identifier}      \\
+& \\
+T ::=                                                               & \mbox{{\it{types:}}} \\
+\gap \:\:\:\: T \Rightarrow T                                       & \mbox{abstraction type} \\
+\gap ~|~  \{ \seq{l : T} \}                                         & \mbox{record type} \\
+\gap ~|~  T \Rightarrow T~\{~\texttt{type}~\mathcal{C} = \seq{T}~\} & \mbox{spore type} \\
+\gap ~|~  \texttt{Host}                                             & \mbox{host type} \\
+\gap ~|~  \texttt{SiloRef}[T]                                       & \mbox{lineage type} \\
+\gap ~|~  \texttt{Future}[T]                                        & \mbox{future type}
+\ea$
+\caption{Abstract syntax of core language.}\label{fig:syntax}
+\end{figure}
+
+Figure~\ref{fig:syntax} shows the abstract syntax of our core
+language. Besides standard terms, the language includes terms related
+to (a) spores, (b) silos, and (c) futures. The \verb|spore| term
+creates a new spore. It contains a list of variable definitions, the
+spore header, and a closure which may only refer to its parameter and
+variables in the spore header. The \verb|spawn| term creates a new
+host capable of hosting silos. The \verb|populate| term initializes a
+new silo on a given host with a given data value.  The \verb|map|,
+\verb|flatMap|, and \verb|persist| terms create lineages of silo
+transformations represented as silo references.  The \verb|send| term
+forces the materialization of the silo corresponding to its argument
+silo reference; \verb|send| returns a future which is asynchronously
+completed with the silo's value. The \verb|await| term waits for the
+completion of its argument future and returns the future's value.
+Locations $\iota$ are used to refer to both futures and hosts.
+
+Values in our language are as expected: besides abstractions and
+record values they include spore values, locations, and silo
+references. Locations and silo references are not part of the
+``surface syntax'' of our language; they are only introduced by
+reduction (see Section~\ref{sec:reduction}). Silo reference values are
+values of a simple datatype with constructors {\em Mat, Mapped,
+  FMapped}, and {\em Persist}. The constructors include all
+information required for {\em materializing} a silo with the result of
+applying the described transformations. Therefore, a silo reference
+value is also called the {\em lineage} of its corresponding silo. We
+defer a detailed explanation of the transformations described by a
+lineage to the following Section~\ref{sec:reduction}.
+
+In addition to standard function and record types, the language has
+types for spores, hosts, silo references, and futures. A spore type $T
+\Rightarrow T'~\{~\texttt{type}~\mathcal{C} = \seq{T}~\}$ includes the
+types $\seq{T}$ of the variables declared in the header of the
+spore. (The name $\mathcal{C}$ stands for ``capture types''.)
+
+
+\comment{
 We formalize our programming model in the context of a standard, typed lambda
 calculus with records. Figure~\ref{fig:syntax} shows the syntax of our core
 language. Terms are standard except for the \texttt{spore}, \texttt{map},
@@ -1756,7 +1880,7 @@ execution until the future $\iota$ has been completed asynchronously. The
 \texttt{map}, \texttt{flatMap}, and \texttt{send} primitives have been
 discussed earlier.
 
-Tech report~\cite{FPTechReport}.
+Tech report~\cite{FPTechReport}.}
 
 \subsection{Operational Semantics}
 \label{sec:opsem}
