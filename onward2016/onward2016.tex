@@ -1746,67 +1746,6 @@ the original computation.
 \section{Formalization}
 \label{sec:formalization}
 
-\begin{figure}[t!]
-  \centering
-
-  $\ba[t]{l@{\hspace{2mm}}l}
-t ::=     x                                 & \mbox{variable}
-\\
-\gap ~|~  (x: T) \Rightarrow t              & \mbox{abstraction}
-\\
-\gap ~|~  t~t                               & \mbox{application}
-\\
-\gap ~|~  \texttt{let}~x = t~\texttt{in}~t  & \mbox{let binding}
-\\
-\gap ~|~  \{ \seq{l = t} \}                 & \mbox{record construction}
-\\
-\gap ~|~  t.l                               & \mbox{selection}
-\\
-\gap ~|~  \texttt{spore}~\{~\seq{x : T = t}~; (x: T) \Rightarrow t~\}  & \mbox{spore}
-\\
-\gap ~|~  \texttt{map}(r, t[, t])           & \mbox{map}
-\\
-\gap ~|~  \texttt{flatMap}(r, t[, t])       & \mbox{flatMap}
-\\
-\gap ~|~  \texttt{send}(r)                  & \mbox{send}
-\\
-\gap ~|~  \texttt{await}(\iota)             & \mbox{await future}
-\\
-\gap ~|~  r                                 & \mbox{SiloRef}
-\\
-\gap ~|~  \iota                             & \mbox{future}
-\\
- & \\
-v ::=     (x: T) \Rightarrow t              & \mbox{abstraction}
-\\
-\gap ~|~  \{ \seq{l = v} \}                 & \mbox{record value}
-\\
-\gap ~|~  p                                 & \mbox{spore value}
-\\
-\gap ~|~  r                                 & \mbox{SiloRef}
-\\
-\gap ~|~  \iota                             & \mbox{future}
-\\
- & \\
-p ::=     \texttt{spore}~\{~\seq{x : T = v}~; (x: T) \Rightarrow t~\}  & \mbox{spore value}
-\\
- & \\
-T ::=     T \Rightarrow T                   & \mbox{function type} \\
-\gap ~|~  \{ \seq{l : T} \}                 & \mbox{record type}   \\
-\gap ~|~  \mathcal{S}                       & \mbox{}
-\\
-\mathcal{S} ::= T \Rightarrow T~\{~\texttt{type}~\mathcal{C} = \seq{T}~\}   & \mbox{spore type}
-\\
-\gap ~|~  T \Rightarrow T~\{~\texttt{type}~\mathcal{C}~\}   & \mbox{abstract spore type}
-\\
-\ea$
-
-  % \vspace{1mm}
-  \caption{Core language syntax.}
-  \label{fig:syntax}
-  % \vspace{1mm}
-\end{figure}
-
 We formalize our programming model in the context of a standard, typed lambda
 calculus with records. Figure~\ref{fig:syntax} shows the syntax of our core
 language. Terms are standard except for the \texttt{spore}, \texttt{map},
