@@ -1868,93 +1868,43 @@ types $\seq{T}$ of the variables declared in the header of the
 spore. (The name $\mathcal{C}$ stands for ``capture types''.)
 
 
-\subsection{Operational Semantics}
-\label{sec:opsem}
+\subsection{Reduction Semantics}\label{sec:reduction}
 
-\begin{figure}[ht!]
-  \centering
-
-  $\ba[t]{l@{\hspace{2mm}}l}
-h \in Hosts &
-\\
-i \in \mathbb{N} &
-\\
- & \\
-\iota  ::=  (h, i)                               & \mbox{location}
-\\
- & \\
-r ::=     \text{Mat}(\iota) & \mbox{materialized}
-\\
-\gap ~|~  \text{Mapped}(\iota, h, r, p, opt_f)   & \mbox{lineage with \texttt{map}}
-\\
-\gap ~|~  \text{FMapped}(\iota, h, r, p, opt_f)  & \mbox{lineage with \texttt{flatMap}}
-\\
- & \\
-E      ::=  \epsilon & \mbox{message queue}
-\\
-\gap ~|~    \text{Res}(\iota, v) \texttt{::} E      & \mbox{response}
-\\
-\gap ~|~    \text{Req}(h, r, \iota) \texttt{::} E   & \mbox{request}
-\\
-\gap ~|~    \text{ReqF}(h, r, \iota) \texttt{::} E  & \mbox{request (fault)}
-\\
-  \ea$
-
-  \vspace{1mm}
-  \caption{Elements of the operational model.}
-  \label{fig:elems-opsem}
-  \vspace{1mm}
+\begin{figure}
+\centering
+ $\ba[t]{l@{\hspace{2mm}}l}
+E ::=                                                                                                     & \mbox{\it{eval. contexts:}} \\
+\gap \:\:\:\: [~]                                                                                         & \mbox{hole} \\
+\gap ~|~  E~t                                                                                             & \mbox{application (fun)} \\
+\gap ~|~  v~E                                                                                             & \mbox{application (arg)} \\
+\gap ~|~  \{ \seq{l = v} ; l_i = E ; \seq{l' = t} \}                                                      & \mbox{record} \\
+\gap ~|~  E.l                                                                                             & \mbox{selection} \\
+\gap ~|~  \texttt{spore}~\{~\seq{x : T = v} ; x_i : T_i = E ; & \\
+\gap \gap                   \seq{x' : T = t} ; (x: T) \Rightarrow t~\}  & \mbox{spore} \\
+\gap ~|~  \texttt{spawn}(E)                                                                               & \mbox{spawn} \\
+\gap ~|~  \texttt{populate}(E, t)                                                                         & \mbox{populate (host)} \\
+\gap ~|~  \texttt{populate}(v, E)                                                                         & \mbox{populate (spore)} \\
+\gap ~|~  \texttt{map}(E, t)                                                                              & \mbox{map (ref)} \\
+\gap ~|~  \texttt{map}(v, E)                                                                              & \mbox{map (fun)} \\
+\gap ~|~  \texttt{flatMap}(E, t)                                                                          & \mbox{flatMap (ref)} \\
+\gap ~|~  \texttt{flatMap}(v, E)                                                                          & \mbox{flatMap (fun)} \\
+\gap ~|~  \texttt{persist}(E)                                                                             & \mbox{persist} \\
+\gap ~|~  \texttt{send}(E)                                                                                & \mbox{send} \\
+\gap ~|~  \texttt{await}(E)                                                                               & \mbox{await} \\
+\ea$
+\caption{Evaluation context.}\label{fig:eval-ctx}
 \end{figure}
 
-In the following we give a small-step operational semantics of the primitives
-of our language. The semantics is clearly stratified into a deterministic layer
-and a non-deterministic (concurrent) layer. Importantly, this means our
-programming model can benefit from existing reasoning techniques for sequential
-programs. Program transformations that are correct for sequential programs are
-also correct for distributed programs. Our programming model shares this
-property with some existing approaches such as~\cite{ConcurrentHaskell}.
+In the following we provide an overview of small-step operational
+semantics of the introduced core language. The semantics are based on
+three reduction relations for (a) sequential reduction of terms, (b)
+deterministic reduction of hosts, and (c) non-deterministic reduction
+of sets of hosts.  The reduction relations use the definition of
+evaluation contexts shown in Figure~\ref{fig:eval-ctx}. Evaluation
+contexts capture the notion of the ``next subterm to be evaluated.''
+We write $E[t]$ for the term obtained by replacing the hole in
+evaluation context $E$ with term $t$.
 
-\begin{figure*}[t!]
-  \centering
-% \vspace{-7mm}
-\begin{mathpar}
-
-\inferrule[\textsc{R-Map}]
-{ host(r) = h' \quad i~\text{fresh} \\
-  r' = \text{Mapped}((h, i), h', r, p, \text{None})
-}
-{ (R[\texttt{map}(r, p)], E, S)^h \longrightarrow (R[r'], E, S)^h }
-
-\inferrule[\textsc{R-FMap}]
-{ host(r) = h' \quad i~\text{fresh} \\
-  r' = \text{FMapped}((h, i), h', r, p, \text{None})
-}
-{ (R[\texttt{flatMap}(r, p)], E, S)^h \longrightarrow (R[r'], E, S)^h }
-
-\inferrule[\textsc{R-Await}]
-{ S(\iota) = \text{Some}(v)
-}
-{ (R[\texttt{await}(\iota)], E, S)^h \longrightarrow (R[v], E, S)^h }
-
-\inferrule[\textsc{R-Res}]
-{ E = \text{Res}(\iota, v) \texttt{::} E' \quad S' = S + (\iota \mapsto v)
-}
-{ (R[\texttt{await}(\iota_f)], E, S)^h \longrightarrow (R[\texttt{await}(\iota_f)], E', S')^h }
-
-\inferrule[\textsc{R-ReqLocal}]
-{ E = \text{Req}(h', r, \iota'') \texttt{::} E' \quad r = \text{Mapped}(\iota, h, r', p, \text{None}) \quad r' \neq \text{Mat}(\iota_s) \quad S(\iota) = \text{None} \\
-  loc(r') = \iota' \quad S(\iota') = \text{None} \\
-  E'' = \text{Req}(h, r', \iota') \texttt{::} E
-}
-{ (R[\texttt{await}(\iota_f)], E, S)^h \rightarrow (R[\texttt{await}(\iota_f)], E'', S)^h
-}
-
-\end{mathpar}
-  % \vspace{-3mm}
-  \caption{Deterministic reduction.}
-  \label{fig:opsem-determ}
-  % \vspace{-3mm}
-\end{figure*}
 
 \paragraph{Notation and Conventions}
 
