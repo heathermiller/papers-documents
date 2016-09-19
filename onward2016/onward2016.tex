@@ -456,33 +456,37 @@ serialization, concurrency, types, Scala
 
 \section{Introduction}
 
-It is difficult to deny that data-centric programming is growing in importance.
-At the same time, it is no secret that the most successful systems for
-programming with ``big data'' have all adopted ideas from functional
+Data-centric programming is now commonplace. Meanwhile, the most successful
+systems for programming with ``big data'' have all adopted ideas from functional
 programming; \ie programming with first-class functions and higher-order
-functions. These functional ideas are often touted to be the key to the success
-of these frameworks. It is not hard to imagine why--a functional, declarative
-interface to data distributed over tens to thousands of nodes provides a more
-natural way for end-users and data scientists to reason about data.
+functions. These functional ideas, declarative interfaces to data distributed
+over tens to thousands of nodes, have become recognized for providing a more
+natural way for end-users and data scientists to reason about large-scale data.
 
-While leveraging functional programming {\em concepts}, popular implementations
-of the MapReduce~\cite{MapReduce} model, such as Hadoop MapReduce~\cite{Hadoop}
-for Java, have been developed without making use of functional language features
-such as closures. For nearly a decade, the open source interpretation of this
-model, Hadoop, swelled in size, remaining largely unchallenged--causing nearly
-all of industry to synchronize on this one implementation for most all
-large-scale data processing needs.
+Popular implementations of the MapReduce~\cite{MapReduce} model, such as Hadoop
+MapReduce~\cite{Hadoop} for Java, have taken ideas from functional
+programming--mapping and reducing. But due to their impementation language, are
+unable to fully make use of functional language features such as closures,
+causing Hadoop developers to have to write significant amounts of boilerplate in
+order to emulate these functional patterns. Despite this, for nearly a decade,
+Hadoop has remained largely unchallenged, becoming the implementation of choice
+for most all industrial large-scale data processing needs.
 
 However, in recent years, a new generation of distributed systems for
-large-scale data processing have suddenly \\ cropped up, built on top of emerging
+large-scale data processing have suddenly cropped up, built on top of emerging
 functional languages like Scala; such systems include Apache Spark~\cite{Spark},
 Twitter's Scalding~\cite{Scalding}, and Scoobi~\cite{Scoobi}. These systems make
 use of functional language features in Scala in order to provide high-level,
-declarative APIs to end-users. Further, the benefits provided by functional
-programming have also won over framework designers as well--some have noticed
-that immutability, and data transformation via higher-order functions makes it
-much easier, by design, to tackle concerns central to distributed systems such
-as concurrency.
+declarative APIs to end-users--requiring significantly less boilerplate.
+Moreover, these features have enabled computation to be shifted fully in memory,
+with systems like Spark achieving up to a 100x boost in performance over
+Hadoop~\cite{SparkWebsite}.
+
+% Further, the benefits provided by functional
+% programming have also won over framework designers as well--some have noticed
+% that immutability, and data transformation via higher-order functions makes it
+% much easier, by design, to tackle concerns central to distributed systems such
+% as concurrency.
 
 % We believe it's possible to take these benefits further to other
 % pain points for distributed system builders
@@ -522,13 +526,13 @@ as concurrency.
 % resembles the sorts of
 
 This sudden proliferation of new frameworks for distributed data-centric
-programming concurrent with the sudden growth in popularity of an emerging
-programming language begs the question--has it been our programming languages
-that have limited us? Could it be that the primitives we build our systems upon
-are too low-level, causing us to struggle to reinvent the same tricky wheel over
-and over again? As these large-scale data processing applications continue to
-grow in importance, what can we as language designers do to make it easier for
-more of these frameworks to rise?
+programming all pushing the bar far beyond Hadoop, concurrent with the sudden
+growth in popularity of an emerging programming language begs the question--has
+it been our programming languages that have limited us? Could it be that the
+primitives we build our systems upon are too low-level, causing us to struggle
+to reinvent the same tricky wheel over and over again? As these large-scale data
+processing applications continue to grow in importance, what can we as language
+designers do to make it easier for more of these frameworks to rise?
 
 This paper presents a new programming model called the {\em function passing}
 model which has been designed to be a more principled substrate (or middleware)
