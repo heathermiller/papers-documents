@@ -1905,6 +1905,60 @@ contexts capture the notion of the ``next subterm to be evaluated.''
 We write $E[t]$ for the term obtained by replacing the hole in
 evaluation context $E$ with term $t$.
 
+\begin{figure}
+\centering
+\begin{mathpar}
+\inferrule[\textsc{R-Map}] {
+  r' = \text{Mapped}((h, i), r, p) \quad
+  i~\text{fresh}
+} {
+  E[\texttt{map}(r, p)]~|~\mu
+  \rightarrow^h
+  E[r']~|~\mu'
+}
+
+\inferrule[\textsc{R-FMap}] {
+  r' = \text{FMapped}((h, i), r, p) \quad
+  i~\text{fresh}
+} {
+  E[\texttt{flatMap}(r, p)]~|~\mu
+  \rightarrow^h
+  E[r']~|~\mu'
+}
+
+\inferrule[\textsc{R-Persist}] {
+  r' = \text{Persist}((h, i), r, \cdot \cup \cdot) \quad
+  i~\text{fresh}
+} {
+  E[\texttt{persist}(r)]~|~\mu
+  \rightarrow^h
+  E[r']~|~\mu'
+}
+\end{mathpar}
+\caption{Select rules for sequential reduction.}\label{fig:seq-reduction}
+\end{figure}
+
+Figure~\ref{fig:seq-reduction} shows select rules for sequential
+reduction. The sequential reduction relation has the form $E[t]~|~\mu
+\rightarrow^h E[t']~|~\mu'$ with stores $\mu$ and $\mu'$. Stores are
+required for the dynamic allocation of futures and hosts.  A store
+$\mu$ is a partial function mapping locations $\iota$ to values $v$.
+The annotation with host $h$ is used for creating {\em identifiers}
+$\omega = (h, i)$ for lineages/silo references.
+
+Rules \textsc{R-Map}, \textsc{R-FMap}, and \textsc{R-Persist} describe
+the creation of lineages.  Rules \textsc{R-Map} and \textsc{R-FMap}
+create lineages using the constructors {\em Mapped} and {\em FMapped},
+respectively. The new lineage has a fresh identifier $(h, i)$ which
+uniquely identifies the corresponding (logical) silo. In each case,
+the spore value $p$ is stored in the new lineage; this enables a
+materialization of the silo identified by $(h, i)$ using parent
+lineage $r$ and spore $p$. Rule \textsc{R-Persist} creates a lineage
+using the {\em Persist} constructor. {\em Persist} contains a function
+enabling host $h$ to persist ($\cdot \cup \cdot$) silo $r$,
+respectively. (Our full formalization~\cite{FPTechReport} also
+includes a corresponding rule for unpersisting a silo.)
+
 
 \paragraph{Notation and Conventions}
 
