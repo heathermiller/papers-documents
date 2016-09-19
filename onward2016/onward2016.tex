@@ -359,16 +359,16 @@
   be thought of as a persistent functional data structure that is {\em
   distributed}, where transformations to data are stored in its nodes rather
   than the distributed data itself. The model simplifies failure recovery by
-  design--data is recovered by replaying function applications atop immutable
-  data loaded from stable storage. Deferred evaluation is also central to our
-  model; by incorporating deferred evaluation into our design only at the point
-  of initiating network communication, the function passing model remains easy
-  to reason about while remaining efficient in time and memory. We formalize our
-  programming model in the form of a small-step operational semantics which
-  includes a semantics of functional fault recovery, and we provide an
-  open-source implementation of our model in and for the Scala programming
-  language, along with a case study of several example frameworks and end-user
-  programs written atop of this model.
+  design--in the event of a failure, data is recovered by replaying function
+  applications atop immutable data loaded from stable storage. Deferred
+  evaluation is also central to our model; by incorporating deferred evaluation
+  into our design only at the point of initiating network communication, the
+  function passing model remains easy to reason about while remaining efficient
+  in time and memory. We formalize our programming model in the form of a
+  small-step operational semantics which includes a semantics of functional
+  fault recovery, and we provide an open-source implementation of our model in
+  and for the Scala programming language, along with a case study of several
+  example frameworks and end-user programs written atop of this model.
 
   % The most successful systems for ``big data'' processing have all adopted
   % functional APIs. We present a new programming model we call \textit{function
@@ -900,19 +900,24 @@ both local and remote silos. SiloRefs are immutable, storing identifiers to
 locate possibly remote silos. SiloRefs are also typed (\verb|SiloRef[T]|)
 corresponding to the type of their silo's data, leading to well-typed network
 communication. The SiloRef provides three primitive operations/combinators (some
-are lazy, some are not): \verb|map|, \verb|flatMap|, and \verb|send|. The
-\verb|map| method makes use of deferred evaluation; it applies a user-defined
-function to data pointed to by the SiloRef, creating in a new silo containing
-the result of this application, though this application is \textit{deferred}.
-That is, this computation is only kicked off when the \verb|send| method is
-invoked. This makes it possible to queue up or stage transformations in order to
-optimize network communication. Like \verb|map|, the application of
-\verb|flatMap| is deferred. \verb|flatMap| applies a user-defined function to
-data pointed to by the SiloRef. Unlike \verb|map|, however, the user-defined
-function passed to \verb|flatMap| returns a SiloRef whose contents are
-transferred to the new silo returned by \verb|flatMap|. Essentially,
-\verb|flatMap| enables accessing the contents of (local or remote) silos from
-within remote computations. We illustrate these primitives in more detail in
+are lazy, some are not): \verb|map|, \verb|flatMap|, \verb|send|, and
+\verb|cache|. The \verb|map| method makes use of deferred evaluation; it applies
+a user-defined function to data pointed to by the SiloRef, creating in a new
+silo containing the result of this application, though this application is
+\textit{deferred}. That is, this computation is only kicked off when the
+\verb|send| method is invoked. Calling \verb|send| triggers queued up
+operations, like those scheduled by \verb|map| invocations, to be possibly sent
+over the network and applied to their corresponding silo (whether local or
+remote), and the result to be returned to the caller, completed as a future.
+This makes it possible to queue up or stage transformations in order to optimize
+network communication. Like \verb|map|, the application of \verb|flatMap| is
+deferred. \verb|flatMap| applies a user-defined function to data pointed to by
+the SiloRef. Unlike \verb|map|, however, the user-defined function passed to
+\verb|flatMap| returns a SiloRef whose contents are transferred to the new silo
+returned by \verb|flatMap|. Essentially, \verb|flatMap| enables accessing the
+contents of (local or remote) silos from within remote computations.
+\verb|cache| kicks off queued up, deferred evaluation, and caches the result in
+memory (possibly remotely). We illustrate these primitives in more detail in
 Section~\ref{sec:primitives}.
 
 \paragraph{Spores}
