@@ -2198,37 +2198,57 @@ applications in section~\ref{sec:examples}.
 % talks and from other various webpages meaning it already gets public traffic.
 % One may visit it without identity concerns.}
 
-\subsection{Serialization and Existential Quantification}
+\subsection{Static Serialization and Generics}
 
-Initially, to serialize most message types exchanged by the network
-communication layer, runtime-based unpicklers had to be used (meaning
-unpickling code discovering the structure of a type through introspection at
-runtime). A major disadvantage of runtime-based unpickling is its significant
-impact on performance. The reason for its initial necessity was that message
-types are typically generic, but the generic type arguments are {\em
-existentially-quantified type variables} on the receiver's side. For example,
-the lineage of a SiloRef may contain instances of a type Mapped. This generic
-type has four type parameters. The receiver of a freshly unpickled Mapped
-instance typically uses a pattern match:
+In a function passing program, code using \verb|SiloRef|s may access multiple
+silos hosted on different remote nodes. Therefore, applying a combinator such as
+\verb|map| to a \verb|SiloRef| generally requires sending a message to a remote
+node instructing it to apply \verb|map| to the contents of the corresponding
+silo. For example, consider the following invocation of \verb|map| on a SiloRef
+\verb|in|:
 
 \begin{lstlisting}
-case mapped: Mapped[u, t, v, s] =>
+val out =
+  in.map(spore { (l: List[String]) => l.map(_.toUpperCase) })
 \end{lstlisting}
 
-The type arguments \verb|u|, \verb|t|, \verb|v|, and \verb|s| are {\em type
-variables}. While unknown, the static type of \verb|mapped| is still useful for
-type-safety:
+The above snippet takes a list of strings in an input silo \verb|in| and
+produces an output silo \verb|out| containing the list with each string in upper
+case.
 
-\begin{lstlisting}
-val newSilo = new LocalSilo[v, s](mapped.fun(value))
-\end{lstlisting}
+Assuming that the silo that \verb|in| refers to is hosted on some remote node
+$RN$, materializing \verb|out| (on the same node) requires sending a message
+representing this \verb|map| invocation to $RN$. In the above example, the
+materialization of \verb|out| would entail sending an instance of a class
+\verb|Mapped[T, S]| where \verb|T = S = List[String]| to $RN$.
 
-However, it is impossible to generate type-specific code to unpickle a type
-like \verb|Mapped[u, t, v, s]|. As a solution to this problem we propose what
-we call ``self-describing'' pickles. Basically, the idea is to augment the
-serialized representation with additional information about how to unpickle.
-The key is to capture the type-specific pickler and unpickler when the
-fully-concrete type of a \verb|Mapped| instance is known:
+While serializing the instance of \verb|Mapped| with the concrete type
+\verb|Mapped[List[String], List[String]]| is straightforward, the key question
+is: how to deserialize this on $RN$?
+
+Importantly, the combinator code on the server-side is generic; it is not
+specific to any client code where types are made concrete.
+
+In the example, this means that the concrete type argument \verb|List[String]|
+is only known at run time on $RN$. As a result, the remote node must interpret
+the run-time type on the fly in order to deserialize the instance of
+\verb|Mapped|.
+
+Such interpretation-based deserializers are know to be significantly slower than
+type-specific, statically-generated deserializers~\cite{Pickling}. In fact, a
+recent study has identified serialization as a major bottleneck in
+data-intensive applications~\cite{Ousterhout}, one of our main target
+applications.
+
+In order to minimize the cost of deserialization, we have devised a
+serialization scheme that enables utilizing statically-generated deserializers,
+thereby avoiding the performance penalty of interpretation-based deserializers.
+
+The approach which we call ``self-describing pickles'' is as follows. Basically,
+the idea is to augment the serialized representation with additional information
+about how to deserialize (``unpickle'') it. The key is to capture the
+type-specific pickler and unpickler when the fully-concrete type of a
+\verb|Mapped| instance is known:
 
 \begin{lstlisting}
 def doPickle[T](msg: T)
@@ -2236,16 +2256,14 @@ def doPickle[T](msg: T)
                unpickler: Unpickler[T]): Array[Byte] = ...
 \end{lstlisting}
 
-Essentially, this means when \verb|doPickle| is called with a concrete type
-\verb|T|, say:\footnote{Note that the type arguments are inferred by the Scala
-compiler; they are only shown for clarity.}
+Essentially, this means when \verb|doPickle| is called with a concrete type \verb|T|, say:\footnote{Note that the type arguments are inferred by the Scala compiler; they are only shown for clarity.}
 
 \begin{lstlisting}
-doPickle[Mapped[Int, List[Int], String, List[String]]](mapped)
+doPickle[Mapped[List[Int], List[String]]](mapped)
 \end{lstlisting}
 
 \noindent not only a type-specific implicit pickler (a type class instance) is
-looked up, but also a type-specific implicit unpickler. The \verb|doPickle|
+looked up, but also a type-specific implicit *unpickler*. The \verb|doPickle|
 method can then build a self-describing pickle as follows. First, the actual
 message is pickled using the pickler, yielding a byte array. Then, an instance
 of the following simple record-like class is created:
@@ -2255,18 +2273,18 @@ case class SelfDescribing(blob: Array[Byte],
                           unpicklerClassName: String)
 \end{lstlisting}
 
-Besides the just produced byte array, it contains the class name of the type-
-specific unpickler. This enables, using this fully type-specific unpickler,
+Besides the just produced byte array, it contains the class name of the
+type-specific unpickler. This enables using this fully type-specific unpickler,
 even when the message type to be unpickled is only partially known. All that is
 required is an unpickler for type \verb|SelfDescribing|. First, it reads the
-byte array and class name from the pickle. Second, it instantiates the type-
-specific unpickler reflectively using the class name. (Note that this is
-possible on both the JVM as well as on JavaScript runtimes using Scala's
-current JavaScript backend.) Finally, the unpickler is used to unpickle the
-byte array. In conclusion, this approach ensures (a) that a type that is
-pickleable using a type-specific pickler is guaranteed to be unpickleable by
-the receiver of the pickled SelfDescribing instance, and (b) that unpickling is
-as efficient as pickling, thanks to using type-specific unpicklers.
+byte array and class name from the pickle. Second, it instantiates the
+type-specific unpickler reflectively using the class name. (Note that this is
+possible on both the JVM as well as on JavaScript runtimes using Scala's current
+JavaScript backend.) Finally, the unpickler is used to unpickle the byte array.
+In conclusion, this approach ensures (a) that a type that is pickleable using a
+type-specific pickler is guaranteed to be unpickleable by the receiver of the
+pickled \verb|SelfDescribing| instance, and (b) that unpickling is as efficient
+as pickling, thanks to using type-specific unpicklers.
 
 % \subsection{Type-based optimization of serialization}
 
