@@ -1868,19 +1868,6 @@ types $\seq{T}$ of the variables declared in the header of the
 spore. (The name $\mathcal{C}$ stands for ``capture types''.)
 
 
-\comment{
-We formalize our programming model in the context of a standard, typed lambda
-calculus with records. Figure~\ref{fig:syntax} shows the syntax of our core
-language. Terms are standard except for the \texttt{spore}, \texttt{map},
-\texttt{flatMap}, \texttt{send}, and \texttt{await} terms. A \texttt{spore}
-term creates a new spore. It contains a list of variable definitions (the spore
-header) and the spore's closure. A term $\texttt{await}(\iota)$ blocks
-execution until the future $\iota$ has been completed asynchronously. The
-\texttt{map}, \texttt{flatMap}, and \texttt{send} primitives have been
-discussed earlier.
-
-Tech report~\cite{FPTechReport}.}
-
 \subsection{Operational Semantics}
 \label{sec:opsem}
 
