@@ -2002,38 +2002,40 @@ Section~\ref{sec:implementation}).
 
 \subsection{Type Soundness and Serializability}
 
-As part of the meta theory of our core language, we have proved a subject
-reduction theorem, an important property for establishing type soundness (see
-the companion technical report~\cite{FPTechReport} for the complete proof). The
-meta-theoretic development enabled us to uncover a deep connection between type
-soundness and serializability. Essentially, without a static serializability
-guarantee for certain values, subject reduction could be violated. Consequently,
-we have devised a type system, both as part of our formal development and as
-part of our implementation, which provides the required guarantee, ensuring
-subject reduction.
+As part of the meta theory of our core language, we have proved a
+subject reduction theorem, an important property for establishing type
+soundness (see the companion technical report~\cite{FPTechReport} for
+the complete proof). The meta-theoretic development enabled us to
+uncover a connection between type soundness and
+serializability. Essentially, without a static serializability
+guarantee for certain values, subject reduction could be
+violated. Consequently, we have devised a type system, both as part of
+our formal development and as part of our implementation, which
+provides the required guarantee, ensuring subject reduction.
 
 %\subsubsection{Subject Reduction}   // don't think we need this heading
 
-In a language without concurrency or distribution, subject reduction (or type
-preservation) means that the result of reducing a well-typed term of some type T
-is again a well-typed term of (the same) type T. In our case, reduction is more
-complex due to distributed computation involving multiple hosts. Basically, our
-formalization extends subject reduction from well-typed terms to well-formed
-configurations of hosts.
+In a language without concurrency or distribution, subject reduction
+(or type preservation) means that the result of reducing a well-typed
+term of some type $T$ is again a well-typed term of type $T$. In our
+case, reduction is more complex due to distributed computation across
+multiple hosts. Thus, our formalization extends subject reduction from
+well-typed terms to \emph{well-formed configurations} of hosts.
 
-A configuration $H$ is a set of hosts $(t, \mu, Q, S)^h \in H$ where $h$ is a
-host identifier, $t$ is a term reduced by $h$, $\mu$ is a store (or heap), $Q$
-is a queue of incoming messages, and $S$ is a silo store. The store $\mu$ maps
-locations $\iota$ to hosts or futures. The message queue $Q$ buffers incoming
-messages which are processed asynchronously by $h$. Finally, the silo store $S$
-maps identifiers $\omega$ to silos. Essentially, $S$ contains all silos hosted
-on $h$.
+A configuration $H$ is a set of hosts $(t, \mu, Q, S)^h \in H$ where
+$h$ is a host identifier, $t$ is a term reduced by $h$, $\mu$ is a
+store (see Section~\ref{sec:reduction}), $Q$ is a queue of incoming
+messages, and $S$ is a silo store. The message queue $Q$ buffers
+incoming messages which are processed asynchronously by $h$. The silo
+store $S$ maps identifiers $\omega$ to silos. Essentially, $S$
+contains all silos hosted on $h$.
 
-We write $\Delta \vdash H$ to express that configuration $H$ is well-formed in
-silo store typing $\Delta$. Analogous to the standard notion of a store
-typing~\cite{TAPL}, a silo store typing maps silo identifiers $\omega$ to types
-$T$. The silo store typing is used to assign types to lineages (see rule
-\textsc{T-SiloRef} in the technical report~\cite{FPTechReport}).
+We write $\Delta \vdash H$ to express that configuration $H$ is
+well-formed in \emph{silo store typing} $\Delta$. Analogous to the
+standard notion of a store typing~\cite{TAPL}, a silo store typing
+maps silo identifiers $\omega$ to types $T$. The silo store typing is
+used to assign types to lineages (see rule \textsc{T-SiloRef} in the
+technical report~\cite{FPTechReport}).
 
 Using the above definitions the subject reduction theorem is formulated as
 follows:
@@ -2045,23 +2047,22 @@ some $\Delta' \supseteq \Delta$.
 \end{thm}
 
 Essentially, for the subject reduction theorem to hold, reduction of a
-well-formed configuration must result in another well-formed configuration.
-Importantly, the well-formedness of a configuration $H$ implies the
-well-formedness of each host in $H$. (We write $\Delta ; \Sigma \vdash (t, mu,
-Q, S)^h$ to express the fact that host $h$ is well-formed in silo store typing
-$\Delta$ and store typing $\Sigma$.) In turn, the well-formedness of a host
-implies the well-formedness of its message queue. Among others, this means that
-the message queue of a host that received a message as a result of a reduction
-step must be well-formed. This is only possible if values contained in
-newly-received messages are well-typed in an empty environment. For example,
-rule \textsc{WF-Q3} in \cite{FPTechReport} requires the value of the current
-message to be well-typed in an empty environment. Being able to type-check
-received values in an empty environment is essential, since the type
+well-formed configuration must result in another well-formed
+configuration.  Importantly, the well-formedness of a configuration
+$H$ implies the well-formedness of each host in $H$. In turn, the
+well-formedness of a host implies the well-formedness of its message
+queue. This means that the message queue of a host that received a
+message as a result of a reduction step must be well-formed. This is
+only possible if values contained in newly-received messages are
+well-typed in an empty environment. For example, rule \textsc{WF-Q3}
+in~\cite{FPTechReport} requires the value of the current message to be
+well-typed in an empty environment. Being able to type-check received
+values in an empty environment is essential, since the type
 environments of the sender and the receiver are disjoint.
 
-The following theorem establishes that the serializability of types implies this
-property (we use the typing judgement $\Gamma ; \Sigma ; \Delta \vdash t : T$ as
-defined in \cite{}):
+The following theorem establishes that the \emph{serializability} of
+types implies this property (we use the typing judgement $\Gamma ;
+\Sigma ; \Delta \vdash t : T$ as defined in~\cite{FPTechReport}):
 
 \begin{thm}
 \emph{(Serializable Values)}\label{thm:serializable}
@@ -2069,13 +2070,13 @@ If $\Gamma ; \Sigma ; \Delta \vdash v : T$ and $serializable(T)$ then
 $\emptyset ; \emptyset ; \Delta \vdash v : T$.
 \end{thm}
 
-The predicate $serializable(T)$ is defined inductively on the structure of type
-$T$. (It corresponds precisely to the use of the \verb|Pickler[T]| type class in
-our implementation.) Essentially, the type system of our core language
-(see~\cite{FPTechReport}) ensures that the types of values sent within messages
-are serializable. By Theorem~\ref{thm:serializable} these values are well-typed
-in an empty environment, which, as discussed, is essential for subject reduction
-to hold.
+The predicate $serializable(T)$ is defined inductively on the
+structure of type $T$. (It corresponds precisely to the use of the
+\verb|Pickler[T]| type class in our implementation.) Essentially, the
+type system of our core language ensures that the types of values sent
+within messages are serializable. By Theorem~\ref{thm:serializable}
+these values are well-typed in an empty environment, which, as
+discussed, is essential for subject reduction to hold.
 
 
 
