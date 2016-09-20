@@ -466,12 +466,12 @@ natural way for end-users and data scientists to reason about large-scale data.
 
 Popular implementations of the MapReduce~\cite{MapReduce} model, such as Hadoop
 MapReduce~\cite{Hadoop} for Java, have taken ideas from functional
-programming--mapping and reducing. But due to their impementation language, are
+programming. But due to their impementation language, are
 unable to fully make use of functional language features such as closures,
 causing Hadoop developers to have to write significant amounts of boilerplate in
 order to emulate these functional patterns. Despite this, for nearly a decade,
 Hadoop has remained largely unchallenged, becoming the implementation of choice
-for most all industrial large-scale data processing needs.
+for many industrial large-scale data processing needs.
 
 However, in recent years, a new generation of distributed systems for
 large-scale data processing have suddenly cropped up, built on top of emerging
@@ -527,7 +527,7 @@ Hadoop~\cite{SparkWebsite}.
 % resembles the sorts of
 
 This sudden proliferation of new frameworks for distributed data-centric
-programming all pushing the bar far beyond Hadoop, concurrent with the sudden
+programming, all pushing the bar far beyond Hadoop, concurrent with the sudden
 growth in popularity of an emerging programming language begs the question--has
 it been our programming languages that have limited us? Could it be that the
 primitives we build our systems upon are too low-level, causing us to struggle
@@ -589,21 +589,23 @@ structures, monadic higher-order functions, strong static typing, and deferred
 evaluation--pillars of functional programming--to provide a more type-safe, and
 easy to reason about foundation upon which to build data-centric distributed
 systems. Interestingly, we found that deferred evaluation was an enabler in our
-model, without complicating the ability to reason about programs as we will soon
-show. Without optimizations based on deferred evaluation, we found this model
+model, without complicating the ability to reason about programs. Without
+optimizations based on deferred evaluation, we found this model
 would be impractically inefficient in memory and time.
 
-One important contribution of our model is a precise specification of the
-semantics of functional fault recovery. The fault-recovery mechanisms of
-widespread systems such as Apache Spark, MapReduce~\cite{MapReduce} and
-Dryad~\cite{Dryad} are based on the concept of a \emph{lineage}~\cite{Lineage1,
-Lineage2}. Essentially, the lineage of a data set combines (a) an initial data
-set available on stable storage and (b) a sequence of transformations applied
-to initial and subsequent data sets. Maintaining such lineages enables fault
-recovery through recomputation. Practical implementations of lineage-based
-fault recovery suffer from complex code bases, typically eschewing strong
-static typing. This paper presents a principled approach to lineage-based fault
-recovery in a purely functional setting--to our knowledge a novelty in the PL
+One important contribution of our model is a precise semantic
+specification of concepts central to fault recovery. The
+fault-recovery mechanisms of widespread systems such as Apache Spark,
+MapReduce~\cite{MapReduce} and Dryad~\cite{Dryad} are based on the
+concept of \emph{lineage}~\cite{Lineage1,Lineage2}. Essentially, the
+lineage of a data set combines (a) an initial data set available on
+stable storage and (b) a sequence of transformations applied to
+initial and subsequent data sets. Maintaining such lineages enables
+fault recovery through recomputation. Practical implementations of
+lineage-based fault recovery suffer from complex code bases, typically
+eschewing strong static typing. This paper presents a principled
+approach to lineage-based computation in a typed, functional
+setting--to our knowledge a novelty in the programming languages
 literature.
 
 % Our programming model is also designed to enable adoption in real-world
@@ -669,7 +671,7 @@ This paper makes the following contributions:
 
 % The rest of our paper is structured as follows.
 
-Our approach is to describe our model from a high-level, elaborating upon key
+Our approach is to describe our model from a high level, elaborating upon key
 benefits and trade-offs, and then to zoom in and make each component part of our
 model more precise. We describe the basic model this way in
 Section~\ref{sec:basic-model}. We go on to show in
