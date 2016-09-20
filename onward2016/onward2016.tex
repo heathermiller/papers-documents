@@ -634,19 +634,24 @@ This paper makes the following contributions:
   computations. Deferred evaluation enables important optimizations while keeping
   programs simple to reason about.
 
-\item {\bf\em A formalization of our programming model} based on a small-step
-  operational  semantics. To our knowledge it is the first formal account of
-  fault recovery based on lineage in a purely functional setting. Inspired by
-  widespread systems like Spark, our formalization closely models real-world
-  fault recovery mechanisms. The presented semantics is clearly stratified into
-  a deterministic layer and a concurrent/distributed layer. Importantly,
-  reasoning techniques for sequential programs are not invalidated by the
-  distributed layer.
+\item {\bf\em A formalization of our programming model} based on
+  small-step operational semantics. In particular, we present a formal
+  model of the concept of lineage in the context of a typed functional
+  language. Our treatment using standard techniques in programming
+  languages aims to offer a fresh angle on a concept which so far has
+  mainly been studied in the database and systems communities, using
+  other methods. Furthermore, the meta-theoretic development has
+  enabled us to uncover a deep connection between type soundness and
+  serializability. Consequently, the presented type system leverages a
+  notion of serializable types in order to ensure subject reduction.
 
-\item {\bf\em A distributed implementation of the programming model} in and for
-  Scala as a middleware. In addition, we present prototype versions we have built
-  of popular frameworks like Spark and MBrace using the function passing model, and
-  end-user applications we have built using each of these prototype frameworks.
+\item {\bf\em A distributed implementation of the programming model}
+  in and for Scala as a
+  middleware.\footnote{\url{https://github.com/heathermiller/f-p}} In
+  addition, we present prototype versions we have built of popular
+  frameworks like Spark and MBrace using the function passing model,
+  and end-user applications we have built using each of these
+  prototype frameworks.
 
   % \fixme{We present experiments that show some of the benefits of the proposed
   % design, and we report on a validation of spores in the context of distributed
