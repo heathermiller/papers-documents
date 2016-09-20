@@ -887,7 +887,7 @@ systems~\cite{FlumeJava}.
 % \begin{center}\noindent\rule{8cm}{0.4pt}\end{center}
 % \vspace{1mm}
 
-\subsection{The Model}
+\subsection{The Model}\label{sec:overview}
 
 The function passing model consists of three main components:
 \begin{itemize}[noitemsep]
@@ -2249,24 +2249,24 @@ as pickling, thanks to using type-specific unpicklers.
 
 To show that the function passing model is able to serve as a substrate upon
 which to build different sorts of data-centric distributed frameworks, we
-provide two miniaturized example systems built on top of F-P that are inspired
-by popular big data frameworks; Spark's RDD (Resilient Distributed
-Datasets)~\cite{Spark}, and MBrace~\cite{MBrace}. Using each example system,
-we've implemented several example applications, excerpts of some of which are
-explained below.
+have built two miniaturized example systems inspired
+by popular big data frameworks: Spark's RDD (Resilient Distributed
+Dataset)~\cite{Spark} and MBrace~\cite{MBrace}. Using each example system,
+we have implemented several example applications, excerpts of some of which are
+discussed below.
 
-Spark's RDDs provide a set of operations to execute parallel operations on
-distributed data. MBrace extends F\#’s asynchronous workflows, a way to declare
-asynchronous tasks, to distribute computation in the cloud.
+Spark's RDDs provide a set of operations to execute parallel
+operations on distributed data. MBrace extends F\#'s asynchronous
+workflows~\cite{SymePL11}, a way to declare asynchronous tasks, to
+distribute computation in the cloud.
 
-Our simplified RDD implementation lets you use data structures distributed
-inside Silos using the function passing model. We've implemented some of the
-operations of Spark’s RDD such as \verb|map|, \verb|reduce|, \verb|groupBy| and
-\verb|join| in terms of the function passing model's primitives. Methods on RDDs
-like \verb|flatMap| or \verb|filter| that don’t need to communicate across Silos
-are implemented with the function passing model’s \verb|map| using the
-corresponding method on the underlying Scala’s collections, while \verb|join| is
-implemented using the function passing model’s \verb|flatMap|. Below, we use it
+Our simplified RDD implementation enables the use of data structures distributed
+using silos (see Section~\ref{sec:overview}). We have implemented some of the
+operations of Spark's RDD such as \verb|map|, \verb|reduce|, \verb|groupBy|, and
+\verb|join| in terms of the primitives of the function passing model. Methods on RDDs
+like \verb|flatMap| or \verb|filter| that do not need to communicate across silos
+are implemented using the SiloRef \verb|map| combinator. On the other hand, \verb|join| is
+implemented using the SiloRef \verb|flatMap| combinator. Below, we use it
 to show a simple application associating the length of all words in two
 documents in a \verb|Map| to a set of words with the corresponding length.
 
@@ -2286,15 +2286,20 @@ val res: Map[Int, Set[String]] =
   contentWord.join[Set, Map](loremWord).collectMap()
 \end{lstlisting}
 
-In this example, the closure inside the RDD's \verb|flatMap| method called on
-each \verb|contentWord| and \verb|loremWord| splits each line as a list of
-words, and flattens everything as a single list. Each word is then mapped to a
-tuple containing its length and the word. Finally, we do an inner join, which in
-turn associates each length to the set of words of the same length, removing
-duplicate words in the process. Finally, we collect the final result in a
-\verb|Map| using the \verb|collectMap| method on RDDs. Several other more
-detailed example programs using Spark on the function passing model are
-available on GitHub.\footnote{\url{https://github.com/Kazy/f-p}}
+In this example, the RDD's \verb|flatMap| method is called on the RDDs
+\verb|content| and \verb|lorem|, respectively. The closures passed as
+arguments in these calls split each line into a list of words; the
+\verb|flatMap| calls then flatten the created collections of lists
+into single, flat RDDs. The flat RDDs (containing just words) are
+mapped to RDDs containing pairs of the form \verb|(word.length, word)|
+where \verb|word| is a string (a word) taken from a flat RDD.  Then,
+we do an inner join, which associates each length to the set of words
+of the same length, removing duplicate words in the process. Finally,
+we collect the final result in a \verb|Map| using the
+\verb|collectMap| method of RDD. Several other more detailed example
+programs using Spark on the function passing model are available on
+GitHub.\footnote{\url{https://github.com/heathermiller/f-p} (branch
+  \texttt{onward2016})}
 
 In the context of MBrace, we also implemented the K-Means Clustering example
 available on the MBrace's
