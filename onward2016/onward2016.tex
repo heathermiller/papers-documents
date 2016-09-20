@@ -2106,7 +2106,7 @@ discussed, is essential for subject reduction to hold.
 The presented programming model has been fully implemented in Scala, a
 functional programming language that runs on both JVMs and JavaScript runtimes.
 The function passing model is compiled and run using Scala 2.11.8, and considers only the JVM backend
-for now. Our implementation, which has been published as an open-source
+for now. Our prototype, which has been published as an open-source
 project,\footnote{\url{https://github.com/heathermiller/f-p}} builds on two
 main Scala extensions:
 
@@ -2117,9 +2117,7 @@ main Scala extensions:
   macro extension that is focused on distributed programming. It is used for
   all serialization tasks. Our function passing implementation benefits from the maturity of
   Pickling, which supports pickling/unpickling a wide range of Scala type
-  constructors. Pickling has evolved from a research prototype to a
-  production-ready serialization framework that is now in widespread commercial
-  use.
+  constructors.
 
 \item Second, the programming model makes extensive use of spores, closure-like
   objects with explicit, typed environments. While~\cite{Spores} has reported an
@@ -2134,7 +2132,7 @@ So far, we have used our implementation to build a small Spark-like distributed
 collections abstraction, a simple version of the MBrace~\cite{MBrace} framework,
 and example data analytics applications, such as word count and group-by-join
 pipelines. We give an introduction and step through some of these example
-applications in section~\ref{sec:examples}.
+applications in Section~\ref{sec:examples}.
 
 % Our prototype has also served as an experimentation platform for
 % type-based optimizations, which we present in more detail below.
