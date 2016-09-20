@@ -1899,24 +1899,27 @@ programming languages community. Thus, in the following we present a small
 subset of reduction rules related to the construction of lineages (complete
 reduction semantics can be found in~\cite{FPTechReport}).
 
-Every lineage originates from a materialized silo, represented as a value
-$Mat(\omega)$ in our formal model (see Figure~\ref{fig:syntax}). Here, $\omega$
-is the silo's identifier such that $\omega = (h, i)$ where $h$ is a host
-identifier and $i$ is an integer that is unique on host $h$. Assume that a
-materialized silo $Mat(\omega)$ is bound to a variable $x$; then the following
-expression creates an extended lineage based on the \verb|map| combinator:
+Every lineage originates from a materialized silo, represented as a
+value $Mat(\omega)$ in our formal model (see
+Figure~\ref{fig:syntax}). Here, $\omega$ is the silo's identifier such
+that $\omega = (h, i)$ where $h$ is a host identifier and $i$ is an
+integer that is unique on host $h$. Assume that a materialized silo
+$Mat(\omega)$ is bound to a variable $x$; then the following
+expression (in core language syntax) creates an extended lineage based
+on the \verb|map| combinator:
 
-\begin{lstlisting}
-val z = map(x, (y: T) => ...)
-\end{lstlisting}
+$$\texttt{map}(x, \texttt{spore}~\{~(y: T) \Rightarrow t~\})$$
+
 \noindent
-In the formalization $z$ would then be bound to the lineage $Mapped(\omega',
-Mat(\omega), (y: T) => ...)$ where $\omega' = (h, i')$, i.e., the resulting silo
+The result of reducing this expression is the lineage
+\\ $Mapped(\omega', Mat(\omega), \texttt{spore}~\{~(y: T) \Rightarrow
+t~\})$ where $\omega' = (h, i')$, i.e., the resulting silo $\omega'$
 is materialized on the same host $h$ as silo $\omega$.
 
-Since new lineage identifiers can be created locally, creating lineages does not
-require network communication. Therefore, the reduction rules for creating
-lineages are integrated with regular, local reduction.
+Since new lineage identifiers can be created locally, creating
+lineages does not require network communication. Therefore, the
+reduction rules for creating lineages are part of the local reduction
+relation.
 
 Figure~\ref{fig:seq-reduction} shows three example rules. The reduction rules
 use the definition of evaluation contexts shown in Figure~\ref{fig:eval-ctx}.
@@ -1964,31 +1967,38 @@ allocation of futures and hosts.  A store $\mu$ is a partial function mapping
 locations $\iota$ to values $v$. The annotation with host $h$ is used for
 creating {\em identifiers} $\omega = (h, i)$ for lineages.
 
-Rules \textsc{R-Map}, \textsc{R-FMap}, and \textsc{R-Persist} describe the
-creation of lineages. Rules \textsc{R-Map} and \textsc{R-FMap} create lineages
-using the constructors {\em Mapped} and {\em FMapped}, respectively. The new
-lineage has a fresh identifier $(h, i)$ which uniquely identifies the
-corresponding (logical) silo. In each case, the spore value $p$ is stored in the
-new lineage; this enables a materialization of the silo identified by $(h, i)$
-using parent lineage $r$ and spore $p$. Rule \textsc{R-Persist} creates a
-lineage using the {\em Persist} constructor. {\em Persist} contains a function
-($\cdot \cup \cdot$) enabling host $h$ to persist silo $r$. (Our full
-formalization~\cite{FPTechReport} also includes a corresponding rule for
-unpersisting a silo.)
+Rules \textsc{R-Map}, \textsc{R-FMap}, and \textsc{R-Persist} describe
+the creation of lineages. Rules \textsc{R-Map} and \textsc{R-FMap}
+create lineages using the constructors {\em Mapped} and {\em FMapped},
+respectively. The new lineage has a fresh identifier $(h, i)$ which
+uniquely identifies the corresponding (logical) silo. In each case,
+the spore value $p$ is stored in the new lineage; this enables a
+materialization of the silo identified by $(h, i)$ using parent
+lineage $r$ and spore $p$. Rule \textsc{R-Persist} creates a lineage
+using the {\em Persist} constructor. {\em Persist} contains a function
+($\cdot \cup \cdot$) enabling host $h$ to persist silo $r$;
+essentially, the set-union function is used to add the silo identifier
+$(h, i)$ to a set of persisted silos. The result of materializing a
+persisted silo is cached. (See our complete
+formalization~\cite{FPTechReport} for details, including a
+corresponding rule for unpersisting a silo.)
 
-As we can see, the above rules do not execute their corresponding higher-order
-functions; they merely build lineages. A lineage contains everything necessary
-to materialize the contents of its corresponding silo. Moreover, lineages are
-serializable: as a result, they can be used to initiate the materialization of a
-silo located on a remote node.
+As we can see, the above rules do not execute their corresponding
+higher-order functions; they merely create lineages. A lineage
+contains everything necessary to materialize the contents of its
+corresponding silo. Moreover, lineages are serializable: as a result,
+they can be used to initiate the materialization of a silo located on
+a remote node.
 
-The immutability of silos and lineages enables equational reasoning about
-programs, a cornerstone of functional programming. Lineages are also persistent
-datastructures, where multiple lineages are able to share common ancestors,
-thereby avoiding duplicate materializations. Taken together, we believe that
-lineages in general, and the function passing model in particular are a natural
-fit for functional programming, and lend themselves for embedding in a
-functional programming language (see Section~\ref{sec:implementation}).
+The immutability of silos and lineages enables equational reasoning
+about programs, a cornerstone of functional programming. Lineages are
+also persistent data structures, where multiple lineages are able to
+share common ancestors, thereby avoiding duplicate
+materializations. Taken together, we believe that lineages in general,
+and the function passing model in particular are a natural fit for
+functional programming, and lend themselves for embedding in a
+functional programming language (see
+Section~\ref{sec:implementation}).
 
 \subsection{Type Soundness and Serializability}
 
