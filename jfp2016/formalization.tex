@@ -14,41 +14,45 @@ t ::=                                                                  & \mbox{{
 \gap ~|~  t~t                                                          & \mbox{application} \\
 \gap ~|~  \{ \seq{l = t} \}                                            & \mbox{record construction} \\
 \gap ~|~  t.l                                                          & \mbox{selection} \\
+\gap ~|~  \unit                                                        & \mbox{unit} \\
 \gap ~|~  \texttt{spore}~\{~\seq{x : T = t}~; (x: T) \Rightarrow t~\}  & \mbox{spore} \\
-\gap ~|~  \texttt{spawn}(t)                                            & \mbox{spawn host} \\
 \gap ~|~  \texttt{populate}(t, t)                                      & \mbox{populate silo} \\
 \gap ~|~  \texttt{map}(t, t)                                           & \mbox{map} \\
 \gap ~|~  \texttt{flatMap}(t, t)                                       & \mbox{flatMap} \\
-\gap ~|~  \texttt{persist}(t)                                          & \mbox{persist} \\
 \gap ~|~  \texttt{send}(t)                                             & \mbox{send} \\           % send  :: Ref a -> Fut a
 \gap ~|~  \texttt{await}(t)                                            & \mbox{await future} \\   % await :: Fut a -> a
-\gap ~|~  \iota                                                        & \mbox{location} \\
-\gap ~|~  r                                                            & \mbox{silo reference} \\
+\gap ~|~  \iota                                                        & \mbox{decentralized identifier} \\
+\gap ~|~  r                                                            & \mbox{lineage} \\
+\gap ~|~  h                                                            & \mbox{host} \\
                                                                        & \\
 v ::=                                                                  & \mbox{{\it{values:}}} \\
 \gap \:\:\:\: (x: T) \Rightarrow t                                     & \mbox{abstraction value} \\
 \gap ~|~  \{ \seq{l = v} \}                                            & \mbox{record value} \\
+\gap ~|~  \unit                                                        & \mbox{unit} \\
 \gap ~|~  p                                                            & \mbox{spore value} \\
-\gap ~|~  \iota                                                        & \mbox{location} \\
-\gap ~|~  r                                                            & \mbox{silo reference} \\
+\gap ~|~  \iota                                                        & \mbox{decentralized identifier} \\
+\gap ~|~  r                                                            & \mbox{lineage} \\
+\gap ~|~  h                                                            & \mbox{host} \\
                                                                        & \\
 p ::= \texttt{spore}~\{~\seq{x : T = v}~; (x: T) \Rightarrow t~\}      & \\
 & \\
-r ::=                                                  & \mbox{{\it{silo reference values:}}} \\
-\gap \:\:\:\: \text{Mat}(\omega)                       & \mbox{materialized}                  \\
-\gap ~|~  \text{Mapped}(\omega, r, p)                  & \mbox{lineage with \texttt{map}}     \\
-\gap ~|~  \text{FMapped}(\omega, r, p)                 & \mbox{lineage with \texttt{flatMap}} \\
-\gap ~|~  \text{Persist}(\omega, r, v)                 & \mbox{lineage with \texttt{persist}} \\
+r ::=                                                  & \mbox{{\it{lineage}}}                \\
+\gap \:\:\:\: \text{Mat}(\iota)                        & \mbox{materialized}                  \\
+\gap ~|~  \text{Mapped}(\iota, r, p)                   & \mbox{lineage with \texttt{map}}     \\
+\gap ~|~  \text{FMapped}(\iota, r, p)                  & \mbox{lineage with \texttt{flatMap}} \\
                                                        & \\
-\omega  ::= (h,i) \quad \text{where}~i \in \mathbb{N}  & \mbox{decentralized identifier}      \\
+\iota  ::= (h,i) \quad \text{where}~h \in \mathcal{H}~\text{and}~i \in \mathbb{N}   & \mbox{decentralized identifier} \\
 & \\
 T ::=                                                                  & \mbox{{\it{types:}}} \\
 \gap \:\:\:\: T \Rightarrow T                                          & \mbox{abstraction type} \\
 \gap ~|~  \{ \seq{l : T} \}                                            & \mbox{record type} \\
-\gap ~|~  T \Rightarrow T~\{~\texttt{type}~\mathcal{C} = \seq{T}~\}    & \mbox{spore type} \\
+\gap ~|~  \texttt{Unit}                                                & \mbox{unit type} \\
+\gap ~|~  \mathcal{S}                                                  & \mbox{} \\
 \gap ~|~  \texttt{Host}                                                & \mbox{host type} \\
 \gap ~|~  \texttt{SiloRef}[T]                                          & \mbox{silo reference type} \\
-\gap ~|~  \texttt{Future}[T]                                           & \mbox{future type}
+\gap ~|~  \texttt{Future}[T]                                           & \mbox{future type} \\
+\mathcal{S} ::= T \Rightarrow T~\{~\texttt{type}~\mathcal{C} = \seq{T}~\}   & \mbox{spore type} \\
+\gap ~|~ T \Rightarrow T~\{~\texttt{type}~\mathcal{C}~\}               & \mbox{abstract spore type} \\
 \ea$
 \caption{Abstract syntax of core language.}\label{fig:syntax}
 \end{figure}
