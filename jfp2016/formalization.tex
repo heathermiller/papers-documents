@@ -116,102 +116,88 @@ E ::=                                                                           
 \gap ~|~  \{ \seq{l = v} ; l_i = E ; \seq{l' = t} \}                                                      & \mbox{record} \\
 \gap ~|~  E.l                                                                                             & \mbox{selection} \\
 \gap ~|~  \texttt{spore}~\{~\seq{x : T = v} ; x_i : T_i = E ; \seq{x' : T = t} ; (x: T) \Rightarrow t~\}  & \mbox{spore} \\
-\gap ~|~  \texttt{spawn}(E)                                                                               & \mbox{spawn} \\
-\gap ~|~  \texttt{populate}(E, t)                                                                         & \mbox{populate (host)} \\
-\gap ~|~  \texttt{populate}(v, E)                                                                         & \mbox{populate (spore)} \\
+\gap ~|~  \texttt{populate}(E)                                                                            & \mbox{populate} \\
 \gap ~|~  \texttt{map}(E, t)                                                                              & \mbox{map (ref)} \\
 \gap ~|~  \texttt{map}(v, E)                                                                              & \mbox{map (fun)} \\
 \gap ~|~  \texttt{flatMap}(E, t)                                                                          & \mbox{flatMap (ref)} \\
 \gap ~|~  \texttt{flatMap}(v, E)                                                                          & \mbox{flatMap (fun)} \\
-\gap ~|~  \texttt{persist}(E)                                                                             & \mbox{persist} \\
 \gap ~|~  \texttt{send}(E)                                                                                & \mbox{send} \\
 \gap ~|~  \texttt{await}(E)                                                                               & \mbox{await} \\
 \ea$
-\caption{Evaluation context.}\label{fig:eval-ctx}
+\caption{Evaluation contexts.}\label{fig:eval-ctx}
 \end{figure}
 
-The semantics is based on three reduction relations for (a) sequential
-reduction of terms, (b) deterministic reduction of hosts, and (c)
-non-deterministic reduction of sets of hosts.  The reduction relations
-use the definition of evaluation contexts shown in
-Figure~\ref{fig:eval-ctx}. Evaluation contexts capture the notion of
-the ``next subterm to be evaluated.'' Following a standard
-approach~\cite{TAPL}, we write $E[t]$ for the term obtained by
-replacing the hole in evaluation context $E$ with term $t$.
+The semantics is based on two reduction relations for (a) local
+reduction of terms and (b) distributed, non-deterministic reduction of
+sets of hosts.  The reduction relations use the definition of
+evaluation contexts shown in Figure~\ref{fig:eval-ctx}. Evaluation
+contexts capture the notion of the ``next subterm to be evaluated.''
+Following a standard approach~\cite{TAPL}, we write $E[t]$ for the
+term obtained by replacing the hole in evaluation context $E$ with
+term $t$.
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %
-% Lambda reduction.
+% Local (sequential) reduction.
 %
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 \begin{figure}
 \centering
 \begin{mathpar}
+
 \inferrule[\textsc{R-AppAbs}] {} {
-  E[((x: T) \Rightarrow t)~v']~|~\mu
+  E[((x: T) \Rightarrow t)~v]~|~\sigma
   \rightarrow^h
-  E[[x \mapsto v']t]~|~\mu
+  E[[x \mapsto v]t]~|~\sigma
 }
 
 \inferrule[\textsc{R-ProjRcd}] {} {
-  E[\{\seq{l_i = v_i^{i \in 1..n}}\}.l_j]~|~\mu
+  E[\{\seq{l_i = v_i^{i \in 1..n}}\}.l_j]~|~\sigma
   \rightarrow^h
-  E[v_j]~|~\mu
+  E[v_j]~|~\sigma
 }
 
 \inferrule[\textsc{R-AppSpore}] {} {
-  E[(\texttt{spore}~\{~\seq{x : T = v}~; (x: T) \Rightarrow t~\})~v']~|~\mu
+  E[(\texttt{spore}~\{~\seq{x : T = v}~; (x: T) \Rightarrow t~\})~v]~|~\sigma
   \rightarrow^h
-  E[\seq{[x \mapsto v]}[x \mapsto v']t]~|~\mu
+  E[\seq{[x \mapsto v]}[x \mapsto v]t]~|~\sigma
 }
 
 \inferrule[\textsc{R-Await}] {
-  \mu(\iota) = \text{Some}(v)
+  \sigma(\iota) = v
 } {
-  E[\texttt{await}(\iota)]~|~\mu
+  E[\texttt{await}(\iota)]~|~\sigma
   \rightarrow^h
-  E[v]~|~\mu
+  E[v]~|~\sigma
+}
+
+\inferrule[\textsc{R-Populate}] {
+  l = {\Mat {(h, i)}} \quad i~\text{fresh}
+} {
+  E[\texttt{populate}(h')]~|~\sigma
+  \rightarrow^h
+  E[{\Ref l {h'}}]~|~\sigma
 }
 
 \inferrule[\textsc{R-Map}] {
-  r' = \text{Mapped}((h, i), r, p) \quad
-  i~\text{fresh}
+  r = {\Ref l {h'}} \quad l' = {\Mapped {(h, i)} l p} \quad i~\text{fresh}
 } {
-  E[\texttt{map}(r, p)]~|~\mu
+  E[\texttt{map}(r, p)]~|~\sigma
   \rightarrow^h
-  E[r']~|~\mu'
+  E[{\Ref {l'} {h'}}]~|~\sigma
 }
 
 \inferrule[\textsc{R-FMap}] {
-  r' = \text{FMapped}((h, i), r, p) \quad
-  i~\text{fresh}
+  r = {\Ref l {h'}} \quad l' = {\FMapped {(h, i)} l p} \quad i~\text{fresh}
 } {
-  E[\texttt{flatMap}(r, p)]~|~\mu
+  E[\texttt{flatMap}(r, p)]~|~\sigma
   \rightarrow^h
-  E[r']~|~\mu'
-}
-
-\inferrule[\textsc{R-Persist}] {
-  r' = \text{Persist}((h, i), r, \cdot \cup \cdot) \quad
-  i~\text{fresh}
-} {
-  E[\texttt{persist}(r)]~|~\mu
-  \rightarrow^h
-  E[r']~|~\mu'
-}
-
-\inferrule[\textsc{R-Unpersist}] {
-  r' = \text{Persist}((h, i), r, \cdot \setminus \cdot) \quad
-  i~\text{fresh}
-} {
-  E[\texttt{unpersist}(r)]~|~\mu
-  \rightarrow^h
-  E[r']~|~\mu'
+  E[{\Ref {l'} {h'}}]~|~\sigma
 }
 
 \end{mathpar}
-\caption{Sequential reduction.}\label{fig:seq-reduction}
+\caption{Local reduction.}\label{fig:seq-reduction}
 \end{figure}
 
 Figure~\ref{fig:seq-reduction} shows the rules for sequential
