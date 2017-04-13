@@ -263,8 +263,8 @@ The former represents a materialized silo with value $v$. The latter
 represents a {\em proxy} forwarding to the silo specified by lineage
 $r$.}
 
-The deterministic reduction rules use helper functions $host$, $id$,
-$parent$, and $consume$, which are defined as follows:
+The distributed reduction rules use helper functions $host$, $id$, and
+$parent$, which are defined as follows:
 
 \begin{defn}[Host]
   The host of a silo reference.
@@ -290,15 +290,6 @@ $parent$, and $consume$, which are defined as follows:
     \Some{r'} & \text{if } r = Mapped(\_, r', \_) \\
     \Some{r'} & \text{if } r = FMapped(\_, r', \_) \\
     \Some{r'} & \text{if } r = Persist(\_, r', \_)
-  \ea\right.$
-\end{defn}
-
-\begin{defn}[Consume silo]
-  Consume silo $\omega$ with persist set $P$ in silo store $S$.
-
-  $consume(\omega, P, S) := \left\{\ba{ll}
-    S - \omega & \text{if } P = \emptyset \\
-    S          & \text{otherwise}
   \ea\right.$
 \end{defn}
 
