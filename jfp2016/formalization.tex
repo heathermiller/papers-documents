@@ -293,142 +293,53 @@ $parent$, which are defined as follows:
   \ea\right.$
 \end{defn}
 
-% Important that Res message contains correct P, since R-Res
-% updates silo store.
-% Goal: theorem which states that persist sets are "correct".
-% We don't lose hosts from persist sets.
-
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %
-% Non-deterministic reduction.
+% Distributed reduction.
 %
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-
-%
-% (t, Q, S)^h_c -> <crash>
-% H' = { h' | h \in H \land h' = crashed(h_c, h) }
-% --------------------------------------------------
-%    { (t, Q, S)^h_c } \cup H -->> H'
-%
-%
-% update silo store to reflect crash of h_c
-% S' = { id -> (v, C') | id -> (v, C) \in S \land C' = C[h_c -> 0] }
-% ---------------------------------------------------------------------
-%    crashed(h_c, (t, Q, S)^h) = (t, Q, S')^h
-%
-%
-%   S(id) =  Some(v)       |  None
-%
-%   S(id) = (Some(v), cnt) | (None, cnt)
-%
-%   S(id) = (Some(v), [h -> 3, h' -> 2]) | (None, ...)
-%
-%   S(id) = (Some(v), C)   | (None, C)
 
 \begin{figure}
 \begin{mathpar}
-\inferrule[\textsc{R-Schedule}] {
-  (t, \mu, Q, S)^h \rightarrow (t', \mu', Q', S')^h
-} { 
-  \{ (t, \mu, Q, S)^h \} \cup H
-  \twoheadrightarrow
-  \{ (t', \mu', Q', S')^h \} \cup H
-}
-
-\inferrule[\textsc{R-Spawn}] { 
-  h'~\text{fresh}    \quad
-  \iota~\text{fresh} \quad
-  \mu' = [\iota \mapsto h']\mu
+\inferrule[\textsc{R-Local}] {
+  t~|~\sigma \rightarrow^h t'~|~\sigma'
 } {
-  \{ (E[\texttt{spawn}(\texttt{spore}~\{~\seq{x : T = v}~; (x: T) \Rightarrow t~\})], \mu, Q, S)^h \} \cup H
-  \\ \twoheadrightarrow
-  \{ (E[\iota], \mu', Q, S)^h, ((\texttt{spore}~\{~\seq{x : T = v}~; (x: T) \Rightarrow t~\})~\{\}, \epsilon, \epsilon, \epsilon)^{h'} \} \cup H
-}
-
-% TODO send spore instead of a value `v`
-\inferrule[\textsc{R-Populate}] { 
-  \mu(\iota) = h'                                         \quad
-  S''        = [\omega \mapsto ({\Val v}, \emptyset)]S'   \quad
-  \omega     = (h', i)                                    \quad
-  i~\text{fresh}
-} {
-  \{ (E[\texttt{populate}(\iota, v)], \mu, Q, S)^h, (t', \mu', Q', S')^{h'} \} \cup H
+  \{ (t, \sigma, Q)^h \} \cup H ~|~ M
   \twoheadrightarrow
-  \{ (E[\text{Mat}(\omega)], \mu, Q, S)^h, (t', \mu', Q', S'')^{h'} \} \cup H
-}
-
-\inferrule[\textsc{R-Req1}] {
-  Q        = {\Req {h'} r \omega} :: Q''  \quad
-  S(id(r)) = (\Val{v}, P)                 \quad
-  m        = {\Res \omega v P}
-} {
-  \{ (E[\texttt{await}(\iota)], \mu, Q, S)^h, (t', \mu', Q', S')^{h'} \} \cup H
-  \twoheadrightarrow
-  \{ (E[\texttt{await}(\iota)], \mu, Q'', S)^h, (t', \mu', Q' \cdot m, S')^{h'} \} \cup H
-}
-
-% Rules that send Req:
-% R-Send: true (append)
-% (R-Req2Map: true (prepend))
-% R-Req2Fwd: true (prepend)
-% 
-% if a rule sends Req(h, r) to h', is it true that host(r) == h'?
-% XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX
-
-\inferrule[\textsc{R-Req2}] {
-  Q         = {\Req {h'} r \omega} :: Q''           \quad %
-  S(id(r))  = (\Fwd{r'}, P)             \\ %
-  S(id(r')) = (\Val{v}, P')             \quad %
-  m         = {\Res \omega v P}
-} {
-  \{ (E[\texttt{await}(\iota)], \mu, Q, S)^h, (t', \mu', Q', S')^{h'} \} \cup H
-  \twoheadrightarrow
-  \{ (E[\texttt{await}(\iota)], \mu, Q'', S)^h, (t', \mu', Q' \cdot m, S')^{h'} \} \cup H
-}
-
-% 1. Angenommen Host h hat einen \Fwd{r'}, dann wissen wir nicht, 
-%    auf welchem Host r' liegt. Das war der eigentliche Grund, Fwd
-%    einzufuehren, weil dann ein flatMap keine Daten transferieren muss.
-%    D.h. wir wollen zulassen, dass eine Referenz in einem Fwd auf
-%    einem beliebigen Host liegen kann.
-% Jetzt kann es sein, dass ich auf Host h ein r = r0.flatMap(p) mache.
-% diese Referenz r kann ich an einen anderen Host h' geben.
-% Jetzt macht Host h' ein r.send(). D.h., h' schickt einen Req(h', r) an h.
-% Jetzt sagt Host h: S(id(r)) = Fwd(r'), und r' kann auch auf Host h' sein
-% (da Host von r' beliebig wie oben erwaehnt).
-% Und in diesem Fall gilt, dass host(r') = h' ist, und daher Host h
-% einen Req(h', r' r) an h'' = h' sendet. Das hat zur Folge, das Host h'
-% jetzt einen Req(h', r', r) bearbeiten muss. Daher muessen auch die lokalen
-% Regeln mit zwei unterschiedlichen Referenzen umgehen koennen, weil
-% r definitiv ungleich r' ist.
-\inferrule[\textsc{R-Req3}] {
-  Q         = {\Req {h''} r \omega} :: Q''           \quad %
-  S(id(r))  = (\Fwd{r'}, P)                          \\ %
-  id(r') \notin dom(S)                               \quad %
-  h'        = host(r')                               \quad %
-  m         = {\Req {h''} {r'} \omega}
-} {
-  \{ (E[\texttt{await}(\iota)], \mu, Q, S)^h, (t', \mu', Q', S')^{h'} \} \cup H
-  \twoheadrightarrow
-  \{ (E[\texttt{await}(\iota)], \mu, Q'', S)^h, (t', \mu', Q' \cdot m, S')^{h'} \} \cup H
+  \{ (t', \sigma', Q)^h \} \cup H ~|~ M
 }
 
 \inferrule[\textsc{R-Send}] {
-  host(r) = h'                          \quad
-  h' \neq h                             \quad
-  m = {\Req h r {id(r)}}                \quad
-  \iota~\text{fresh}                    \quad
-  \mu'' = [\iota \mapsto \text{None}]\mu
+  r = {\Ref l {h'}}                     \quad
+  m = {\Req h r {id(l)}}                \quad
+  M' = M \cup \{ h' \leftarrow m \}
 } {
-  \{ (E[\texttt{send}(r)], \mu, Q, S)^h, (t', \mu', Q', S')^{h'} \} \cup H
+  \{ (E[\texttt{send}(r)], \sigma, Q)^h \} \cup H ~|~ M
   \twoheadrightarrow
-  \{ (E[\iota], \mu'', Q, S)^h, (t', \mu', Q' \cdot m, S')^{h'} \} \cup H
+  \{ (E[id(l)], \sigma, Q)^h \} \cup H ~|~ M'
 }
+
+\inferrule[\textsc{R-Receive}] {
+  M = M' \cup \{ h \leftarrow m \}
+} {
+  \{ (t, \sigma, Q)^h \} \cup H ~|~ M
+  \twoheadrightarrow
+  \{ (t, \sigma, Q \cdot m)^h \} \cup H ~|~ M'
+}
+
+\inferrule[\textsc{R-Process}] {
+  process(h, m, \sigma) = (\sigma', M')
+} {
+  \{ (E[\texttt{await}(\iota)], \sigma, m \cdot Q)^h \} \cup H ~|~ M
+  \twoheadrightarrow
+  \{ (E[\texttt{await}(\iota)], \sigma', Q)^h \} \cup H ~|~ M \cup M'
+}
+
 \end{mathpar}
-\caption{Non-deterministic reduction.}\label{fig:nondeterm-rules}
+\caption{Distributed reduction.}\label{fig:dist-rules}
 \end{figure}
 
-Figure~\ref{fig:nondeterm-rules} shows the non-deterministic reduction
+Figure~\ref{fig:dist-rules} shows the non-deterministic reduction
 rules. The non-deterministic reduction relation has the form $H
 \twoheadrightarrow H'$ where $H$ and $H'$ are sets of hosts of the
 form $(t, \mu, Q, S)^h$. Rule \textsc{R-Schedule} reduces a host
