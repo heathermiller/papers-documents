@@ -201,31 +201,33 @@ term $t$.
 \end{figure}
 
 Figure~\ref{fig:seq-reduction} shows the rules for sequential
-reduction. The sequential reduction relation has the form $E[t]~|~\mu
-\rightarrow^h E[t']~|~\mu'$ with stores $\mu$ and $\mu'$. Stores are
-required for the dynamic allocation of futures and hosts.  A store
-$\mu$ is a partial function mapping locations $\iota$ to values $v$.
-The annotation with host $h$ is used for creating {\em decentralized
-  identifiers} $\omega = (h, i)$ for silo references.  Rules
-\textsc{R-AppAbs} and \textsc{R-ProjRcd} are completely standard.
-Analogous to rule \textsc{R-AppAbs}, rule \textsc{R-AppSpore}
-describes the application of a spore value to an argument value. Rule
-\textsc{R-Await} reduces $\texttt{await}(\iota)$ to $v$ if future
-$\iota$ is already completed with $v$ in $\mu$.
+reduction. The sequential reduction relation has the form
+$E[t]~|~\sigma \rightarrow^h E[t']~|~\sigma'$ with stores $\sigma$ and
+$\sigma'$. Stores are required for the dynamic allocation of silos. A
+store $\sigma$ is a partial function mapping decentralized identifiers
+$\iota$ to values $v$.  The annotation with host $h$ is used for
+creating decentralized identifiers $\iota = (h, i)$ for lineages.
+Rules \textsc{R-AppAbs} and \textsc{R-ProjRcd} are completely
+standard.  Analogous to rule \textsc{R-AppAbs}, rule
+\textsc{R-AppSpore} describes the application of a spore value to an
+argument value. Rule \textsc{R-Await} reduces $\texttt{await}(\iota)$
+to $v$ if future $\iota$ is already completed with $v$ in $\sigma$.
 
-Rules \textsc{R-Map}, \textsc{R-FMap}, \textsc{R-Persist} and
-\textsc{R-Unpersist} describe the creation of lineages.  Rules
-\textsc{R-Map} and \textsc{R-FMap} create silo reference values using
-the constructors {\em Mapped} and {\em FMapped}, respectively. The new
-silo reference has a fresh identifier $(h, i)$ which uniquely
-identifies the corresponding (logical) silo. In each case, the spore
-value $p$ is stored in the new silo reference; this enables a
-materialization of the silo identified by $(h, i)$ using parent silo
-reference $r$ and spore $p$. Rules \textsc{R-Persist} and
+Rules \textsc{R-Populate}, \textsc{R-Map}, and \textsc{R-FMap}
+describe the creation of lineages.  Rules \textsc{R-Map} and
+\textsc{R-FMap} create lineages using the constructors {\em Mapped}
+and {\em FMapped}, respectively. The new lineage has a fresh
+identifier $(h, i)$ which uniquely identifies the corresponding
+(logical) silo. In each case, the spore value $p$ is stored in the new
+lineage; this enables a materialization of the silo identified by $(h,
+i)$ using parent lineage $l$ and spore $p$.
+
+\comment{
+Rules \textsc{R-Persist} and
 \textsc{R-Unpersist} create silo reference values using the {\em
   Persist} constructor. {\em Persist} contains a function enabling
 host $h$ to persist ($\cdot \cup \cdot$) or unpersist ($\cdot
-\setminus \cdot$) silo $r$, respectively.
+\setminus \cdot$) silo $r$, respectively.}
 
 \begin{figure}
 \centering
