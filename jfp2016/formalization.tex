@@ -22,7 +22,7 @@ t ::=                                                                  & \mbox{{
 \gap ~|~  \texttt{send}(t)                                             & \mbox{send} \\           % send  :: Ref a -> Fut a
 \gap ~|~  \texttt{await}(t)                                            & \mbox{await future} \\   % await :: Fut a -> a
 \gap ~|~  \iota                                                        & \mbox{decentralized identifier} \\
-\gap ~|~  r                                                            & \mbox{lineage} \\
+\gap ~|~  r                                                            & \mbox{silo reference} \\
 \gap ~|~  h                                                            & \mbox{host} \\
                                                                        & \\
 v ::=                                                                  & \mbox{{\it{values:}}} \\
@@ -31,15 +31,17 @@ v ::=                                                                  & \mbox{{
 \gap ~|~  \unit                                                        & \mbox{unit} \\
 \gap ~|~  p                                                            & \mbox{spore value} \\
 \gap ~|~  \iota                                                        & \mbox{decentralized identifier} \\
-\gap ~|~  r                                                            & \mbox{lineage} \\
+\gap ~|~  r                                                            & \mbox{silo reference} \\
 \gap ~|~  h                                                            & \mbox{host} \\
                                                                        & \\
 p ::= \texttt{spore}~\{~\seq{x : T = v}~; (x: T) \Rightarrow t~\}      & \\
 & \\
-r ::=                                                  & \mbox{{\it{lineage}}}                \\
+l ::=                                                  & \mbox{{\it{lineage}}}                \\
 \gap \:\:\:\: \text{Mat}(\iota)                        & \mbox{materialized}                  \\
-\gap ~|~  \text{Mapped}(\iota, r, p)                   & \mbox{lineage with \texttt{map}}     \\
-\gap ~|~  \text{FMapped}(\iota, r, p)                  & \mbox{lineage with \texttt{flatMap}} \\
+\gap ~|~  \text{Mapped}(\iota, l, p)                   & \mbox{lineage with \texttt{map}}     \\
+\gap ~|~  \text{FMapped}(\iota, l, p)                  & \mbox{lineage with \texttt{flatMap}} \\
+                                                       & \\
+r ::= {\Ref l h} \quad \text{where}~h \in \mathcal{H}  & \mbox{silo reference} \\
                                                        & \\
 \iota  ::= (h,i) \quad \text{where}~h \in \mathcal{H}~\text{and}~i \in \mathbb{N}   & \mbox{decentralized identifier} \\
 & \\
@@ -48,9 +50,9 @@ T ::=                                                                  & \mbox{{
 \gap ~|~  \{ \seq{l : T} \}                                            & \mbox{record type} \\
 \gap ~|~  \texttt{Unit}                                                & \mbox{unit type} \\
 \gap ~|~  \mathcal{S}                                                  & \mbox{} \\
-\gap ~|~  \texttt{Host}                                                & \mbox{host type} \\
-\gap ~|~  \texttt{SiloRef}[T]                                          & \mbox{silo reference type} \\
 \gap ~|~  \texttt{Future}[T]                                           & \mbox{future type} \\
+\gap ~|~  \texttt{SiloRef}[T]                                          & \mbox{silo reference type} \\
+\gap ~|~  \texttt{Host}                                                & \mbox{host type} \\
 \mathcal{S} ::= T \Rightarrow T~\{~\texttt{type}~\mathcal{C} = \seq{T}~\}   & \mbox{spore type} \\
 \gap ~|~ T \Rightarrow T~\{~\texttt{type}~\mathcal{C}~\}               & \mbox{abstract spore type} \\
 \ea$
@@ -63,33 +65,33 @@ syntax of our core language. Besides standard terms, the language
 includes terms related to (a) spores, (b) silos, and (c) futures. The
 \verb|spore| term creates a new spore. It contains a list of variable
 definitions, the spore header, and a closure which may only refer to
-its parameter and variables in the spore header. The \verb|spawn| term
-creates a new host capable of hosting silos. The \verb|populate| term
-initializes a new silo on a given host with a given data value.  The
-\verb|map|, \verb|flatMap|, and \verb|persist| terms create lineages
-of silo transformations represented as silo references.  The
-\verb|send| term forces the materialization of the silo corresponding
-to its argument silo reference; \verb|send| returns a future which is
-asynchronously completed with the silo's value. The \verb|await| term
-waits for the completion of its argument future and returns the
-future's value.  Locations $\iota$ are used to refer to futures and
-hosts, both of which can be created dynamically using the above terms.
+its parameter and variables in the spore header. The \verb|populate|
+term initializes a new silo on a given host. The \verb|map| and
+\verb|flatMap| terms create lineages of silo transformations
+represented as silo references.  The \verb|send| term forces the
+materialization of the silo corresponding to its argument silo
+reference; \verb|send| returns a future which is asynchronously
+completed with the silo's value. The \verb|await| term waits for the
+completion of its argument future and returns the future's
+value. Decentralized identifiers $\iota$ are used to refer to futures
+and to identify silos via their lineages (each element in a lineage
+carries a decentralized identifier).
 
 Values in our language are as expected: besides abstractions and
-record values they include spore values, locations, and silo
-references. Locations and silo references are not part of the
-``surface syntax'' of our language; they are only introduced by
-evaluation (see Section~\ref{sec:opsem}). Silo reference values are
-values of a simple datatype with constructors {\em Mat, Mapped,
-  FMapped}, and {\em Persist}. The constructors include all
+record values they include spore values, decentralized identifiers,
+and silo references. Decentralized identifiers and silo references are
+not part of the ``surface syntax'' of our language; they are only
+introduced by evaluation (see Section~\ref{sec:opsem}). Silo reference
+values have the form ${\Ref l h}$ where $l$ is a lineage and $h$ is a
+host. Lineages are values of a simple datatype with constructors {\em
+  Mat}, {\em Mapped}, and {\em FMapped}. The constructors include all
 information required for {\em materializing} a silo with the result of
-applying the described transformations. Therefore, a silo reference
-value is also called the {\em lineage} of its corresponding silo. We
-defer a detailed explanation of the transformations described by a
-lineage to the following Section~\ref{sec:opsem}.
+applying the described transformations. We defer a detailed
+explanation of the transformations described by a lineage to the
+following Section~\ref{sec:opsem}.
 
 In addition to standard function and record types, the language has
-types for spores, hosts, silo references, and futures. A spore type $T
+types for spores, futures, silo references, and hosts. A spore type $T
 \Rightarrow T'~\{~\texttt{type}~\mathcal{C} = \seq{T}~\}$ includes the
 types $\seq{T}$ of the variables declared in the header of the spore.
 
@@ -97,7 +99,7 @@ types $\seq{T}$ of the variables declared in the header of the spore.
 
 In the following we present a small-step operational semantics of the
 introduced core language. The semantics is clearly stratified into a
-deterministic layer and a non-deterministic (concurrent)
+local (sequential) layer and a distributed (concurrent)
 layer. Importantly, this means our programming model can benefit from
 existing reasoning techniques for sequential programs. Program
 transformations that are correct for sequential programs are also
