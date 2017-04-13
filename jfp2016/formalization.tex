@@ -243,6 +243,7 @@ Q      ::=                          & \mbox{{\it{message queues:}}} \\
 \caption{Message queues.}\label{fig:queues}
 \end{figure}
 
+\comment{
 The deterministic reduction relation has the form $(E[t], \mu, Q, S)^h
 \longrightarrow (E[t'], \mu', Q', S')^h$ where $Q$ is a {\em message
   queue} and $S$ is a {\em silo store}. Figure~\ref{fig:queues} shows
@@ -260,7 +261,7 @@ $\omega$ to values of the form $(\Val{v}, P)$ or $(\Fwd{r}, P)$ where
 $P$ is a set of hosts which have persisted the silo (the persist set).
 The former represents a materialized silo with value $v$. The latter
 represents a {\em proxy} forwarding to the silo specified by lineage
-$r$.
+$r$.}
 
 The deterministic reduction rules use helper functions $host$, $id$,
 $parent$, and $consume$, which are defined as follows:
@@ -268,22 +269,16 @@ $parent$, and $consume$, which are defined as follows:
 \begin{defn}[Host]
   The host of a silo reference.
 
-  $host(r) := \left\{\ba{ll}
-    h         & \text{if } r = Mat((h, i)) \\
-    host(r')  & \text{if } r = Mapped(\_, r', \_) \\
-    host(r')  & \text{if } r = FMapped(\_, r', \_) \\
-    host(r')  & \text{if } r = Persist(\_, r', \_)
-  \ea\right.$
+  $host({\Ref l h}) := h$
 \end{defn}
 
-\begin{defn}[Silo reference identifier]
-  The identifier of a silo reference.
+\begin{defn}[Lineage identifier]
+  The identifier of a lineage.
 
-  $id(r) := \left\{\ba{ll}
-    \omega  & \text{if } r = Mat(\omega) \\
-    \omega  & \text{if } r = Mapped(\omega, r', \_) \\
-    \omega  & \text{if } r = FMapped(\omega, r', \_) \\
-    \omega  & \text{if } r = Persist(\omega, r', \_)
+  $id(l) := \left\{\ba{ll}
+    \iota  & \text{if } l = Mat(\iota) \\
+    \iota  & \text{if } l = Mapped(\iota, \_, \_) \\
+    \iota  & \text{if } l = FMapped(\iota, \_, \_)
   \ea\right.$
 \end{defn}
 
