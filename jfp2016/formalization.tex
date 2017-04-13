@@ -232,11 +232,13 @@ host $h$ to persist ($\cdot \cup \cdot$) or unpersist ($\cdot
 \begin{figure}
 \centering
 $\ba[t]{l@{\hspace{2mm}}l}
-Q      ::=                             & \mbox{{\it{message queue values:}}}  \\
-\gap \:\:\:\: \epsilon                 & \mbox{empty queue}       \\
-\gap ~|~    {\Req h r \omega} :: Q     & \mbox{request (silo)}    \\
-\gap ~|~    {\Res \omega v P} :: Q     & \mbox{response (silo)}   \\
-\gap ~|~    {\ReqF \iota \omega} :: Q  & \mbox{request (future)}  \\
+m      ::= & \mbox{{\it{messages:}}} \\
+\gap \:\:\:\: {\Req h r \iota}      & \mbox{request} \\
+\gap ~|~      {\Res \iota v}        & \mbox{response} \\
+ & \\
+Q      ::=                          & \mbox{{\it{message queues:}}} \\
+\gap \:\:\:\: \epsilon  & \mbox{empty queue} \\
+\gap ~|~    m \cdot Q      & \mbox{non-empty queue} \\
 \ea$
 \caption{Message queues.}\label{fig:queues}
 \end{figure}
