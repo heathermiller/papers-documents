@@ -355,6 +355,72 @@ between different hosts in the case of non-deterministic reduction.
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %
+% Message processing.
+%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\begin{figure}
+\begin{mathpar}
+
+\inferrule[\textsc{Proc-Req}] {
+  r = {\Ref l h} \quad
+  \sigma(id(l)) = v \quad
+  M = \{ h' \leftarrow {\Res \iota v} \}
+} {
+  process(h, {\Req {h'} r \iota}, \sigma) = (\epsilon, M)
+}
+
+\inferrule[\textsc{Proc-ReqMat}] {
+  r = {\Ref l h} \quad
+  l = {\Mat {\iota'}} \quad
+  t = \texttt{assign}(\iota', \texttt{unit})
+} {
+  process(h, {\Req {h'} r \iota}, \sigma) = (t, \{ h \leftarrow {\Req {h'} r \iota} \})
+}
+
+\inferrule[\textsc{Proc-ReqMap}] {
+  r = {\Ref l h} \quad
+  l = {\Mapped {\iota'} {l'} p} \quad
+  \sigma(id(l'))  = v           \quad
+  t = \texttt{assign}(\iota', p~v)
+} {
+  process(h, {\Req {h'} r \iota}, \sigma) = (t, \{ h \leftarrow {\Req {h'} r \iota} \})
+}
+
+\inferrule[\textsc{Proc-ReqFMap}] {
+  r = {\Ref l h} \quad
+  l = {\FMapped {\iota'} {l'} p} \quad
+  \sigma(id(l')) = v \quad
+  t = \texttt{send}(p~v, r)
+} {
+  process(h, {\Req {h'} r \iota}, \sigma) = (t, \{ h \leftarrow {\Req {h'} r \iota} \})
+}
+
+\inferrule[\textsc{Proc-ReqParent}] {
+  r = {\Ref l h} \quad
+  l' = parent(l) \quad
+  id(l') \notin dom(\sigma) \\
+  M = \{ h \leftarrow {\Req h {\Ref {l'} h} {id(l')}}, h \leftarrow {\Req {h'} r \iota} \}
+} {
+  process(h, {\Req {h'} r \iota}, \sigma) = (\epsilon, M)
+}
+
+\inferrule[\textsc{Proc-Res}] {
+  t = \texttt{assign}(\iota, v)
+} {
+  process(h, {\Res \iota v}, \sigma) = (t, \emptyset)
+}
+
+\end{mathpar}
+\caption{Message processing.}\label{fig:process}
+\end{figure}
+
+\begin{defn}[Message processing]
+  The function $process \in \mathcal{H} \times m \times S  \rightharpoonup t \times \mathcal{P}(\mathcal{H} \times m)$ handles the processing of a message resulting in a term to be evaluated and a set of sent messages; here, $S = \mathcal{H} \times \mathbb{N} \rightharpoonup v$ is the type of a store. $process$ is defined in Fig.~\ref{fig:process}.
+\end{defn}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%
 % Type assignment.
 %
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
