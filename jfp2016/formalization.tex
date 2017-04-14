@@ -520,10 +520,10 @@ between different hosts in the case of non-deterministic reduction.
 }
 
 \inferrule[\textsc{T-SiloRef}] {
-  \Sigma(id(r)) = T \quad
-  \Sigma \vdash r
+  \Sigma(id(l)) = T \quad
+  \Sigma \vdash {\Ref l h}
 } {
-  \Gamma ; \Sigma \vdash r : \texttt{SiloRef}[T]
+  \Gamma ; \Sigma \vdash {\Ref l h} : \texttt{SiloRef}[T]
 }
 
 \inferrule[\textsc{T-Await}] {
