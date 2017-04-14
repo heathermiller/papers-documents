@@ -714,7 +714,8 @@ combine the previous rules in the expected way.
 }
 
 \inferrule[\textsc{WF-Q3}] {
-  \Sigma(id(r)) = \Sigma(\iota) \quad
+  r = {\Ref l {h'}} \quad
+  \Sigma(id(l)) = \Sigma(\iota) \quad
   \Sigma \vdash r \quad
   \Sigma \vdash Q
 } {
@@ -742,17 +743,17 @@ combine the previous rules in the expected way.
 }
 % was wir ausschliessen muessen ist: \Sigma(\iota') \neq \Sigma'(\iota') fuer zwei verschiedene Hosts
 
-\inferrule[\textsc{WF-Config1}] {
+\inferrule[\textsc{WF-Messages}] {
   \Sigma \vdash m \cdot \epsilon \quad
-  \Sigma \vdash H~|~M
+  \Sigma \vdash M
 } {
-  \Sigma \vdash H~|~ \{ h \leftarrow m \} \cup M
+  \Sigma \vdash \{ h \leftarrow m \} \cup M
 }
 
-\inferrule[\textsc{WF-Config2}] {
-  \Sigma \vdash H
+\inferrule[\textsc{WF-Config}] {
+  \Sigma \vdash H \quad \Sigma \vdash M
 } {
-  \Sigma \vdash H~|~\emptyset
+  \Sigma \vdash H~|~M
 }
 
 \end{mathpar}

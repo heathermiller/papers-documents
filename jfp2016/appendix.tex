@@ -277,72 +277,74 @@ Part 2: by induction on the derivation of $H~|~M \twoheadrightarrow H'~|~M'$ wit
 \item By 1.a), 2.d), 10., \textsc{WF-Config1-2}, and \textsc{WF-Q1-3}, $\Sigma' \vdash H'~|~M'$.
 \end{enumerate}
 
-\item Case \textsc{R-SendRemote}.
+\item Case \textsc{R-Send}.
 \begin{enumerate}
 % 1.
 \item By the assumptions
   \begin{enumerate}[label=(\alph*)]
-  \item $\Sigma \vdash H$
-  \item $H \twoheadrightarrow H'$
+  \item $\Sigma \vdash H~|~M$
+  \item $H~|~M \twoheadrightarrow H'~|~M'$
   \end{enumerate}
 % 2.
-\item By \textsc{R-SendRemote}
+\item By \textsc{R-Send}
   \begin{enumerate}[label=(\alph*)]
-  \item $H = \{ (E[\texttt{send}(r)], \sigma, Q)^h, (t', \sigma', Q')^{h'} \} \cup H''$
-  \item $H' = \{ (E[id(r)], \sigma, Q)^h, (t', \sigma', Q' \cdot m)^{h'} \} \cup H''$
-  \item $host(r) = h'$
-  \item $h' \neq h$
-  \item $m = {\Req h r {id(r)}}$  % 2.e)
+  \item $H = \{ (E[\texttt{send}(r, r')], \sigma, Q)^h \} \cup H''$
+  \item $H' = \{ (E[id(l)], \sigma, Q)^h \} \cup H''$
+  \item $r  = {\Ref l {h'}}$
+  \item $r' = {\Ref {l'} {h''}}$
+  \item $m  = {\Req h r {id(l')}}$
+  \item $M' = M \cup \{ h' \leftarrow m \}$
   \end{enumerate}
 % 3.
-\item By 1.a), 2.a), and \textsc{WF-Host2}
+\item By 1.a) and \textsc{WF-Config}
   \begin{enumerate}[label=(\alph*)]
-  \item $\Sigma \vdash (E[\texttt{send}(r)], \sigma, Q)^h$ 
-  \item $\Sigma \vdash (t', \sigma', Q')^{h'}$
-  \item $\Sigma \vdash H''$
+  \item $\Sigma \vdash H$
+  \item $\Sigma \vdash M$
   \end{enumerate}
 % 4.
-\item By 3.a) and \textsc{WF-HostConfig}
+\item By 2.a), 3.a), and \textsc{WF-Host2}
+  \begin{enumerate}[label=(\alph*)]
+  \item $\Sigma \vdash (E[\texttt{send}(r, r')], \sigma, Q)^h$ 
+  \item $\Sigma \vdash H''$
+  \end{enumerate}
+% 5.
+\item By 4.a) and \textsc{WF-HostConfig}
   \begin{enumerate}[label=(\alph*)]
   \item $\Sigma \vdash \sigma$
   \item $\Sigma \vdash Q$
-  \item $\Gamma ; \Sigma \vdash E[\texttt{send}(r)] : T$
+  \item $\Gamma ; \Sigma \vdash E[\texttt{send}(r, r')] : T$
   \end{enumerate}
-% 5.
-\item By 4.c), $\Gamma ; \Sigma \vdash \texttt{send}(r) : \hat{T}$.
 % 6.
-\item By 5. and \textsc{T-Send}
+\item By 5.c), $\Gamma ; \Sigma \vdash \texttt{send}(r, r') : \hat{T}$.
+% 7.
+\item By 6. and \textsc{T-Send}
   \begin{enumerate}[label=(\alph*)]
   \item $\hat{T} = \texttt{Future}[T'']$
   \item $\Gamma ; \Sigma \vdash r : \texttt{SiloRef}[T'']$
-  \end{enumerate}
-% 7.
-\item By 6.b) and \textsc{T-SiloRef}
-  \begin{enumerate}[label=(\alph*)]
-  \item $\Sigma(id(r)) = T''$
-  \item $\Sigma \vdash r$
+  \item $\Gamma ; \Sigma \vdash r' : \texttt{SiloRef}[T'']$
   \end{enumerate}
 % 8.
-\item By 7.a) and \textsc{T-Ident}, $\Gamma ; \Sigma \vdash id(r) : \texttt{Future}[T'']$.
-% 9.
-\item By 4.c), 5., 6.a), and 8., $\Gamma ; \Sigma \vdash E[id(r)] : T$.
-% 10.
-\item By 4.a-b), 9., and \textsc{WF-HostConfig}, $\Sigma \vdash (E[id(r)], \sigma, Q)^h$.
-% 11.
-\item By 2.e), 7.b), and \textsc{WF-Q1-3}, $\Sigma \vdash m \cdot \epsilon$.
-% 12. 
-\item By 3.b) and \textsc{WF-HostConfig}
+\item By 2.c,d), 7.b,c), and \textsc{T-SiloRef}
   \begin{enumerate}[label=(\alph*)]
-  \item $\Sigma \vdash \sigma'$
-  \item $\Sigma \vdash Q'$
-  \item $\Gamma' ; \Sigma \vdash t' : T'$
+  \item $\Sigma(id(l)) = T''$
+  \item $\Sigma \vdash r$
+  \item $\Sigma(id(l')) = T''$
+  \item $\Sigma \vdash r'$
   \end{enumerate}
+% 9.
+\item By 8.a) and \textsc{T-Ident}, $\Gamma ; \Sigma \vdash id(l) : \texttt{Future}[T'']$.
+% 10.
+\item By 5.c), 6., 7.a), and 9., $\Gamma ; \Sigma \vdash E[id(l)] : T$.
+% 11.
+\item By 5.a,b), 10., and \textsc{WF-HostConfig}, $\Sigma \vdash (E[id(l)], \sigma, Q)^h$.
+% 12.
+\item By 4.b), 11., and \textsc{WF-Host2}, $\Sigma \vdash H'$.
 % 13.
-\item By 11., 12.b), and Lemma~\ref{lem:queue-concat}, $\Sigma \vdash Q' \cdot m$.
+\item By 2.c-e), 8.a-c), and \textsc{WF-Q1-3}, $\Sigma \vdash m \cdot \epsilon$.
 % 14.
-\item By 12.a), 12.c), 13., and \textsc{WF-HostConfig}, $\Sigma \vdash (t', \sigma', Q' \cdot m)^{h'}$.
+\item By 2.f), 3.b), 13., and \textsc{WF-Messages}, $\Sigma \vdash M'$.
 % 15.
-\item By 2.b), 3.c), 10., 14., and \textsc{WF-Host2}, $\Sigma \vdash H'$.
+\item By 12., 14., and \textsc{WF-Config}, $\Sigma \vdash H'~|~M'$.
 \end{enumerate}
 
 \item Case \textsc{R-ProcQueueRemote}.
