@@ -98,17 +98,75 @@ By induction on the derivation of $\Gamma ; \Sigma ; \Delta \vdash v : T$ with a
 
 \subsection{Proof of Theorem~\ref{th:subject-reduction}}\label{app:subject-reduction}
 
-\begin{lem}
+\begin{lemun}
 \emph{(Weakening of Store Typing)}\label{lem:weakening-store-typing}
 \begin{enumerate}
 \item If $\Gamma ; \Sigma \vdash t : T$ and $\iota \notin \Sigma$ then $\Gamma ; \Sigma' \vdash t : T$ where $\Sigma' = [\iota \mapsto T']\Sigma$.
 \item If $\Sigma \vdash (t, \sigma, Q)^h$ and $\iota \notin \Sigma$ then $\Sigma' \vdash (t, \sigma, Q)^h$ where $\Sigma' = [\iota \mapsto T]\Sigma$.
 \item If $\Sigma \vdash H$ and $\iota \notin \Sigma$ then $\Sigma' \vdash H$ where $\Sigma' = [\iota \mapsto T]\Sigma$.
 \end{enumerate}
-\end{lem}
+\end{lemun}
 \begin{proof}
 Part 1: By induction on the derivation of $\Gamma ; \Sigma \vdash t : T$. Part 2: By induction on the derivation of $\Sigma \vdash (t, \sigma, Q)^h$. Part 3: By induction on the derivation of $\Sigma \vdash H$.
 \end{proof}
+
+\begin{lemun}\emph{(Process)}\label{lem:process}
+If $\Sigma \vdash \sigma$, $\Sigma \vdash m \cdot \emptyset$, and $process(h, m, \sigma) = (t, M, \sigma')$ then $\emptyset ; \Sigma' \vdash t : T$ for some $T$, $\Sigma' \vdash M$, and $\Sigma' \vdash \sigma'$ for some $\Sigma' \supseteq \Sigma$.
+\end{lemun}
+\begin{proof}
+\begin{itemize}
+\item Case \textsc{Proc-Req}.
+\begin{enumerate}
+% 1.
+\item By the assumptions
+  \begin{enumerate}[label=(\alph*)]
+  \item $\Sigma \vdash \sigma$
+  \item $\Sigma \vdash m \cdot \emptyset$
+  \item $process(h, m, \sigma) = (t, M, \sigma')$
+  \end{enumerate}
+% 2.
+\item By \textsc{Proc-Req}
+  \begin{enumerate}[label=(\alph*)]
+  \item $m = {\Req {h'} r \iota}$
+  \item $r = {\Ref l h}$
+  \item $\sigma(id(l)) = (v, P)$
+  \item $M = \{ h' \leftarrow {\ResP \iota v P} \}$
+  \item $\sigma' = {\consume {id(l)} P \sigma}$
+  \item $t = \texttt{unit}$
+  \end{enumerate}
+% 3.
+\item Define $\Sigma' := \Sigma$.
+% 4.
+\item By 2.e) and Def.~\ref{def:consume}, $dom(\sigma') \subseteq dom(\sigma)$.
+% 5.
+\item By 1.a), 3., 4., and \textsc{WF-Store1-3}, $\Sigma' \vdash \sigma'$.
+% 6.
+\item By 1.b), 2.a,b), and \textsc{WF-Q3}
+  \begin{enumerate}[label=(\alph*)]
+  \item $\Sigma(id(l)) = \Sigma(\iota)$
+  \item $\Sigma \vdash r$
+  \end{enumerate}
+% 7.
+\item $T := \Sigma(id(l))$.
+% 8.
+\item By 1.a), 2.c), 7., and \textsc{WF-Store2}, $\emptyset ; \Sigma \vdash v : T$.
+% 9.
+\item By 6.a), 7., 8., \textsc{WF-Q1}, and \textsc{WF-Q2}, $\Sigma \vdash {\ResP \iota v P} \cdot \epsilon$.
+% 10.
+\item By 9. and \textsc{WF-Messages}, $\Sigma \vdash M$.
+% 11.
+\item By 2.f), \textsc{T-Unit}, and Lemma~\ref{lem:weakening-store-typing}, $\emptyset ; \Sigma \vdash t : T'$ for some $T'$.
+% 12.
+\item 3., 5., 10., and 11. close this case.
+\end{enumerate}
+
+\item Cases \textsc{Proc-ReqMat}, \textsc{Proc-ReqFwd}, \textsc{Proc-ReqParent} follow analogously.
+
+\item Case \textsc{Proc-ReqMap}. \note{todo}
+
+\end{itemize}
+\end{proof}
+
 
 \begin{thmun}
 \emph{(Subject Reduction)}
