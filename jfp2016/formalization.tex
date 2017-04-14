@@ -742,11 +742,17 @@ combine the previous rules in the expected way.
 }
 % was wir ausschliessen muessen ist: \Sigma(\iota') \neq \Sigma'(\iota') fuer zwei verschiedene Hosts
 
-\inferrule[\textsc{WF-Config}] {
+\inferrule[\textsc{WF-Config1}] {
   \Sigma \vdash m \cdot \epsilon \quad
   \Sigma \vdash H~|~M
 } {
   \Sigma \vdash H~|~ \{ h \leftarrow m \} \cup M
+}
+
+\inferrule[\textsc{WF-Config2}] {
+  \Sigma \vdash H
+} {
+  \Sigma \vdash H~|~\emptyset
 }
 
 \end{mathpar}
