@@ -298,14 +298,12 @@ $parent$, which are defined as follows:
   \ea\right.$
 \end{defn}
 
-\begin{defn}[Silo reference parent]
-  The parent of a silo reference.
+\begin{defn}[Lineage parent]
+  The parent of a lineage.
 
-  $parent(r) := \left\{\ba{ll}
-    \None     & \text{if } r = Mat(\_) \\
-    \Some{r'} & \text{if } r = Mapped(\_, r', \_) \\
-    \Some{r'} & \text{if } r = FMapped(\_, r', \_) \\
-    \Some{r'} & \text{if } r = Persist(\_, r', \_)
+  $parent(l) := \left\{\ba{ll}
+    l' & \text{if } l = Mapped(\_, l', \_) \\
+    l' & \text{if } l = FMapped(\_, l', \_) \\
   \ea\right.$
 \end{defn}
 
