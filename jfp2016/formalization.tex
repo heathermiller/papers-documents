@@ -21,6 +21,7 @@ t ::=                                                                  & \mbox{{
 \gap ~|~  \texttt{flatMap}(t, t)                                       & \mbox{flatMap} \\
 \gap ~|~  \texttt{send}(t, t)                                          & \mbox{send} \\           % send  :: Ref a -> Fut a
 \gap ~|~  \texttt{await}(t)                                            & \mbox{await future} \\   % await :: Fut a -> a
+\gap ~|~  \texttt{assign}(t, t)                                        & \mbox{assignment} \\
 \gap ~|~  \iota                                                        & \mbox{decentralized identifier} \\
 \gap ~|~  r                                                            & \mbox{silo reference} \\
 \gap ~|~  h                                                            & \mbox{host} \\
@@ -128,6 +129,8 @@ E ::=                                                                           
 \gap ~|~  \texttt{send}(E, t)                                                                             & \mbox{send (fst)} \\
 \gap ~|~  \texttt{send}(v, E)                                                                             & \mbox{send (snd)} \\
 \gap ~|~  \texttt{await}(E)                                                                               & \mbox{await} \\
+\gap ~|~  \texttt{assign}(E, t)                                                                           & \mbox{assign (fst)} \\
+\gap ~|~  \texttt{assign}(v, E)                                                                           & \mbox{assign (snd)} \\
 \ea$
 \caption{Evaluation contexts.}\label{fig:eval-ctx}
 \end{figure}
@@ -175,6 +178,14 @@ term $t$.
   E[\texttt{await}(\iota)]~|~\sigma
   \rightarrow^h
   E[v]~|~\sigma
+}
+
+\inferrule[\textsc{R-Assign}] {
+  \sigma' = [\iota \mapsto v]\sigma
+} {
+  E[\texttt{assign}(\iota, v)]~|~\sigma
+  \rightarrow^h
+  E[\texttt{unit}]~|~\sigma'
 }
 
 \inferrule[\textsc{R-Populate}] {
@@ -530,6 +541,13 @@ between different hosts in the case of non-deterministic reduction.
   \Gamma ; \Sigma \vdash t : \texttt{Future}[T]
 } {
   \Gamma ; \Sigma \vdash \texttt{await}(t) : T
+}
+
+\inferrule[\textsc{T-Assign}] {
+  \Gamma ; \Sigma \vdash t : \texttt{Future}[T] \quad
+  \Gamma ; \Sigma \vdash t' : T
+} {
+  \Gamma ; \Sigma \vdash \texttt{assign}(t, t') : \texttt{Unit}
 }
 \end{mathpar}
 \caption{Type assignment.}\label{fig:type-rules}
