@@ -651,28 +651,34 @@ combine the previous rules in the expected way.
   [\iota \mapsto T]\Sigma \vdash [\iota \mapsto v]\sigma
 }
 
-\inferrule[\textsc{WF-Ref1}] {
+\inferrule[\textsc{WF-Lin1}] {
   \Sigma(\iota) = T  \quad
-  \Sigma(id(r)) = T' \quad
+  \Sigma(id(l)) = T' \quad
   \exists \Gamma, \Sigma.~\Gamma ; \Sigma \vdash p : T' \Rightarrow T~\{\ldots\} \quad
-  \Sigma \vdash r
+  \Sigma \vdash l
 } {
-  \Sigma \vdash \text{Mapped}(\iota, r, p)
+  \Sigma \vdash \text{Mapped}(\iota, l, p)
 }
 
-\inferrule[\textsc{WF-Ref2}] {
+\inferrule[\textsc{WF-Lin2}] {
   \Sigma(\iota) = T  \quad
-  \Sigma(id(r)) = T' \quad
+  \Sigma(id(l)) = T' \quad
   \exists \Gamma, \Sigma.~\Gamma ; \Sigma \vdash p : T' \Rightarrow \texttt{SiloRef}[T]~\{\ldots\} \quad
-  \Sigma \vdash r
+  \Sigma \vdash l
 } {
-  \Sigma \vdash \text{FMapped}(\iota, r, p)
+  \Sigma \vdash \text{FMapped}(\iota, l, p)
 }
 
-\inferrule[\textsc{WF-Ref3}] {
+\inferrule[\textsc{WF-Lin3}] {
   \iota \in dom(\Sigma)
 } {
   \Sigma \vdash {\text{Mat}(\iota)}
+}
+
+\inferrule[\textsc{WF-Ref}] {
+  \Sigma \vdash l \quad h \in \mathcal{H}
+} {
+  \Sigma \vdash {\Ref l h}
 }
 
 \inferrule[\textsc{WF-SiloStore1}] {} {
