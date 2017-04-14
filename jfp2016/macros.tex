@@ -45,6 +45,9 @@
   xleftmargin=0.0cm
 }
 
+\newcommand{\highlight}[1]{%
+  \colorbox{gray!50}{$\displaystyle#1$}}
+
 %%% Spacing
 \newcommand{\gap}{\quad\quad}
 
@@ -75,7 +78,10 @@
 \newcommand{\Val}[1]{\text{Val}(#1)}
 \newcommand{\Fwd}[1]{\text{Fwd}(#1)}
 
-%% Util
+\newcommand{\SR}[1]{\texttt{SiloRef}[#1]}
+
+%% Persist
+\newcommand{\ResP}[3]{\text{Res}(#1, #2, #3)}
 \newcommand{\consume}[3]{\text{consume}(#1, #2, #3)}
 
 %% Misc

@@ -817,6 +817,22 @@ of hosts which are known to have persisted silo $\iota$:
 \begin{figure}
 \centering
 \begin{mathpar}
+\inferrule[\textsc{R-Await}] {
+  \sigma(\iota) = \highlight{(v, P)} \quad \highlight{\sigma' = {\consume \iota P \sigma}}
+} {
+  E[\texttt{await}(\iota)]~|~\sigma
+  \rightarrow^h
+  E[v]~|~\highlight{\sigma'}
+}
+
+\inferrule[\textsc{R-Assign}] {
+  \sigma' = [\iota \mapsto \highlight{(v, \emptyset)}]\sigma
+} {
+  E[\texttt{assign}(\iota, v)]~|~\sigma
+  \rightarrow^h
+  E[\texttt{unit}]~|~\sigma'
+}
+
 \inferrule[\textsc{R-Persist}] {
   r = {\Ref l {h'}} \quad
   l' = \text{Persist}((h, i), l, \cdot \cup \cdot) \quad i~\text{fresh}
@@ -834,7 +850,78 @@ of hosts which are known to have persisted silo $\iota$:
   E[{\Ref {l'} {h'}}]~|~\sigma
 }
 \end{mathpar}
-\caption{Extensions of local reduction.}\label{fig:persist-local-reduction}
+\caption{Extension of local reduction.}\label{fig:local-reduction-persist}
+\end{figure}
+
+
+\begin{figure}
+\begin{mathpar}
+\inferrule[\textsc{Proc-Req}] {
+  r = {\Ref l h} \quad
+  \sigma(id(l)) = \highlight{(v, P)} \quad
+  M = \{ h' \leftarrow \highlight{{\ResP \iota v P}} \} \quad
+  \highlight{\sigma' = {\consume {id(l)} P \sigma}}
+} {
+  process(h, {\Req {h'} r \iota}, \sigma) = (\epsilon, M, \highlight{\sigma'})
+}
+
+\inferrule[\textsc{Proc-ReqMap}] {
+  r = {\Ref l h} \quad
+  l = {\Mapped {\iota'} {l'} p} \quad
+  \sigma(id(l'))  = \highlight{(v, P)} \\
+  t = \texttt{assign}(\iota', p~v) \quad
+  \highlight{\sigma' = {\consume {id(l')} P \sigma}}
+} {
+  process(h, {\Req {h'} r \iota}, \sigma) = (t, \{ h \leftarrow {\Req {h'} r \iota} \}, \highlight{\sigma'})
+}
+
+\inferrule[\textsc{Proc-ReqFMap}] {
+  r = {\Ref l h} \quad
+  l = {\FMapped {\iota'} {l'} p} \quad
+  \sigma(id(l')) = \highlight{(v, P)} \\
+  t = \texttt{send}(p~v, r) \quad
+  \highlight{\sigma' = {\consume {id(l')} P \sigma}}
+} {
+  process(h, {\Req {h'} r \iota}, \sigma) = (t, \{ h \leftarrow {\Req {h'} r \iota} \}, \highlight{\sigma'})
+}
+
+\inferrule[\textsc{Proc-ReqPersist}] {
+  r = {\Ref l h} \quad
+  l              = {\Per {\iota'} {l'} \star}  \quad
+  \iota'         = (h'', i)                    \quad
+  \sigma(id(l')) = (v, P)                      \\
+  P'             = P \star \{h''\}             \quad
+  \sigma'        = [\iota' \mapsto (v, P')]\sigma  \quad
+  \sigma''       = {\consume {id(l')} P {\sigma'}}
+} {
+  process(h, {\Req {h'} r \iota}, \sigma) = (\epsilon, \{ h' \leftarrow {\ResP \iota v {P'}} \}, \sigma'')
+}
+
+\inferrule[\textsc{Proc-Res}] {
+  \sigma' = [\iota \mapsto \highlight{(v, P)}]\sigma
+} {
+  process(h, \highlight{{\ResP \iota v P}}, \sigma) = (\epsilon, \emptyset, \sigma')
+}
+\end{mathpar}
+\caption{Extension of message processing.}\label{fig:process-persist}
+\end{figure}
+
+
+\begin{figure}
+\centering
+\begin{mathpar}
+\inferrule[\textsc{T-Persist}] {
+  \Gamma ; \Sigma \vdash t : \SR{T}
+} {
+  \Gamma ; \Sigma \vdash \texttt{persist}(t) : \SR{T}
+}
+\inferrule[\textsc{T-Unpersist}] {
+  \Gamma ; \Sigma \vdash t : \SR{T}
+} {
+  \Gamma ; \Sigma \vdash \texttt{unpersist}(t) : \SR{T}
+}
+\end{mathpar}
+\caption{Extension of type assignment.}\label{fig:type-rules-persist}
 \end{figure}
 
 
