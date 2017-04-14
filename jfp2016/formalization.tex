@@ -596,12 +596,12 @@ host. This independence is expressed by the following theorem:
 
 \begin{thm}
 \emph{(Serializable Values)}\label{lem:ser-values}
-If $\Gamma ; \Sigma ; \Delta \vdash v : T$ and $serializable(T)$ then
-$\emptyset ; \emptyset ; \Delta \vdash v : T$.
+If $\Gamma ; \Sigma \vdash v : T$ and $serializable(T)$ then
+$\emptyset ; \Sigma \vdash v : T$.
 \end{thm}
 \begin{proof}
-By induction on the derivation of $\Gamma ; \Sigma ; \Delta \vdash v :
-T$. See Appendix~\ref{app:ser-values}.
+By induction on the derivation of $\Gamma ; \Sigma \vdash v : T$. See
+Appendix~\ref{app:ser-values}.
 \end{proof}
 
 Rule \textsc{T-AppSpore} is analogous to rule \textsc{T-App}. Rule
@@ -661,7 +661,7 @@ combine the previous rules in the expected way.
 \inferrule[\textsc{WF-Lin1}] {
   \Sigma(\iota) = T  \quad
   \Sigma(id(l)) = T' \quad
-  \exists \Gamma, \Sigma.~\Gamma ; \Sigma \vdash p : T' \Rightarrow T~\{\ldots\} \quad
+  \exists \Gamma.~\Gamma ; \Sigma \vdash p : T' \Rightarrow T~\{\ldots\} \quad
   \Sigma \vdash l
 } {
   \Sigma \vdash \text{Mapped}(\iota, l, p)
@@ -670,7 +670,7 @@ combine the previous rules in the expected way.
 \inferrule[\textsc{WF-Lin2}] {
   \Sigma(\iota) = T  \quad
   \Sigma(id(l)) = T' \quad
-  \exists \Gamma, \Sigma.~\Gamma ; \Sigma \vdash p : T' \Rightarrow \texttt{SiloRef}[T]~\{\ldots\} \quad
+  \exists \Gamma.~\Gamma ; \Sigma \vdash p : T' \Rightarrow \texttt{SiloRef}[T]~\{\ldots\} \quad
   \Sigma \vdash l
 } {
   \Sigma \vdash \text{FMapped}(\iota, l, p)
