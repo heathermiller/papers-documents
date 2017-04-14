@@ -902,13 +902,37 @@ of hosts which are known to have persisted silo $\iota$:
 } {
   \Gamma ; \Sigma \vdash \texttt{persist}(t) : \SR{T}
 }
+
 \inferrule[\textsc{T-Unpersist}] {
   \Gamma ; \Sigma \vdash t : \SR{T}
 } {
   \Gamma ; \Sigma \vdash \texttt{unpersist}(t) : \SR{T}
 }
+
+\inferrule[\textsc{WF-Store2}] {
+  \emptyset ; \Sigma \vdash v : T  \quad
+  \Sigma \vdash \sigma
+} {
+  [\iota \mapsto T]\Sigma \vdash [\iota \mapsto \highlight{(v, P)}]\sigma
+}
+
+\inferrule[\textsc{WF-Lin4}] {
+  \Sigma(\iota) = T  \quad
+  \Sigma(id(l)) = T  \quad
+  \Sigma \vdash l
+} {
+  \Sigma \vdash {\Per \iota l {\star}}
+}
+
+\inferrule[\textsc{WF-Q2}] {
+  \Sigma(\iota) = T                \quad
+  \emptyset ; \Sigma \vdash v : T  \quad
+  \Sigma \vdash Q
+} {
+  \Sigma \vdash \highlight{{\ResP \iota v P}} \cdot Q
+}
 \end{mathpar}
-\caption{Extension of type assignment.}\label{fig:type-rules-persist}
+\caption{Extension of type assignment and well-formedness.}\label{fig:type-rules-persist}
 \end{figure}
 
 
