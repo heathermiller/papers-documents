@@ -19,7 +19,7 @@ t ::=                                                                  & \mbox{{
 \gap ~|~  \texttt{populate}(t)                                         & \mbox{populate silo} \\
 \gap ~|~  \texttt{map}(t, t)                                           & \mbox{map} \\
 \gap ~|~  \texttt{flatMap}(t, t)                                       & \mbox{flatMap} \\
-\gap ~|~  \texttt{send}(t)                                             & \mbox{send} \\           % send  :: Ref a -> Fut a
+\gap ~|~  \texttt{send}(t, t)                                          & \mbox{send} \\           % send  :: Ref a -> Fut a
 \gap ~|~  \texttt{await}(t)                                            & \mbox{await future} \\   % await :: Fut a -> a
 \gap ~|~  \iota                                                        & \mbox{decentralized identifier} \\
 \gap ~|~  r                                                            & \mbox{silo reference} \\
@@ -69,13 +69,17 @@ its parameter and variables in the spore header. The \verb|populate|
 term initializes a new silo on a given host. The \verb|map| and
 \verb|flatMap| terms create lineages of silo transformations
 represented as silo references.  The \verb|send| term forces the
-materialization of the silo corresponding to its argument silo
-reference; \verb|send| returns a future which is asynchronously
-completed with the silo's value. The \verb|await| term waits for the
-completion of its argument future and returns the future's
-value. Decentralized identifiers $\iota$ are used to refer to futures
-and to identify silos via their lineages (each element in a lineage
-carries a decentralized identifier).
+materialization of the silo corresponding to its first argument silo
+reference; the second argument silo reference indicates which silo
+should be completed with the materialization result. This flexibility
+is needed for implementing \verb|flatMap| (see below); in user
+programs, the two arguments passed to \verb|send| are always the
+same. The \verb|send| expression returns a future which is
+asynchronously completed with the silo's value. The \verb|await| term
+waits for the completion of its argument future and returns the
+future's value. Decentralized identifiers $\iota$ are used to refer to
+futures and to identify silos via their lineages (each element in a
+lineage carries a decentralized identifier).
 
 Values in our language are as expected: besides abstractions and
 record values they include spore values, decentralized identifiers,
@@ -121,7 +125,8 @@ E ::=                                                                           
 \gap ~|~  \texttt{map}(v, E)                                                                              & \mbox{map (fun)} \\
 \gap ~|~  \texttt{flatMap}(E, t)                                                                          & \mbox{flatMap (ref)} \\
 \gap ~|~  \texttt{flatMap}(v, E)                                                                          & \mbox{flatMap (fun)} \\
-\gap ~|~  \texttt{send}(E)                                                                                & \mbox{send} \\
+\gap ~|~  \texttt{send}(E, t)                                                                             & \mbox{send (fst)} \\
+\gap ~|~  \texttt{send}(v, E)                                                                             & \mbox{send (snd)} \\
 \gap ~|~  \texttt{await}(E)                                                                               & \mbox{await} \\
 \ea$
 \caption{Evaluation contexts.}\label{fig:eval-ctx}
@@ -310,11 +315,12 @@ $parent$, which are defined as follows:
 }
 
 \inferrule[\textsc{R-Send}] {
-  r = {\Ref l {h'}}                     \quad
-  m = {\Req h r {id(l)}}                \quad
+  r  = {\Ref l {h'}}      \quad
+  r' = {\Ref {l'} {h''}}  \quad
+  m  = {\Req h r {id(l')}} \quad
   M' = M \cup \{ h' \leftarrow m \}
 } {
-  \{ (E[\texttt{send}(r)], \sigma, Q)^h \} \cup H ~|~ M
+  \{ (E[\texttt{send}(r, r')], \sigma, Q)^h \} \cup H ~|~ M
   \twoheadrightarrow
   \{ (E[id(l)], \sigma, Q)^h \} \cup H ~|~ M'
 }
