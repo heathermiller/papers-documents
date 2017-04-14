@@ -245,7 +245,7 @@ Part 2: by induction on the derivation of $H~|~M \twoheadrightarrow H'~|~M'$ wit
   \item $M' = M$
   \end{enumerate}
 % 3.
-\item By 1.a) and \textsc{WF-Config1-2}, $\Sigma \vdash H$.
+\item By 1.a) and \textsc{WF-Config}, $\Sigma \vdash H$.
 % 4.
 \item By 2.a), 3., and \textsc{WF-Host2}
   \begin{enumerate}[label=(\alph*)]
@@ -274,7 +274,7 @@ Part 2: by induction on the derivation of $H~|~M \twoheadrightarrow H'~|~M'$ wit
 % 10.
 \item By 2.b), 8., 9., and \textsc{WF-Host2}, $\Sigma' \vdash H'$.
 % 11.
-\item By 1.a), 2.d), 10., \textsc{WF-Config1-2}, and \textsc{WF-Q1-3}, $\Sigma' \vdash H'~|~M'$.
+\item By 1.a), 2.d), 10., \textsc{WF-Config}, \textsc{WF-Messages}, and \textsc{WF-Q1-3}, $\Sigma' \vdash H'~|~M'$.
 \end{enumerate}
 
 \item Case \textsc{R-Send}.
