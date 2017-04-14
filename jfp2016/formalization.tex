@@ -774,21 +774,18 @@ By induction on the length of $Q$. See Appendix~\ref{app:queue-concat}.
 
 \begin{enumerate}
 
-\item If $\Gamma ; \Sigma ; \Delta \vdash t : T$, $\Sigma \vdash \mu$, and $t~|~\mu \rightarrow^h t'~|~\mu'$ then $\Gamma ; \Sigma' ; \Delta' \vdash t' : T$, and $\Sigma' \vdash \mu'$ for some $\Sigma' \supseteq \Sigma$ and $\Delta' \supseteq \Delta$.
+\item If $\Gamma ; \Sigma \vdash t : T$, $\Sigma \vdash \sigma$, and $t~|~\sigma \rightarrow^h t'~|~\sigma'$ then $\Gamma ; \Sigma' \vdash t' : T$, and $\Sigma' \vdash \sigma'$ for some $\Sigma' \supseteq \Sigma$.
 
-\item If $\Delta ; \Sigma \vdash (t, \mu, Q, S)^h$ and $(t, \mu, Q, S)^h \longrightarrow (t', \mu', Q', S')^h$ then $\Delta' ; \Sigma' \vdash (t', \mu', Q', S')^h$ for some $\Delta' \supseteq \Delta$ and $\Sigma' \supseteq \Sigma$.
-
-\item If $\Delta \vdash H$ and $H \twoheadrightarrow H'$ then $\Delta' \vdash H'$ for some $\Delta' \supseteq \Delta$.
+\item If $\Sigma \vdash H$ and $H \twoheadrightarrow H'$ then $\Sigma' \vdash H'$ for some $\Sigma' \supseteq \Sigma$.
 
 \end{enumerate}
 
 \end{thm}
 \begin{proof}
-  Part 1: by induction on the derivation of $t~|~\mu \rightarrow^h
-  t'~|~\mu'$. Part 2: by induction on the derivation of $(t, \mu, Q,
-  S)^h \longrightarrow (t', \mu', Q', S')^h$. Part 3: by induction on
-  the derivation of $H \twoheadrightarrow H'$. See
-  Appendix~\ref{app:subject-reduction} for the complete proof.
+  Part 1: by induction on the derivation of $t~|~\sigma \rightarrow^h
+  t'~|~\sigma'$. Part 2: by induction on the derivation of $H
+  \twoheadrightarrow H'$. See Appendix~\ref{app:subject-reduction} for
+  the complete proof.
 \end{proof}
 
 
