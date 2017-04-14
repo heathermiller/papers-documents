@@ -345,6 +345,8 @@ $parent$, which are defined as follows:
 \caption{Distributed reduction.}\label{fig:dist-rules}
 \end{figure}
 
+\note{rewrite}
+
 Figure~\ref{fig:dist-rules} shows the non-deterministic reduction
 rules. The non-deterministic reduction relation has the form $H
 \twoheadrightarrow H'$ where $H$ and $H'$ are sets of hosts of the
@@ -433,123 +435,101 @@ between different hosts in the case of non-deterministic reduction.
 
 \begin{figure}
 \begin{mathpar}
-% variable
 \inferrule[\textsc{T-Var}] {
   x : T \in \Gamma
 } { 
-  \Gamma ; \Sigma ; \Delta \vdash x : T
+  \Gamma ; \Sigma \vdash x : T
 }
 
-\inferrule[\textsc{T-Loc}] {
-  \Sigma(\iota) : T
+\inferrule[\textsc{T-Ident}] {
+  \Sigma(\iota) = T
 } {
-  \Gamma ; \Sigma ; \Delta \vdash \iota : T
+  \Gamma ; \Sigma \vdash \iota : \texttt{Future}[T]
 }
 
-% abstraction
 \inferrule[\textsc{T-Abs}] {
-  \Gamma, x : T ; \Sigma ; \Delta \vdash t : T'
+  \Gamma, x : T ; \Sigma \vdash t : T'
 } {
-  \Gamma ; \Sigma ; \Delta \vdash ((x: T) \Rightarrow t) : T \Rightarrow T'
+  \Gamma ; \Sigma \vdash ((x: T) \Rightarrow t) : T \Rightarrow T'
 }
 
-% application
 \inferrule[\textsc{T-App}] {
-  \Gamma ; \Sigma ; \Delta \vdash t : T \Rightarrow T' \quad
-  \Gamma ; \Sigma ; \Delta \vdash t' : T
+  \Gamma ; \Sigma \vdash t : T \Rightarrow T' \quad
+  \Gamma ; \Sigma \vdash t' : T
 } { 
-  \Gamma ; \Sigma ; \Delta \vdash (t~t') : T'
+  \Gamma ; \Sigma \vdash (t~t') : T'
 }
 
-% record
 \inferrule[\textsc{T-Record}] {
-  \Gamma ; \Sigma ; \Delta \vdash \seq{t} : \seq{T}
+  \Gamma ; \Sigma \vdash \seq{t} : \seq{T}
 } {
-  \Gamma ; \Sigma ; \Delta \vdash \{ \seq{l = t} \} : \{ \seq{l : T} \}
+  \Gamma ; \Sigma \vdash \{ \seq{l = t} \} : \{ \seq{l : T} \}
 }
 
-% selection
 \inferrule[\textsc{T-Select}] {
-  \Gamma ; \Sigma ; \Delta \vdash t : \{ \seq{l : T} \}
+  \Gamma ; \Sigma \vdash t : \{ \seq{l : T} \}
 } {
-  \Gamma ; \Sigma ; \Delta \vdash t.l_i : T_i
+  \Gamma ; \Sigma \vdash t.l_i : T_i
 }
 
-% spore
+\inferrule[\textsc{T-Unit}] {
+} {
+  \Gamma ; \Sigma \vdash \unit : \texttt{Unit}
+}
+
 \inferrule[\textsc{T-Spore}] {
-  \Gamma ; \Sigma ; \Delta \vdash \seq{t} : \seq{T}  \quad
-  \seq{x : T}, x : T ; \emptyset ; \Delta \vdash t : T' \quad
-  \forall T_i \in \seq{T}.~serializable(T_i)
-} { 
-  \Gamma ; \Sigma ; \Delta \vdash (\texttt{spore}~\{~\seq{x : T = t}~; (x: T) \Rightarrow t~\}) : T \Rightarrow T'~\{~\texttt{type}~\mathcal{C} = \seq{T}~\}
+  \Gamma ; \Sigma \vdash \seq{t} : \seq{T}     \quad
+  \seq{x : T}, x : T ; \emptyset \vdash t : T' \quad
+  \forall S \in \seq{T} , T'.~serializable(S)
+} {
+  \Gamma ; \Sigma \vdash (\texttt{spore}~\{~\seq{x : T = t}~; (x: T) \Rightarrow t~\}) : T \Rightarrow T'~\{~\texttt{type}~\mathcal{C} = \seq{T}~\}
 }
 
 \inferrule[\textsc{T-AppSpore}] {
-  \Gamma ; \Sigma ; \Delta \vdash t : T \Rightarrow T'~\{~\texttt{type}~\mathcal{C} = \seq{T}~\} \quad
-  \Gamma ; \Sigma ; \Delta \vdash t' : T
+  \Gamma ; \Sigma \vdash t : T \Rightarrow T'~\{~\texttt{type}~\mathcal{C} = \seq{T}~\} \quad
+  \Gamma ; \Sigma \vdash t' : T
 } { 
-  \Gamma ; \Sigma ; \Delta \vdash (t~t') : T'
+  \Gamma ; \Sigma \vdash (t~t') : T'
 }
 
-% spawn
-\inferrule[\textsc{T-Spawn}] {
-  \Gamma ; \Sigma ; \Delta \vdash t : (\{\} \Rightarrow T~\{~\texttt{type}~\mathcal{C} = \seq{T}~\})
-} {
-  \Gamma ; \Sigma ; \Delta \vdash \texttt{spawn}(t) : \texttt{Host}
-}
-
-% populate
-% TODO make async (Future[SiloRef[T]]); cf. R-Populate
 \inferrule[\textsc{T-Populate}] {
-  \Gamma ; \Sigma ; \Delta \vdash t : \texttt{Host} \quad
-  \Gamma ; \Sigma ; \Delta \vdash t' : T            \quad
-  serializable(T)
+  \Gamma ; \Sigma \vdash t : \texttt{Host}
 } {
-  \Gamma ; \Sigma ; \Delta \vdash \texttt{populate}(t, t') : \texttt{SiloRef}[T]
+  \Gamma ; \Sigma \vdash \texttt{populate}(t) : \texttt{SiloRef}[\texttt{Unit}]
 }
 
-% map
 \inferrule[\textsc{T-Map}] {
-  \Gamma ; \Sigma ; \Delta \vdash t : \texttt{SiloRef}[T] \quad
-  \Gamma ; \Sigma ; \Delta \vdash t' : (T \Rightarrow T'~\{~\texttt{type}~\mathcal{C} = \seq{T}~\})
+  \Gamma ; \Sigma \vdash t : \texttt{SiloRef}[T] \quad
+  \Gamma ; \Sigma \vdash t' : (T \Rightarrow T'~\{~\texttt{type}~\mathcal{C} = \seq{T}~\})
 } {
-  \Gamma ; \Sigma ; \Delta \vdash \texttt{map}(t, t') : \texttt{SiloRef}[T']
+  \Gamma ; \Sigma \vdash \texttt{map}(t, t') : \texttt{SiloRef}[T']
 }
 
-% flatMap
 \inferrule[\textsc{T-FMap}] {
-  \Gamma ; \Sigma ; \Delta \vdash t : \texttt{SiloRef}[T] \quad
-  \Gamma ; \Sigma ; \Delta \vdash t' : (T \Rightarrow \texttt{SiloRef}[T']~\{~\texttt{type}~\mathcal{C} = \seq{T}~\})
+  \Gamma ; \Sigma \vdash t : \texttt{SiloRef}[T] \quad
+  \Gamma ; \Sigma \vdash t' : (T \Rightarrow \texttt{SiloRef}[T']~\{~\texttt{type}~\mathcal{C} = \seq{T}~\})
 } {
-  \Gamma ; \Sigma ; \Delta \vdash \texttt{flatMap}(t, t') : \texttt{SiloRef}[T']
+  \Gamma ; \Sigma \vdash \texttt{flatMap}(t, t') : \texttt{SiloRef}[T']
 }
 
-% persist
-\inferrule[\textsc{T-Persist}] {
-  \Gamma ; \Sigma ; \Delta \vdash t : \texttt{SiloRef}[T]
-} {
-  \Gamma ; \Sigma ; \Delta \vdash \texttt{persist}(t) : \texttt{SiloRef}[T]
-}
-
-% send
 \inferrule[\textsc{T-Send}] {
-  \Gamma ; \Sigma ; \Delta \vdash t : \texttt{SiloRef}[T]
+  \Gamma ; \Sigma \vdash t : \texttt{SiloRef}[T] \quad
+  \Gamma ; \Sigma \vdash t' : \texttt{SiloRef}[T]
 } {
-  \Gamma ; \Sigma ; \Delta \vdash \texttt{send}(t) : \texttt{Future}[T]
+  \Gamma ; \Sigma \vdash \texttt{send}(t, t') : \texttt{Future}[T]
 }
 
 \inferrule[\textsc{T-SiloRef}] {
-  \Delta(id(r)) = T \quad
-  \Delta \vdash r
+  \Sigma(id(r)) = T \quad
+  \Sigma \vdash r
 } {
-  \Gamma ; \Sigma ; \Delta \vdash r : \texttt{SiloRef}[T]
+  \Gamma ; \Sigma \vdash r : \texttt{SiloRef}[T]
 }
 
-% await
 \inferrule[\textsc{T-Await}] {
-  \Gamma ; \Sigma ; \Delta \vdash t : \texttt{Future}[T]
+  \Gamma ; \Sigma \vdash t : \texttt{Future}[T]
 } {
-  \Gamma ; \Sigma ; \Delta \vdash \texttt{await}(t) : T
+  \Gamma ; \Sigma \vdash \texttt{await}(t) : T
 }
 \end{mathpar}
 \caption{Type assignment.}\label{fig:type-rules}
