@@ -112,101 +112,107 @@ By induction on the derivation of $\Gamma ; \Sigma ; \Delta \vdash v : T$ with a
 \end{thmun}
 \begin{proof}
 
-Part 1: by induction on the derivation of $t~|~\mu \rightarrow^h t'~|~\mu'$ with case analysis of the last applied rule.
+Part 1: by induction on a derivation of $t~|~\sigma \rightarrow^h t'~|~\sigma'$ with case analysis of the last applied rule.
 
 \begin{itemize}
-\item Case R-AppAbs.
+\item Case \textsc{R-AppAbs}.
 \begin{enumerate}
 % 1.
 \item By the assumptions
   \begin{enumerate}[label=(\alph*)]
-  \item $\Gamma ; \Sigma ; \Delta \vdash t : T$
-  \item $\Sigma \vdash \mu$
-  \item $t~|~\mu \rightarrow^h t'~|~\mu'$
+  \item $\Gamma ; \Sigma \vdash t : T$
+  \item $\Sigma \vdash \sigma$
+  \item $t~|~\sigma \rightarrow^h t'~|~\sigma'$
   \end{enumerate}
 % 2.
-\item By R-AppAbs
+\item By \textsc{R-AppAbs}
   \begin{enumerate}[label=(\alph*)]
   \item $t = E[((x : T') \Rightarrow t'')~v']$
   \item $t' = E[[x \mapsto v']t'']$
-  \item $\mu' = \mu$
+  \item $\sigma' = \sigma$
   \end{enumerate}
 % 3.
-\item By 1.a) and 2.a), $\Gamma ; \Sigma ; \Delta \vdash ((x : T') \Rightarrow t'')~v' : T''$.
+\item By 1.a) and 2.a), $\Gamma ; \Sigma \vdash ((x : T') \Rightarrow t'')~v' : T''$.
 % 4.
-\item By 3. and T-App,
+\item By 3. and \textsc{T-App},
   \begin{enumerate}[label=(\alph*)]
-  \item $\Gamma ; \Sigma ; \Delta \vdash ((x : T') \Rightarrow t'') : T' \Rightarrow T''$
-  \item $\Gamma ; \Sigma ; \Delta \vdash v' : T'$
+  \item $\Gamma ; \Sigma \vdash ((x : T') \Rightarrow t'') : T' \Rightarrow T''$
+  \item $\Gamma ; \Sigma \vdash v' : T'$
   \end{enumerate}
 % 5.
-\item By 4.a) and T-Abs, $\Gamma , x : T' ; \Sigma ; \Delta \vdash t'' : T''$.
+\item By 4.a) and \textsc{T-Abs}, $\Gamma , x : T' ; \Sigma \vdash t'' : T''$.
 % 6.
-\item By 4.b), 5., and Lemma~\ref{lem:subst}, $\Gamma ; \Sigma ; \Delta \vdash [x \mapsto v']t'' : T''$.
+\item By 4.b), 5., and Lemma~\ref{th:subst}, $\Gamma ; \Sigma \vdash [x \mapsto v']t'' : T''$.
 % 7.
-\item By 1.a), 2.a-b), 3., and 6., $\Gamma ; \Sigma ; \Delta \vdash t' : T$.
+\item By 1.a), 2.a-b), 3., and 6., $\Gamma ; \Sigma \vdash t' : T$.
 % 8.
 \item 2.c) and 7. close this case.
 \end{enumerate}
 
-\item Cases R-ProjRcd, R-AppSpore, and R-Await follow analogously.
+\item Cases \textsc{R-ProjRcd}, \textsc{R-AppSpore}, \textsc{R-Await}, and \textsc{R-Assign} follow analogously.
 
-\item Case R-Map.
+\item Case \textsc{R-Map}.
 \begin{enumerate}
 % 1.
 \item By the assumptions
   \begin{enumerate}[label=(\alph*)]
-  \item $\Gamma ; \Sigma ; \Delta \vdash t : T$
-  \item $\Sigma \vdash \mu$
-  \item $t~|~\mu \rightarrow^h t'~|~\mu'$
+  \item $\Gamma ; \Sigma \vdash t : T$
+  \item $\Sigma \vdash \sigma$
+  \item $t~|~\sigma \rightarrow^h t'~|~\sigma'$
   \end{enumerate}
 % 2.
-\item By R-Map
+\item By \textsc{R-Map}
   \begin{enumerate}[label=(\alph*)]
-  \item $t = E[\texttt{map}(r, p)]$
+  \item $t  = E[\texttt{map}(r, p)]$
+  \item $r  = {\Ref l {h'}}$
   \item $t' = E[r']$
-  \item $r' = \text{Mapped}((h, i), r, p)$
-  \item $i~\text{fresh}$
-  \item $\mu' = \mu$
+  \item $r' = {\Ref {l'} {h'}}$
+  \item $l' = {\Mapped {(h, i)} l p}$ where $i~\text{fresh}$
+  \item $\sigma' = \sigma$
   \end{enumerate}
 % 3.
-\item By 1.a) and 2.a), $\Gamma ; \Sigma ; \Delta \vdash \texttt{map}(r, p) : \hat{T}$.
+\item By 1.a) and 2.a), $\Gamma ; \Sigma \vdash \texttt{map}(r, p) : \hat{T}$.
 % 4.
-\item By 3. and T-Map,
+\item By 3. and \textsc{T-Map},
   \begin{enumerate}[label=(\alph*)]
   \item $\hat{T} = \texttt{SiloRef}[T']$
-  \item $\Gamma ; \Sigma ; \Delta \vdash r : \texttt{SiloRef}[T'']$
-  \item $\Gamma ; \Sigma ; \Delta \vdash p : (T'' \Rightarrow T' \{~\texttt{type}~\mathcal{C} = \seq{T}~\})$
+  \item $\Gamma ; \Sigma \vdash r : \texttt{SiloRef}[T'']$
+  \item $\Gamma ; \Sigma \vdash p : T'' \Rightarrow T'~\{~\texttt{type}~\mathcal{C} = \seq{T}~\}$
   \end{enumerate}
 % 5.
-\item By 4.b) and T-SiloRef
+\item By 2.b), 4.b), \textsc{T-SiloRef}, and \textsc{WF-Ref}
   \begin{enumerate}[label=(\alph*)]
-  \item $\Delta(id(r)) = T''$
-  \item $\Delta \vdash r$
+  \item $\Sigma(id(l)) = T''$
+  \item $\Sigma \vdash r$
+  \item $\Sigma \vdash l$
+  \item $h' \in \mathcal{H}$
   \end{enumerate}
 % 6.
-\item Define $\Delta' := [(h, i) \mapsto T']\Delta$.
+\item Define $\Sigma' := [(h, i) \mapsto T']\Sigma$.
 % 7.
-\item By 4.c), 5.a-b), 6., and WF-Ref1, $\Delta' \vdash r'$.
+\item By 2.d-e), 4.c), 5.a-d), 6., \textsc{WF-Lin1}, and \textsc{WF-Ref}, $\Sigma' \vdash r'$.
 % 8.
-\item By 2.c), 6., 7., and T-SiloRef, $\Gamma ; \Sigma ; \Delta' \vdash r' : \texttt{SiloRef}[T']$.
+\item By 2.d-e), 6., 7., and \textsc{T-SiloRef}, $\Gamma ; \Sigma' \vdash r' : \texttt{SiloRef}[T']$.
 % 9.
-\item By 2.d), 3., 4.a), and 6., $\Gamma ; \Sigma ; \Delta' \vdash \texttt{map}(r, p) : \texttt{SiloRef}[T']$.
+\item By 2.e), 3., 4.a), 6., and part 1 of Lemma~\ref{lem:weakening-store-typing}, $\Gamma ; \Sigma' \vdash \texttt{map}(r, p) : \texttt{SiloRef}[T']$.
 % 10.
-\item By 1.a), 2.d), 6., $\Gamma ; \Sigma ; \Delta' \vdash t : T$.
+\item By 1.a), 2.e), 6., and part 1 of Lemma~\ref{lem:weakening-store-typing}, $\Gamma ; \Sigma' \vdash t : T$.
 % 11.
-\item By 2.a-b), 8., 9., 10., $\Gamma ; \Sigma ; \Delta' \vdash t' : T$.
+\item By 2.a,c), 8., 9., 10., $\Gamma ; \Sigma' \vdash t' : T$.
 % 12.
-\item By 2.e) and 1.b), $\Sigma \vdash \mu'$.
+\item By 2.f) and 1.b), $\Sigma \vdash \sigma'$.
 % 13.
-\item By 6., $\Delta' \supseteq \Delta$.
+\item By 6., $\Sigma' \supseteq \Sigma$.
 % 14.
-\item 11., 12., and 13. close this case.
+\item By 12., 13., and \textsc{WF-Store2}, $\Sigma' \vdash \sigma'$.
+% 15.
+\item 11., 13., and 14. close this case.
 \end{enumerate}
 
-\item Cases R-FMap, R-Persist, and R-Unpersist follow analogously.
+\item Cases \textsc{R-FMap}, \textsc{R-Populate}, \textsc{R-Persist}, and \textsc{R-Unpersist} follow analogously.
 \end{itemize}
 
+%
 Part 2: by induction on the derivation of $(t, \mu, Q, S)^h \longrightarrow (t', \mu', Q', S')^h$ with case analysis of the last applied rule.
 
 \begin{itemize}
