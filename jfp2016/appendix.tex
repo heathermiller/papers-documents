@@ -101,7 +101,7 @@ By induction on the derivation of $\Gamma ; \Sigma ; \Delta \vdash v : T$ with a
 \begin{lem}
 \emph{(Weakening of Store Typing)}\label{lem:weakening-store-typing}
 \begin{enumerate}
-\item If $\Gamma ; \Sigma \vdash t : T$ and $\iota \notin \Sigma$ then $\Gamma ; \Sigma' \vdash t : T$ where $\Sigma' = [\iota \mapsto T]\Sigma$.
+\item If $\Gamma ; \Sigma \vdash t : T$ and $\iota \notin \Sigma$ then $\Gamma ; \Sigma' \vdash t : T$ where $\Sigma' = [\iota \mapsto T']\Sigma$.
 \item If $\Sigma \vdash (t, \sigma, Q)^h$ and $\iota \notin \Sigma$ then $\Sigma' \vdash (t, \sigma, Q)^h$ where $\Sigma' = [\iota \mapsto T]\Sigma$.
 \item If $\Sigma \vdash H$ and $\iota \notin \Sigma$ then $\Sigma' \vdash H$ where $\Sigma' = [\iota \mapsto T]\Sigma$.
 \end{enumerate}
