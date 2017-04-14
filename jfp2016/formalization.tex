@@ -384,7 +384,7 @@ between different hosts in the case of non-deterministic reduction.
   \sigma(id(l)) = v \quad
   M = \{ h' \leftarrow {\Res \iota v} \}
 } {
-  process(h, {\Req {h'} r \iota}, \sigma) = (\epsilon, M, \sigma)
+  process(h, {\Req {h'} r \iota}, \sigma) = (\texttt{unit}, M, \sigma)
 }
 
 \inferrule[\textsc{Proc-ReqMat}] {
@@ -419,13 +419,13 @@ between different hosts in the case of non-deterministic reduction.
   id(l') \notin dom(\sigma) \\
   M = \{ h \leftarrow {\Req h {\Ref {l'} h} {id(l')}}, h \leftarrow {\Req {h'} r \iota} \}
 } {
-  process(h, {\Req {h'} r \iota}, \sigma) = (\epsilon, M, \sigma)
+  process(h, {\Req {h'} r \iota}, \sigma) = (\texttt{unit}, M, \sigma)
 }
 
 \inferrule[\textsc{Proc-Res}] {
   \sigma' = [\iota \mapsto v]\sigma
 } {
-  process(h, {\Res \iota v}, \sigma) = (\epsilon, \emptyset, \sigma')
+  process(h, {\Res \iota v}, \sigma) = (\texttt{unit}, \emptyset, \sigma')
 }
 
 \end{mathpar}
@@ -481,8 +481,7 @@ between different hosts in the case of non-deterministic reduction.
   \Gamma ; \Sigma \vdash t.l_i : T_i
 }
 
-\inferrule[\textsc{T-Unit}] {
-} {
+\inferrule[\textsc{T-Unit}] {} {
   \Gamma ; \Sigma \vdash \unit : \texttt{Unit}
 }
 
@@ -849,7 +848,7 @@ of hosts which are known to have persisted silo $\iota$:
   M = \{ h' \leftarrow \highlight{{\ResP \iota v P}} \} \quad
   \highlight{\sigma' = {\consume {id(l)} P \sigma}}
 } {
-  process(h, {\Req {h'} r \iota}, \sigma) = (\epsilon, M, \highlight{\sigma'})
+  process(h, {\Req {h'} r \iota}, \sigma) = (\texttt{unit}, M, \highlight{\sigma'})
 }
 
 \inferrule[\textsc{Proc-ReqMap}] {
@@ -881,13 +880,13 @@ of hosts which are known to have persisted silo $\iota$:
   \sigma'        = [\iota' \mapsto (v, P')]\sigma  \quad
   \sigma''       = {\consume {id(l')} P {\sigma'}}
 } {
-  process(h, {\Req {h'} r \iota}, \sigma) = (\epsilon, \{ h' \leftarrow {\ResP \iota v {P'}} \}, \sigma'')
+  process(h, {\Req {h'} r \iota}, \sigma) = (\texttt{unit}, \{ h' \leftarrow {\ResP \iota v {P'}} \}, \sigma'')
 }
 
 \inferrule[\textsc{Proc-Res}] {
   \sigma' = [\iota \mapsto \highlight{(v, P)}]\sigma
 } {
-  process(h, \highlight{{\ResP \iota v P}}, \sigma) = (\epsilon, \emptyset, \sigma')
+  process(h, \highlight{{\ResP \iota v P}}, \sigma) = (\texttt{unit}, \emptyset, \sigma')
 }
 \end{mathpar}
 \caption{Extension of message processing.}\label{fig:process-persist}
