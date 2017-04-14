@@ -345,11 +345,11 @@ $parent$, which are defined as follows:
 }
 
 \inferrule[\textsc{R-Process}] {
-  process(h, m, \sigma) = (\sigma', M')
+  process(h, m, \sigma) = (t, M')
 } {
   \{ (E[\texttt{await}(\iota)], \sigma, m \cdot Q)^h \} \cup H ~|~ M
   \twoheadrightarrow
-  \{ (E[\texttt{await}(\iota)], \sigma', Q)^h \} \cup H ~|~ M \cup M'
+  \{ (E[t~;~\texttt{await}(\iota)], \sigma, Q)^h \} \cup H ~|~ M \cup M'
 }
 
 \end{mathpar}
