@@ -742,6 +742,13 @@ combine the previous rules in the expected way.
 }
 % was wir ausschliessen muessen ist: \Sigma(\iota') \neq \Sigma'(\iota') fuer zwei verschiedene Hosts
 
+\inferrule[\textsc{WF-Config}] {
+  \Sigma \vdash m \cdot \epsilon \quad
+  \Sigma \vdash H~|~M
+} {
+  \Sigma \vdash H~|~ \{ h \leftarrow m \} \cup M
+}
+
 \end{mathpar}
 \caption{Well-formedness.}\label{fig:well-formed}
 \end{figure}
