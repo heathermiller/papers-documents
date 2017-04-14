@@ -105,7 +105,7 @@ By induction on the derivation of $\Gamma ; \Sigma ; \Delta \vdash v : T$ with a
 
 \item If $\Gamma ; \Sigma \vdash t : T$, $\Sigma \vdash \sigma$, and $t~|~\sigma \rightarrow^h t'~|~\sigma'$ then $\Gamma ; \Sigma' \vdash t' : T$, and $\Sigma' \vdash \sigma'$ for some $\Sigma' \supseteq \Sigma$.
 
-\item If $\Sigma \vdash H$ and $H \twoheadrightarrow H'$ then $\Sigma' \vdash H'$ for some $\Sigma' \supseteq \Sigma$.
+\item If $\Sigma \vdash H~|~M$ and $H~|~M \twoheadrightarrow H'~|~M'$ then $\Sigma' \vdash H'~|~M'$ for some $\Sigma' \supseteq \Sigma$.
 
 \end{enumerate}
 
