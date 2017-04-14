@@ -752,12 +752,12 @@ This section establishes a subject reduction theorem for the presented
 core language. The complete proof is provided in the appendix; here,
 we restrict ourselves to summarizing the main results.
 
-\begin{lemma}
-\emph{(Substitution)}\label{lem:subst}
-If $\Gamma , x : T' ; \Sigma ; \Delta \vdash t : T$ and $\Gamma ; \Sigma ; \Delta \vdash v : T'$ then $\Gamma ; \Sigma ; \Delta \vdash [x \mapsto v]t : T$.
-\end{lemma}
+\begin{lem}
+\emph{(Substitution)}\label{th:subst}
+If $\Gamma , x : T' ; \Sigma \vdash t : T$ and $\Gamma ; \Sigma \vdash v : T'$ then $\Gamma ; \Sigma \vdash [x \mapsto v]t : T$.
+\end{lem}
 \begin{proof}
-By induction on the derivation of $\Gamma , x : T' ; \Sigma ; \Delta \vdash t : T$.
+By induction on the derivation of $\Gamma , x : T' ; \Sigma \vdash t : T$.
 \end{proof}
 
 \begin{lemma}
