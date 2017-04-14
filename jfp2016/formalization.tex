@@ -646,9 +646,17 @@ combine the previous rules in the expected way.
 }
 
 \inferrule[\textsc{WF-Store2}] {
-  \Sigma \supseteq \Sigma' \quad \Sigma' \vdash \sigma
+  \emptyset ; \Sigma \vdash v : T  \quad
+  \Sigma \vdash \sigma
 } {
   [\iota \mapsto T]\Sigma \vdash [\iota \mapsto v]\sigma
+}
+
+\inferrule[\textsc{WF-Store3}] {
+  \Sigma \vdash \sigma  \quad
+  \Sigma' \supseteq \Sigma
+} {
+  \Sigma' \vdash \sigma
 }
 
 \inferrule[\textsc{WF-Lin1}] {
@@ -679,26 +687,6 @@ combine the previous rules in the expected way.
   \Sigma \vdash l \quad h \in \mathcal{H}
 } {
   \Sigma \vdash {\Ref l h}
-}
-
-\inferrule[\textsc{WF-SiloStore1}] {} {
-  \Sigma \vdash \emptyset
-}
-
-\inferrule[\textsc{WF-SiloStore2}] {
-  \Sigma(\iota) = T                   \quad
-  \emptyset ; \emptyset \vdash v : T  \quad
-  \Sigma \vdash \sigma
-} {
-  \Sigma \vdash [\iota \mapsto {\Val v}]\sigma
-}
-
-\inferrule[\textsc{WF-SiloStore3}] {
-  \Sigma(id(r)) = \Sigma(\iota)      \quad
-  \Sigma \vdash r                    \quad
-  \Sigma \vdash \sigma
-} {
-  \Sigma \vdash [\iota \mapsto {\Fwd r}]\sigma
 }
 
 \inferrule[\textsc{WF-Q1}] {} {
@@ -755,7 +743,6 @@ combine the previous rules in the expected way.
 } {
   \Sigma \vdash H~|~M
 }
-
 \end{mathpar}
 \caption{Well-formedness.}\label{fig:well-formed}
 \end{figure}
