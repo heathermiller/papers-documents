@@ -694,8 +694,8 @@ combine the previous rules in the expected way.
 }
 
 \inferrule[\textsc{WF-Q2}] {
-  \Sigma(\iota) = T                   \quad
-  \emptyset ; \emptyset \vdash v : T  \quad
+  \Sigma(\iota) = T                \quad
+  \emptyset ; \Sigma \vdash v : T  \quad
   \Sigma \vdash Q
 } {
   \Sigma \vdash {\Res \iota v} \cdot Q
