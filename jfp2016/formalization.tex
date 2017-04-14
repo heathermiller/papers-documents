@@ -288,7 +288,7 @@ $parent$, which are defined as follows:
   $host({\Ref l h}) := h$
 \end{defn}
 
-\begin{defn}[Lineage identifier]
+\begin{defn}[Lineage identifier]\label{def:id}
   The identifier of a lineage.
 
   $id(l) := \left\{\ba{ll}
@@ -298,7 +298,7 @@ $parent$, which are defined as follows:
   \ea\right.$
 \end{defn}
 
-\begin{defn}[Lineage parent]
+\begin{defn}[Lineage parent]\label{def:parent}
   The parent of a lineage.
 
   $parent(l) := \left\{\ba{ll}
@@ -759,6 +759,84 @@ combine the previous rules in the expected way.
 \end{mathpar}
 \caption{Well-formedness.}\label{fig:well-formed}
 \end{figure}
+
+\subsection{Persist and Unpersist}
+
+\note{write some text}
+
+\begin{figure}
+  \centering
+$\ba[t]{l@{\hspace{2mm}}l}
+t ::=                                     & \mbox{{\it terms:}} \\
+\gap \:\:\:\: \ldots                      & \mbox{} \\
+\gap ~|~ \texttt{persist}(t)              & \mbox{persist} \\
+\gap ~|~ \texttt{unpersist}(t)            & \mbox{unpersist} \\
+& \\
+l ::=                                    & \mbox{{\it{lineages:}}} \\
+\gap \:\:\:\: \ldots                     & \mbox{} \\
+\gap ~|~  \text{Persist}(\iota, l, f)    & \mbox{lineage with \texttt{persist}} \\    
+\ea$
+  \caption{Extensions of syntax and lineages for
+    persist/unpersist. $f$ is a binary operator with $f \in
+    \{\cdot\cup\cdot, \cdot\setminus\cdot\}.$}
+  \label{fig:persist-syntax}
+\end{figure}
+
+The definition of evaluation contexts is extended in the
+straightforward way:
+
+$\ba[t]{l@{\hspace{2mm}}l}
+E ::=                             & \mbox{\it{evaluation contexts:}} \\
+\gap \:\:\:\: \ldots              & \mbox{} \\
+\gap ~|~  \texttt{persist}(E)     & \mbox{persist} \\
+\gap ~|~  \texttt{unpersist}(E)   & \mbox{unpersist} \\
+\ea$
+
+Definition~\ref{def:id} is extended to handle the following additional
+case: $id(Persist(\iota, \_, \_)) =
+\iota$. Definition~\ref{def:parent} is extended analogously. To
+distinguish between persisted and regular silos when accessing their
+data, we will utilize the following $\mathit{consume}$ function:
+
+\begin{defn}[Consume silo]\label{def:consume}
+Consume silo referenced by $\iota$ with persist set $P$ in store $\sigma$ \\
+$consume(\iota, P, \sigma) := \left\{\ba{ll}
+    \sigma - \iota & \text{if } P = \emptyset \\
+    \sigma         & \text{otherwise} \\
+  \ea\right.$
+\end{defn}
+
+The store is also extended to store not just the value associated with
+an identifier $\iota$, but also a ``persist set'' $P$ which is a set
+of hosts which are known to have persisted silo $\iota$:
+
+\begin{defn}[Store]\label{def:store2}
+  $\sigma \in \mathcal{H} \times \mathbb{N} \rightharpoonup v \times \mathcal{P}(\mathcal{H})$.
+\end{defn}
+
+\begin{figure}
+\centering
+\begin{mathpar}
+\inferrule[\textsc{R-Persist}] {
+  r = {\Ref l {h'}} \quad
+  l' = \text{Persist}((h, i), l, \cdot \cup \cdot) \quad i~\text{fresh}
+} {
+  E[\texttt{persist}(r)]~|~\sigma
+  \rightarrow^h
+  E[{\Ref {l'} {h'}}]~|~\sigma
+}
+\inferrule[\textsc{R-Unpersist}] {
+  r = {\Ref l {h'}} \quad
+  l' = \text{Persist}((h, i), l, \cdot \setminus \cdot) \quad i~\text{fresh}
+} {
+  E[\texttt{unpersist}(r)]~|~\sigma
+  \rightarrow^h
+  E[{\Ref {l'} {h'}}]~|~\sigma
+}
+\end{mathpar}
+\caption{Extensions of local reduction.}\label{fig:persist-local-reduction}
+\end{figure}
+
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %
