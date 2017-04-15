@@ -57,62 +57,52 @@ By induction on the derivation of $\Gamma ; \Sigma \vdash v : T$ with a case ana
 \end{itemize}
 \end{proof}
 
+
 \subsection{Proof of Lemma~\ref{lem:queue-concat}}\label{app:queue-concat}
 
 \begin{lemmaun}
 \emph{(Queue Concatenation)}
-If $\Delta ; \Sigma \vdash Q$ and $\Delta ; \Sigma \vdash Q'$ then $\Delta ; \Sigma \vdash Q ::: Q'$.
+If $\Sigma \vdash Q$ and $\Sigma \vdash Q'$ then $\Sigma \vdash Q ::: Q'$.
 \end{lemmaun}
 \begin{proof}
 By induction on the length of $Q$. The case where $Q = \epsilon$ is trivial.
 
-Case $Q = m :: Q''$.
+Case $Q = m \cdot Q''$.
 \begin{enumerate}
-\item[A1.] By WF-Q1-4, $\Delta ; \Sigma \vdash Q''$.
-\item[A2.] By A1. and the IH, $\Delta ; \Sigma \vdash Q'' ::: Q'$.
+\item[A1.] By \textsc{WF-Q1-3}, $\Sigma \vdash Q''$.
+\item[A2.] By the IH, $\Sigma \vdash Q'' ::: Q'$.
 \end{enumerate}
 
 \begin{itemize}
-\item Case $m = {\ReqF \iota \omega}$.
+\item Case $m = {\ResP \iota v P}$.
 \begin{enumerate}
 % 1.
-\item By the assumption and WF-Q2
+\item By the assumption and \textsc{WF-Q2}
   \begin{enumerate}[label=(\alph*)]
-  \item $\Delta(\omega) = T$
-  \item $\Sigma(\iota) = \texttt{Future}[T]$
-  \item $\Delta ; \Sigma \vdash Q''$
+  \item $\Sigma(\iota) = T$
+  \item $\emptyset ; \Sigma \vdash v : T$
+  \item $\Sigma \vdash Q''$
   \end{enumerate}
 % 2.
-\item By A2., 1.a-b), and WF-Q2, $\Delta ; \Sigma \vdash m :: Q'' ::: Q'$.
+\item By A2., 1.a-b), and \textsc{WF-Q2}, $\Sigma \vdash m \cdot Q'' ::: Q'$.
 \end{enumerate}
 
-\item Case $m = {\Res \omega v P}$.
+\item Case $m = {\Req h r \iota}$.
 \begin{enumerate}
 % 1.
-\item By the assumption and WF-Q3
+\item By the assumption and \textsc{WF-Q3}
   \begin{enumerate}[label=(\alph*)]
-  \item $\Delta(\omega) = T$
-  \item $\emptyset ; \emptyset ; \Delta \vdash v : T$
-  \item $\Delta ; \Sigma \vdash Q''$
+  \item $r = {\Ref l {h'}}$
+  \item $\Sigma(id(l)) = \Sigma(\iota)$
+  \item $\Sigma \vdash r$
+  \item $\Sigma \vdash Q''$
   \end{enumerate}
 % 2.
-\item By A2., 1.a-b), and WF-Q3, $\Delta ; \Sigma \vdash m :: Q'' ::: Q'$.
-\end{enumerate}
-
-\item Case $m = {\Req h r \omega}$.
-\begin{enumerate}
-% 1.
-\item By the assumption and WF-Q4
-  \begin{enumerate}[label=(\alph*)]
-  \item $\Delta(id(r)) = \Delta(\omega)$
-  \item $\Delta ; \Sigma \vdash Q''$
-  \item $\Delta \vdash r$
-  \end{enumerate}
-% 2.
-\item By A2., 1.a,c), and WF-Q4, $\Delta ; \Sigma \vdash m :: Q'' ::: Q'$.
+\item By A2., 1.a-c), and \textsc{WF-Q3}, $\Sigma \vdash m \cdot Q'' ::: Q'$.
 \end{enumerate}
 \end{itemize}
 \end{proof}
+
 
 \subsection{Proof of Theorem~\ref{th:subject-reduction}}\label{app:subject-reduction}
 
