@@ -19,7 +19,7 @@ By induction on the derivation of $\Gamma ; \Sigma \vdash v : T$ with a case ana
   \item $serializable(T)$
   \end{enumerate}
 % 2.
-\item By \textsc{T-SiloRef}
+\item By 1.a) and \textsc{T-SiloRef}
   \begin{enumerate}[label=(\alph*)]
   \item $v = {\Ref l h}$
   \item $T = \SR{T'}$
@@ -39,14 +39,14 @@ By induction on the derivation of $\Gamma ; \Sigma \vdash v : T$ with a case ana
   \item $serializable(T)$
   \end{enumerate}
 % 2.
-\item By \textsc{T-Record}
+\item By 1.a) and \textsc{T-Record}
   \begin{enumerate}[label=(\alph*)]
   \item $v = \{\seq{l = v}\}$
   \item $T = \{\seq{l : T}\}$
   \item $\Gamma ; \Sigma \vdash \seq{v} : \seq{T}$
   \end{enumerate}
 % 3.
-\item By 2.b) and \textsc{S-Record}, $\forall T_i \in \seq{T}.~serializable(T_i)$.
+\item By 1.b), 2.b), and \textsc{S-Record}, $\forall T_i \in \seq{T}.~serializable(T_i)$.
 % 4.
 \item By 2.c), 3., and the IH, $\emptyset ; \Sigma \vdash \seq{v} : \seq{T}$.
 % 5.
