@@ -228,6 +228,10 @@ standard.  Analogous to rule \textsc{R-AppAbs}, rule
 \textsc{R-AppSpore} describes the application of a spore value to an
 argument value. Rule \textsc{R-Await} reduces $\texttt{await}(\iota)$
 to $v$ if future $\iota$ is already completed with $v$ in $\sigma$.
+Rule \textsc{R-Assign} reduces a term $\texttt{assign}(\iota, v)$ by
+updating the store to map identifier $\iota$ to value $v$; this
+corresponds to populating silo $\iota$ in the local store of host $h$.
+
 
 Rules \textsc{R-Populate}, \textsc{R-Map}, and \textsc{R-FMap}
 describe the creation of lineages.  Rules \textsc{R-Map} and
