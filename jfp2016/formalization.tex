@@ -671,6 +671,14 @@ returned future using \verb|await|.
 } {
   \Gamma ; \Sigma \vdash \texttt{assign}(t, t') : \texttt{Unit}
 }
+
+\inferrule[\textsc{T-Respond}] {
+  h \in \mathcal{H} \quad
+  \Gamma ; \Sigma \vdash t : \texttt{Future}[T] \quad
+  \Gamma ; \Sigma \vdash t' : T
+} {
+  \Gamma ; \Sigma \vdash \texttt{respond}(h, t, t') : \texttt{Unit}
+}
 \end{mathpar}
 \caption{Type assignment.}\label{fig:type-rules}
 \end{figure}
@@ -1050,6 +1058,15 @@ of hosts which are known to have persisted silo $\iota$:
   \Gamma ; \Sigma \vdash t : \SR{T}
 } {
   \Gamma ; \Sigma \vdash \texttt{unpersist}(t) : \SR{T}
+}
+
+\inferrule[\textsc{T-Respond}] {
+  h \in \mathcal{H} \quad
+  \Gamma ; \Sigma \vdash t : \texttt{Future}[T] \quad
+  \Gamma ; \Sigma \vdash t' : T \quad
+  \highlight{P \subseteq \mathcal{H}}
+} {
+  \Gamma ; \Sigma \vdash \texttt{respond}(h, t, t', \highlight{P}) : \texttt{Unit}
 }
 
 \inferrule[\textsc{WF-Store2}] {
