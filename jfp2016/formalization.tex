@@ -576,12 +576,6 @@ returned future using \verb|await|.
   \Gamma ; \Sigma \vdash x : T
 }
 
-\inferrule[\textsc{T-Ident}] {
-  \Sigma(\iota) = T
-} {
-  \Gamma ; \Sigma \vdash \iota : \texttt{Future}[T]
-}
-
 \inferrule[\textsc{T-Abs}] {
   \Gamma, x : T ; \Sigma \vdash t : T'
 } {
@@ -652,17 +646,23 @@ returned future using \verb|await|.
   \Gamma ; \Sigma \vdash \texttt{send}(t) : \texttt{Future}[T]
 }
 
+\inferrule[\textsc{T-Await}] {
+  \Gamma ; \Sigma \vdash t : \texttt{Future}[T]
+} {
+  \Gamma ; \Sigma \vdash \texttt{await}(t) : T
+}
+
+\inferrule[\textsc{T-Ident}] {
+  \Sigma(\iota) = T
+} {
+  \Gamma ; \Sigma \vdash \iota : \texttt{Future}[T]
+}
+
 \inferrule[\textsc{T-SiloRef}] {
   \Sigma(id(l)) = T \quad
   \Sigma \vdash {\Ref l h}
 } {
   \Gamma ; \Sigma \vdash {\Ref l h} : \texttt{SiloRef}[T]
-}
-
-\inferrule[\textsc{T-Await}] {
-  \Gamma ; \Sigma \vdash t : \texttt{Future}[T]
-} {
-  \Gamma ; \Sigma \vdash \texttt{await}(t) : T
 }
 
 \inferrule[\textsc{T-Assign}] {
@@ -685,16 +685,14 @@ returned future using \verb|await|.
 
 \subsection{Type Assignment}
 
-\note{rewrite}
-Type assignment is based on a judgment of the form $\Gamma ; \Sigma ;
-\Delta \vdash t : T$ which assigns term $t$ type $T$. $\Gamma$ is a
-standard type environment; $\Sigma$ is a standard store typing;
-$\Delta$ is a {\em silo store typing} which is new. $\Delta$ maps
-identifiers $\omega$ to types, thereby providing a typing for silo
-stores $S$. Figure~\ref{fig:type-rules} shows the rules for type
-assignment. Rules \textsc{T-Var}, \textsc{T-Loc}, \textsc{T-Abs},
-\textsc{T-App}, \textsc{T-Record}, and \textsc{T-Select} are unchanged
-compared to a standard typed lambda calculus with records~\cite{TAPL}.
+Type assignment is based on a judgment of the form $\Gamma ; \Sigma
+\vdash t : T$ which assigns term $t$ type $T$. $\Gamma$ is a standard
+type environment which maps variables $x$ to types $T$; $\Sigma$ is a
+store typing which maps identifiers $\iota$ to types
+$T$. Figure~\ref{fig:type-rules} shows the rules for type
+assignment. Rules \textsc{T-Var}, \textsc{T-Abs}, \textsc{T-App},
+\textsc{T-Record}, and \textsc{T-Select} are unchanged compared to a
+standard typed lambda calculus with records~\cite{TAPL}.
 
 \begin{figure}
 \begin{mathpar}
@@ -724,8 +722,8 @@ variables $\seq{x}$ in the spore's header, as well as an empty store
 typing. Furthermore, the types of captured variables must be
 serializable. The predicate $serializable$ is defined in
 Figure~\ref{fig:ser-types}. These constraints ensure that spore values
-are always independent of the environment and store of the creating
-host. This independence is expressed by the following theorem:
+are always independent of the environment of the creating host. This
+independence is expressed by the following theorem:
 
 \begin{thm}
 \emph{(Serializable Values)}\label{lem:ser-values}
@@ -737,20 +735,17 @@ By induction on the derivation of $\Gamma ; \Sigma \vdash v : T$. See
 Appendix~\ref{app:ser-values}.
 \end{proof}
 
-Rule \textsc{T-AppSpore} is analogous to rule \textsc{T-App}. Rule
-\textsc{T-Spawn} requires argument $t$ to be a spore with domain type
-unit; the result has type $\texttt{Host}$.  Rule \textsc{T-Populate}
-leverages the $serializable$ predicate to ensure the value of the silo
-to be populated is independent of its source context. Rules
-\textsc{T-Map}, \textsc{T-FMap}, and \textsc{T-Persist} are
+Rule \textsc{T-AppSpore} is analogous to rule \textsc{T-App}. Rules
+\textsc{T-Populate}, \textsc{T-Map}, and \textsc{T-FMap} are
 straightforward; note that \verb|map| and \verb|flatMap| are
 polymorphic in the types of the captured variables of their spore
 argument types. Rules \textsc{T-Send} and \textsc{T-Await} are
-entirely unsurprising. Rule \textsc{T-SiloRef} is the only rule that
-uses the silo store typing $\Delta$. Analogous to rule \textsc{T-Loc},
-the type of silo $id(r)$ is looked up in $\Delta$. Furthermore,
-\textsc{T-SiloRef} requires $r$ to be well-formed in $\Delta$, written
-$\Delta \vdash r$ (see below).
+entirely unsurprising. Rules \textsc{T-Ident} and \textsc{T-SiloRef}
+are the only rules that use the store typing $\Sigma$. The type of an
+identifier $\iota$ has the form $\texttt{Future}[T]$ where type $T$ is
+looked up in the store typing. Rule \textsc{T-SiloRef} is analogous;
+additionally, it requires the silo reference ${\Ref l h}$ to be
+well-formed in $\Sigma$ (see below).
 
 \subsection{Well-Formed Configurations}
 
