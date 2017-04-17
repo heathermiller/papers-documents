@@ -490,6 +490,12 @@ $M'$, and (c) an updated store $\sigma'$.
   The function $process \in \mathcal{H} \times m \times S  \rightharpoonup t \times \mathcal{P}(\mathcal{H} \times m) \times S$ handles the processing of a message resulting in a term to be evaluated, a set of messages, and an updated store; here, $S = \mathcal{H} \times \mathbb{N} \rightharpoonup v$ is the type of a store. $process$ is defined in Fig.~\ref{fig:process}.
 \end{defn}
 
+The $\mathit{process}$ function must handle the two kinds of messages,
+${\Req {h'} r \iota}$ and ${\Res \iota v}$. Handling a message of the
+form ${\Res \iota v}$ is simple: it suffices to create an updated
+store $\sigma'$ which maps $\iota$ to $v$ (rule \textsc{Proc-Res}).
+
+
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %
 % Type assignment.
