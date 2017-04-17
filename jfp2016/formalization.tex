@@ -312,6 +312,29 @@ $parent$, which are defined as follows:
   \ea\right.$
 \end{defn}
 
+The distributed reduction relation has the form $H~|~M
+\twoheadrightarrow H'~|~M'$ where $H, H'$ are sets of hosts and $M,
+M'$ are sets of messages. A host with identifier $h$ in $H$ has the
+form $(t, \sigma, Q)^h$. $t$ is the term reduced by $h$; $\sigma$ is
+the local store of $h$; finally, $Q$ is a queue of incoming messages
+used for {\em asynchronous communication} with other hosts in $H$.
+
+Figure~\ref{fig:queues} shows the definition of message queues. A
+message queue $Q$ may contain two kinds of messages. A message of the
+form ${\Req h r \iota}$ requests the value of silo $r$ to be sent to
+host $h$ for materialization of identifier $\iota$. A message of the
+form ${\Res \iota v}$ represents the corresponding response,
+containing the identifier $\iota$ to be materialized using value $v$.
+
+The sets $M, M'$ in a distributed reduction $H~|~M \twoheadrightarrow
+H'~|~M'$ model {\it message sends} that are currently ``in flight;'' a
+message send $h \leftarrow m$ expresses the sending of message $m$ to
+host $h$. If $h \leftarrow m \in M$ then message $m$ has not yet been
+delivered to the message queue of $h$ (the message is still in
+transit). Separating in-flight messages from delivered messages
+(residing in some local message queue) allows us to closely model real
+distributed systems, in particular non-deterministic message ordering.
+
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %
 % Distributed reduction.
@@ -359,28 +382,12 @@ $parent$, which are defined as follows:
 \caption{Distributed reduction.}\label{fig:dist-rules}
 \end{figure}
 
-The distributed reduction relation has the form $H~|~M
-\twoheadrightarrow H'~|~M'$ where $H, H'$ are sets of hosts and $M,
-M'$ are sets of messages. A host with identifier $h$ in $H$ has the
-form $(t, \sigma, Q)^h$. $t$ is the term reduced by $h$; $\sigma$ is
-the local store of $h$; finally, $Q$ is a queue of incoming messages
-used for {\em asynchronous communication} with other hosts in $H$.
-
-Figure~\ref{fig:queues} shows the definition of message queues. A
-message queue $Q$ may contain two kinds of messages. A message of the
-form ${\Req h r \iota}$ requests the value of silo $r$ to be sent to
-host $h$ for materialization of identifier $\iota$. A message of the
-form ${\Res \iota v}$ represents the corresponding response,
-containing the identifier $\iota$ to be materialized using value $v$.
-
-The sets $M, M'$ in a distributed reduction $H~|~M \twoheadrightarrow
-H'~|~M'$ model {\it message sends} that are currently ``in flight;'' a
-message send $h \leftarrow m$ expresses the sending of message $m$ to
-host $h$. If $h \leftarrow m \in M$ then message $m$ has not yet been
-delivered to the message queue of $h$ (the message is still in
-transit). Separating in-flight messages from delivered messages
-(residing in some local message queue) allows us to closely model real
-distributed systems, in particular non-deterministic message ordering.
+Rule \textsc{R-Local} reduces a host $h$ chosen non-deterministically
+from the set of hosts (the rule ``schedules'' host $h$ for
+execution). Term $t$ of host $h$ is reduced according to the local
+reduction rules. Thus, no communication is taking place; this means
+that both the message queue $Q$ of $h$ and the set of in-flight
+messages $M$ remain unchanged.
 
 
 \note{rewrite}
