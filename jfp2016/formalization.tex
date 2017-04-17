@@ -19,7 +19,7 @@ t ::=                                                                  & \mbox{{
 \gap ~|~  \texttt{populate}(t)                                         & \mbox{populate silo} \\
 \gap ~|~  \texttt{map}(t, t)                                           & \mbox{map} \\
 \gap ~|~  \texttt{flatMap}(t, t)                                       & \mbox{flatMap} \\
-\gap ~|~  \texttt{send}(t, t)                                          & \mbox{send} \\           % send  :: Ref a -> Fut a
+\gap ~|~  \texttt{send}(t)                                             & \mbox{send} \\           % send  :: Ref a -> Fut a
 \gap ~|~  \texttt{await}(t)                                            & \mbox{await future} \\   % await :: Fut a -> a
 \gap ~|~  \texttt{assign}(t, t)                                        & \mbox{assignment} \\
 \gap ~|~  \iota                                                        & \mbox{decentralized identifier} \\
@@ -126,8 +126,7 @@ E ::=                                                                           
 \gap ~|~  \texttt{map}(v, E)                                                                              & \mbox{map (fun)} \\
 \gap ~|~  \texttt{flatMap}(E, t)                                                                          & \mbox{flatMap (ref)} \\
 \gap ~|~  \texttt{flatMap}(v, E)                                                                          & \mbox{flatMap (fun)} \\
-\gap ~|~  \texttt{send}(E, t)                                                                             & \mbox{send (fst)} \\
-\gap ~|~  \texttt{send}(v, E)                                                                             & \mbox{send (snd)} \\
+\gap ~|~  \texttt{send}(E)                                                                                & \mbox{send} \\
 \gap ~|~  \texttt{await}(E)                                                                               & \mbox{await} \\
 \gap ~|~  \texttt{assign}(E, t)                                                                           & \mbox{assign (fst)} \\
 \gap ~|~  \texttt{assign}(v, E)                                                                           & \mbox{assign (snd)} \\
@@ -353,13 +352,22 @@ distributed systems, in particular non-deterministic message ordering.
 
 \inferrule[\textsc{R-Send}] {
   r  = {\Ref l {h'}}      \quad
-  r' = {\Ref {l'} {h''}}  \quad
-  m  = {\Req h r {id(l')}} \quad
+  h' \neq h               \quad
+  m  = {\Req h r {id(l)}} \quad
   M' = M \cup \{ h' \leftarrow m \}
 } {
-  \{ (E[\texttt{send}(r, r')], \sigma, Q)^h \} \cup H ~|~ M
+  \{ (E[\texttt{send}(r)], \sigma, Q)^h \} \cup H ~|~ M
   \twoheadrightarrow
   \{ (E[id(l)], \sigma, Q)^h \} \cup H ~|~ M'
+}
+
+\inferrule[\textsc{R-SendLocal}] {
+  r  = {\Ref l h}         \quad
+  m  = {\Req h r {id(l)}}
+} {
+  \{ (E[\texttt{send}(r)], \sigma, Q)^h \} \cup H ~|~ M
+  \twoheadrightarrow
+  \{ (E[id(l)], \sigma, m \cdot Q)^h \} \cup H ~|~ M
 }
 
 \inferrule[\textsc{R-Receive}] {
@@ -368,6 +376,14 @@ distributed systems, in particular non-deterministic message ordering.
   \{ (t, \sigma, Q)^h \} \cup H ~|~ M
   \twoheadrightarrow
   \{ (t, \sigma, Q \cdot m)^h \} \cup H ~|~ M'
+}
+
+\inferrule[\textsc{R-Respond}] {
+  M' = M \cup \{ h' \leftarrow {\Res \iota v} \}
+} {
+  \{ (E[\texttt{respond}(h', \iota, v)], \sigma, Q)^h \} \cup H ~|~ M
+  \twoheadrightarrow
+  \{ (E[\texttt{unit}], \sigma, Q)^h \} \cup H ~|~ M'
 }
 
 \inferrule[\textsc{R-Process}] {
@@ -389,24 +405,25 @@ reduction rules. Thus, no communication is taking place; this means
 that both the message queue $Q$ of $h$ and the set of in-flight
 messages $M$ remain unchanged.
 
-Rule \textsc{R-Send} reduces a term $\texttt{send}(r, r')$ on host
+Rule \textsc{R-Send} reduces a term $\texttt{send}(r)$ on host
 $h$. The reduction initiates the materialization of silo $r$ by
-sending a message $m = {\Req h r {id(l')}}$ to the host of $r$,
+sending a message $m = {\Req h r {id(l)}}$ to the host of $r$,
 $h'$. Thus, the message send $h' \leftarrow m$ is added to the
 resulting set of in-flight messages $M'$. The \verb|send| term itself
-is reduced to the identifier of $r$'s lineage, $id(l)$. The silo
-reference $r'$ is used to identify the silo that should be
-materialized using the requested value. In user programs,
-\verb|send(r)| takes just one argument; this is equivalent to the term
-$\texttt{send}(r, r)$ in the core language. The reason for the more
-flexible variant of \verb|send| in the formal model is that it is used
-for expressing the operational semantics of \verb|flatMap| (see
-below).
+is reduced to the identifier of $r$'s lineage, $id(l)$. Rule
+\textsc{R-SendLocal} only applies if the host of silo reference $r$ is
+equal to $h$. In this case, message $m$ is not added to the set of
+in-flight messages, but instead it is prepended to the local message
+queue. This ensures that local message sends take precedence over
+non-local message sends.
 
 Rule \textsc{R-Receive} moves an in-flight message $h \leftarrow m$
 from $M$ to the local message queue of host $h$. Note that there may
 be multiple in-flight messages with target $h$ in $M$; the message is
 chosen non-deterministically in this case.
+
+Rule \textsc{R-Respond} reduces a term $\texttt{respond}(h', \iota,
+v)$ by sending a response message ${\Res \iota v}$ to $h'$.
 
 Rule \textsc{R-Process} models the processing of a message $m$ taken
 from the local message queue of a host $h$. Note that this rule is
@@ -433,53 +450,44 @@ $M'$, and (c) an updated store $\sigma'$.
 \begin{figure}
 \begin{mathpar}
 
-\inferrule[\textsc{Proc-Req}] {
-  r = {\Ref l h} \quad
-  \sigma(id(l)) = v \quad
-  M = \{ h' \leftarrow {\Res \iota v} \}
+\inferrule[\textsc{Proc-Res}] {
+  \sigma' = [\iota \mapsto v]\sigma
 } {
-  process(h, {\Req {h'} r \iota}, \sigma) = (\texttt{unit}, M, \sigma)
+  process(h, {\Res \iota v}, \sigma) = (\texttt{unit}, \emptyset, \sigma')
+}
+
+\inferrule[\textsc{Proc-ReqParent}] {
+  r = {\Ref l h} \quad
+  l' = parent(l) \quad
+  id(l') \notin dom(\sigma) \quad
+  M = \{ h \leftarrow {\Req {h'} r \iota} \}
+} {
+  process(h, {\Req {h'} r \iota}, \sigma) = (\texttt{send}({\Ref {l'} h}), M, \sigma)
 }
 
 \inferrule[\textsc{Proc-ReqMat}] {
   r = {\Ref l h} \quad
   l = {\Mat {\iota'}} \quad
-  t = \texttt{assign}(\iota', \texttt{unit})
 } {
-  process(h, {\Req {h'} r \iota}, \sigma) = (t, \{ h \leftarrow {\Req {h'} r \iota} \}, \sigma)
+  process(h, {\Req {h'} r \iota}, \sigma) = (\texttt{unit}, \{ h' \leftarrow {\Res \iota {\texttt{unit}}} \}, \sigma)
 }
 
 \inferrule[\textsc{Proc-ReqMap}] {
   r = {\Ref l h} \quad
   l = {\Mapped {\iota'} {l'} p} \quad
   \sigma(id(l'))  = v           \quad
-  t = \texttt{assign}(\iota', p~v)
+  t = \texttt{respond}(h', \iota, p~v)
 } {
-  process(h, {\Req {h'} r \iota}, \sigma) = (t, \{ h \leftarrow {\Req {h'} r \iota} \}, \sigma)
+  process(h, {\Req {h'} r \iota}, \sigma) = (t, \emptyset, \sigma)
 }
 
 \inferrule[\textsc{Proc-ReqFMap}] {
   r = {\Ref l h} \quad
   l = {\FMapped {\iota'} {l'} p} \quad
   \sigma(id(l')) = v \quad
-  t = \texttt{send}(p~v, r)
+  t = \texttt{respond}(h', \iota, \texttt{await}(\texttt{send}(p~v)))
 } {
-  process(h, {\Req {h'} r \iota}, \sigma) = (t, \{ h \leftarrow {\Req {h'} r \iota} \}, \sigma)
-}
-
-\inferrule[\textsc{Proc-ReqParent}] {
-  r = {\Ref l h} \quad
-  l' = parent(l) \quad
-  id(l') \notin dom(\sigma) \\
-  M = \{ h \leftarrow {\Req h {\Ref {l'} h} {id(l')}}, h \leftarrow {\Req {h'} r \iota} \}
-} {
-  process(h, {\Req {h'} r \iota}, \sigma) = (\texttt{unit}, M, \sigma)
-}
-
-\inferrule[\textsc{Proc-Res}] {
-  \sigma' = [\iota \mapsto v]\sigma
-} {
-  process(h, {\Res \iota v}, \sigma) = (\texttt{unit}, \emptyset, \sigma')
+  process(h, {\Req {h'} r \iota}, \sigma) = (t, \emptyset, \sigma)
 }
 
 \end{mathpar}
@@ -491,9 +499,67 @@ $M'$, and (c) an updated store $\sigma'$.
 \end{defn}
 
 The $\mathit{process}$ function must handle the two kinds of messages,
-${\Req {h'} r \iota}$ and ${\Res \iota v}$. Handling a message of the
-form ${\Res \iota v}$ is simple: it suffices to create an updated
-store $\sigma'$ which maps $\iota$ to $v$ (rule \textsc{Proc-Res}).
+${\Req {h'} r \iota}$ and ${\Res \iota v}$. Processing a message of
+the form ${\Res \iota v}$ means that a host is responding with the
+value $v$ of a silo whose materialization has been requested by the
+current host $h$ to complete its future $\iota$. Thus, it suffices to
+create an updated store $\sigma'$ which maps $\iota$ to $v$ (rule
+\textsc{Proc-Res}).
+
+Processing a message of the form ${\Req {h'} r \iota}$ means that host
+$h'$ requests the value of silo $r$ in order to complete a future with
+identifier $\iota$. In the absence of caching/persisting, this
+requires the receiver of the request to materialize the silo whose
+value is requested. Section~\ref{sec:persist} introduces a refinement
+of these rules to enable caching, thereby avoiding repeated
+materializations of the same silo.
+
+\comment{ However, it is also possible that silo $r$ is already
+  materialized; in this case, the receiver of the request directly
+  sends response ${\Res \iota v}$ to $h'$ (rule
+  \textsc{Proc-Req}). Note that checking whether silo $r$ is
+  materialized involves obtaining (a) the lineage $l$ of $r = {\Ref l
+    h}$ and (b) the identifier $id(l)$ of lineage $l$. }
+
+
+The requested silo $r = {\Ref l h}$ is materialized using its lineage
+$l$. Rule \\\textsc{Proc-ReqParent} handles the case where $r$'s
+parent $id(l')$ is not yet materialized ($l'$ is the lineage of $r$'s
+parent). In this case, $\mathit{process}$ returns the term
+$\texttt{send}({\Ref {l'} h})$; this causes host $h$ to request the
+materialization of the parent silo ${\Ref {l'} h}$ before any other
+message is processed. Note that a silo is always materialized on the
+same host as its parent silo; therefore, the hosts of $r$ and its
+parent are guaranteed to be the same. The original request ${\Req {h'}
+  r \iota}$ is included in the new in-flight messages $M$, so that it
+is eventually handled, namely when $r$'s parent is materialized.
+
+Rules \textsc{Proc-ReqMat}, \textsc{Proc-ReqMap}, and
+\textsc{Proc-ReqFMap} are only enabled when the requested silo $r$ can
+be materialized using its lineage $l$; in particular, if $r$ has a
+parent it must be materialized.
+
+Rule \textsc{Proc-ReqMat} handles the case where $r$ does not have a
+parent. In this case, the materialization of $r$ is just the
+\verb|unit| value; thus, a response ${\Res \iota {\texttt{unit}}}$ is
+sent to host $h'$.
+
+Rule \textsc{Proc-ReqMap} handles the case where the lineage of $r$
+begins with a $\text{Mapped}$ constructor. In this case, the
+materialization of $r$ consists of the result of applying the spore
+$p$ provided by the lineage to the value $v$ of the parent
+silo. Evaluating the application $p~v$ requires multiple reduction
+steps in general. Therefore, rule \textsc{Proc-ReqMap} returns the
+term $\texttt{respond}(h', \iota, p~v)$ for evaluation by host $h$.
+Thus, when $p~v$ has been reduced to a value $v'$, a response ${\Res
+  \iota {v'}}$ is sent to host $h'$.
+
+Rule \textsc{Proc-ReqFMap} is analogous to rule
+\textsc{Proc-ReqMap}. The main difference is that here, $p~v$ reduces
+to a {\em silo reference}. Therefore, before responding to host $h'$,
+the value of silo $p~v$ is obtained by requesting its materialization
+(using $\texttt{send}(p~v)$) and waiting for the completion of the
+returned future using \verb|await|.
 
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -581,10 +647,9 @@ store $\sigma'$ which maps $\iota$ to $v$ (rule \textsc{Proc-Res}).
 }
 
 \inferrule[\textsc{T-Send}] {
-  \Gamma ; \Sigma \vdash t : \texttt{SiloRef}[T] \quad
-  \Gamma ; \Sigma \vdash t' : \texttt{SiloRef}[T]
+  \Gamma ; \Sigma \vdash t : \texttt{SiloRef}[T]
 } {
-  \Gamma ; \Sigma \vdash \texttt{send}(t, t') : \texttt{Future}[T]
+  \Gamma ; \Sigma \vdash \texttt{send}(t) : \texttt{Future}[T]
 }
 
 \inferrule[\textsc{T-SiloRef}] {
@@ -790,6 +855,10 @@ combine the previous rules in the expected way.
 }
 % was wir ausschliessen muessen ist: \Sigma(\iota') \neq \Sigma'(\iota') fuer zwei verschiedene Hosts
 
+\inferrule[\textsc{WF-Messages-Emp}] {} {
+  \Sigma \vdash \emptyset
+}
+
 \inferrule[\textsc{WF-Messages}] {
   \Sigma \vdash m \cdot \epsilon \quad
   \Sigma \vdash M
@@ -806,7 +875,7 @@ combine the previous rules in the expected way.
 \caption{Well-formedness.}\label{fig:well-formed}
 \end{figure}
 
-\subsection{Persist and Unpersist}
+\subsection{Persist and Unpersist}\label{sec:persist}
 
 \note{write some text}
 
@@ -895,52 +964,67 @@ of hosts which are known to have persisted silo $\iota$:
   \rightarrow^h
   E[{\Ref {l'} {h'}}]~|~\sigma
 }
+
+\inferrule[\textsc{R-Respond}] {
+  M' = M \cup \{ h' \leftarrow \highlight{{\ResP \iota v P}} \}
+} {
+  \{ (E[\highlight{\texttt{respond}(h', \iota, v, P)}], \sigma, Q)^h \} \cup H ~|~ M
+  \twoheadrightarrow
+  \{ (E[\texttt{unit}], \sigma, Q)^h \} \cup H ~|~ M'
+}
+
 \end{mathpar}
-\caption{Extension of local reduction.}\label{fig:local-reduction-persist}
+\caption{Extension of reduction.}\label{fig:reduction-persist}
 \end{figure}
 
 
 \begin{figure}
 \begin{mathpar}
+
 \inferrule[\textsc{Proc-Req}] {
   r = {\Ref l h} \quad
-  \sigma(id(l)) = \highlight{(v, P)} \quad
-  M = \{ h' \leftarrow \highlight{{\ResP \iota v P}} \} \quad
-  \highlight{\sigma' = {\consume {id(l)} P \sigma}}
+  \sigma(id(l)) = (v, P) \quad
+  M = \{ h' \leftarrow {\ResP \iota v P} \} \quad
+  \sigma' = {\consume {id(l)} P \sigma}
 } {
-  process(h, {\Req {h'} r \iota}, \sigma) = (\texttt{unit}, M, \highlight{\sigma'})
+  process(h, {\Req {h'} r \iota}, \sigma) = (\texttt{unit}, M, \sigma')
+}
+
+\inferrule[\textsc{Proc-ReqMat}] {
+  r = {\Ref l h} \quad
+  l = {\Mat {\iota'}} \quad
+} {
+  process(h, {\Req {h'} r \iota}, \sigma) = (\texttt{unit}, \{ h' \leftarrow \highlight{{\ResP \iota {\texttt{unit}} \emptyset}} \}, \sigma)
 }
 
 \inferrule[\textsc{Proc-ReqMap}] {
   r = {\Ref l h} \quad
   l = {\Mapped {\iota'} {l'} p} \quad
   \sigma(id(l'))  = \highlight{(v, P)} \\
-  t = \texttt{assign}(\iota', p~v) \quad
+  t = \highlight{\texttt{respond}(h', \iota, p~v, P)} \quad
   \highlight{\sigma' = {\consume {id(l')} P \sigma}}
 } {
-  process(h, {\Req {h'} r \iota}, \sigma) = (t, \{ h \leftarrow {\Req {h'} r \iota} \}, \highlight{\sigma'})
+  process(h, {\Req {h'} r \iota}, \sigma) = (t, \emptyset, \highlight{\sigma'})
 }
 
 \inferrule[\textsc{Proc-ReqFMap}] {
   r = {\Ref l h} \quad
   l = {\FMapped {\iota'} {l'} p} \quad
   \sigma(id(l')) = \highlight{(v, P)} \\
-  t = \texttt{send}(p~v, r) \quad
+  t = \highlight{\texttt{respond}(h', \iota, \texttt{await}(\texttt{send}(p~v)), P)} \quad
   \highlight{\sigma' = {\consume {id(l')} P \sigma}}
 } {
-  process(h, {\Req {h'} r \iota}, \sigma) = (t, \{ h \leftarrow {\Req {h'} r \iota} \}, \highlight{\sigma'})
+  process(h, {\Req {h'} r \iota}, \sigma) = (t, \emptyset, \highlight{\sigma'})
 }
 
 \inferrule[\textsc{Proc-ReqPersist}] {
   r = {\Ref l h} \quad
   l              = {\Per {\iota'} {l'} \star}  \quad
   \iota'         = (h'', i)                    \quad
-  \sigma(id(l')) = (v, P)                      \\
+  \sigma(id(l')) = (v, P)                      \quad
   P'             = P \star \{h''\}             \quad
-  \sigma'        = [\iota' \mapsto (v, P')]\sigma  \quad
-  \sigma''       = {\consume {id(l')} P {\sigma'}}
 } {
-  process(h, {\Req {h'} r \iota}, \sigma) = (\texttt{unit}, \{ h' \leftarrow {\ResP \iota v {P'}} \}, \sigma'')
+  process(h, {\Req {h'} r \iota}, \sigma) = (\texttt{unit}, \{ h' \leftarrow {\ResP \iota v {P'}} \}, \sigma)
 }
 
 \inferrule[\textsc{Proc-Res}] {

@@ -186,9 +186,9 @@ If $\Sigma \vdash \sigma$, $\Sigma \vdash m \cdot \emptyset$, and $process(h, m,
   \item $r = {\Ref l h}$
   \item $l = {\Mapped {\iota'} {l'} p}$
   \item $\sigma(id(l')) = (v, P)$
-  \item $t = \texttt{assign}(\iota', p~v)$
+  \item $t = \texttt{respond}(h', \iota, p~v, P)$
   \item $\sigma' = {\consume {id(l')} P \sigma}$
-  \item $M = \{ h \leftarrow {\Req {h'} r \iota} \}$
+  \item $M = \emptyset$
   \end{enumerate}
 % 3.
 \item By 1.b), 2.a,b), and \textsc{WF-Q3}
@@ -213,11 +213,11 @@ If $\Sigma \vdash \sigma$, $\Sigma \vdash m \cdot \emptyset$, and $process(h, m,
 % 8.
 \item By 6., 7., and Lemma~\ref{lem:ser-values}, $\emptyset ; \Sigma \vdash p~v : T$.
 % 9.
-\item By 4.a) and \textsc{T-Ident}, $\emptyset ; \Sigma \vdash \iota' : \texttt{Future}[T]$.
+\item By 3.a), 4.a), and Def.~\ref{def:id}, $\Sigma(id(l)) = \Sigma(\iota)$ and thus by \textsc{T-Ident}, $\emptyset ; \Sigma \vdash \iota : \texttt{Future}[T]$.
 % 10.
-\item By 8., 9., and \textsc{T-Assign}, $\emptyset ; \Sigma \vdash t : \texttt{Unit}$.
+\item By 2.d), 8., 9., and \textsc{T-Respond}, $\emptyset ; \Sigma \vdash t : \texttt{Unit}$.
 % 11.
-\item By 1.b), 2.a,g), and \textsc{WF-Messages}, $\Sigma \vdash M$.
+\item By 2.g) and \textsc{WF-Messages-Emp}, $\Sigma \vdash M$.
 % 12.
 \item By 2.f) and Def.~\ref{def:consume}, $dom(\sigma') \subseteq dom(\sigma)$.
 % 13.
@@ -411,11 +411,11 @@ Part 2: by induction on the derivation of $H~|~M \twoheadrightarrow H'~|~M'$ wit
 % 2.
 \item By \textsc{R-Send}
   \begin{enumerate}[label=(\alph*)]
-  \item $H = \{ (E[\texttt{send}(r, r')], \sigma, Q)^h \} \cup H''$
+  \item $H  = \{ (E[\texttt{send}(r)], \sigma, Q)^h \} \cup H''$
   \item $H' = \{ (E[id(l)], \sigma, Q)^h \} \cup H''$
   \item $r  = {\Ref l {h'}}$
-  \item $r' = {\Ref {l'} {h''}}$
-  \item $m  = {\Req h r {id(l')}}$
+  \item $h' \neq h$
+  \item $m  = {\Req h r {id(l)}}$
   \item $M' = M \cup \{ h' \leftarrow m \}$
   \end{enumerate}
 % 3.
@@ -427,7 +427,7 @@ Part 2: by induction on the derivation of $H~|~M \twoheadrightarrow H'~|~M'$ wit
 % 4.
 \item By 2.a), 3.a), and \textsc{WF-Host2}
   \begin{enumerate}[label=(\alph*)]
-  \item $\Sigma \vdash (E[\texttt{send}(r, r')], \sigma, Q)^h$ 
+  \item $\Sigma \vdash (E[\texttt{send}(r)], \sigma, Q)^h$
   \item $\Sigma \vdash H''$
   \end{enumerate}
 % 5.
@@ -435,24 +435,21 @@ Part 2: by induction on the derivation of $H~|~M \twoheadrightarrow H'~|~M'$ wit
   \begin{enumerate}[label=(\alph*)]
   \item $\Sigma \vdash \sigma$
   \item $\Sigma \vdash Q$
-  \item $\Gamma ; \Sigma \vdash E[\texttt{send}(r, r')] : T$
+  \item $\Gamma ; \Sigma \vdash E[\texttt{send}(r)] : T$
   \end{enumerate}
 % 6.
-\item By 5.c), $\Gamma ; \Sigma \vdash \texttt{send}(r, r') : \hat{T}$.
+\item By 5.c), $\Gamma ; \Sigma \vdash \texttt{send}(r) : \hat{T}$.
 % 7.
 \item By 6. and \textsc{T-Send}
   \begin{enumerate}[label=(\alph*)]
   \item $\hat{T} = \texttt{Future}[T'']$
   \item $\Gamma ; \Sigma \vdash r : \texttt{SiloRef}[T'']$
-  \item $\Gamma ; \Sigma \vdash r' : \texttt{SiloRef}[T'']$
   \end{enumerate}
 % 8.
-\item By 2.c,d), 7.b,c), and \textsc{T-SiloRef}
+\item By 2.c), 7.b), and \textsc{T-SiloRef}
   \begin{enumerate}[label=(\alph*)]
   \item $\Sigma(id(l)) = T''$
   \item $\Sigma \vdash r$
-  \item $\Sigma(id(l')) = T''$
-  \item $\Sigma \vdash r'$
   \end{enumerate}
 % 9.
 \item By 8.a) and \textsc{T-Ident}, $\Gamma ; \Sigma \vdash id(l) : \texttt{Future}[T'']$.
@@ -463,12 +460,14 @@ Part 2: by induction on the derivation of $H~|~M \twoheadrightarrow H'~|~M'$ wit
 % 12.
 \item By 4.b), 11., and \textsc{WF-Host2}, $\Sigma \vdash H'$.
 % 13.
-\item By 2.c-e), 8.a-c), and \textsc{WF-Q1-3}, $\Sigma \vdash m \cdot \epsilon$.
+\item By 2.c,e), 8.a,b), and \textsc{WF-Q1-3}, $\Sigma \vdash m \cdot \epsilon$.
 % 14.
 \item By 2.f), 3.b), 13., and \textsc{WF-Messages}, $\Sigma \vdash M'$.
 % 15.
 \item By 12., 14., and \textsc{WF-Config}, $\Sigma \vdash H'~|~M'$.
 \end{enumerate}
+
+\item Case \textsc{R-SendLocal} follows analogously.
 
 \item Case \textsc{R-Receive}.
 \begin{enumerate}
