@@ -371,7 +371,7 @@ distributed systems, in particular non-deterministic message ordering.
 }
 
 \inferrule[\textsc{R-Process}] {
-  process(h, m, \sigma) = (t, M', \sigma')
+  \iota \notin dom(\sigma) \quad process(h, m, \sigma) = (t, M', \sigma')
 } {
   \{ (E[\texttt{await}(\iota)], \sigma, m \cdot Q)^h \} \cup H ~|~ M
   \twoheadrightarrow
@@ -403,27 +403,26 @@ flexible variant of \verb|send| in the formal model is that it is used
 for expressing the operational semantics of \verb|flatMap| (see
 below).
 
-Rule \textsc{R-Receive} moves an in-flight message send $h \leftarrow
-m$ from $M$ to the local message queue of host $h$. Note that there
-may be multiple in-flight message sends with target $h$ in $M$; the
-message send is chosen non-deterministically in this case.
+Rule \textsc{R-Receive} moves an in-flight message $h \leftarrow m$
+from $M$ to the local message queue of host $h$. Note that there may
+be multiple in-flight messages with target $h$ in $M$; the message is
+chosen non-deterministically in this case.
 
+Rule \textsc{R-Process} models the processing of a message $m$ taken
+from the local message queue of a host $h$. Note that this rule is
+only enabled if $h$ is {\it suspended}, waiting for a silo $\iota$ to
+be materialized in local store $\sigma$. A host is suspended if its
+current term has the form $E[\texttt{await}(\iota)]$ and $\iota \notin
+dom(\sigma)$ (there is no mapping for $\iota$ in store $\sigma$).  The
+premise $\iota \notin dom(\sigma)$ is important, since otherwise rule
+\textsc{R-Local} would also be enabled.
 
-\note{rewrite}
+The message processing logic is factored out into function
+$\mathit{process}$ which we discuss in the following. In general,
+processing a message $m$ on host $h$ in store $\sigma$ results in (a)
+a term $t$ to be evaluated by $h$, (b) a set of new in-flight messages
+$M'$, and (c) an updated store $\sigma'$.
 
-Figure~\ref{fig:dist-rules} shows the non-deterministic reduction
-rules. The non-deterministic reduction relation has the form $H
-\twoheadrightarrow H'$ where $H$ and $H'$ are sets of hosts of the
-form $(t, \mu, Q, S)^h$. Rule \textsc{R-Schedule} reduces a host
-chosen non-deterministically from the set of hosts. Rule
-\textsc{R-Spawn} creates a new host whose initial term is given by the
-application of the provided spore to the unit value $\{\}$. The new
-host has an empty store, an empty queue, and an empty silo store.
-Rule \textsc{R-Populate} materializes a silo with a fresh identifier
-$\omega$ on host $h'$ using value $v$. Rules \textsc{R-Req1-3} and
-\textsc{R-Send} are analogous to the corresponding deterministic
-reduction rules. The main difference is that messages are exchanged
-between different hosts in the case of non-deterministic reduction.
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %
