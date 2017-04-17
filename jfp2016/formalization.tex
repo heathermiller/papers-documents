@@ -880,7 +880,25 @@ combine the previous rules in the expected way.
 
 \subsection{Persist and Unpersist}\label{sec:persist}
 
-\note{write some text}
+As explained in Section~\ref{sec:primitives}, silos may be cached in
+memory to avoid repeated materialization, which may be expensive for
+large data sets. The design is inspired by the popular
+Spark~\cite{Spark} data processing system. Essentially, a silo $r$ may
+be {\em persisted} using the \verb|persist| primitive: the call
+$\texttt{persist}(r)$ immediately returns a new silo reference $r'$
+whose value, when materialized, is equal to the value of $r$.  The
+lineage of $r'$ is equal to that of $r$ except for one additional
+element: if $l$ is the lineage of silo $r$, then the lineage of $r'$
+is of the form $l' = {\Per \iota l f}$. As for other constructors
+(e.g., $\text{Mapped}$), $\iota$ is the identifier of lineage $l'$.
+(As before, $\iota = (h, i)$ implies that host $h$ has called
+\verb|persist|.)  The last argument is a binary operator $f \in \{
+\cdot\cup\cdot, \cdot\setminus\cdot \}$ which toggles between the
+behavior of \verb|persist| and \verb|unpersist|. If $f =
+\cdot\cup\cdot$ then the lineage ${\Per \iota l f}$ implements the
+behavior of \verb|persist|; otherwise, the behavior of
+\verb|unpersist|.
+
 
 \begin{figure}
   \centering
