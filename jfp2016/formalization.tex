@@ -389,6 +389,20 @@ reduction rules. Thus, no communication is taking place; this means
 that both the message queue $Q$ of $h$ and the set of in-flight
 messages $M$ remain unchanged.
 
+Rule \textsc{R-Send} describes the reduction of a term
+$\texttt{send}(r, r')$ on host $h$. The reduction initiates the
+materialization of silo $r$ by sending a message $m = {\Req h r
+  {id(l')}}$ to the host of $r$, $h'$. Thus, the message send $h'
+\leftarrow m$ is added to the resulting set of in-flight messages
+$M'$. The \verb|send| term itself is reduced to the identifier of
+$r$'s lineage, $id(l)$. The silo reference $r'$ is used to identify
+the silo that should be materialized using the requested value. In
+user programs, \verb|send(r)| takes just one argument; this is
+equivalent to the term $\texttt{send}(r, r)$ in the core language. The
+reason for the more flexible variant of \verb|send| in the formal
+model is that it is used for expressing the operational semantics of
+\verb|flatMap| (see below).
+
 
 \note{rewrite}
 
