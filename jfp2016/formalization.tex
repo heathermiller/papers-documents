@@ -728,19 +728,18 @@ well-formed in $\Sigma$ (see below).
 Figure~\ref{fig:well-formed} shows the rules for well-formed
 configurations. These rules are essential for establishing subject
 reduction (see Section~\ref{sec:subject-reduction}). Rules
-\textsc{WF-Store1} and \textsc{WF-Store2} are standard.  Rules
-\textsc{WF-Ref1-2} require the types given by the silo store typing
-$\Delta$ to be consistent with the corresponding type of spore
-$p$. Rule \textsc{WF-Ref3} requires the type of silo $\omega$ to be
-equal to the type of its parent silo $id(r)$ in silo store typing
-$\Delta$. Rule \textsc{WF-Ref4} requires $\Delta$ to be defined for
-the identifier of a materialized silo. Finally, rules
-\textsc{WF-Ref1-3} require parent silo references to be well-formed.
-Rules \textsc{WF-SiloStore1-3} require a well-formed silo store to be
-consistent with silo store typing $\Delta$. Rules \textsc{WF-Q1-4}
-specify well-formedness of message queues in $\Delta$ and $\Sigma$.
-Rules \textsc{WF-HostConfig}, \textsc{WF-Host1}, and \textsc{WF-Host2}
-combine the previous rules in the expected way.
+\textsc{WF-Store1-3} are straightforward. Rules \textsc{WF-Lin1-2}
+require the types of $\iota$ and $id(l)$ given by the store typing
+$\Sigma$ to be consistent with the corresponding type of spore
+$p$. Both rules require parent lineage $l$ to be well-formed in
+$\Sigma$. Rule \textsc{WF-Lin3} requires $\Sigma$ to be defined for
+the identifier of a materialized silo. Rule \textsc{WF-Ref} extends
+well-formedness of lineages to silo references. Rules \textsc{WF-Q1-3}
+specify well-formedness of message queues in $\Sigma$. The remaining
+rules lift well-formedness to host configurations
+(\textsc{WF-HostConfig}), sets of hosts (\textsc{WF-Host1-2}), sets of
+messages (\textsc{WF-Messages-Emp}, \textsc{WF-Messages}), and
+configurations (\textsc{WF-Config}), respectively.
 
 \begin{figure}
 \begin{mathpar}
