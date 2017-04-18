@@ -1233,7 +1233,7 @@ sending a request ${\Req {h'} r \iota}$ to a host $h$, a corresponding
 response ${\Res \iota v}$ is sent to host $h'$ after a finite number
 of reduction steps. Formally:
 
-\begin{thm}[Finite Materialization]\label{thm:materialization}
+\begin{thm}[Finite Materialization]\label{thm:finite-mat}
   If $\Sigma \vdash H~|~M$ is responsive, $m = {\Req {h'} r \iota}$,
   and $\Sigma \vdash m \cdot \epsilon$ then
   $H~|~(M \cup \{ h \leftarrow m \}) \twoheadrightarrow^* H'~|~(M' \cup \{ h' \leftarrow {\Res \iota v} \})$
