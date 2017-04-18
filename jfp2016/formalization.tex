@@ -938,32 +938,6 @@ extended type:
   $\sigma \in \mathcal{H} \times \mathbb{N} \rightharpoonup v \times \mathcal{P}(\mathcal{H})$.
 \end{defn}
 
-As a next step we extend the local reduction relation, as shown in
-Figure~\ref{fig:reduction-persist}. First, we introduce the reduction
-rules \textsc{R-Persist} and \textsc{R-Unpersist} to enable the
-creation of $\text{Persist}$ lineages. Second, we adjust reduction
-rule \textsc{R-Await} to use the extended store.
-
-\comment{
-Crucially, when
-reading the value of a silo with identifier $\iota$ and persist set
-$P$, i.e., $\sigma(\iota) = (v, P)$, the mapping for $\iota$ is
-removed from resulting store $\sigma'$ if persist set $P$ is empty. An
-empty persist set indicates that the corresponding silo has not been
-persisted.  The removal of the mapping $\iota \mapsto (v, P)$ from
-store $\sigma'$ is expressed using the $\mathit{consume}$ function
-which checks for empty persist sets: $\sigma' = {\consume \iota P
-  \sigma}$. The $\mathit{consume}$ function is defined as follows:}
-
-\begin{defn}[Consume silo]\label{def:consume}
-Consume silo referenced by $\iota$ with persist set $P$ in store $\sigma$ \\
-$consume(\iota, P, \sigma) := \left\{\ba{ll}
-    \sigma - \iota & \text{if } P = \emptyset \\
-    \sigma         & \text{otherwise} \\
-  \ea\right.$
-\end{defn}
-
-
 \begin{figure}
 \centering
 \begin{mathpar}
@@ -996,14 +970,11 @@ $consume(\iota, P, \sigma) := \left\{\ba{ll}
 \caption{Extension to local reduction.}\label{fig:reduction-persist}
 \end{figure}
 
-
-\comment{
-Definition~\ref{def:id} is extended to handle the following additional
-case: $id(Persist(\iota, \_, \_)) =
-\iota$. Definition~\ref{def:parent} is extended analogously. To
-distinguish between persisted and regular silos when accessing their
-data, we will utilize the following $\mathit{consume}$ function:}
-
+As a next step we extend the local reduction relation, as shown in
+Figure~\ref{fig:reduction-persist}. First, we introduce the reduction
+rules \textsc{R-Persist} and \textsc{R-Unpersist} to enable the
+creation of $\text{Persist}$ lineages. Second, we adjust reduction
+rule \textsc{R-Await} to use the extended store.
 
 \begin{figure}
 \begin{mathpar}
@@ -1011,6 +982,17 @@ data, we will utilize the following $\mathit{consume}$ function:}
   \sigma' = [\iota \mapsto \highlight{(v, \emptyset)}]\sigma
 } {
   process(h, {\Res \iota v}, \sigma) = (\texttt{unit}, \emptyset, \sigma')
+}
+
+\inferrule[\textsc{Proc-ReqPersist}] {
+  r = {\Ref l h} \quad
+  l              = {\Per {\iota'} {l'} \star}  \quad
+  \iota'         = (h'', i)                    \\
+  \sigma(id(l')) = (v, P)                      \quad
+  P'             = P \star \{h''\}             \quad
+  \sigma'        = [\iota' \mapsto (v, P')]\sigma
+} {
+  process(h, {\Req {h'} r \iota}, \sigma) = (\texttt{unit}, \{ h' \leftarrow {\Res \iota v} \}, \sigma')
 }
 
 \inferrule[\textsc{Proc-Req}] {
@@ -1040,20 +1022,65 @@ data, we will utilize the following $\mathit{consume}$ function:}
 } {
   process(h, {\Req {h'} r \iota}, \sigma) = (t, \emptyset, \highlight{\sigma'})
 }
-
-\inferrule[\textsc{Proc-ReqPersist}] {
-  r = {\Ref l h} \quad
-  l              = {\Per {\iota'} {l'} \star}  \quad
-  \iota'         = (h'', i)                    \\
-  \sigma(id(l')) = (v, P)                      \quad
-  P'             = P \star \{h''\}             \quad
-  \sigma'        = [\iota' \mapsto (v, P')]\sigma
-} {
-  process(h, {\Req {h'} r \iota}, \sigma) = (\texttt{unit}, \{ h' \leftarrow {\Res \iota v} \}, \sigma')
-}
 \end{mathpar}
-\caption{Extension of message processing.}\label{fig:process-persist}
+\caption{Extensions to message processing.}\label{fig:process-persist}
 \end{figure}
+
+The rules for message processing are impacted most. Intuitively, the
+reason is that the fact whether a silo is (re-)materialized is
+determined in the context of message
+processing. Figure~\ref{fig:process-persist} shows new or extended
+rules for message processing. Rule \textsc{Proc-Res} is simply
+adjusted to the new store definition. Rule \textsc{Proc-ReqPersist} is
+new; the rule enables processing requests ${\Req {h'} r \iota}$ in
+cases where $r$ has a $\text{Persist}$ lineage and $r$'s parent is
+materialized (otherwise, the above \textsc{Proc-ReqParent} rule would
+be enabled).  Importantly, a silo with lineage ${\Per {\iota'} {l'}
+  \star}$ has the same value as the parent silo which has identifier
+$id(l')$.  Therefore, rule \textsc{Proc-ReqPersist} updates the store
+to map the identifier of the persisted silo, $\iota'$, to the value of
+$id(l')$ in $\sigma$. In addition, a {\em persist set} $P'$ is
+computed based on (1) the persist set $P$ of the parent silo, (2) the
+host $h''$ that created the $\text{Persist}$ lineage, and (3) the
+operator $\star$ provided in the $\text{Persist}$ lineage. The latter
+may either be set union or set difference; accordingly, the persisting
+host $h''$ is either added or removed from the persist set $P$ of the
+parent of the silo to-be-persisted. In case $h''$ is added to the
+persist set (because host $h''$ called \verb|persist| rather than
+\verb|unpersist|), it means that the persist set $P'$ is non-empty. As
+a result, the mapping for $\iota'$ remains resident in the store,
+avoiding re-materialization, as the following rules show.
+
+Rule \textsc{Proc-Req} is also new. The rule is enabled when the
+requested silo $r$ has already been materialized, i.e., $\sigma(id(l))
+= (v, P)$. In this case, a response ${\Res \iota v}$ can directly be
+sent back to the requesting host $h'$. Importantly, the rule also
+checks whether the silo has been persisted, by examining its persist
+set $P$ in store $\sigma$.  Using the $\mathit{consume}$ function, the
+mapping for identifier $id(l)$ is {\em removed} from the updated store
+$\sigma'$ if the persist set $P$ is empty. An empty persist set
+indicates that the corresponding silo has not been
+persisted. Concretely, the $\mathit{consume}$ function is defined as
+follows:
+
+\begin{defn}[Consume silo]\label{def:consume}
+Consume silo referenced by $\iota$ with persist set $P$ in store $\sigma$ \\
+$consume(\iota, P, \sigma) := \left\{\ba{ll}
+    \sigma - \iota & \text{if } P = \emptyset \\
+    \sigma         & \text{otherwise} \\
+  \ea\right.$
+\end{defn}
+
+Rules \textsc{Proc-ReqMap} and \textsc{Proc-ReqFMap} are extended to
+consume parent silos in case they have not been persisted.
+
+
+\comment{
+Definition~\ref{def:id} is extended to handle the following additional
+case: $id(Persist(\iota, \_, \_)) =
+\iota$. Definition~\ref{def:parent} is extended analogously. To
+distinguish between persisted and regular silos when accessing their
+data, we will utilize the following $\mathit{consume}$ function:}
 
 
 \begin{figure}
@@ -1085,17 +1112,17 @@ data, we will utilize the following $\mathit{consume}$ function:}
 } {
   \Sigma \vdash {\Per \iota l {\star}}
 }
-
-\inferrule[\textsc{WF-Q2}] {
-  \Sigma(\iota) = T                \quad
-  \emptyset ; \Sigma \vdash v : T  \quad
-  \Sigma \vdash Q
-} {
-  \Sigma \vdash \highlight{{\ResP \iota v P}} \cdot Q
-}
 \end{mathpar}
-\caption{Extension of type assignment and well-formedness.}\label{fig:type-rules-persist}
+\caption{Extension to type assignment and well-formedness.}\label{fig:type-rules-persist}
 \end{figure}
+
+Figure~\ref{fig:type-rules-persist} shows the required extensions to
+type assignment and well-formedness. The type rules \textsc{T-Persist}
+and \textsc{T-Unpersist} are straightforward. Rule \textsc{WF-Store2}
+is simply adjusted to the extended store definition. Rule
+\textsc{WF-Lin4} defines well-formedness for $\text{Persist}$
+lineages: the store typings for $\iota$ and $id(l)$ must be equal and
+parent lineage $l$ must be well-formed.
 
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
