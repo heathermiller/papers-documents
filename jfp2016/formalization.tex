@@ -21,7 +21,7 @@ t ::=                                                                  & \mbox{{
 \gap ~|~  \texttt{flatMap}(t, t)                                       & \mbox{flatMap} \\
 \gap ~|~  \texttt{send}(t)                                             & \mbox{send} \\           % send  :: Ref a -> Fut a
 \gap ~|~  \texttt{await}(t)                                            & \mbox{await future} \\   % await :: Fut a -> a
-\gap ~|~  \texttt{assign}(t, t)                                        & \mbox{assignment} \\
+\gap ~|~  \texttt{respond}(h, t, t)                                    & \mbox{respond} \\
 \gap ~|~  \iota                                                        & \mbox{decentralized identifier} \\
 \gap ~|~  r                                                            & \mbox{silo reference} \\
 \gap ~|~  h                                                            & \mbox{host} \\
@@ -37,7 +37,7 @@ v ::=                                                                  & \mbox{{
                                                                        & \\
 p ::= \texttt{spore}~\{~\seq{x : T = v}~; (x: T) \Rightarrow t~\}      & \\
 & \\
-l ::=                                                  & \mbox{{\it{lineage}}}                \\
+l ::=                                                  & \mbox{{\it{lineages:}}}              \\
 \gap \:\:\:\: \text{Mat}(\iota)                        & \mbox{materialized}                  \\
 \gap ~|~  \text{Mapped}(\iota, l, p)                   & \mbox{lineage with \texttt{map}}     \\
 \gap ~|~  \text{FMapped}(\iota, l, p)                  & \mbox{lineage with \texttt{flatMap}} \\
@@ -128,8 +128,8 @@ E ::=                                                                           
 \gap ~|~  \texttt{flatMap}(v, E)                                                                          & \mbox{flatMap (fun)} \\
 \gap ~|~  \texttt{send}(E)                                                                                & \mbox{send} \\
 \gap ~|~  \texttt{await}(E)                                                                               & \mbox{await} \\
-\gap ~|~  \texttt{assign}(E, t)                                                                           & \mbox{assign (fst)} \\
-\gap ~|~  \texttt{assign}(v, E)                                                                           & \mbox{assign (snd)} \\
+\gap ~|~  \texttt{respond}(h, E, t)                                                                       & \mbox{respond (fut)} \\
+\gap ~|~  \texttt{respond}(h, v, E)                                                                       & \mbox{respond (val)} \\
 \ea$
 \caption{Evaluation contexts.}\label{fig:eval-ctx}
 \end{figure}
@@ -179,14 +179,6 @@ term $t$.
   E[v]~|~\sigma
 }
 
-\inferrule[\textsc{R-Assign}] {
-  \sigma' = [\iota \mapsto v]\sigma
-} {
-  E[\texttt{assign}(\iota, v)]~|~\sigma
-  \rightarrow^h
-  E[\texttt{unit}]~|~\sigma'
-}
-
 \inferrule[\textsc{R-Populate}] {
   l = {\Mat {(h, i)}} \quad i~\text{fresh}
 } {
@@ -227,10 +219,6 @@ standard.  Analogous to rule \textsc{R-AppAbs}, rule
 \textsc{R-AppSpore} describes the application of a spore value to an
 argument value. Rule \textsc{R-Await} reduces $\texttt{await}(\iota)$
 to $v$ if future $\iota$ is already completed with $v$ in $\sigma$.
-Rule \textsc{R-Assign} reduces a term $\texttt{assign}(\iota, v)$ by
-updating the store to map identifier $\iota$ to value $v$; this
-corresponds to populating silo $\iota$ in the local store of host $h$.
-
 
 Rules \textsc{R-Populate}, \textsc{R-Map}, and \textsc{R-FMap}
 describe the creation of lineages.  Rules \textsc{R-Map} and
@@ -664,13 +652,6 @@ returned future using \verb|await|.
   \Sigma \vdash {\Ref l h}
 } {
   \Gamma ; \Sigma \vdash {\Ref l h} : \texttt{SiloRef}[T]
-}
-
-\inferrule[\textsc{T-Assign}] {
-  \Gamma ; \Sigma \vdash t : \texttt{Future}[T] \quad
-  \Gamma ; \Sigma \vdash t' : T
-} {
-  \Gamma ; \Sigma \vdash \texttt{assign}(t, t') : \texttt{Unit}
 }
 
 \inferrule[\textsc{T-Respond}] {
