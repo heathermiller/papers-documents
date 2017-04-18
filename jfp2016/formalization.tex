@@ -340,22 +340,12 @@ distributed systems, in particular non-deterministic message ordering.
 
 \inferrule[\textsc{R-Send}] {
   r  = {\Ref l {h'}}      \quad
-  h' \neq h               \quad
   m  = {\Req h r {id(l)}} \quad
   M' = M \cup \{ h' \leftarrow m \}
 } {
   \{ (E[\texttt{send}(r)], \sigma, Q)^h \} \cup H ~|~ M
   \twoheadrightarrow
   \{ (E[id(l)], \sigma, Q)^h \} \cup H ~|~ M'
-}
-
-\inferrule[\textsc{R-SendLocal}] {
-  r  = {\Ref l h}         \quad
-  m  = {\Req h r {id(l)}}
-} {
-  \{ (E[\texttt{send}(r)], \sigma, Q)^h \} \cup H ~|~ M
-  \twoheadrightarrow
-  \{ (E[id(l)], \sigma, m \cdot Q)^h \} \cup H ~|~ M
 }
 
 \inferrule[\textsc{R-Receive}] {
@@ -382,6 +372,13 @@ distributed systems, in particular non-deterministic message ordering.
   \{ (E[t~;~\texttt{await}(\iota)], \sigma', Q)^h \} \cup H ~|~ M \cup M'
 }
 
+\inferrule[\textsc{R-Process-Val}] {
+  \iota \notin dom(\sigma) \quad process(h, m, \sigma) = (t, M', \sigma')
+} {
+  \{ (v, \sigma, m \cdot Q)^h \} \cup H ~|~ M
+  \twoheadrightarrow
+  \{ (t, \sigma', Q)^h \} \cup H ~|~ M \cup M'
+}
 \end{mathpar}
 \caption{Distributed reduction.}\label{fig:dist-rules}
 \end{figure}
@@ -398,12 +395,7 @@ $h$. The reduction initiates the materialization of silo $r$ by
 sending a message $m = {\Req h r {id(l)}}$ to the host of $r$,
 $h'$. Thus, the message send $h' \leftarrow m$ is added to the
 resulting set of in-flight messages $M'$. The \verb|send| term itself
-is reduced to the identifier of $r$'s lineage, $id(l)$. Rule
-\textsc{R-SendLocal} only applies if the host of silo reference $r$ is
-equal to $h$. In this case, message $m$ is not added to the set of
-in-flight messages, but instead it is prepended to the local message
-queue. This ensures that local message sends take precedence over
-non-local message sends.
+is reduced to the identifier of $r$'s lineage, $id(l)$.
 
 Rule \textsc{R-Receive} moves an in-flight message $h \leftarrow m$
 from $M$ to the local message queue of host $h$. Note that there may
@@ -420,7 +412,9 @@ be materialized in local store $\sigma$. A host is suspended if its
 current term has the form $E[\texttt{await}(\iota)]$ and $\iota \notin
 dom(\sigma)$ (there is no mapping for $\iota$ in store $\sigma$).  The
 premise $\iota \notin dom(\sigma)$ is important, since otherwise rule
-\textsc{R-Local} would also be enabled.
+\textsc{R-Local} would also be enabled. Rule \textsc{R-Process-Val} is
+analogous to rule \textsc{R-Process} for the case where a host $h$ is
+unable to reduce its term further.
 
 The message processing logic is factored out into function
 $\mathit{process}$ which we discuss in the following. In general,

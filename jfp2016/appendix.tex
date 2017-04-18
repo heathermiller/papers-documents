@@ -414,7 +414,6 @@ Part 2: by induction on the derivation of $H~|~M \twoheadrightarrow H'~|~M'$ wit
   \item $H  = \{ (E[\texttt{send}(r)], \sigma, Q)^h \} \cup H''$
   \item $H' = \{ (E[id(l)], \sigma, Q)^h \} \cup H''$
   \item $r  = {\Ref l {h'}}$
-  \item $h' \neq h$
   \item $m  = {\Req h r {id(l)}}$
   \item $M' = M \cup \{ h' \leftarrow m \}$
   \end{enumerate}
@@ -460,14 +459,14 @@ Part 2: by induction on the derivation of $H~|~M \twoheadrightarrow H'~|~M'$ wit
 % 12.
 \item By 4.b), 11., and \textsc{WF-Host2}, $\Sigma \vdash H'$.
 % 13.
-\item By 2.c,e), 8.a,b), and \textsc{WF-Q1-3}, $\Sigma \vdash m \cdot \epsilon$.
+\item By 2.c-d), 8.a,b), and \textsc{WF-Q1-3}, $\Sigma \vdash m \cdot \epsilon$.
 % 14.
-\item By 2.f), 3.b), 13., and \textsc{WF-Messages}, $\Sigma \vdash M'$.
+\item By 2.e), 3.b), 13., and \textsc{WF-Messages}, $\Sigma \vdash M'$.
 % 15.
 \item By 12., 14., and \textsc{WF-Config}, $\Sigma \vdash H'~|~M'$.
 \end{enumerate}
 
-\item Cases \textsc{R-SendLocal} and \textsc{R-Respond} follow analogously.
+\item Case \textsc{R-Respond} follows analogously.
 
 \item Case \textsc{R-Receive}.
 \begin{enumerate}
@@ -587,6 +586,8 @@ Part 2: by induction on the derivation of $H~|~M \twoheadrightarrow H'~|~M'$ wit
 % 16.
 \item By 13., 15., and \textsc{WF-Config}, $\Sigma' \vdash H'~|~M'$.
 \end{enumerate}
+
+\item Case \textsc{R-Process-Val} follows analogously.
 
 \end{itemize}
 
