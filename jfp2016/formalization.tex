@@ -373,7 +373,7 @@ distributed systems, in particular non-deterministic message ordering.
 }
 
 \inferrule[\textsc{R-Process-Val}] {
-  \iota \notin dom(\sigma) \quad process(h, m, \sigma) = (t, M', \sigma')
+  process(h, m, \sigma) = (t, M', \sigma')
 } {
   \{ (v, \sigma, m \cdot Q)^h \} \cup H ~|~ M
   \twoheadrightarrow
