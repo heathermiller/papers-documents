@@ -1174,6 +1174,63 @@ By induction on the length of $Q$. See Appendix~\ref{app:queue-concat}.
 \end{proof}
 
 
+\section{Fault Handling}
+
+We now extend the presented formal model with a {\em fault handling}
+mechanism based on lineage. Informally, our approach (a) enables hosts
+to detect and respond to faults of other hosts using fault-handling
+callbacks, and (b) to recover silos on faulty hosts by materializing
+their lineages on healthy, fall-back hosts. As we are going to show, a
+surprising result of our fault-handling extension is its simplicity
+thanks to the power and flexibility of the lineages that are
+constructed during reduction.
+
+The first extension of our formal model consists of sets of {\em
+  fault-handling callbacks} $F$ which are added to host
+configurations. An extended host configuration has the following form:
+$(t, \sigma, Q, F)^h$ where components $t$, $\sigma$, $Q$, and $h$ are
+unchanged. A fault-handling callback $cb \in F$ has the form $cb = h''
+\rightarrow (m, h')$. Informally, callback $cb$ expresses the fact
+that when host $h''$ fails, message $m$ should be sent to host
+$h'$. Thus, $h'$ takes the role of a {\em fall-back host}. The message
+$m$ to be sent is typically a request ${\Req h r \iota}$ which could
+not be handled in case host $h''$ fails.
+
+\begin{figure}
+\begin{mathpar}
+\inferrule[\textsc{R-Fault}] {
+  M' = \bigcup_{c \in H} \{ h' \leftarrow m ~|~ c = (t', \sigma', Q', F')^{h'} \land h \rightarrow (m, h') \in F' \}
+} {
+  \{ (t, \sigma, Q, F)^h \} \cup H ~|~ M
+  \twoheadrightarrow
+  H ~|~ M \cup M'
+}
+
+\inferrule[\textsc{R-Send}] {
+  r = {\Ref l {h''}} \quad
+  m = {\Req h r {id(l)} } \quad
+  M' = M \cup \{ h'' \leftarrow m \} \\
+  F' = F \cup \{ h'' \rightarrow ({\Req h {\Ref l {h'}} {id(l)} }, h') \}
+} {
+  \{ (E[\texttt{send}(r, h')], \sigma, Q, F)^h \} \cup H ~|~ M
+  \twoheadrightarrow
+  \{ (E[id(l)], \sigma, Q, F')^h \} \cup H ~|~ M'
+}
+\end{mathpar}
+\caption{Extensions to distributed reduction.}\label{fig:faults-reduction}
+\end{figure}
+
+A fault is modeled as a host $h$ that non-deterministically disappears
+from the set of hosts $H$ in a global configuration $H~|~M$. We only
+assume a simple form of fault detection: all other, healthy hosts $h'
+\in H$ are notified of the disappearance of the faulty host $h$; no
+other information about $h$ may be used to recover from its
+failure. As a result, our formalization can model real distributed
+systems which use off-the-shelf fault detectors such as
+\cite{Hayashibara04} (among others, implemented in Akka~\cite{Akka}).
+
+
+
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %%
 %% OLD
