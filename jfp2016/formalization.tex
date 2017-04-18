@@ -468,8 +468,9 @@ $M'$, and (c) an updated store $\sigma'$.
 \inferrule[\textsc{Proc-ReqMat}] {
   r = {\Ref l h} \quad
   l = {\Mat {\iota'}} \quad
+  t = \texttt{respond}(h', \iota, \texttt{unit})
 } {
-  process(h, {\Req {h'} r \iota}, \sigma) = (\texttt{unit}, \{ h' \leftarrow {\Res \iota {\texttt{unit}}} \}, \sigma)
+  process(h, {\Req {h'} r \iota}, \sigma) = (t, \emptyset, \sigma)
 }
 
 \inferrule[\textsc{Proc-ReqMap}] {
@@ -878,6 +879,7 @@ combine the previous rules in the expected way.
 \caption{Well-formedness.}\label{fig:well-formed}
 \end{figure}
 
+
 \subsection{Persist and Unpersist}\label{sec:persist}
 
 As explained in Section~\ref{sec:primitives}, silos may be cached in
@@ -897,11 +899,11 @@ is of the form $l' = {\Per \iota l f}$. As for other constructors
 behavior of \verb|persist| and \verb|unpersist|. If $f =
 \cdot\cup\cdot$ then the lineage ${\Per \iota l f}$ implements the
 behavior of \verb|persist|; otherwise, the behavior of
-\verb|unpersist|.
-
+\verb|unpersist|. The extensions to syntax, lineages, and evaluation
+contexts are summarized in Figure~\ref{fig:persist-syntax}.
 
 \begin{figure}
-  \centering
+\centering
 $\ba[t]{l@{\hspace{2mm}}l}
 t ::=                                     & \mbox{{\it terms:}} \\
 \gap \:\:\:\: \ldots                      & \mbox{} \\
@@ -910,29 +912,48 @@ t ::=                                     & \mbox{{\it terms:}} \\
 & \\
 l ::=                                    & \mbox{{\it{lineages:}}} \\
 \gap \:\:\:\: \ldots                     & \mbox{} \\
-\gap ~|~  \text{Persist}(\iota, l, f)    & \mbox{lineage with \texttt{persist}} \\    
-\ea$
-  \caption{Extensions of syntax and lineages for
-    persist/unpersist. $f$ is a binary operator with $f \in
-    \{\cdot\cup\cdot, \cdot\setminus\cdot\}.$}
-  \label{fig:persist-syntax}
-\end{figure}
-
-The definition of evaluation contexts is extended in the
-straightforward way:
-
-$\ba[t]{l@{\hspace{2mm}}l}
+\gap ~|~  \text{Persist}(\iota, l, f)    & \mbox{lineage with \texttt{persist}} \\
+& \\
 E ::=                             & \mbox{\it{evaluation contexts:}} \\
 \gap \:\:\:\: \ldots              & \mbox{} \\
 \gap ~|~  \texttt{persist}(E)     & \mbox{persist} \\
 \gap ~|~  \texttt{unpersist}(E)   & \mbox{unpersist} \\
 \ea$
+\caption{Extensions to syntax, lineages, and evaluation contexts for
+  \texttt{persist}/\texttt{unpersist}. $f$ is a binary operator with
+  $f \in \{\cdot\cup\cdot,
+  \cdot\setminus\cdot\}$.}\label{fig:persist-syntax}
+\end{figure}
 
-Definition~\ref{def:id} is extended to handle the following additional
-case: $id(Persist(\iota, \_, \_)) =
-\iota$. Definition~\ref{def:parent} is extended analogously. To
-distinguish between persisted and regular silos when accessing their
-data, we will utilize the following $\mathit{consume}$ function:
+\subsubsection{Operational semantics}
+
+In order to distinguish between silos that have been persisted and
+those that have not, we extend stores $\sigma$ to map identifiers
+$\iota$ not just to their associated value, but also to a so-called
+``persist set'' $P$; if $\sigma(\iota) = (v, P)$ then $P$ contains all
+hosts that have persisted silo $\iota$. Stores have thus the following
+extended type:
+
+\begin{defn}[Store]\label{def:store2}
+  $\sigma \in \mathcal{H} \times \mathbb{N} \rightharpoonup v \times \mathcal{P}(\mathcal{H})$.
+\end{defn}
+
+As a next step we extend the local reduction relation, as shown in
+Figure~\ref{fig:reduction-persist}. First, we introduce the reduction
+rules \textsc{R-Persist} and \textsc{R-Unpersist} to enable the
+creation of $\text{Persist}$ lineages. Second, we adjust reduction
+rule \textsc{R-Await} to use the extended store.
+
+\comment{
+Crucially, when
+reading the value of a silo with identifier $\iota$ and persist set
+$P$, i.e., $\sigma(\iota) = (v, P)$, the mapping for $\iota$ is
+removed from resulting store $\sigma'$ if persist set $P$ is empty. An
+empty persist set indicates that the corresponding silo has not been
+persisted.  The removal of the mapping $\iota \mapsto (v, P)$ from
+store $\sigma'$ is expressed using the $\mathit{consume}$ function
+which checks for empty persist sets: $\sigma' = {\consume \iota P
+  \sigma}$. The $\mathit{consume}$ function is defined as follows:}
 
 \begin{defn}[Consume silo]\label{def:consume}
 Consume silo referenced by $\iota$ with persist set $P$ in store $\sigma$ \\
@@ -942,33 +963,10 @@ $consume(\iota, P, \sigma) := \left\{\ba{ll}
   \ea\right.$
 \end{defn}
 
-The store is also extended to store not just the value associated with
-an identifier $\iota$, but also a ``persist set'' $P$ which is a set
-of hosts which are known to have persisted silo $\iota$:
-
-\begin{defn}[Store]\label{def:store2}
-  $\sigma \in \mathcal{H} \times \mathbb{N} \rightharpoonup v \times \mathcal{P}(\mathcal{H})$.
-\end{defn}
 
 \begin{figure}
 \centering
 \begin{mathpar}
-\inferrule[\textsc{R-Await}] {
-  \sigma(\iota) = \highlight{(v, P)} \quad \highlight{\sigma' = {\consume \iota P \sigma}}
-} {
-  E[\texttt{await}(\iota)]~|~\sigma
-  \rightarrow^h
-  E[v]~|~\highlight{\sigma'}
-}
-
-\inferrule[\textsc{R-Assign}] {
-  \sigma' = [\iota \mapsto \highlight{(v, \emptyset)}]\sigma
-} {
-  E[\texttt{assign}(\iota, v)]~|~\sigma
-  \rightarrow^h
-  E[\texttt{unit}]~|~\sigma'
-}
-
 \inferrule[\textsc{R-Persist}] {
   r = {\Ref l {h'}} \quad
   l' = \text{Persist}((h, i), l, \cdot \cup \cdot) \quad i~\text{fresh}
@@ -977,6 +975,7 @@ of hosts which are known to have persisted silo $\iota$:
   \rightarrow^h
   E[{\Ref {l'} {h'}}]~|~\sigma
 }
+
 \inferrule[\textsc{R-Unpersist}] {
   r = {\Ref l {h'}} \quad
   l' = \text{Persist}((h, i), l, \cdot \setminus \cdot) \quad i~\text{fresh}
@@ -986,43 +985,47 @@ of hosts which are known to have persisted silo $\iota$:
   E[{\Ref {l'} {h'}}]~|~\sigma
 }
 
-\inferrule[\textsc{R-Respond}] {
-  M' = M \cup \{ h' \leftarrow \highlight{{\ResP \iota v P}} \}
+\inferrule[\textsc{R-Await}] {
+  \sigma(\iota) = \highlight{(v, P)}
 } {
-  \{ (E[\highlight{\texttt{respond}(h', \iota, v, P)}], \sigma, Q)^h \} \cup H ~|~ M
-  \twoheadrightarrow
-  \{ (E[\texttt{unit}], \sigma, Q)^h \} \cup H ~|~ M'
+  E[\texttt{await}(\iota)]~|~\sigma
+  \rightarrow^h
+  E[v]~|~\sigma
 }
-
 \end{mathpar}
-\caption{Extension of reduction.}\label{fig:reduction-persist}
+\caption{Extension to local reduction.}\label{fig:reduction-persist}
 \end{figure}
+
+
+\comment{
+Definition~\ref{def:id} is extended to handle the following additional
+case: $id(Persist(\iota, \_, \_)) =
+\iota$. Definition~\ref{def:parent} is extended analogously. To
+distinguish between persisted and regular silos when accessing their
+data, we will utilize the following $\mathit{consume}$ function:}
 
 
 \begin{figure}
 \begin{mathpar}
+\inferrule[\textsc{Proc-Res}] {
+  \sigma' = [\iota \mapsto \highlight{(v, \emptyset)}]\sigma
+} {
+  process(h, {\Res \iota v}, \sigma) = (\texttt{unit}, \emptyset, \sigma')
+}
 
 \inferrule[\textsc{Proc-Req}] {
   r = {\Ref l h} \quad
   \sigma(id(l)) = (v, P) \quad
-  M = \{ h' \leftarrow {\ResP \iota v P} \} \quad
   \sigma' = {\consume {id(l)} P \sigma}
 } {
-  process(h, {\Req {h'} r \iota}, \sigma) = (\texttt{unit}, M, \sigma')
-}
-
-\inferrule[\textsc{Proc-ReqMat}] {
-  r = {\Ref l h} \quad
-  l = {\Mat {\iota'}} \quad
-} {
-  process(h, {\Req {h'} r \iota}, \sigma) = (\texttt{unit}, \{ h' \leftarrow \highlight{{\ResP \iota {\texttt{unit}} \emptyset}} \}, \sigma)
+  process(h, {\Req {h'} r \iota}, \sigma) = (\texttt{unit}, \{ h' \leftarrow {\Res \iota v} \}, \sigma')
 }
 
 \inferrule[\textsc{Proc-ReqMap}] {
   r = {\Ref l h} \quad
   l = {\Mapped {\iota'} {l'} p} \quad
   \sigma(id(l'))  = \highlight{(v, P)} \\
-  t = \highlight{\texttt{respond}(h', \iota, p~v, P)} \quad
+  t = \texttt{respond}(h', \iota, p~v) \quad
   \highlight{\sigma' = {\consume {id(l')} P \sigma}}
 } {
   process(h, {\Req {h'} r \iota}, \sigma) = (t, \emptyset, \highlight{\sigma'})
@@ -1032,7 +1035,7 @@ of hosts which are known to have persisted silo $\iota$:
   r = {\Ref l h} \quad
   l = {\FMapped {\iota'} {l'} p} \quad
   \sigma(id(l')) = \highlight{(v, P)} \\
-  t = \highlight{\texttt{respond}(h', \iota, \texttt{await}(\texttt{send}(p~v)), P)} \quad
+  t = \texttt{respond}(h', \iota, \texttt{await}(\texttt{send}(p~v))) \quad
   \highlight{\sigma' = {\consume {id(l')} P \sigma}}
 } {
   process(h, {\Req {h'} r \iota}, \sigma) = (t, \emptyset, \highlight{\sigma'})
@@ -1041,17 +1044,12 @@ of hosts which are known to have persisted silo $\iota$:
 \inferrule[\textsc{Proc-ReqPersist}] {
   r = {\Ref l h} \quad
   l              = {\Per {\iota'} {l'} \star}  \quad
-  \iota'         = (h'', i)                    \quad
+  \iota'         = (h'', i)                    \\
   \sigma(id(l')) = (v, P)                      \quad
   P'             = P \star \{h''\}             \quad
+  \sigma'        = [\iota' \mapsto (v, P')]\sigma
 } {
-  process(h, {\Req {h'} r \iota}, \sigma) = (\texttt{unit}, \{ h' \leftarrow {\ResP \iota v {P'}} \}, \sigma)
-}
-
-\inferrule[\textsc{Proc-Res}] {
-  \sigma' = [\iota \mapsto \highlight{(v, P)}]\sigma
-} {
-  process(h, \highlight{{\ResP \iota v P}}, \sigma) = (\texttt{unit}, \emptyset, \sigma')
+  process(h, {\Req {h'} r \iota}, \sigma) = (\texttt{unit}, \{ h' \leftarrow {\Res \iota v} \}, \sigma')
 }
 \end{mathpar}
 \caption{Extension of message processing.}\label{fig:process-persist}
@@ -1071,15 +1069,6 @@ of hosts which are known to have persisted silo $\iota$:
   \Gamma ; \Sigma \vdash t : \SR{T}
 } {
   \Gamma ; \Sigma \vdash \texttt{unpersist}(t) : \SR{T}
-}
-
-\inferrule[\textsc{T-Respond}] {
-  h \in \mathcal{H} \quad
-  \Gamma ; \Sigma \vdash t : \texttt{Future}[T] \quad
-  \Gamma ; \Sigma \vdash t' : T \quad
-  \highlight{P \subseteq \mathcal{H}}
-} {
-  \Gamma ; \Sigma \vdash \texttt{respond}(h, t, t', \highlight{P}) : \texttt{Unit}
 }
 
 \inferrule[\textsc{WF-Store2}] {
