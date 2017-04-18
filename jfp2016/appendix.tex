@@ -138,7 +138,7 @@ If $\Sigma \vdash \sigma$, $\Sigma \vdash m \cdot \emptyset$, and $process(h, m,
   \item $m = {\Req {h'} r \iota}$
   \item $r = {\Ref l h}$
   \item $\sigma(id(l)) = (v, P)$
-  \item $M = \{ h' \leftarrow {\ResP \iota v P} \}$
+  \item $M = \{ h' \leftarrow {\Res \iota v} \}$
   \item $\sigma' = {\consume {id(l)} P \sigma}$
   \item $t = \texttt{unit}$
   \end{enumerate}
@@ -159,7 +159,7 @@ If $\Sigma \vdash \sigma$, $\Sigma \vdash m \cdot \emptyset$, and $process(h, m,
 % 8.
 \item By 1.a), 2.c), 7., and \textsc{WF-Store2}, $\emptyset ; \Sigma \vdash v : T$.
 % 9.
-\item By 6.a), 7., 8., \textsc{WF-Q1}, and \textsc{WF-Q2}, $\Sigma \vdash {\ResP \iota v P} \cdot \epsilon$.
+\item By 6.a), 7., 8., \textsc{WF-Q1}, and \textsc{WF-Q2}, $\Sigma \vdash {\Res \iota v} \cdot \epsilon$.
 % 10.
 \item By 9. and \textsc{WF-Messages}, $\Sigma \vdash M$.
 % 11.
@@ -186,7 +186,7 @@ If $\Sigma \vdash \sigma$, $\Sigma \vdash m \cdot \emptyset$, and $process(h, m,
   \item $r = {\Ref l h}$
   \item $l = {\Mapped {\iota'} {l'} p}$
   \item $\sigma(id(l')) = (v, P)$
-  \item $t = \texttt{respond}(h', \iota, p~v, P)$
+  \item $t = \texttt{respond}(h', \iota, p~v)$
   \item $\sigma' = {\consume {id(l')} P \sigma}$
   \item $M = \emptyset$
   \end{enumerate}
@@ -215,7 +215,7 @@ If $\Sigma \vdash \sigma$, $\Sigma \vdash m \cdot \emptyset$, and $process(h, m,
 % 9.
 \item By 3.a), 4.a), and Def.~\ref{def:id}, $\Sigma(id(l)) = \Sigma(\iota)$ and thus by \textsc{T-Ident}, $\emptyset ; \Sigma \vdash \iota : \texttt{Future}[T]$.
 % 10.
-\item By 2.d), 8., 9., and \textsc{T-Respond}, $\emptyset ; \Sigma \vdash t : \texttt{Unit}$.
+\item By 8., 9., and \textsc{T-Respond}, $\emptyset ; \Sigma \vdash t : \texttt{Unit}$.
 % 11.
 \item By 2.g) and \textsc{WF-Messages-Emp}, $\Sigma \vdash M$.
 % 12.
