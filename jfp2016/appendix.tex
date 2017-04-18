@@ -1,4 +1,4 @@
-\section{Full Proofs}
+\section{Proofs}
 
 \subsection{Proof of Theorem~\ref{lem:ser-values}}\label{app:ser-values}
 
@@ -10,6 +10,8 @@ If $\Gamma ; \Sigma \vdash v : T$ and $serializable(T)$ then $\emptyset ; \Sigma
 By induction on the derivation of $\Gamma ; \Sigma \vdash v : T$ with a case analysis on the last applied rule.
 
 \begin{itemize}
+\item Cases \textsc{T-Unit} and \textsc{T-Host} are trivial.
+
 \item Case \textsc{T-SiloRef}.
 \begin{enumerate}
 % 1.
@@ -30,30 +32,7 @@ By induction on the derivation of $\Gamma ; \Sigma \vdash v : T$ with a case ana
 \item By 2.a-d), and \textsc{T-SiloRef}, $\emptyset ; \Sigma \vdash v : T$.
 \end{enumerate}
 
-\item Case \textsc{T-Record}.
-\begin{enumerate}
-% 1.
-\item By the assumptions
-  \begin{enumerate}[label=(\alph*)]
-  \item $\Gamma ; \Sigma \vdash v : T$
-  \item $serializable(T)$
-  \end{enumerate}
-% 2.
-\item By 1.a) and \textsc{T-Record}
-  \begin{enumerate}[label=(\alph*)]
-  \item $v = \{\seq{l = v}\}$
-  \item $T = \{\seq{l : T}\}$
-  \item $\Gamma ; \Sigma \vdash \seq{v} : \seq{T}$
-  \end{enumerate}
-% 3.
-\item By 1.b), 2.b), and \textsc{S-Record}, $\forall T_i \in \seq{T}.~serializable(T_i)$.
-% 4.
-\item By 2.c), 3., and the IH, $\emptyset ; \Sigma \vdash \seq{v} : \seq{T}$.
-% 5.
-\item By 4. and \textsc{T-Record}, $\emptyset ; \Sigma \vdash \{\seq{l = v}\} : \{\seq{l : T}\}$.
-\end{enumerate}
-
-\item Case \textsc{T-Spore} is analogous to case \textsc{T-Record}.
+\item Case \textsc{T-Spore} follows by \textsc{S-Spore} and the IH.
 \end{itemize}
 \end{proof}
 
@@ -247,7 +226,7 @@ If $\Sigma \vdash \sigma$, $\Sigma \vdash m \cdot \emptyset$, and $process(h, m,
 \end{thmun}
 \begin{proof}
 
-Part 1: by induction on a derivation of $t~|~\sigma \rightarrow^h t'~|~\sigma'$ with case analysis of the last applied rule.
+Part 1: by induction on the derivation of $t~|~\sigma \rightarrow^h t'~|~\sigma'$ with case analysis of the last applied rule.
 
 \begin{itemize}
 \item Case \textsc{R-AppAbs}.
@@ -284,7 +263,7 @@ Part 1: by induction on a derivation of $t~|~\sigma \rightarrow^h t'~|~\sigma'$ 
 \item 2.c) and 7. close this case.
 \end{enumerate}
 
-\item Cases \textsc{R-ProjRcd}, \textsc{R-AppSpore}, and \textsc{R-Await} follow analogously.
+\item Cases \textsc{R-AppSpore} and \textsc{R-Await} follow analogously.
 
 \item Case \textsc{R-Map}.
 \begin{enumerate}

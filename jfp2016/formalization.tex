@@ -12,8 +12,6 @@ t ::=                                                                  & \mbox{{
 \gap \:\:\:\:  x                                                       & \mbox{variable} \\
 \gap ~|~  (x: T) \Rightarrow t                                         & \mbox{abstraction} \\
 \gap ~|~  t~t                                                          & \mbox{application} \\
-\gap ~|~  \{ \seq{l = t} \}                                            & \mbox{record construction} \\
-\gap ~|~  t.l                                                          & \mbox{selection} \\
 \gap ~|~  \unit                                                        & \mbox{unit} \\
 \gap ~|~  \texttt{spore}~\{~\seq{x : T = t}~; (x: T) \Rightarrow t~\}  & \mbox{spore} \\
 \gap ~|~  \texttt{populate}(t)                                         & \mbox{populate silo} \\
@@ -28,7 +26,6 @@ t ::=                                                                  & \mbox{{
                                                                        & \\
 v ::=                                                                  & \mbox{{\it{values:}}} \\
 \gap \:\:\:\: (x: T) \Rightarrow t                                     & \mbox{abstraction value} \\
-\gap ~|~  \{ \seq{l = v} \}                                            & \mbox{record value} \\
 \gap ~|~  \unit                                                        & \mbox{unit} \\
 \gap ~|~  p                                                            & \mbox{spore value} \\
 \gap ~|~  \iota                                                        & \mbox{decentralized identifier} \\
@@ -45,10 +42,47 @@ l ::=                                                  & \mbox{{\it{lineages:}}}
 r ::= {\Ref l h} \quad \text{where}~h \in \mathcal{H}  & \mbox{silo reference} \\
                                                        & \\
 \iota  ::= (h,i) \quad \text{where}~h \in \mathcal{H}~\text{and}~i \in \mathbb{N}   & \mbox{decentralized identifier} \\
-& \\
+\ea$
+\caption{Abstract syntax of core language.}\label{fig:syntax}
+\end{figure}
+
+
+We formalize our programming model in the context of a typed lambda
+calculus. Figure~\ref{fig:syntax} shows the abstract syntax of our
+core language. Besides standard terms, the language includes terms
+related to (a) spores, (b) silos, and (c) futures. The \verb|spore|
+term creates a new spore. It contains a list of variable definitions,
+the spore header, and a closure which may only refer to its parameter
+and variables in the spore header. The \verb|populate| term
+initializes a new silo on a given host. The \verb|map| and
+\verb|flatMap| terms create lineages of silo transformations
+represented as silo references.  The \verb|send| term forces the
+materialization of the argument silo. The \verb|send| expression
+returns a future which is asynchronously completed with the silo's
+value. The \verb|await| term waits for the completion of its argument
+future and returns the future's value. Decentralized identifiers
+$\iota$ are used to refer to futures and to identify silos via their
+lineages (each element in a lineage carries a decentralized
+identifier).
+
+Values in our language are as expected: besides abstractions they
+include spore values, decentralized identifiers, and silo
+references. Decentralized identifiers and silo references are not part
+of the ``surface syntax'' of our language; they are only introduced by
+evaluation (see Section~\ref{sec:opsem}). Silo reference values have
+the form ${\Ref l h}$ where $l$ is a lineage and $h$ is a
+host. Lineages are values of a simple datatype with constructors {\em
+  Mat}, {\em Mapped}, and {\em FMapped}. The constructors include all
+information required for {\em materializing} a silo with the result of
+applying the described transformations. We defer a detailed
+explanation of the transformations described by a lineage to the
+following Section~\ref{sec:opsem}.
+
+\begin{figure}[h!]
+\centering
+$\ba[t]{l@{\hspace{2mm}}l}
 T ::=                                                                  & \mbox{{\it{types:}}} \\
 \gap \:\:\:\: T \Rightarrow T                                          & \mbox{abstraction type} \\
-\gap ~|~  \{ \seq{l : T} \}                                            & \mbox{record type} \\
 \gap ~|~  \texttt{Unit}                                                & \mbox{unit type} \\
 \gap ~|~  \mathcal{S}                                                  & \mbox{} \\
 \gap ~|~  \texttt{Future}[T]                                           & \mbox{future type} \\
@@ -57,48 +91,14 @@ T ::=                                                                  & \mbox{{
 \mathcal{S} ::= T \Rightarrow T~\{~\texttt{type}~\mathcal{C} = \seq{T}~\}   & \mbox{spore type} \\
 \gap ~|~ T \Rightarrow T~\{~\texttt{type}~\mathcal{C}~\}               & \mbox{abstract spore type} \\
 \ea$
-\caption{Abstract syntax of core language.}\label{fig:syntax}
+\caption{Types of core language.}\label{fig:types}
 \end{figure}
 
-We formalize our programming model in the context of a typed lambda
-calculus with records. Figure~\ref{fig:syntax} shows the abstract
-syntax of our core language. Besides standard terms, the language
-includes terms related to (a) spores, (b) silos, and (c) futures. The
-\verb|spore| term creates a new spore. It contains a list of variable
-definitions, the spore header, and a closure which may only refer to
-its parameter and variables in the spore header. The \verb|populate|
-term initializes a new silo on a given host. The \verb|map| and
-\verb|flatMap| terms create lineages of silo transformations
-represented as silo references.  The \verb|send| term forces the
-materialization of the silo corresponding to its first argument silo
-reference; the second argument silo reference indicates which silo
-should be completed with the materialization result. This flexibility
-is needed for implementing \verb|flatMap| (see below); in user
-programs, the two arguments passed to \verb|send| are always the
-same. The \verb|send| expression returns a future which is
-asynchronously completed with the silo's value. The \verb|await| term
-waits for the completion of its argument future and returns the
-future's value. Decentralized identifiers $\iota$ are used to refer to
-futures and to identify silos via their lineages (each element in a
-lineage carries a decentralized identifier).
-
-Values in our language are as expected: besides abstractions and
-record values they include spore values, decentralized identifiers,
-and silo references. Decentralized identifiers and silo references are
-not part of the ``surface syntax'' of our language; they are only
-introduced by evaluation (see Section~\ref{sec:opsem}). Silo reference
-values have the form ${\Ref l h}$ where $l$ is a lineage and $h$ is a
-host. Lineages are values of a simple datatype with constructors {\em
-  Mat}, {\em Mapped}, and {\em FMapped}. The constructors include all
-information required for {\em materializing} a silo with the result of
-applying the described transformations. We defer a detailed
-explanation of the transformations described by a lineage to the
-following Section~\ref{sec:opsem}.
-
-In addition to standard function and record types, the language has
-types for spores, futures, silo references, and hosts. A spore type $T
-\Rightarrow T'~\{~\texttt{type}~\mathcal{C} = \seq{T}~\}$ includes the
-types $\seq{T}$ of the variables declared in the header of the spore.
+In addition to standard function types, the language has types for
+spores, futures, silo references, and hosts (see
+Figure~\ref{fig:types}). A spore type $T \Rightarrow
+T'~\{~\texttt{type}~\mathcal{C} = \seq{T}~\}$ includes the types
+$\seq{T}$ of the variables declared in the header of the spore.
 
 \subsection{Operational Semantics}\label{sec:opsem}
 
@@ -118,8 +118,6 @@ E ::=                                                                           
 \gap \:\:\:\: [~]                                                                                         & \mbox{hole} \\
 \gap ~|~  E~t                                                                                             & \mbox{application (fun)} \\
 \gap ~|~  v~E                                                                                             & \mbox{application (arg)} \\
-\gap ~|~  \{ \seq{l = v} ; l_i = E ; \seq{l' = t} \}                                                      & \mbox{record} \\
-\gap ~|~  E.l                                                                                             & \mbox{selection} \\
 \gap ~|~  \texttt{spore}~\{~\seq{x : T = v} ; x_i : T_i = E ; \seq{x' : T = t} ; (x: T) \Rightarrow t~\}  & \mbox{spore} \\
 \gap ~|~  \texttt{populate}(E)                                                                            & \mbox{populate} \\
 \gap ~|~  \texttt{map}(E, t)                                                                              & \mbox{map (ref)} \\
@@ -135,13 +133,12 @@ E ::=                                                                           
 \end{figure}
 
 The semantics is based on two reduction relations for (a) local
-reduction of terms and (b) distributed, non-deterministic reduction of
-sets of hosts.  The reduction relations use the definition of
-evaluation contexts shown in Figure~\ref{fig:eval-ctx}. Evaluation
-contexts capture the notion of the ``next subterm to be evaluated.''
-Following a standard approach~\cite{TAPL}, we write $E[t]$ for the
-term obtained by replacing the hole in evaluation context $E$ with
-term $t$.
+reduction of terms and (b) distributed reduction of sets of hosts.
+The reduction relations use the definition of evaluation contexts
+shown in Figure~\ref{fig:eval-ctx}. Evaluation contexts capture the
+notion of the ``next subterm to be evaluated.''  Following a standard
+approach~\cite{TAPL}, we write $E[t]$ for the term obtained by
+replacing the hole in evaluation context $E$ with term $t$.
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %
@@ -157,12 +154,6 @@ term $t$.
   E[((x: T) \Rightarrow t)~v]~|~\sigma
   \rightarrow^h
   E[[x \mapsto v]t]~|~\sigma
-}
-
-\inferrule[\textsc{R-ProjRcd}] {} {
-  E[\{\seq{l_i = v_i^{i \in 1..n}}\}.l_j]~|~\sigma
-  \rightarrow^h
-  E[v_j]~|~\sigma
 }
 
 \inferrule[\textsc{R-AppSpore}] {} {
@@ -207,18 +198,18 @@ term $t$.
 \caption{Local reduction.}\label{fig:seq-reduction}
 \end{figure}
 
-Figure~\ref{fig:seq-reduction} shows the rules for sequential
-reduction. The sequential reduction relation has the form
-$E[t]~|~\sigma \rightarrow^h E[t']~|~\sigma'$ with stores $\sigma$ and
+Figure~\ref{fig:seq-reduction} shows the rules for local
+reduction. The local reduction relation has the form $E[t]~|~\sigma
+\rightarrow^h E[t']~|~\sigma'$ with stores $\sigma$ and
 $\sigma'$. Stores are required for the dynamic allocation of silos. A
 store $\sigma$ is a partial function mapping decentralized identifiers
 $\iota$ to values $v$.  The annotation with host $h$ is used for
 creating decentralized identifiers $\iota = (h, i)$ for lineages.
-Rules \textsc{R-AppAbs} and \textsc{R-ProjRcd} are completely
-standard.  Analogous to rule \textsc{R-AppAbs}, rule
-\textsc{R-AppSpore} describes the application of a spore value to an
-argument value. Rule \textsc{R-Await} reduces $\texttt{await}(\iota)$
-to $v$ if future $\iota$ is already completed with $v$ in $\sigma$.
+Rule \textsc{R-AppAbs} is completely standard.  Analogous to rule
+\textsc{R-AppAbs}, rule \textsc{R-AppSpore} describes the application
+of a spore value to an argument value. Rule \textsc{R-Await} reduces
+$\texttt{await}(\iota)$ to $v$ if future $\iota$ is already completed
+with $v$ in $\sigma$.
 
 Rules \textsc{R-Populate}, \textsc{R-Map}, and \textsc{R-FMap}
 describe the creation of lineages.  Rules \textsc{R-Map} and
@@ -525,7 +516,8 @@ parent it must be materialized.
 Rule \textsc{Proc-ReqMat} handles the case where $r$ does not have a
 parent. In this case, the materialization of $r$ is just the
 \verb|unit| value; thus, a response ${\Res \iota {\texttt{unit}}}$ is
-sent to host $h'$.
+sent to host $h'$ by evaluating the term $\texttt{respond}(h', \iota,
+\texttt{unit})$.
 
 Rule \textsc{Proc-ReqMap} handles the case where the lineage of $r$
 begins with a $\text{Mapped}$ constructor. In this case, the
@@ -570,18 +562,6 @@ returned future using \verb|await|.
   \Gamma ; \Sigma \vdash t' : T
 } { 
   \Gamma ; \Sigma \vdash (t~t') : T'
-}
-
-\inferrule[\textsc{T-Record}] {
-  \Gamma ; \Sigma \vdash \seq{t} : \seq{T}
-} {
-  \Gamma ; \Sigma \vdash \{ \seq{l = t} \} : \{ \seq{l : T} \}
-}
-
-\inferrule[\textsc{T-Select}] {
-  \Gamma ; \Sigma \vdash t : \{ \seq{l : T} \}
-} {
-  \Gamma ; \Sigma \vdash t.l_i : T_i
 }
 
 \inferrule[\textsc{T-Unit}] {} {
@@ -666,26 +646,28 @@ Type assignment is based on a judgment of the form $\Gamma ; \Sigma
 type environment which maps variables $x$ to types $T$; $\Sigma$ is a
 store typing which maps identifiers $\iota$ to types
 $T$. Figure~\ref{fig:type-rules} shows the rules for type
-assignment. Rules \textsc{T-Var}, \textsc{T-Abs}, \textsc{T-App},
-\textsc{T-Record}, and \textsc{T-Select} are unchanged compared to a
-standard typed lambda calculus with records~\cite{TAPL}.
+assignment. Rules \textsc{T-Var}, \textsc{T-Abs}, and \textsc{T-App}
+are unchanged compared to a standard typed lambda
+calculus~\cite{TAPL}.
 
 \begin{figure}
 \begin{mathpar}
-\inferrule[\textsc{S-Record}] {
-  \forall T_i \in \seq{T}.~serializable(T_i)
-} {
-  serializable(\{ \seq{l : T} \})
+\inferrule[\textsc{S-Unit}] {} {
+  serializable(\texttt{Unit})
+}
+
+\inferrule[\textsc{S-Host}] {} {
+  serializable(\texttt{Host})
+}
+
+\inferrule[\textsc{S-SiloRef}] {} {
+  serializable(\texttt{SiloRef}[T])
 }
 
 \inferrule[\textsc{S-Spore}] {
   \forall T_i \in \seq{T}.~serializable(T_i)
 } {
   serializable(T \Rightarrow T'~\{~\texttt{type}~\mathcal{C} = \seq{T}~\})
-}
-
-\inferrule[\textsc{S-SiloRef}] {} {
-  serializable(\texttt{SiloRef}[T])
 }
 \end{mathpar}
 \caption{Serializable types.}\label{fig:ser-types}
@@ -695,11 +677,11 @@ Rule \textsc{T-Spore} assigns a type to spore literals. Importantly,
 the body of the spore's closure, $t$, must be well-typed in a type
 environment containing only the closure parameter $x$ and the
 variables $\seq{x}$ in the spore's header, as well as an empty store
-typing. Furthermore, the types of captured variables must be
-serializable. The predicate $serializable$ is defined in
-Figure~\ref{fig:ser-types}. These constraints ensure that spore values
-are always independent of the environment of the creating host. This
-independence is expressed by the following theorem:
+typing. Furthermore, the types of captured variables as well as the
+result type $T'$ must be serializable. The predicate $serializable$ is
+defined in Figure~\ref{fig:ser-types}. These constraints ensure that
+spore values are always independent of the environment of the creating
+host. This independence is expressed by the following theorem:
 
 \begin{thm}
 \emph{(Serializable Values)}\label{lem:ser-values}
@@ -1214,7 +1196,7 @@ preserved by reduction.
   If $H~|~M \twoheadrightarrow H'~|~M'$ then $\Sigma' \vdash H'~|~M'$
   is a responsive configuration for some $\Sigma' \supseteq \Sigma$.
 \end{lem}
-\begin{proof}
+\begin{proof}[Proof Sketch]
   By Lemma~\ref{lem:strong-normal} and the definition of function
   $\mathit{process}$ (see
   Figures~\ref{fig:process}~and~\ref{fig:process-persist}).
@@ -1227,7 +1209,7 @@ response ${\Res \iota v}$ is sent to host $h'$ after a finite number
 of reduction steps. Formally:
 
 \begin{thm}[Finite Materialization]\label{thm:finite-mat}
-  If $\Sigma \vdash H~|~M$ is responsive, $m = {\Req {h'} r \iota}$,
+  If $\Sigma \vdash H~|~M$ is responsive, $m = {\Req {h'} r \iota}$, $r = {\Ref {l'} h}$,
   and $\Sigma \vdash m \cdot \epsilon$ then
   $H~|~(M \cup \{ h \leftarrow m \}) \twoheadrightarrow^* H'~|~(M' \cup \{ h' \leftarrow {\Res \iota v} \})$
   after a finite number of reduction steps.
