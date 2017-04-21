@@ -717,7 +717,7 @@ of the failure-free path through a computation DAG as simple as possible, while
 still enabling the handling of faults at the fine-granular level of individual
 silo references.
 
-\paragraph{Defining fault handlers}
+\paragraph{Defining fault handlers.}
 
 Fault handlers may be specified whenever the lineage of a silo reference is
 extended. For this purpose, the introduced \verb|map| and \verb|flatMap|
@@ -761,6 +761,34 @@ example, we specified \verb|computeOwners(vehicles2)| as the failure handler;
 thus, in case \verb|vehicles| has failed, the computation is retried using
 \verb|vehicles2| instead.
 
+\subsection{Limitations}
+
+Although fairly small and simple, the introduced programming model is
+quite flexible, and we have used it to implement a variety of examples
+and abstractions from the literature (see Section~\ref{sec:examples}).
+However, as presented, the function passing model also has important
+limitations. Two principle limitations pertain to {\em distributed
+  data} and {\em distributed behavior:}
+
+\begin{itemize}
+
+\item Data maintained in silos is {\em immutable}. As a result,
+  computational patterns based on mutating distributed state cannot be
+  expressed in the model. An example would be (potentially long-lived)
+  distributed graph data that is asynchronously updated.  Another
+  example would be mutable, distributed data structures such as
+  CRDTs~\cite{ShapiroPBZ11}.
+
+\item A computation cannot spawn independent activities. While it is
+  possible to create spore closures and send them to remote hosts for
+  execution, a spore is applied only once, to materialize (the
+  contents of) a silo. However, there is no way to create a behavior
+  which remains active in some way across multiple interactions, like
+  actors~\cite{Actors} or processes in the
+  $\pi$-calculus~\cite{milner:92a}.
+
+\end{itemize}
+
 \section{Higher-Order Operations}
 \label{sec:higher-order-operations}
 
@@ -791,7 +819,7 @@ patterns that are still fault-tolerant.
 % The union of two unordered collections stored in two different silos can be
 % expressed directly using the above \verb|flatMap| primitive.
 
-\paragraph{join}
+\paragraph{join.}
 
 Suppose we are given two silos with the following types:
 
@@ -849,7 +877,7 @@ Using an additional \verb|map|, the collection can be sorted by key, and
 adjacent triples be combined, yielding a \texttt{SiloRef[List[(K, (A, B))]]} as
 required.
 
-\paragraph{Partitioning and groupByKey}
+\paragraph{Partitioning and \texttt{groupByKey}.}
 
 A \verb|groupByKey| operation on a group of silos containing collections needs
 to create multiple result silos, on each node, with ranges of keys supposed to
