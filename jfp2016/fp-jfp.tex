@@ -222,11 +222,11 @@ systems.
 
 \subsection{Programming Model}
 
-The function passing model consists of three main components: \textbf{Silos}
+The function passing model consists of three main components: \textbf{Silos},
 stationary, typed, immutable data containers, \textbf{Silo references} to local
-or remote Silos, and \textbf{Spores} safe, serializable functions.
+or remote Silos, and \textbf{Spores}, safe, serializable functions.
 
-\paragraph{Silos}
+\paragraph{Silos.}
 
 A silo is a typed and immutable data container. It is stationary in the sense
 that it does not move between machines -- it remains on the machine where it was
@@ -234,7 +234,7 @@ created. Data stored in a silo is typically loaded from stable storage, such as
 a distributed file system. A program operating on data stored in a silo can only
 do so using a reference to the silo.
 
-\paragraph{Silo references}
+\paragraph{Silo references.}
 
 Similar to a proxy object, a silo reference represents, and allows interacting
 with both local and remote silos. Silo references are immutable, storing
@@ -256,7 +256,7 @@ a \verb|SiloRef[T]| whose contents is transferred to the new silo returned by
 (local or remote) silos from within remote computations. We illustrate these
 primitives in more detail in Section~\ref{sec:primitives}.
 
-\paragraph{Spores}
+\paragraph{Spores.}
 
 Spores~\cite{Spores} are safe closures that are guaranteed to be serializable
 and thus distributable. They are a closure-like abstraction and a type system
@@ -268,8 +268,8 @@ to ensure that types being captured have certain properties.
 
 \vspace{3mm}
 \noindent A spore consists of two parts: the \textbf{spore header}, composed of
-a list of value definitions, and the \textbf{spore body} a regular closure;
-sometimes referred to as the “spore closure”. This shape is illustrated in
+a list of value definitions, and the \textbf{spore body}, a regular closure;
+sometimes referred to as the ``spore closure.'' This shape is illustrated in
 Figure~\ref{fig:spore-shape}.
 
 \begin{figure}[ht!]
@@ -332,7 +332,7 @@ contained within a \verb|Silo[T]|. When the function, shown as $\lambda$, of
 type $T \Rightarrow S$ is applied to \verb|SiloRef[T]| and ``forced'' (sent over
 the wire), a new silo reference of type \verb|SiloRef[S]| is immediately
 returned. Note that \verb|SiloRef[S]| contains a reference to its parent silo
-reference, \verb|SiloRef[T]| (This is how {\em lineages} are constructed.).
+reference, \verb|SiloRef[T]|. (This is how {\em lineages} are constructed.)
 Meanwhile, the function is asynchronously sent over the wire and is then applied
 to \verb|Silo[T]|, eventually producing a new \verb|Silo[S]| containing the data
 transformed by function $\lambda$. This new \verb|SiloRef[S]| can be used even
@@ -344,7 +344,7 @@ fully materialized.
 Different sorts of complex DAGs can be asynchronously built up in this way.
 Though first, to see how this is possible, we need to develop a clearer idea of
 the primitive operations available on silo references and their semantics. We
-describe these in the following section.
+describe these in the following.
 
 \begin{figure}[ht!]
 \centering\includegraphics[scale=0.35]{pic/bigger-dag.pdf}
@@ -354,14 +354,33 @@ describe these in the following section.
 \subsection{Primitives}
 \label{sec:primitives}
 
-There are four basic primitive operations on silo references that together can
-be used to build the higher-order operations common to popular data-centric
-distributed systems (how to build some of these higher-order operations is
-described in Section~\ref{sec:higher-order-operations}). In this section we'll
-introduce these primitives in the context of a running example. These primitives
-include: \verb|map|, \verb|flatMap|, \verb|send|, and \verb|cache|.
+There are four basic primitive operations on silo references that
+together can be used to build the higher-order operations common to
+popular data-centric distributed systems (how to build some of these
+higher-order operations is described in
+Section~\ref{sec:higher-order-operations}). In this section we
+introduce these primitives in the context of a running example. These
+primitives include \verb|map|, \verb|flatMap|, \verb|send|, and
+\verb|persist|, whose type signatures are shown in
+Figure~\ref{fig:signatures}.\footnote{A trait in Scala can be thought
+  of as an abstract class supporting mixin composition, essentially
+  providing a safe form of multiple inheritance~\cite{OderskyZ05}.}
 
-\paragraph{map}%
+\begin{figure}
+\centering
+\begin{lstlisting}
+  trait SiloRef[T] {
+    def map[S](p: Spore[T, S]): SiloRef[S]
+    def flatMap[S](p: Spore[T, SiloRef[S]]): SiloRef[S]
+    def send(): Future[T]
+    def persist(): SiloRef[T]
+  }
+\end{lstlisting}
+\caption{Type signatures of primitive operations.}\label{fig:signatures}
+\end{figure}
+
+
+\paragraph{map.}%
 %
 \texttt{def map[S](p: Spore[T, S]): SiloRef[S]} \newline
 %
@@ -373,7 +392,7 @@ communication, it immediately returns a \verb|SiloRef| referring to a new,
 to-be-created silo. This new silo reference only contains lineage information,
 namely, a reference to the original \verb|SiloRef|, a reference to the argument
 spore, and the information that it is the result of a \verb|map| invocation. As
-we explain below, another method, \verb|send| or \verb|cache|, must be called
+we explain below, another method, \verb|send|, must be called
 explicitly to force the materialization of the result silo.
 
 To better understand how DAGs are created and how remote silos are materialized,
@@ -389,7 +408,7 @@ val adults: SiloRef[List[Person]] = persons.map(spore { ps =>
 \end{lstlisting}
 
 
-\paragraph{flatMap}%
+\paragraph{flatMap.}%
 %
 \texttt{def flatMap[S](p: Spore[T, SiloRef[S]]): SiloRef[S]} \newline
 %
@@ -449,7 +468,7 @@ the \verb|map| combinator (see Section~\ref{sec:expr}), keeping \verb|map| as a
 (lightweight) primitive enables more opportunities for optimizing computation
 DAGs (\eg operation fusion~\cite{FlumeJava}).
 
-\paragraph{send}%
+\paragraph{send.}%
 %
 \texttt{def send(): Future[T]} \newline
 %
@@ -519,38 +538,64 @@ function as proxy delegating requests re \verb|owners| to the data hosted at
 \verb|m3|. This alleviates network communication and scales up transformation
 execution.
 
-\paragraph{cache}%
+\paragraph{persist.}%
 %
-\texttt{def cache(): Future[Unit]} \newline
+\texttt{def persist(): SiloRef[T]} \newline
 %
-The performance of typical data analytics jobs can be increased dramatically by
-caching large data sets in memory~\cite{Spark}. To do this, the silo, containing
-the computed data set, needs to be materialized. The only way, that we have
-shown so far, to materialize a silo is using the \verb|send| primitive. However,
-\verb|send| additionally transfers the contents of a silo to the requesting
-node--too much if a large remote data set should merely be cached in memory
-remotely. Therefore, an additional primitive called \verb|cache| is provided,
-which forces the remote materialization of the given \verb|SiloRef|, returning
-\verb|Future[Unit]|.
+The performance of typical data analytics jobs can be increased
+dramatically by caching large data sets in memory~\cite{Spark}. To do
+this, silos containing computed data sets need to be materialized, and
+furthermore, re-materialization should be avoided when data sets are
+used multiple times.
 
-Given the running example so far, we can add another lineage branching off of
-\verb|adults| by sorting the list of \verb|Person| records by age, producing a
-greeting \verb|String|, and then ``kicking off'' remote computation by calling
-\verb|cache|, rather than \verb|send|, in order to stash the result in remote
-memory (graphically shown in Figure~\ref{fig:bigger-dag}, part 3 and 4):
+The only way, that we have shown so far, to materialize a silo is
+using the \verb|send| primitive. However, using \verb|send| does not
+prevent the system from evicting the silo from memory at a later point
+in time, \eg when its host is running low on memory. In addition,
+\verb|send| transfers the contents of the silo to the requesting
+host--too much if a large remote data set should merely be cached in
+memory remotely.
+
+Therefore, we provide an additional primitive called \verb|persist|
+which immediately returns a \verb|SiloRef| representing a silo which
+(a) has the same data when materialized, and (b) is guaranteed to
+remain in memory as long as at least one host has a \verb|SiloRef| to
+it.
+
+Given the running example so far, we can add another lineage branching
+off of \verb|adults| by sorting the list of \verb|Person| records by
+age, and producing a greeting \verb|String| for each record:
 
 \begin{lstlisting}
 val sorted = adults.map(spore { ps => ps.sortWith(p => p.age) })
 val labels = sorted.map(spore { ps => ps.map(p => "Hi " + p.name) })
-labels.cache()
+val cachedLabels = labels.persist()
+val done: Future[Boolean] = cachedLabels.map(x => true).send()
 \end{lstlisting}
 \noindent
-Assuming we would also cache \verb|owners| from the previous example, the
+The \verb|cachedLabels| silo contains the same (logical) data as the
+\verb|labels| silo, however the data of \verb|cachedLabels| is cached
+in memory. Thus, \verb|cachedLabels| needs to be materialized just
+once. In order to ``kick off'' remote computation, it is still
+necessary to call \verb|send|; however, it is always possible to
+``prefetch'' data into remote memory by mapping the data to a trivial
+value (\verb|true| above) and invoking \verb|send| to materialize the
+lineage.\footnote{Our system also provides a \texttt{cache} operation
+  which abbreviates this pattern: semantically, \texttt{ref.cache()}
+  is equivalent to \texttt{ref.persist().map(x => ()).send()}.} The
+lineage for the above example looks as illustrated in
+Figure~\ref{fig:bigger-dag}.
+
+\comment{, and then ``kicking off'' remote computation by calling
+\verb|cache|, rather than \verb|send|, in order to stash the result in remote
+memory (graphically shown in Figure~\ref{fig:bigger-dag}, part 3 and 4):}
+
+\comment{Assuming we would also cache \verb|owners| from the previous example, the
 resulting lineage graph would look as illustrated in
 Figure~\ref{fig:bigger-dag}. Note that \verb|vehicles| is not a regular parent
 in the lineage of \verb|owners|; it is an indirect input used to compute
 \verb|owners| by virtue of being {\em captured} by the spore used to compute
-\verb|owners|.
+\verb|owners|.}
 
 % The \verb|cache| method can be provided for convenience. It invokes
 % \verb|send| not directly on the given SiloRef (which would transfer all data
@@ -631,7 +676,7 @@ operation. The reason why \verb|map| is provided as one of the main operations
 of \verb|SiloRef|s is that direct uses of \verb|map| enable an important
 optimization based on operation fusion~\cite{FlumeJava}.
 
-\paragraph{Expressing \texttt{cache}}
+{\paragraph{Expressing \texttt{cache}}
 
 The \verb|cache| operation can be expressed using \verb|flatMap| and
 \verb|send|:
@@ -648,7 +693,8 @@ Here, we first use \verb|flatMap| to create a new silo that will be completed
 with the trivial value of the \verb|DoneSiloRef| singleton object (\eg
 \verb|Unit|). Essentially, invoking \verb|send| on this trivial \verb|SiloRef| causes
 the resulting future to be completed as soon as \verb|this| silo reference has been
-materialized in memory. \comment{{\color{gray}The value type \verb|Unit| ensures no data is
+materialized in memory.}
+\comment{{\color{gray}The value type \verb|Unit| ensures no data is
 actually sent of the wire--up to \verb|()|, the only value of type \verb|Unit|.}}
 
 \subsection{Fault Handling}
@@ -922,7 +968,7 @@ val done    = info.flatMap(spore {
   val captured = fileName
   combined => Utils.write(combined, captured)
 })
-done.cache() // force computation
+done.send() // force computation
 \end{lstlisting}
 \noindent
 This program does not tolerate failures of the host of \verb|info|: if it fails
@@ -967,8 +1013,8 @@ val recovered = backup.flatMap(
       restoredInfo.flatMap(localDoCombine).map(localDoWrite)
   }
 )
-done.cache()      // force computation on host of local
-recovered.cache() // force computation on backup host
+done.send()      // force computation on host of local
+recovered.send() // force computation on backup host
 \end{lstlisting}
 \noindent
 
