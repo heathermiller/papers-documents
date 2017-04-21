@@ -107,12 +107,12 @@ a large scale.
 %% What the paper does
 %%% Programming model
 This paper introduces a new programming model which embraces the principle of
-stationary data and mobile functions (``compute to data''). It can be viewed as
+stationary data containers and mobile functions (``compute to data''). It can be viewed as
 a generalization of the programming models classified by Google's
 MapReduce/Apache Spark. Our programming model adopts the concept of {\em
 lineage} which is used by the aforementioned systems to provide fault tolerance.
 Lineage-based fault tolerance is facilitated by the core computational principle
-of transformations on immutable, stationary data.
+of transformations on immutable data.
 
 %%% Unique combination
 The programming model is based on functional abstractions for lineage-based
@@ -140,7 +140,7 @@ This paper makes the following contributions:
   \item A new data-centric programming model for functional processing of
     distributed data which makes important concerns like fault tolerance simpler
     by design. The main computational principle is based on the idea of sending
-    safe, guaranteed serializable functions to stationary data. Using standard
+    safe, guaranteed serializable functions to stationary data containers. Using standard
     monadic operations, our model enables creating immutable directed acyclic
     graphs (DAG) of computations, supporting decentralized distributed
     computations. Deferred evaluation enables important optimizations (operation
@@ -159,6 +159,10 @@ This paper makes the following contributions:
   \item A proof establishing the preservation of lineage mobility by reduction
     for a typed, distributed core language. This property provides a foundation
     for lineage-based fault tolerance.
+
+  \item The formalization of a progress theorem, guaranteeing the
+    finite materialization of remote, lineage-based data, including a
+    detailed proof sketch.
 
   \item A distributed implementation of the programming model in and for Scala
     as a middleware. In addition, we present prototype versions we have built of
@@ -228,11 +232,16 @@ or remote Silos, and \textbf{Spores}, safe, serializable functions.
 
 \paragraph{Silos.}
 
-A silo is a typed and immutable data container. It is stationary in the sense
-that it does not move between machines -- it remains on the machine where it was
-created. Data stored in a silo is typically loaded from stable storage, such as
-a distributed file system. A program operating on data stored in a silo can only
-do so using a reference to the silo.
+A silo is a typed and immutable data container. The container is
+stationary in the sense that it does not move between machines -- it
+remains on the machine where it was created. Data stored in a silo may
+either be loaded from stable storage, such as a distributed file
+system, or it may be the result of a computation. Thus, the {\em data}
+stored in a silo is often not stationary (in contrast to the
+containers, the silos, which are stationary), because it may need to
+be transferred to other machines to compute the contents of other
+silos. A program operating on data stored in a silo can only do so
+using a reference to the silo.
 
 \paragraph{Silo references.}
 
@@ -315,28 +324,29 @@ passing model. % \footnote{We also feel that, to visually illustrate a system
 %   produced a short animation to provide visual intuition of the function
 %   passing model: \url{https://vimeo.com/120415626}}
 
-The main handle users have to the framework is via \verb|SiloRef[T]|s. A
-\verb|SiloRef[T]| can be thought of as an immutable handle to distributed data
-\verb|T| contained within a corresponding silo. Users interact with this
-distributed data by applying functions (as spores) to silo references. Those
-functions are transmitted over the wire and later applied to the data within the
-corresponding silo. As is the case for persistent data structures, when a
-function is applied to a piece of distributed data via a \verb|SiloRef[T]|, a
-new \verb|SiloRef[T']|, representing a new silo containing the transformed data
-\verb|T'|, is returned.
+The main handle users have to the framework is via
+\verb|SiloRef[T]|s. A \verb|SiloRef[T]| can be thought of as an
+immutable handle to a remote value of type \verb|T| contained within a
+corresponding silo. Users interact with this remote data by applying
+functions (as spores) to silo references. Those functions are
+transmitted over the wire and later applied to the data within the
+corresponding silo. As is the case for persistent data structures,
+when a function is applied to a piece of remote data via a
+\verb|SiloRef[T]|, a new \verb|SiloRef[T']|, representing a new silo
+containing the transformed data \verb|T'|, is returned.
 
 The simplest illustration of the model is shown in
 Figure~\ref{fig:basic-diagram} (time flows vertically from top to bottom). Here,
 we start with a \verb|SiloRef[T]| which points to a piece of remote data
 contained within a \verb|Silo[T]|. When the function, shown as $\lambda$, of
 type $T \Rightarrow S$ is applied to \verb|SiloRef[T]| and ``forced'' (sent over
-the wire), a new silo reference of type \verb|SiloRef[S]| is immediately
+the network), a new silo reference of type \verb|SiloRef[S]| is immediately
 returned. Note that \verb|SiloRef[S]| contains a reference to its parent silo
 reference, \verb|SiloRef[T]|. (This is how {\em lineages} are constructed.)
-Meanwhile, the function is asynchronously sent over the wire and is then applied
+Meanwhile, the function is asynchronously sent over the network and is then applied
 to \verb|Silo[T]|, eventually producing a new \verb|Silo[S]| containing the data
-transformed by function $\lambda$. This new \verb|SiloRef[S]| can be used even
-before its corresponding silo is materialized (\ie before the data in
+transformed by function $\lambda$. This new \verb|SiloRef[S]| can be operated on
+even before its corresponding silo is materialized (\ie before the data in
 \verb|Silo[S]| is computed) – the function passing framework queues up
 operations applied to \verb|SiloRef[S]| and applies them when \verb|Silo[S]| is
 fully materialized.
@@ -911,7 +921,7 @@ required.
 \paragraph{Partitioning and \texttt{groupByKey}.}
 
 A \verb|groupByKey| operation on a group of silos containing collections needs
-to create multiple result silos, on each node, with ranges of keys supposed to
+to create multiple result silos, on each host, with ranges of keys supposed to
 be shipped to destination hosts. These destination hosts are determined using a
 partitioning function. Our goal, concretely:
 
@@ -1528,12 +1538,28 @@ model for distribution, which also integrates spores and type-safe pickling.
 % with type systems that enforce transitive properties. Unlike ML5, spores do
 % not require a type system extension.
 
-Systems like Apache Spark~\cite{Spark}, MapReduce~\cite{MapReduce}, and
-Dryad~\cite{Dryad} are just that--distributed systems. The function passing
-model is meant to act as more of a middleware to facilitate the design and
-implementation of such systems, and as a result provides much finer-grained
-control over details such as fault handling and network topology (\ie
-peer-to-peer vs master/worker).
+Systems like Apache Spark~\cite{Spark}, MapReduce~\cite{MapReduce},
+and Dryad~\cite{Dryad} are distributed systems for large-scale data
+processing, building on concepts from functional programming, such as
+higher-order functions. DryadLINQ~\cite{YuIFBEGC08} extends Dryad with
+a functional language, LINQ, for expressing transformations on
+distributed datasets which enables sophisticated optimizations such as
+those typically employed by databases. The data model of DryadLINQ is
+strongly typed, another aspect shared by the function passing
+model. Nectar~\cite{Nectar} provides a caching service to improve the
+resource utilization of Dryad/DryadLINQ clusters. For this, Nectar
+identifies derived datasets by the computations that generate them,
+similar to lineages in the function passing model. Nectar could
+significantly improve space utilization as well as provide speed-ups
+via incremental computation and shared sub-computations. It would be
+interesting to investigate potential usages of the lineages of the
+functional passing model for similar purposes. In contrast to these
+systems, the function passing model is meant to act as more of a
+middleware to facilitate the design and implementation of such
+systems, and as a result provides finer-grained control over details
+such as fault handling. Rather than system building and experimental
+evaluation, our focus is on a precise formalization of the programming
+model, as well as the proof of preservation and progress properties.
 
 The Clojure programming language proposes agents~\cite{Clojure}--stationary
 mutable data containers that users apply functions to in order to update an
