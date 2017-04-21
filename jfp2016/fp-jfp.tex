@@ -424,9 +424,10 @@ silos (potentially located on different hosts). Suppose the information of a
 silo containing \verb|Vehicle| records should be enriched with other details
 only found in the \verb|adults| silo. In the following, \verb|flatMap| is used
 to create a silo of \verb|(Person, Vehicle)| pairs where the names of person and
-vehicle owner match (graphically shown in Figure~\ref{fig:bigger-dag}, part 2):
+vehicle owner match:
+% (graphically shown in Figure~\ref{fig:bigger-dag}, part 2):
 
-\begin{lstlisting}
+\begin{lstlisting}[numbers=left,xleftmargin=2em,framexleftmargin=1.5em]
 val vehicles: SiloRef[List[Vehicle]] = ...
 // adults that own a vehicle
 val owners: SiloRef[List[(Person,Vehicle)]] = 
@@ -447,26 +448,84 @@ val owners: SiloRef[List[(Person,Vehicle)]] =
   })
 \end{lstlisting}
 \noindent
-Note that the spore passed to \verb|flatMap| declares the capturing of the
-\verb|vehicles| silo reference in its spore header. The spore header spans all
-variable definitions between the spore marker and the parameter list of the
-spore's closure. The spore header defines the variables that the spore's closure
-is allowed to access. Essentially, spores limit the free variables of their
-closure's body to the closure's parameters and the variables declared in the
-spore's header. Within the spore's closure, it is necessary to read the data of
-the \verb|vehicles| silo in addition to the \verb|persons|, the list of
-\verb|Person| records. This requires calling \verb|map| on \verb|localVehicles|.
-However, \verb|map| returns a silo reference; thus, invoking \verb|map| on
-\verb|adults| instead of \verb|flatMap| would be impossible, since there would
-be no way to get the data out of the silo returned by
-\verb|localVehicles.map(..)|. With the use of \verb|flatMap|, however, the call
-to \verb|localVehicles.map(..)| creates the final result silo, whose data is
-then also contained in the silo returned by \verb|flatMap|.
+Here, it is necessary to read the data of the \verb|vehicles| silo in
+addition to the \verb|persons|, the list of \verb|Person|
+records. This requires calling \verb|map| on \verb|localVehicles| on
+line 7.  However, \verb|map| returns a silo reference; thus, on line
+4, it would be impossible to invoke \verb|map| on \verb|adults|
+instead of \verb|flatMap|, since there would be no way to get the data
+out of the silo returned by \verb|localVehicles.map(..)|. With the use
+of \verb|flatMap| on line 4, however, the call to
+\verb|localVehicles.map(..)| on line 7 creates the final result silo,
+whose data is then also contained in the \verb|owners| silo declared
+on line 3.
+
+To illustrate the data flow between hosts, let us kick off the
+materialization of the involved silos:
+\begin{lstlisting}
+val adults: SiloRef[List[Person]] = ...
+val vehicles: SiloRef[List[Vehicle]] = ...
+val owners: Future[List[(Person,Vehicle)]] =
+  adults.flatMap(...).send()
+\end{lstlisting}
+\noindent
+For illustration we use the informal notation \verb|@m| to denote the
+location of a value. We assume that the silo references are at machine
+\verb|m1| but the actual data is distributed over \verb|m2| and
+\verb|m3| (note that these locations are different from
+Figure~\ref{fig:bigger-dag}, part 2; however, they help make the
+required data transfers more precise):
+
+\begin{lstlisting}
+adults   @ m1 --> Silo[List[Person]]   @ m2
+vehicles @ m1 --> Silo[List[Vehicle]]  @ m3
+\end{lstlisting}
+\noindent
+To create \verb|owners|, we must combine data hosted at \verb|m2| with
+data hosted at \verb|m3|. First, \verb|adults.flatMap| transfers its
+spore, \ie the silo reference \verb|vehicles| and the closure
+\verb|persons => ...|, to \verb|m2| hosting the referenced silo of
+grown-up \verb|Person| records. Next, \verb|localVehicles.map|
+transfers its spore, \ie the collection of adults \verb|persons| and
+the closure \verb|vehicles => ...|, to \verb|m3| hosting the
+referenced silo of \verb|Vehicle| records. Now, at \verb|m3|, we have
+all required information: the adults \verb|persons|, the vehicles
+\verb|vehicles|, and the necessary computations to combine
+corresponding records, resulting in a new (anonymous) silo reference
+at \verb|m2| referencing the new silo of \verb|(Person,Vehicle)|
+records hosted at \verb|m3|. This new silo reference at \verb|m2| is
+used to transfer its referenced data from \verb|m3| to \verb|m2|, the
+origin of the \verb|flatMap|, and, eventually, to \verb|m1| where the
+materialization has been kicked off.
+
+To reduce the amount of data that is transferred, the implementation in fact
+leverages {\em silo reference proxies}, delegating to the actual data:
+
+\begin{lstlisting}
+adults   @ m1                --> Silo[List[Person]]            @ m2
+vehicles @ m1                --> Silo[List[Vehicle]]           @ m3
+owners   @ m1 --> proxy @ m2 --> Silo[List[(Person,Vehicle)]]  @ m3
+\end{lstlisting}
+\noindent
+The anonymous silo reference created at \verb|m2| will not be ruled out but
+function as proxy delegating requests re \verb|owners| to the data hosted at
+\verb|m3|. That is, the actual list of persons owing a vehicle is retrieved from
+\verb|m3|. This alleviates network communication and scales up transformation
+execution.
 
 Although the expressiveness of the \verb|flatMap| combinator subsumes that of
 the \verb|map| combinator (see Section~\ref{sec:expr}), keeping \verb|map| as a
 (lightweight) primitive enables more opportunities for optimizing computation
 DAGs (\eg operation fusion~\cite{FlumeJava}).
+
+Finally, note that the spore passed to \verb|flatMap| declares the
+capturing of the \verb|vehicles| silo reference in its spore
+header. The spore header spans all variable definitions between the
+spore marker and the parameter list of the spore's closure. The spore
+header defines the variables that the spore's closure is allowed to
+access. Essentially, spores limit the free variables of their
+closure's body to the closure's parameters and the variables declared
+in the spore's header.
 
 \paragraph{send.}%
 %
@@ -487,56 +546,6 @@ is then asynchronously completed with the data of the given silo. Since calling
 \verb|send| should only be called on silos with reasonably small data (for
 example, in the implementation of an aggregate operation such as \verb|reduce|
 on a distributed collection).
-
-Let us revisit our previous example and kick off materialization to
-investigate data flow and location of persistence:
-
-\begin{lstlisting}
-val adults: SiloRef[List[Person]] = ...
-val vehicles: SiloRef[List[Vehicle]] = ...
-val owners: Future[List[(Person,Vehicle)]] =
-  adults.flatMap(...).send()
-\end{lstlisting}
-\noindent
-For illustration we use the informal notation \verb|@m| to denote the location
-of a value. We assume that the silo references are at machine \verb|m1| but the 
-actual data is distributed over \verb|m2| and \verb|m3|:
-
-\begin{lstlisting}
-adults   @ m1 --> Silo[List[Person]]   @ m2
-vehicles @ m1 --> Silo[List[Vehicle]]  @ m3
-\end{lstlisting}
-
-\noindent
-To create \verb|owners|, we must combine data hosted at \verb|m2| with data
-hosted at \verb|m3|. First, \verb|adults.flatMap| transfers its spore, i.e., the
-silo reference \verb|vehicles| and the closure \verb|persons => ...|, to
-\verb|m2| hosting the referenced silo of grown-up \verb|Person| records. Next,
-\verb|localVehicles.map| transfers its spore, i.e., the collection of adults
-\verb|persons| and the closure \verb|vehicles => ...|, to \verb|m3| hosting the
-referenced silo of \verb|Vehicle| records. Now, at \verb|m3|, we have all
-required information: the adults \verb|persons|, the vehicles \verb|vehicles|,
-and the necessary computations to combine corresponding records, resulting in a
-new (anonymous) silo reference at \verb|m2| referencing the new silo of
-\verb|(Person,Vehicle)| records hosted at \verb|m3|. This new silo
-reference at \verb|m2| is used to transfer its referenced data from \verb|m3| to
-\verb|m2|, the origin of the \verb|flatMap|, and, eventually, to \verb|m1| where
-the materialization has been kicked off.
-
-To reduce the amount of data that is transferred, the implementation in fact
-leverages {\em silo reference proxies}, delegating to the actual data:
-
-\begin{lstlisting}
-adults   @ m1                --> Silo[List[Person]]            @ m2
-vehicles @ m1                --> Silo[List[Vehicle]]           @ m3
-owners   @ m1 --> proxy @ m2 --> Silo[List[(Person,Vehicle)]]  @ m3
-\end{lstlisting}
-\noindent
-The anonymous silo reference created at \verb|m2| will not be ruled out but
-function as proxy delegating requests re \verb|owners| to the data hosted at
-\verb|m3|. That is, the actual list of persons owing a vehicle is retrieved from
-\verb|m3|. This alleviates network communication and scales up transformation
-execution.
 
 \paragraph{persist.}%
 %
@@ -1532,21 +1541,31 @@ predominant trend in industry amongst rich and complicated web-based services.}
 We have presented the function passing model, a new programming model and new
 substrate or middleware upon which to build data-centric distributed systems.
 This enables two important benefits for distributed system builders; since (a)
-all computations are functional transformations on immutable data,
-fault-tolerance is made simple by design, and (b) communication is made
+all computations are functional transformations on immutable data, the model
+directly provides lineages which can form the basis for fault recovery, and
+(b) communication is made
 well-typed by design, the function passing model attempts to more naturally
 model the paradigm of data-centric programming by extending monadic programming
 to the network. One insight of our model is that lineage-based fault recovery
-mechanisms, used in widespread frameworks for distribution, can be modeled
-elegantly in a functional way using persistent data structures. Our operational
-semantics shows that this approach makes it even amenable to formal treatment.
-We have also shown that the function passing model is able to express patterns
-of computation richer than those supported by common ``big data'' frameworks
-while maintaining fault-tolerance--such as decentralized peer-to-peer patterns
-of communication. Finally, we have implemented our approach in and for Scala,
-and have shown that it's possible to support different popular patterns of
+mechanisms, used in widespread frameworks for distribution, are closely related
+to persistent data structures in functional programming. Therefore, we believe
+that the study of fault tolerance based on lineages may benefit from further
+study by the functional programming community. We have also presented a
+formalization of the function passing model, providing an operational
+semantics and a type system for lineage-based distributed computation. While
+our formal model does not provide a complete approach to fault tolerance,
+our hope is that aspects of the model including lineages, silo references, and
+silo materialization can eventually form the basis of a complete formal
+treatment of lineage-based fault tolerance.
+Finally, we have implemented our approach in and for Scala,
+and have shown that it is possible to support different popular patterns of
 distributed processing, such as  batch processing with Apache Spark's RDDs and
 MBrace's cloud-based asynchronous tasks.
+
+\comment{We have also shown that the function passing model is able to express patterns
+of computation richer than those supported by common ``big data'' frameworks
+while maintaining fault-tolerance--such as decentralized peer-to-peer patterns
+of communication.}
 
 % We have presented the function passing model, a new programming model and new
 % substrate or middleware upon which to build data-centric distributed systems.
