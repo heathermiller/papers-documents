@@ -761,6 +761,37 @@ example, we specified \verb|computeOwners(vehicles2)| as the failure handler;
 thus, in case \verb|vehicles| has failed, the computation is retried using
 \verb|vehicles2| instead.
 
+A limitation of this basic failure handling model is the fact that in
+the above example, the fall-back silo \verb|vehicles2| is defined up
+front using a specific host \verb|h|. However, note that the
+computation DAG defined by a \verb|SiloRef| can easily be materialized
+on {\em any} host using the \verb|SiloRef.fromLineage| function shown
+in Section~\ref{sec:creating-silos}. Thus, assuming the existence of a
+function that randomly returns one of the healthy hosts in the
+cluster, say, \verb|getHealthyHost()|, the above fault handler could
+be made more dynamic as follows:
+
+\begin{lstlisting}
+val owners: SiloRef[List[(Person, Vehicle)]] =
+  adults.flatMap(computeOwners(vehicles),
+    spore {
+      val localVehicles = vehicles
+      (ps: List[Person]) =>
+        val recoveredVehicles =
+          SiloRef.fromLineage(getHealthyHost())(localVehicles)
+        recoveredVehicles.map(...)
+    }
+  )
+\end{lstlisting}
+
+In order to implement more flexible fault handling mechanisms,
+including strategies for straggler mitigation, additional information
+pertaining to the execution of (parts of) DAGs would need to be
+provided. For example, to mitigate stragglers, materializations could
+be initiated on alternative machines after a timeout. The
+specification (on the API level) and implementation of more flexible
+execution policies is left for future work.
+
 \subsection{Limitations}
 
 Although fairly small and simple, the introduced programming model is
