@@ -651,7 +651,7 @@ type \verb|Person| for some ADT \verb|Person|, ordered by one of the fields of
 the \verb|Person| type. Another silo might contain a completely different
 collection type, say, a linked list. This type polymorphism enables optimizing
 silos according to their data access patterns. Given that different data types
-may have specialized operations (e.g., a tree map could provide a range
+may have specialized operations (\eg a tree map could provide a range
 projection), the key to enabling this type polymorphism is the fact that a
 spore, sent to a silo, may apply arbitrary functions to the silo's data. Thus,
 the \verb|SiloRef| API itself is not limited to providing just a fixed set of
@@ -660,7 +660,7 @@ built-in operations (in contrast to RDDs in Apache Spark, for example).
 \subsubsection{Expressiveness}
 \label{sec:expr}
 
-\paragraph{Expressing \texttt{map}}
+\paragraph{Expressing \texttt{map}.}
 
 Leveraging the above-mentioned methods for creating silos, it is possible to
 express \verb|map| in terms of \verb|flatMap|:
@@ -685,7 +685,7 @@ operation. The reason why \verb|map| is provided as one of the main operations
 of \verb|SiloRef|s is that direct uses of \verb|map| enable an important
 optimization based on operation fusion~\cite{FlumeJava}.
 
-{\paragraph{Expressing \texttt{cache}}
+\comment{\paragraph{Expressing \texttt{cache}}
 
 The \verb|cache| operation can be expressed using \verb|flatMap| and
 \verb|send|:
