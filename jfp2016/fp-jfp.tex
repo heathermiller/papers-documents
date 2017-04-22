@@ -562,9 +562,9 @@ on a distributed collection).
 \texttt{def persist(): SiloRef[T]} \newline
 %
 The performance of typical data analytics jobs can be increased
-dramatically by caching large data sets in memory~\cite{Spark}. To do
-this, silos containing computed data sets need to be materialized, and
-furthermore, re-materialization should be avoided when data sets are
+dramatically by caching large datasets in memory~\cite{Spark}. To do
+this, silos containing computed datasets need to be materialized, and
+furthermore, re-materialization should be avoided when datasets are
 used multiple times.
 
 The only way, that we have shown so far, to materialize a silo is
@@ -572,7 +572,7 @@ using the \verb|send| primitive. However, using \verb|send| does not
 prevent the system from evicting the silo from memory at a later point
 in time, \eg when its host is running low on memory. In addition,
 \verb|send| transfers the contents of the silo to the requesting
-host--too much if a large remote data set should merely be cached in
+host--too much if a large remote dataset should merely be cached in
 memory remotely.
 
 Therefore, we provide an additional primitive called \verb|persist|
@@ -1368,7 +1368,7 @@ frameworks: Apache Spark's RDD (Resilient Distributed Datasets), and MBrace.
 applications, excerpts of some of which are explained below.}
 
 Apache Spark's RDDs provide a set of operations to execute parallel operations
-on distributed data. MBrace extends F\#'s asynchronous workflows, a way to
+on distributed data. MBrace extends F$\sharp$'s asynchronous workflows, a way to
 declare asynchronous tasks, to distribute computation in the cloud.
 
 Our simplified RDD implementation lets you use data structures distributed
@@ -1414,7 +1414,7 @@ available on the MBrace's website,
 \footnote{\url{http://mbrace.io/starterkit/HandsOnTutorial/examples/200-kmeans-clustering-example.html}}
 an excerpt of which is shown below. Our implementation of a distributed K-Means
 using the function passing model is an almost identical port of the MBrace’s
-version written in F\#. K-Means is an algorithm to categorize data points across
+version written in F$\sharp$. K-Means is an algorithm to categorize data points across
 $K$ different clusters. It starts with the centroids of the $K$ clusters.
 
 \begin{lstlisting}
@@ -1538,28 +1538,52 @@ model for distribution, which also integrates spores and type-safe pickling.
 % with type systems that enforce transitive properties. Unlike ML5, spores do
 % not require a type system extension.
 
-Systems like Apache Spark~\cite{Spark}, MapReduce~\cite{MapReduce},
-and Dryad~\cite{Dryad} are distributed systems for large-scale data
+MapReduce~\cite{MapReduce}, Dryad~\cite{Dryad}, and Apache
+Spark~\cite{Spark} are distributed systems for large-scale data
 processing, building on concepts from functional programming, such as
-higher-order functions. DryadLINQ~\cite{YuIFBEGC08} extends Dryad with
-a functional language, LINQ, for expressing transformations on
-distributed datasets which enables sophisticated optimizations such as
-those typically employed by databases. The data model of DryadLINQ is
-strongly typed, another aspect shared by the function passing
-model. Nectar~\cite{Nectar} provides a caching service to improve the
-resource utilization of Dryad/DryadLINQ clusters. For this, Nectar
+higher-order functions. Ciel~\cite{Ciel} is an execution engine for
+distributed data-flow programs which, like the function passing model,
+supports dynamic task dependencies and data-dependent control flow,
+thereby going beyond the capabilities of MapReduce and Dryad. Like
+Spark, MapReduce, and Dryad, Ciel supports transparent scaling, and
+fault tolerance is transparent. Our system shares several aspects of
+its design with Spark, such as lazy materialization of datasets, and
+serialization of computations, including closures, for remote
+shipping. In contrast to Spark's RDDs (Resilient Distributed
+Datasets), silos in the function passing model are lower-level
+abstractions without transparent fault tolerance or transparent
+scaling. Instead, the goal of our programming model is to provide a
+foundation on top of which higher-level abstractions for distributed
+programming, like RDDs, can be built. An important focus of our work
+is the precise and detailed formalization of lineages and silos as a
+first step towards formal models of distributed systems like Spark.
+DryadLINQ~\cite{YuIFBEGC08} extends Dryad with a functional language,
+LINQ, for expressing transformations on distributed datasets which
+enables sophisticated optimizations including those typically employed
+by databases. Like the function passing model, DryadLINQ enables the
+use of function closures within distributed computations. DryadLINQ
+uses dynamic code generation to ensure the serializability of these
+closures: captured variables are either eliminated by partial
+evaluation or serialized as resources shipped to machines in the
+cluster at runtime. In our system, serializability of closures
+(spores) is ensured at compile time using macros instead of using
+dynamic code generation. Like Spark, but unlike DryadLINQ and
+MapReduce, silos may be persisted in memory across multiple usages in
+our system. Nectar~\cite{Nectar} provides a caching service to improve
+the resource utilization of Dryad/DryadLINQ clusters. For this, Nectar
 identifies derived datasets by the computations that generate them,
-similar to lineages in the function passing model. Nectar could
-significantly improve space utilization as well as provide speed-ups
-via incremental computation and shared sub-computations. It would be
-interesting to investigate potential usages of the lineages of the
-functional passing model for similar purposes. In contrast to these
-systems, the function passing model is meant to act as more of a
-middleware to facilitate the design and implementation of such
-systems, and as a result provides finer-grained control over details
-such as fault handling. Rather than system building and experimental
-evaluation, our focus is on a precise formalization of the programming
-model, as well as the proof of preservation and progress properties.
+similar to lineages in the function passing model. Nectar has been
+shown to significantly improve space utilization as well as provide
+speed-ups via incremental computation and shared sub-computations. It
+would be interesting to investigate potential usages of the lineages
+of the functional passing model for similar purposes. In contrast to
+these above systems, the function passing model is meant to act as
+more of a middleware to facilitate the design and implementation of
+such systems, and as a result provides finer-grained control over
+details such as fault handling. Rather than system building and
+experimental evaluation, our focus is on a precise formalization of
+the programming model, as well as the proof of preservation and
+progress properties.
 
 The Clojure programming language proposes agents~\cite{Clojure}--stationary
 mutable data containers that users apply functions to in order to update an
@@ -1607,7 +1631,7 @@ is notified to decrease the silo's reference count; the host's reference(s) to
 the silo are nulled out when the reference count reaches zero. It is important
 to note that this strategy requires notifying a silo's host whenever a SiloRef
 to the silo reaches a new machine, to increase the silo's reference count. The
-second approach leverages uniqueness types in Scala~\cite{Uniqueness}. Here,
+second approach leverages uniqueness types in Scala~\cite{Uniqueness,HallerL16}. Here,
 SiloRefs are locally unique, and the programmer can explicitly declare a SiloRef
 as unused; the type system ensures that such an ``unused'' SiloRef is not used
 again subsequently. As in the first approach, upon marking a SiloRef as unused,
