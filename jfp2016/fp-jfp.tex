@@ -136,21 +136,22 @@ programming, including aspects such as fault tolerance.
 
 This paper makes the following contributions:
 \begin{itemize}
+  \item A new data-centric programming model for functional processing
+    of distributed data which provides abstractions for building
+    fault-tolerant distributed systems, including first-class {\em
+      lineages}. The main computational principle is based on the idea
+    of sending safe, guaranteed serializable functions to stationary
+    data containers. Using standard monadic operations, our model
+    enables creating directed acyclic graphs (DAG) of
+    computations. Deferred evaluation enables optimizations such as
+    operation fusion while keeping programs simple to reason about.
 
-  \item A new data-centric programming model for functional processing of
-    distributed data which makes important concerns like fault tolerance simpler
-    by design. The main computational principle is based on the idea of sending
-    safe, guaranteed serializable functions to stationary data containers. Using standard
-    monadic operations, our model enables creating immutable directed acyclic
-    graphs (DAG) of computations, supporting decentralized distributed
-    computations. Deferred evaluation enables important optimizations (operation
-    fusion~\cite{FlumeJava}) while keeping programs simple to reason about.
-
-  \item A formalization of lineage-based distributed computation based on a
-    small-step operational semantics. Our formalization extends previous
-    theories of serializable closures to {\em serializable lineages}. The
-    technical development enabling this extension combines and generalizes (a)
-    serializable types, (b) ``static'' closures, and (c) lineages.
+  \item A formalization of lineage-based distributed computation based
+    on a small-step operational semantics. Our formalization extends
+    previous theories of serializable closures to {\em serializable
+      lineages}. The technical development enabling this extension
+    combines (a) serializable types, (b) ``static'' closures, and (c)
+    lineages.
 
   \item A proof of a subject reduction theorem for a typed, distributed core
     language based on lineages. To our knowledge we present the first such proof
@@ -172,19 +173,23 @@ This paper makes the following contributions:
     MBrace~\cite{MBrace} using the function passing model, and
     end-user applications we have built using each of these prototype
     frameworks.
-  
 \end{itemize}
 
-Our approach is to describe our model from a high-level, elaborating upon key
-benefits and trade-offs, and then to zoom in and make each component part of our
-model more precise. We describe the basic model this way in
-Section~\ref{sec:basic-model}. We go on to show in
-Section~\ref{sec:higher-order-operations} how essential higher-order operations
-on distributed frameworks like Apache Spark can be implemented in terms of the
-primitives presented in Section~\ref{sec:basic-model}. We present a
-formalization of our programming model in Section~\ref{sec:formalization}, and a
-proof of a subject reduction theorem in Section~\ref{sec:subject-reduction}. Finally,
-we discuss related work in Section~\ref{sec:related-work}, and conclude in
+Our approach is to describe our model from a high-level, elaborating
+upon key benefits and trade-offs, and then to zoom in and make each
+component part of our model more precise. We describe the basic model
+this way in Section~\ref{sec:basic-model}. In
+Section~\ref{sec:higher-order-operations} we go on to show how
+essential higher-order operations on distributed frameworks like
+Apache Spark can be implemented in terms of the primitives presented
+in Section~\ref{sec:basic-model}. We formalize our programming model
+in Section~\ref{sec:formalization}, providing an operational semantics
+and a type system. In Section~\ref{sec:correctness} we present the
+proof of a subject reduction theorem and formalize important progress
+properties. In Section~\ref{sec:formal-fault-handling} we extend the
+presented formal model with a fault handling mechanism based on
+lineage. Finally, we discuss related work in
+Section~\ref{sec:related-work}, and conclude in
 Section~\ref{sec:conclusion-future-work}.
 
 \section{Overview}
@@ -1083,6 +1088,7 @@ uses them to compute the new cluster for its local set of points
 back to the master node to compute the new centroids, and to verify
 the algorithm's convergence condition.
 
+\comment{
 \subsection{Peer-to-Peer Patterns}
 \label{sec:decentral}
 
@@ -1242,6 +1248,7 @@ detect failures of the host of \verb|done|. Upon detecting such a failure,
 lineage of the captured \verb|info| SiloRef is used to restore its original
 contents in a new silo created on the backup host \verb|hostb|. Its SiloRef is
 then used to retry the original computation.
+}
 
 % To illustrate the decentralized nature of our model, consider the following
 % example: the local host aggregates some data as soon as two silos
