@@ -164,11 +164,14 @@ This paper makes the following contributions:
     finite materialization of remote, lineage-based data, including a
     detailed proof sketch.
 
-  \item A distributed implementation of the programming model in and for Scala
-    as a middleware. In addition, we present prototype versions we have built of
-    popular frameworks like Apache Spark and MBrace~\cite{MBrace} using the
-    function passing model, and end-user applications we have built using each
-    of these prototype frameworks.
+  \item A distributed implementation of the programming model in and
+    for Scala as a middleware.\footnote{See the Git repository at
+      \url{https://github.com/heathermiller/f-p/}, branch
+      \texttt{jfp}.} In addition, we present prototype versions we
+    have built of popular frameworks like Apache Spark and
+    MBrace~\cite{MBrace} using the function passing model, and
+    end-user applications we have built using each of these prototype
+    frameworks.
   
 \end{itemize}
 
@@ -180,9 +183,7 @@ Section~\ref{sec:higher-order-operations} how essential higher-order operations
 on distributed frameworks like Apache Spark can be implemented in terms of the
 primitives presented in Section~\ref{sec:basic-model}. We present a
 formalization of our programming model in Section~\ref{sec:formalization}, and a
-proof of a subject reduction theorem in Section~\ref{sec:subject-reduction}.
-In Section~\ref{sec:examples}, we show examples of different
-sorts of distributed frameworks built atop the function passing model. Finally,
+proof of a subject reduction theorem in Section~\ref{sec:subject-reduction}. Finally,
 we discuss related work in Section~\ref{sec:related-work}, and conclude in
 Section~\ref{sec:conclusion-future-work}.
 
@@ -805,7 +806,7 @@ execution policies is left for future work.
 
 Although fairly small and simple, the introduced programming model is
 quite flexible, and we have used it to implement a variety of examples
-and abstractions from the literature (see Section~\ref{sec:examples}).
+and abstractions from the literature (see Section~\ref{sec:higher-order-operations}).
 However, as presented, the function passing model also has important
 limitations. Two principle limitations pertain to {\em distributed
   data} and {\em distributed behavior:}
@@ -829,29 +830,35 @@ limitations. Two principle limitations pertain to {\em distributed
 
 \end{itemize}
 
-\section{Higher-Order Operations}
+\section{Examples}
 \label{sec:higher-order-operations}
-
-\comment{\todo{In order to subsume the subsequent subsections, I'd rename this section
-header to "Higher-Order Patterns" or just "High-Order"}}
 
 The introduced primitives enable expressing surprisingly intricate computational
 patterns.
 
 Higher-order operations such as variants of \verb|map|, \verb|reduce|, and
 \verb|join|, operating on collections of data partitions, distributed across a
-set of hosts, are required when implementing abstractions like Apache Spark's
+set of hosts, are required when implementing abstractions like Spark's
 distributed collections~\cite{Spark}. Section~\ref{sec:dist-coll} demonstrates
 the implementation of some such operations in terms of silos.
 
+Section~\ref{sec:rdd} shows an extension of the higher-order
+operations of Section~\ref{sec:dist-coll}, providing a distributed
+collections abstraction reminiscent of Spark's RDDs. Finally,
+Section~\ref{sec:mbrace} shows an implementation of k-means clustering
+which demonstrates computational patterns supported by the MBrace
+framework~\cite{MBrace}, a programming system closely related to the
+function passing model.
+
+\comment{
 In addition, even more patterns are possible thanks to the decentralized nature
 of our programming model, which removes the limitations of master/worker host
 configurations. Section~\ref{sec:decentral} shows examples of peer-to-peer
-patterns that are still fault-tolerant.
+patterns that are still fault-tolerant.}
 
 % \verb|union|, \verb|groupByKey|, or \verb|join|
 
-\subsection{Collection Operations}
+\subsection{Higher-Order Operations}
 \label{sec:dist-coll}
 
 % \paragraph{union}
@@ -948,6 +955,133 @@ performance of \verb|groupByKey| could be increased significantly using a
 specialized combinator, say, ``mapPartition'' that would apply a given
 partitioning function to each key-value pair, simultaneously populating $N$
 silos (where $N$ is the number of ``buckets'' of the partitioning function).
+
+\subsection{Distributed Collections}\label{sec:rdd}
+
+To show that the function passing model is able to serve as a
+substrate upon which to build different sorts of data-centric
+distributed frameworks, we have implemented a miniaturized example
+system that is inspired by Spark's RDDs (Resilient Distributed
+Datasets).
+
+RDDs provide an API for executing data-parallel operations on
+distributed data. Our simplified RDD implementation provides a
+collections abstraction distributed using a group of silos. We have
+implemented some of the operations of Spark's RDD, such as \verb|map|,
+\verb|reduce|, \verb|groupBy|, and \verb|join|, in terms of the
+primitives of the function passing model.
+
+Methods on RDDs like \verb|flatMap| or \verb|filter| that do not
+require communication across silos are implemented using the
+\verb|map| method of \verb|SiloRef|; within the body of the
+corresponding argument spores, the corresponding methods of the
+underlying Scala collections are called. In contrast, methods
+combining multiple silos, such as \verb|join|, are implemented using
+the \verb|flatMap| method of \verb|SiloRef|.
+
+Below, we show a simple example using our RDD abstraction. The example
+processes two documents, \verb|content| and \verb|lorem|, which are
+represented as RDDs containing lists of strings:
+
+\begin{lstlisting}
+val content: RDD[String, List[String]] = ...
+val lorem: RDD[String, List[String]] = ...
+
+val contentWord = content.flatMap(line => {
+  line.split(' ').toList
+}).map(word => (word.length, word))
+
+val loremWord = lorem.flatMap(line => {
+  line.split(' ').toList
+}).map(word => (word.length, word))
+
+val res: Map[Int, Set[String]] =
+  contentWord.join[Set, Map](loremWord).collectMap()
+\end{lstlisting}
+\noindent
+In this example, the closure passed to RDD's \verb|flatMap| method
+invoked on \verb|contentWord| and \verb|loremWord| splits each line
+into a list of words, and flattens everything as a single list. Each
+word is then mapped to a tuple containing its length and the
+word. Finally, we do an inner join, which in turn associates each
+length to the set of words of the same length, removing duplicate
+words in the process. Finally, we collect the final result in a
+\verb|Map| using the \verb|collectMap| method on RDDs. Several other
+more detailed example programs using RDDs on top of the function
+passing model are available online.\footnote{See the Git repository at
+  \url{https://github.com/heathermiller/f-p/}, branch \texttt{jfp}.}
+
+\subsection{K-Means Clustering}\label{sec:mbrace}
+
+In order to illustrate how the function passing model supports
+computation patterns provided by the closely related MBrace framework,
+we ported an example implementation of k-means
+clustering.\footnote{See the MBrace website,
+  \url{http://mbrace.io/starterkit/HandsOnTutorial/examples/200-kmeans-clustering-example.html}.}
+Below we show an excerpt of the implementation. Our implementation of
+distributed k-means clustering using the function passing model is an
+almost identical port of the version using MBrace written in
+F$\sharp$. K-means is an algorithm to categorize data points across
+$k$ different clusters. It starts with the centroids of the $k$
+clusters.
+
+\comment{MBrace extends F$\sharp$'s asynchronous workflows, a way to
+declare asynchronous tasks, to distribute computation in the cloud.}
+
+\begin{lstlisting}
+def kMeansIterate(
+  partitionedPoints: Seq[SiloRef[Array[Point]]],
+  centroids: Array[Point],
+  iteration: Int): Array[Point] = {
+  // Running iteration...
+  val clusterParts =
+    partitionedPoints.map(silo => { silo.map(spore {
+      val lCentroids = centroids
+      points => kmeansLocal(points, lCentroids)
+    }).send()
+  })
+
+  val newCentroids =
+    Await.result(Future.sequence(clusterParts).map(seq => {
+      seq
+        .reduce(_ ++ _)
+        .groupBy(_._1)
+        .toSeq
+        .sortBy(_._1)
+        .map(_._2)
+        .map(clp => clp.map(_._2).toArray.unzip)
+        .map({ case (ns, points) => ns.sum -> sumPoints(points) })
+        .map({ case (n, sum) => divPoint(sum, n) })
+    }), 10.seconds).toArray
+
+  val diff = newCentroids
+    .zip(centroids)
+    .map({ case (p1, p2) => dist(p1, p2) })
+    .max
+
+  // check if converged, else iterate again
+  if (diff < epsilon) {
+    newCentroids
+  } else {
+    kMeansIterate(partitionedPoints, newCentroids, iteration + 1)
+  }
+}
+\end{lstlisting}
+\noindent
+The algorithm proceeds in two steps. It first assigns data points to
+the closest cluster. Then it assigns to each cluster a new centroid by
+computing the mean of all points assigned to the cluster. It stops
+when the centroids stop changing; if this convergence condition hasn't
+been met, the algorithm is called recursively with the updated set of
+centroids. In the distributed version of k-means clustering, we start
+with a master node that partitions the points into silos. In each
+iteration, \verb|map| is called on the SiloRef which results in a
+spore function being applied to the data within the corresponding
+silo. The spore captures the centroids of the current iteration and
+uses them to compute the new cluster for its local set of points
+(using the \verb|kmeansLocal| function). The results are then sent
+back to the master node to compute the new centroids, and to verify
+the algorithm's convergence condition.
 
 \subsection{Peer-to-Peer Patterns}
 \label{sec:decentral}
@@ -1359,118 +1493,6 @@ pickling, thanks to using type-specific unpicklers.
 % Interestingly, for an input size of 100,000 records, the use of type-specific
 % serializers resulted in an overall speedup of about 48\% with respect to the
 % same system using runtime-based serializers.
-
-\section{Examples}
-\label{sec:examples}
-
-To show that the function passing model is able to serve as a substrate upon
-which to build different sorts of data-centric distributed frameworks, we
-provide two miniaturized example systems that are inspired by popular big data
-frameworks: Apache Spark's RDD (Resilient Distributed Datasets), and MBrace.
-\comment{Using each example system, we've implemented several example
-applications, excerpts of some of which are explained below.}
-
-Apache Spark's RDDs provide a set of operations to execute parallel operations
-on distributed data. MBrace extends F$\sharp$'s asynchronous workflows, a way to
-declare asynchronous tasks, to distribute computation in the cloud.
-
-Our simplified RDD implementation lets you use data structures distributed
-inside Silos using the function passing model. We've implemented some of the
-operations of Apache Spark’s RDD such as \verb|map|, \verb|reduce|,
-\verb|groupBy| and \verb|join| in terms of the function passing model's
-primitives. Methods on RDDs like \verb|flatMap| or \verb|filter| that don’t need
-to communicate across Silos are implemented with the function passing model’s
-\verb|map| using the corresponding method on the underlying Scala’s collections,
-while \verb|join| is implemented using the function passing model’s
-\verb|flatMap|. Below, we use it to show a simple application associating the
-length of all words in two documents in a \verb|Map| to a set of words with the
-corresponding length.
-
-\begin{lstlisting}
-val content: RDD[String, List[String]] = ...
-val lorem: RDD[String, List[String]] = ...
-
-val contentWord = content.flatMap(line => {
-  line.split(' ').toList
-}).map(word => (word.length, word))
-
-val loremWord = lorem.flatMap(line => {
-  line.split(' ').toList
-}).map(word => (word.length, word))
-
-val res: Map[Int, Set[String]] =
-  contentWord.join[Set, Map](loremWord).collectMap()
-\end{lstlisting}
-
-In this example, the closure inside the RDD's \verb|flatMap| method called on
-each \verb|contentWord| and \verb|loremWord| splits each line as a list of
-words, and flattens everything as a single list. Each word is then mapped to a
-tuple containing its length and the word. Finally, we do an inner join, which in
-turn associates each length to the set of words of the same length, removing
-duplicate words in the process. Finally, we collect the final result in a
-\verb|Map| using the \verb|collectMap| method on RDDs. Several other more
-detailed example programs using Apache Spark on the function passing model are
-available on GitHub.~\footnote{\url{https://github.com/normenmueller/f-p}}
-
-In the context of MBrace, we also implemented the K-Means Clustering example
-available on the MBrace's website,
-\footnote{\url{http://mbrace.io/starterkit/HandsOnTutorial/examples/200-kmeans-clustering-example.html}}
-an excerpt of which is shown below. Our implementation of a distributed K-Means
-using the function passing model is an almost identical port of the MBrace’s
-version written in F$\sharp$. K-Means is an algorithm to categorize data points across
-$K$ different clusters. It starts with the centroids of the $K$ clusters.
-
-\begin{lstlisting}
-def kMeansIterate(
-  partitionedPoints: Seq[SiloRef[Array[Point]]],
-  centroids: Array[Point],
-  iteration: Int): Array[Point] = {
-  // Running iteration...
-  val clusterParts =
-    partitionedPoints.map(silo => { silo.map(spore {
-      val lCentroids = centroids
-      points => kmeansLocal(points, lCentroids)
-    }).send()
-  })
-
-  val newCentroids =
-    Await.result(Future.sequence(clusterParts).map(seq => {
-      seq
-        .reduce(_ ++ _)
-        .groupBy(_._1)
-        .toSeq
-        .sortBy(_._1)
-        .map(_._2)
-        .map(clp => clp.map(_._2).toArray.unzip)
-        .map({ case (ns, points) => ns.sum -> sumPoints(points) })
-        .map({ case (n, sum) => divPoint(sum, n) })
-    }), 10.seconds).toArray
-
-  val diff = newCentroids
-    .zip(centroids)
-    .map({ case (p1, p2) => dist(p1, p2) })
-    .max
-
-  // check if converged, else iterate again
-  if (diff < epsilon) {
-    newCentroids
-  } else {
-    kMeansIterate(partitionedPoints, newCentroids, iteration + 1)
-  }
-}
-\end{lstlisting}
-The algorithm proceeds with two steps. It first assigns data points to the
-closest cluster. Then it assigns to each cluster a new centroid by computing the
-mean of the points assigned to the clusters. It stops when the centroids stop
-changing; if this convergence condition hasn't been met, the algorithm is called
-recursively with the updated set of centroids. In the distributed version of
-K-Means, we start with a master node that partitions the points into silos. At
-each iteration, \verb|map| is called on the SiloRef which results in a spore
-(function) being applied to the data within the corresponding silo. The spore
-captures the current iterations' centroids and uses them to compute the new
-cluster for its local set of points (using the \verb|kmeansLocal| function). The
-results are then sent back to the master node to compute the new centroids, and
-to verify the algorithm's convergence condition.
 
 % \section{Evaluation}
 % \label{sec:evaluation}
