@@ -1235,9 +1235,9 @@ Scala extensions:
     extension that is focused on distributed programming. It is used for all
     serialization tasks. Our function passing implementation benefits from the
     maturity of Pickling, which supports pickling/unpickling a wide range of
-    Scala type constructors. Pickling has evolved from a research prototype to a
+    Scala type constructors. \comment{Pickling has evolved from a research prototype to a
     production-ready serialization framework that is now in widespread
-    commercial use.
+    commercial use.}
 
   \item Second, the programming model makes extensive use of spores,
     closure-like objects with explicit, typed environments. While~\cite{Spores}
@@ -1266,6 +1266,7 @@ some of these example applications in section~\ref{sec:examples}.
 
 %\subsection{Serialization in the presence of existential quantification}
 
+\comment{
 Initially, to serialize most message types exchanged by the network
 communication layer, runtime-based unpicklers had to be used (meaning unpickling
 code discovering the structure of a type through introspection at runtime). A
@@ -1333,6 +1334,7 @@ In conclusion, this approach ensures (a) that a type that is pickleable using a
 type-specific pickler is guaranteed to be unpickleable by the receiver of the
 pickled SelfDescribing instance, and (b) that unpickling is as efficient as
 pickling, thanks to using type-specific unpicklers.
+}
 
 % \subsection{Type-based optimization of serialization}
 
