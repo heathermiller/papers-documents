@@ -1183,10 +1183,7 @@ responsiveness property, defined as follows.
 \begin{defn}[Responsive Configuration]\label{def:resp-config}
   A configuration $\Sigma \vdash H~|~M$ is responsive {\em iff}
 
-  $\forall (t, \sigma, Q \cdot m)^h \in H.~H = \{ (t, \sigma, Q \cdot
-  m)^h \} \cup H' \Longrightarrow H~|~M \twoheadrightarrow^* \{ (t', \sigma',
-  m \cdot Q')^h \} \cup H'~|~M'$ after a finite number of reduction
-  steps.
+  $H = \{ (t, \sigma, Q \cdot m)^h \} \cup H' \Longrightarrow H~|~M \twoheadrightarrow^* \{ (t', \sigma', m \cdot Q')^h \} \cup H'~|~M'$ after a finite number of reduction steps.
 \end{defn}
 
 The following lemma ensures that the above responsiveness property is
