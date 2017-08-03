@@ -86,6 +86,15 @@ Case $Q = m \cdot Q''$.
 \subsection{Proof of Theorem~\ref{th:subject-reduction}}\label{app:subject-reduction}
 
 \begin{lem}
+\emph{(Weakening)}\label{lem:weakening}
+If $\Gamma ; \Sigma \vdash t : T$ and $x \notin dom(\Gamma)$, then
+$\Gamma , x : T' ; \Sigma \vdash t : T$.
+\end{lem}
+\begin{proof}
+By induction on the derivation of $\Gamma ; \Sigma \vdash t : T$.
+\end{proof}
+
+\begin{lem}
 \emph{(Weakening of Store Typing)}\label{lem:weakening-store-typing}
 \begin{enumerate}
 \item If $\Gamma ; \Sigma \vdash t : T$ and $\iota \notin \Sigma$ then $\Gamma ; \Sigma' \vdash t : T$ where $\Sigma' = [\iota \mapsto T']\Sigma$.
