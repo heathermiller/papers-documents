@@ -14,7 +14,7 @@ t ::=                                                                  & \mbox{{
 \gap ~|~  t~t                                                          & \mbox{application} \\
 \gap ~|~  \unit                                                        & \mbox{unit} \\
 \gap ~|~  \texttt{spore}~\{~\seq{x : T = t}~; (x: T) \Rightarrow t~\}  & \mbox{spore} \\
-\gap ~|~  \texttt{populate}(t)                                         & \mbox{populate silo} \\
+\gap ~|~  \texttt{populate}(t, t)                                      & \mbox{populate silo} \\
 \gap ~|~  \texttt{map}(t, t)                                           & \mbox{map} \\
 \gap ~|~  \texttt{flatMap}(t, t)                                       & \mbox{flatMap} \\
 \gap ~|~  \texttt{send}(t)                                             & \mbox{send} \\           % send  :: Ref a -> Fut a
@@ -35,7 +35,7 @@ v ::=                                                                  & \mbox{{
 p ::= \texttt{spore}~\{~\seq{x : T = v}~; (x: T) \Rightarrow t~\}      & \\
 & \\
 l ::=                                                  & \mbox{{\it{lineages:}}}              \\
-\gap \:\:\:\: \text{Mat}(\iota)                        & \mbox{materialized}                  \\
+\gap \:\:\:\: \text{Mat}(\iota, v)                     & \mbox{materialized}                  \\
 \gap ~|~  \text{Mapped}(\iota, l, p)                   & \mbox{lineage with \texttt{map}}     \\
 \gap ~|~  \text{FMapped}(\iota, l, p)                  & \mbox{lineage with \texttt{flatMap}} \\
                                                        & \\
@@ -54,7 +54,7 @@ related to (a) spores, (b) silos, and (c) futures. The \verb|spore|
 term creates a new spore. It contains a list of variable definitions,
 the spore header, and a closure which may only refer to its parameter
 and variables in the spore header. The \verb|populate| term
-initializes a new silo on a given host. The \verb|map| and
+initializes a new silo on a given host with a given value. The \verb|map| and
 \verb|flatMap| terms create lineages of silo transformations
 represented as silo references.  The \verb|send| term forces the
 materialization of the argument silo. The \verb|send| expression
@@ -119,7 +119,8 @@ E ::=                                                                           
 \gap ~|~  E~t                                                                                             & \mbox{application (fun)} \\
 \gap ~|~  v~E                                                                                             & \mbox{application (arg)} \\
 \gap ~|~  \texttt{spore}~\{~\seq{x : T = v} ; x_i : T_i = E ; \seq{x' : T = t} ; (x: T) \Rightarrow t~\}  & \mbox{spore} \\
-\gap ~|~  \texttt{populate}(E)                                                                            & \mbox{populate} \\
+\gap ~|~  \texttt{populate}(E, t)                                                                         & \mbox{populate (host)} \\
+\gap ~|~  \texttt{populate}(v, E)                                                                         & \mbox{populate (val)} \\
 \gap ~|~  \texttt{map}(E, t)                                                                              & \mbox{map (ref)} \\
 \gap ~|~  \texttt{map}(v, E)                                                                              & \mbox{map (fun)} \\
 \gap ~|~  \texttt{flatMap}(E, t)                                                                          & \mbox{flatMap (ref)} \\
@@ -171,9 +172,9 @@ replacing the hole in evaluation context $E$ with term $t$.
 }
 
 \inferrule[\textsc{R-Populate}] {
-  l = {\Mat {(h, i)}} \quad i~\text{fresh}
+  l = {\Mat {(h, i)} v} \quad i~\text{fresh}
 } {
-  E[\texttt{populate}(h')]~|~\sigma
+  E[\texttt{populate}(h', v)]~|~\sigma
   \rightarrow^h
   E[{\Ref l {h'}}]~|~\sigma
 }
@@ -275,9 +276,9 @@ $parent$, which are defined as follows:
   The identifier of a lineage.
 
   $id(l) := \left\{\ba{ll}
-    \iota  & \text{if } l = Mat(\iota) \\
-    \iota  & \text{if } l = Mapped(\iota, \_, \_) \\
-    \iota  & \text{if } l = FMapped(\iota, \_, \_)
+    \iota  & \text{if } l = {\Mat \iota v} \\
+    \iota  & \text{if } l = {\Mapped \iota \_ \_} \\
+    \iota  & \text{if } l = {\FMapped \iota \_ \_}
   \ea\right.$
 \end{defn}
 
@@ -285,8 +286,8 @@ $parent$, which are defined as follows:
   The parent of a lineage.
 
   $parent(l) := \left\{\ba{ll}
-    l' & \text{if } l = Mapped(\_, l', \_) \\
-    l' & \text{if } l = FMapped(\_, l', \_) \\
+    l' & \text{if } l = {\Mapped \_ {l'} \_} \\
+    l' & \text{if } l = {\FMapped \_ {l'} \_} \\
   \ea\right.$
 \end{defn}
 
@@ -440,8 +441,8 @@ $M'$, and (c) an updated store $\sigma'$.
 
 \inferrule[\textsc{Proc-ReqMat}] {
   r = {\Ref l h} \quad
-  l = {\Mat {\iota'}} \quad
-  t = \texttt{respond}(h', \iota, \texttt{unit})
+  l = {\Mat {\iota'} v} \quad
+  t = \texttt{respond}(h', \iota, v)
 } {
   process(h, {\Req {h'} r \iota}, \sigma) = (t, \emptyset, \sigma)
 }
@@ -514,10 +515,9 @@ be materialized using its lineage $l$; in particular, if $r$ has a
 parent it must be materialized.
 
 Rule \textsc{Proc-ReqMat} handles the case where $r$ does not have a
-parent. In this case, the materialization of $r$ is just the
-\verb|unit| value; thus, a response ${\Res \iota {\texttt{unit}}}$ is
-sent to host $h'$ by evaluating the term $\texttt{respond}(h', \iota,
-\texttt{unit})$.
+parent. In this case, the materialization of $r$ is just the value $v$ of its materialized
+lineage ${\Mat {\iota'} v}$; thus, a response ${\Res \iota v}$ is
+sent to host $h'$ by evaluating the term $\texttt{respond}(h', \iota, v)$.
 
 Rule \textsc{Proc-ReqMap} handles the case where the lineage of $r$
 begins with a $\text{Mapped}$ constructor. In this case, the
@@ -583,10 +583,11 @@ returned future using \verb|await|.
   \Gamma ; \Sigma \vdash (t~t') : T'
 }
 
-\inferrule[\textsc{T-Populate}] {
-  \Gamma ; \Sigma \vdash t : \texttt{Host}
+\inferrule[\textsc{T-SiloRef}] {
+  \Sigma(id(l)) = T \quad
+  \Sigma \vdash {\Ref l h}
 } {
-  \Gamma ; \Sigma \vdash \texttt{populate}(t) : \texttt{SiloRef}[\texttt{Unit}]
+  \Gamma ; \Sigma \vdash {\Ref l h} : \texttt{SiloRef}[T]
 }
 
 \inferrule[\textsc{T-Map}] {
@@ -621,19 +622,19 @@ returned future using \verb|await|.
   \Gamma ; \Sigma \vdash \iota : \texttt{Future}[T]
 }
 
-\inferrule[\textsc{T-SiloRef}] {
-  \Sigma(id(l)) = T \quad
-  \Sigma \vdash {\Ref l h}
-} {
-  \Gamma ; \Sigma \vdash {\Ref l h} : \texttt{SiloRef}[T]
-}
-
 \inferrule[\textsc{T-Respond}] {
   h \in \mathcal{H} \quad
   \Gamma ; \Sigma \vdash t : \texttt{Future}[T] \quad
   \Gamma ; \Sigma \vdash t' : T
 } {
   \Gamma ; \Sigma \vdash \texttt{respond}(h, t, t') : \texttt{Unit}
+}
+
+\inferrule[\textsc{T-Populate}] {
+  \Gamma ; \Sigma \vdash t : \texttt{Host} \quad
+  \Gamma ; \Sigma \vdash t' : T \quad serializable(T)
+} {
+  \Gamma ; \Sigma \vdash \texttt{populate}(t, t') : \texttt{SiloRef}[T]
 }
 \end{mathpar}
 \caption{Type assignment.}\label{fig:type-rules}
@@ -762,9 +763,10 @@ configurations (\textsc{WF-Config}), respectively.
 }
 
 \inferrule[\textsc{WF-Lin3}] {
-  \iota \in dom(\Sigma)
+  \iota \in dom(\Sigma) \quad
+  \emptyset ; \Sigma \vdash v : T
 } {
-  \Sigma \vdash {\text{Mat}(\iota)}
+  \Sigma \vdash {\Mat \iota v}
 }
 
 \inferrule[\textsc{WF-Ref}] {
@@ -1226,7 +1228,7 @@ of reduction steps. Formally:
   E[\texttt{await}(\iota'')]$.
 
   \begin{itemize}
-    \item Case $r = {\Ref {\Mat {\iota'}} h}$. The result follows from
+    \item Case $r = {\Ref {\Mat {\iota'} v} h}$. The result follows from
       \textsc{R-Process}, \textsc{R-Process-Val}, and
       \textsc{Proc-ReqMat}.
 
