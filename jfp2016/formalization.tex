@@ -786,22 +786,20 @@ configurations (\textsc{WF-Config}), respectively.
   \Sigma \vdash {\Res \iota v}
 }
 
-\inferrule[\textsc{WF-Q3}] {
+\inferrule[\textsc{WF-Req}] {
   r = {\Ref l {h'}} \quad
   \Sigma(id(l)) = \Sigma(\iota) \quad
-  \Sigma \vdash r \quad
-  \Sigma \vdash Q
+  \Sigma \vdash r
 } {
-  \Sigma \vdash {\Req h r \iota} \cdot Q
+  \Sigma \vdash {\Req h r \iota}
 }
 
 % TODO: Re-asses if \Gamma can be \emptyset?
 \inferrule[\textsc{WF-HostConfig}] {
   \Sigma \vdash \sigma  \quad
-  \Sigma \vdash Q       \quad
-  \Gamma ; \Sigma \vdash t : T
+  \exists \Gamma.~\Gamma ; \Sigma \vdash t : T
 } {
-  \Sigma \vdash (t, \sigma, Q)^h
+  \Sigma \vdash (t, \sigma)^h
 }
 
 \inferrule[\textsc{WF-Host1}] {} { 
@@ -809,10 +807,10 @@ configurations (\textsc{WF-Config}), respectively.
 }
 
 \inferrule[\textsc{WF-Host2}] {
-  \Sigma \vdash (t, \sigma, Q)^h  \quad
+  \Sigma \vdash (t, \sigma)^h  \quad
   \Sigma \vdash H
 } {
-  \Sigma \vdash \{ (t, \sigma, Q)^h \} \cup H
+  \Sigma \vdash \{ (t, \sigma)^h \} \cup H
 }
 % was wir ausschliessen muessen ist: \Sigma(\iota') \neq \Sigma'(\iota') fuer zwei verschiedene Hosts
 
