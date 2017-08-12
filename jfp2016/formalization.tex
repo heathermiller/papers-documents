@@ -325,11 +325,11 @@ distributed systems, in particular non-deterministic message ordering.
 \inferrule[\textsc{R-Send}] {
   r  = {\Ref l {h'}}      \quad
   m  = {\Req h r {id(l)}} \quad
-  M' = M \cup \{ h' \leftarrow m \}
+  M' = M \uplus \{ h' \leftarrow m \}
 } {
-  \{ (E[\texttt{send}(r)], \sigma, Q)^h \} \cup H ~|~ M
+  \{ (E[\texttt{send}(r)], \sigma)^h \} \cup H ~|~ M
   \twoheadrightarrow
-  \{ (E[id(l)], \sigma, Q)^h \} \cup H ~|~ M'
+  \{ (E[id(l)], \sigma)^h \} \cup H ~|~ M'
 }
 
 \inferrule[\textsc{R-Populate}] {
