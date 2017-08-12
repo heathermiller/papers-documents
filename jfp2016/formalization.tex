@@ -779,12 +779,11 @@ configurations (\textsc{WF-Config}), respectively.
   \Sigma \vdash {\Ref l h}
 }
 
-\inferrule[\textsc{WF-Q2}] {
+\inferrule[\textsc{WF-Res}] {
   \Sigma(\iota) = T                \quad
-  \emptyset ; \Sigma \vdash v : T  \quad
-  \Sigma \vdash Q
+  \emptyset ; \Sigma \vdash v : T
 } {
-  \Sigma \vdash {\Res \iota v} \cdot Q
+  \Sigma \vdash {\Res \iota v}
 }
 
 \inferrule[\textsc{WF-Q3}] {
