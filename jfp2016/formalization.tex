@@ -342,11 +342,11 @@ distributed systems, in particular non-deterministic message ordering.
 }
 
 \inferrule[\textsc{R-Respond}] {
-  M' = M \cup \{ h' \leftarrow {\Res \iota v} \}
+  M' = M \uplus \{ h' \leftarrow {\Res \iota v} \}
 } {
-  \{ (E[\texttt{respond}(h', \iota, v)], \sigma, Q)^h \} \cup H ~|~ M
+  \{ (E[\texttt{respond}(h', \iota, v)], \sigma)^h \} \cup H ~|~ M
   \twoheadrightarrow
-  \{ (E[\texttt{unit}], \sigma, Q)^h \} \cup H ~|~ M'
+  \{ (E[\texttt{unit}], \sigma)^h \} \cup H ~|~ M'
 }
 
 \inferrule[\textsc{R-Process}] {
