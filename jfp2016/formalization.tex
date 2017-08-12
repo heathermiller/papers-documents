@@ -755,12 +755,9 @@ configurations (\textsc{WF-Config}), respectively.
 }
 
 \inferrule[\textsc{WF-Lin1}] {
-  \Sigma(\iota) = T  \quad
-  \Sigma(id(l)) = T' \quad
-  \exists \Gamma.~\Gamma ; \Sigma \vdash p : T' \Rightarrow T~\{\ldots\} \quad
-  \Sigma \vdash l
+  \iota \in dom(\Sigma)
 } {
-  \Sigma \vdash \text{Mapped}(\iota, l, p)
+  \Sigma \vdash {\Mat \iota}
 }
 
 \inferrule[\textsc{WF-Lin2}] {
@@ -773,9 +770,12 @@ configurations (\textsc{WF-Config}), respectively.
 }
 
 \inferrule[\textsc{WF-Lin3}] {
-  \iota \in dom(\Sigma)
+  \Sigma(\iota) = T  \quad
+  \Sigma(id(l)) = T' \quad
+  \exists \Gamma.~\Gamma ; \Sigma \vdash p : T' \Rightarrow T~\{\ldots\} \quad
+  \Sigma \vdash l
 } {
-  \Sigma \vdash {\Mat \iota}
+  \Sigma \vdash \text{Mapped}(\iota, l, p)
 }
 
 \inferrule[\textsc{WF-Ref}] {

@@ -185,7 +185,7 @@ If $\Sigma \vdash \sigma$, $\Sigma \vdash m \cdot \emptyset$, and $process(h, m,
   \item $\Sigma \vdash r$
   \end{enumerate}
 % 4.
-\item By 2.b,c), 3.b), \textsc{WF-Ref}, and \textsc{WF-Lin1}
+\item By 2.b,c), 3.b), \textsc{WF-Ref}, and \textsc{WF-Lin3}
   \begin{enumerate}[label=(\alph*)]
   \item $\Sigma(\iota') = T$
   \item $\Sigma(id(l')) = T'$
@@ -371,7 +371,7 @@ Part 1: by induction on the derivation of $t~|~\sigma \rightarrow^h t'~|~\sigma'
 % 6.
 \item Define $\Sigma' := [(h, i) \mapsto T']\Sigma$.
 % 7.
-\item By 2.d-e), 4.c), 5.a-d), 6., \textsc{WF-Lin1}, and \textsc{WF-Ref}, $\Sigma' \vdash r'$.
+\item By 2.d-e), 4.c), 5.a-d), 6., \textsc{WF-Lin3}, and \textsc{WF-Ref}, $\Sigma' \vdash r'$.
 % 8.
 \item By 2.d-e), 6., 7., and \textsc{T-SiloRef}, $\Gamma ; \Sigma' \vdash r' : \texttt{SiloRef}[T']$.
 % 9.
