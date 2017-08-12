@@ -819,7 +819,8 @@ configurations (\textsc{WF-Config}), respectively.
 }
 
 \inferrule[\textsc{WF-Messages}] {
-  \Sigma \vdash m \cdot \epsilon \quad
+  \Sigma \vdash m    \quad
+  h \in \mathcal{H}  \quad
   \Sigma \vdash M
 } {
   \Sigma \vdash \{ h \leftarrow m \} \cup M
