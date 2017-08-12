@@ -440,12 +440,20 @@ $M'$, and (c) an updated store $\sigma'$.
   process(h, {\Req {h'} r \iota}, \sigma) = (\texttt{send}({\Ref {l'} h}), M, \sigma)
 }
 
-\inferrule[\textsc{Proc-ReqMat}] {
+\inferrule[\textsc{Proc-ReqMat1}] {
   r = {\Ref l h} \quad
-  l = {\Mat {\iota'}} \quad
-  t = \texttt{respond}(h', \iota, v)
+  l = {\Mat {\iota'}} \quad \sigma(\iota') = v \quad
+  M = \{ h' \leftarrow {\Res \iota v} \}
 } {
-  process(h, {\Req {h'} r \iota}, \sigma) = (t, \emptyset, \sigma)
+  process(h, {\Req {h'} r \iota}, \sigma) = (\texttt{unit}, M, \sigma)
+}
+
+\inferrule[\textsc{Proc-ReqMat2}] {
+  r = {\Ref l h} \quad
+  l = {\Mat {\iota'}} \quad \iota' \notin dom(\sigma) \quad
+  M = \{ h \leftarrow {\Req {h'} r \iota} \}
+} {
+  process(h, {\Req {h'} r \iota}, \sigma) = (\texttt{unit}, M, \sigma)
 }
 
 \inferrule[\textsc{Proc-ReqMap}] {
