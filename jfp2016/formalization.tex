@@ -35,7 +35,7 @@ v ::=                                                                  & \mbox{{
 p ::= \texttt{spore}~\{~\seq{x : T = v}~; (x: T) \Rightarrow t~\}      & \\
 & \\
 l ::=                                                  & \mbox{{\it{lineages:}}}              \\
-\gap \:\:\:\: \text{Mat}(\iota, v)                     & \mbox{materialized}                  \\
+\gap \:\:\:\: \text{Mat}(\iota)                        & \mbox{materialized}                  \\
 \gap ~|~  \text{Mapped}(\iota, l, p)                   & \mbox{lineage with \texttt{map}}     \\
 \gap ~|~  \text{FMapped}(\iota, l, p)                  & \mbox{lineage with \texttt{flatMap}} \\
                                                        & \\
@@ -172,7 +172,7 @@ replacing the hole in evaluation context $E$ with term $t$.
 }
 
 \inferrule[\textsc{R-Populate}] {
-  l = {\Mat {(h, i)} v} \quad i~\text{fresh}
+  l = {\Mat {(h, i)}} \quad i~\text{fresh}
 } {
   E[\texttt{populate}(h', v)]~|~\sigma
   \rightarrow^h
@@ -276,7 +276,7 @@ $parent$, which are defined as follows:
   The identifier of a lineage.
 
   $id(l) := \left\{\ba{ll}
-    \iota  & \text{if } l = {\Mat \iota v} \\
+    \iota  & \text{if } l = {\Mat \iota} \\
     \iota  & \text{if } l = {\Mapped \iota \_ \_} \\
     \iota  & \text{if } l = {\FMapped \iota \_ \_}
   \ea\right.$
@@ -441,7 +441,7 @@ $M'$, and (c) an updated store $\sigma'$.
 
 \inferrule[\textsc{Proc-ReqMat}] {
   r = {\Ref l h} \quad
-  l = {\Mat {\iota'} v} \quad
+  l = {\Mat {\iota'}} \quad
   t = \texttt{respond}(h', \iota, v)
 } {
   process(h, {\Req {h'} r \iota}, \sigma) = (t, \emptyset, \sigma)
@@ -516,7 +516,7 @@ parent it must be materialized.
 
 Rule \textsc{Proc-ReqMat} handles the case where $r$ does not have a
 parent. In this case, the materialization of $r$ is just the value $v$ of its materialized
-lineage ${\Mat {\iota'} v}$; thus, a response ${\Res \iota v}$ is
+lineage ${\Mat {\iota'}}$; thus, a response ${\Res \iota v}$ is
 sent to host $h'$ by evaluating the term $\texttt{respond}(h', \iota, v)$.
 
 Rule \textsc{Proc-ReqMap} handles the case where the lineage of $r$
@@ -763,10 +763,9 @@ configurations (\textsc{WF-Config}), respectively.
 }
 
 \inferrule[\textsc{WF-Lin3}] {
-  \iota \in dom(\Sigma) \quad
-  \emptyset ; \Sigma \vdash v : T
+  \iota \in dom(\Sigma)
 } {
-  \Sigma \vdash {\Mat \iota v}
+  \Sigma \vdash {\Mat \iota}
 }
 
 \inferrule[\textsc{WF-Ref}] {
@@ -1226,7 +1225,7 @@ of reduction steps. Formally:
   E[\texttt{await}(\iota'')]$.
 
   \begin{itemize}
-    \item Case $r = {\Ref {\Mat {\iota'} v} h}$. The result follows from
+    \item Case $r = {\Ref {\Mat {\iota'}} h}$. The result follows from
       \textsc{R-Process}, \textsc{R-Process-Val}, and
       \textsc{Proc-ReqMat}.
 
