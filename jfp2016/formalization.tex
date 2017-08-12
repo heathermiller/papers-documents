@@ -336,9 +336,9 @@ distributed systems, in particular non-deterministic message ordering.
   \iota = (h, i) \quad i~\text{fresh} \quad
   l = {\Mat \iota} \quad M' = M \uplus \{ h' \leftarrow {\Res \iota v} \}
 } {
-  \{ (E[\texttt{populate}(h', v)], \sigma, Q)^h \} \cup H ~|~ M
+  \{ (E[\texttt{populate}(h', v)], \sigma)^h \} \cup H ~|~ M
   \twoheadrightarrow
-  \{ (E[{\Ref l {h'}}], \sigma, Q)^h \} \cup H ~|~ M'
+  \{ (E[{\Ref l {h'}}], \sigma)^h \} \cup H ~|~ M'
 }
 
 \inferrule[\textsc{R-Respond}] {
