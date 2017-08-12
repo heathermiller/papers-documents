@@ -350,11 +350,13 @@ distributed systems, in particular non-deterministic message ordering.
 }
 
 \inferrule[\textsc{R-Process}] {
-  \iota \notin dom(\sigma) \quad process(h, m, \sigma) = (t, M', \sigma')
+  \iota \notin dom(\sigma) \quad
+  M = M' \uplus \{ h \leftarrow m \} \quad
+  process(h, m, \sigma) = (t, M'', \sigma')
 } {
-  \{ (E[\texttt{await}(\iota)], \sigma, m \cdot Q)^h \} \cup H ~|~ M
+  \{ (E[\texttt{await}(\iota)], \sigma)^h \} \cup H ~|~ M
   \twoheadrightarrow
-  \{ (E[t~;~\texttt{await}(\iota)], \sigma', Q)^h \} \cup H ~|~ M \cup M'
+  \{ (E[t~;~\texttt{await}(\iota)], \sigma')^h \} \cup H ~|~ M' \uplus M''
 }
 
 \inferrule[\textsc{R-Process-Val}] {
