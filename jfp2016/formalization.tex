@@ -171,14 +171,6 @@ replacing the hole in evaluation context $E$ with term $t$.
   E[v]~|~\sigma
 }
 
-\inferrule[\textsc{R-Populate}] {
-  l = {\Mat {(h, i)}} \quad i~\text{fresh}
-} {
-  E[\texttt{populate}(h', v)]~|~\sigma
-  \rightarrow^h
-  E[{\Ref l {h'}}]~|~\sigma
-}
-
 \inferrule[\textsc{R-Map}] {
   r = {\Ref l {h'}} \quad l' = {\Mapped {(h, i)} l p} \quad i~\text{fresh}
 } {
@@ -338,6 +330,15 @@ distributed systems, in particular non-deterministic message ordering.
   \{ (E[\texttt{send}(r)], \sigma, Q)^h \} \cup H ~|~ M
   \twoheadrightarrow
   \{ (E[id(l)], \sigma, Q)^h \} \cup H ~|~ M'
+}
+
+\inferrule[\textsc{R-Populate}] {
+  \iota = (h, i) \quad i~\text{fresh} \quad
+  l = {\Mat \iota} \quad M' = M \uplus \{ h' \leftarrow {\Res \iota v} \}
+} {
+  \{ (E[\texttt{populate}(h', v)], \sigma, Q)^h \} \cup H ~|~ M
+  \twoheadrightarrow
+  \{ (E[{\Ref l {h'}}], \sigma, Q)^h \} \cup H ~|~ M'
 }
 
 \inferrule[\textsc{R-Receive}] {
