@@ -360,11 +360,12 @@ distributed systems, in particular non-deterministic message ordering.
 }
 
 \inferrule[\textsc{R-Process-Val}] {
-  process(h, m, \sigma) = (t, M', \sigma')
+  M = M' \uplus \{ h \leftarrow m \} \quad
+  process(h, m, \sigma) = (t, M'', \sigma')
 } {
-  \{ (v, \sigma, m \cdot Q)^h \} \cup H ~|~ M
+  \{ (v, \sigma)^h \} \cup H ~|~ M
   \twoheadrightarrow
-  \{ (t, \sigma', Q)^h \} \cup H ~|~ M \cup M'
+  \{ (t, \sigma')^h \} \cup H ~|~ M' \uplus M''
 }
 \end{mathpar}
 \caption{Distributed reduction.}\label{fig:dist-rules}
