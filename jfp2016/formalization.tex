@@ -518,15 +518,16 @@ parent are guaranteed to be the same. The original request ${\Req {h'}
   r \iota}$ is included in the new in-flight messages $M$, so that it
 is eventually handled, namely when $r$'s parent is materialized.
 
-Rules \textsc{Proc-ReqMat}, \textsc{Proc-ReqMap}, and
+Rules \textsc{Proc-ReqMap} and
 \textsc{Proc-ReqFMap} are only enabled when the requested silo $r$ can
-be materialized using its lineage $l$; in particular, if $r$ has a
-parent it must be materialized.
+be materialized using its lineage $l$; in particular, $r$'s
+parent must be materialized.
 
-Rule \textsc{Proc-ReqMat} handles the case where $r$ does not have a
-parent. In this case, the materialization of $r$ is just the value $v$ of its materialized
+Rules \textsc{Proc-ReqMat1} and \textsc{Proc-ReqMat2} handle the case where $r$ does not have a
+parent. In the case of \textsc{Proc-ReqMat1}, the materialization of $r$ is just the value $v$ of its materialized
 lineage ${\Mat {\iota'}}$; thus, a response ${\Res \iota v}$ is
-sent to host $h'$ by evaluating the term $\texttt{respond}(h', \iota, v)$.
+sent to host $h'$.
+In the case of \textsc{Proc-ReqMat2}, lineage ${\Mat {\iota'}}$ is not yet materialized (i.e., host $h$ is still waiting for a message ${\Res {\iota'} {v'}}$); thus, the original request ${\Req {h'} r \iota}$ sent to $h$ is re-sent, to be processed again later.
 
 Rule \textsc{Proc-ReqMap} handles the case where the lineage of $r$
 begins with a $\text{Mapped}$ constructor. In this case, the
