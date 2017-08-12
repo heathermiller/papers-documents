@@ -220,7 +220,7 @@ If $\Sigma \vdash \sigma$, $\Sigma \vdash m$, and $process(h, m, \sigma) = (t, M
 \item By the assumptions
   \begin{enumerate}[label=(\alph*)]
   \item $\Sigma \vdash \sigma$
-  \item $\Sigma \vdash m \cdot \emptyset$
+  \item $\Sigma \vdash m$
   \item $process(h, m, \sigma) = (t, M, \sigma')$
   \end{enumerate}
 % 2.
@@ -235,7 +235,7 @@ If $\Sigma \vdash \sigma$, $\Sigma \vdash m$, and $process(h, m, \sigma) = (t, M
   \item $M = \emptyset$
   \end{enumerate}
 % 3.
-\item By 1.b), 2.a,b), and \textsc{WF-Q3}
+\item By 1.b), 2.a,b), and \textsc{WF-Req}
   \begin{enumerate}[label=(\alph*)]
   \item $\Sigma(id(l)) = \Sigma(\iota)$
   \item $\Sigma \vdash r$
