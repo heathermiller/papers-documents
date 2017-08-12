@@ -317,9 +317,9 @@ distributed systems, in particular non-deterministic message ordering.
 \inferrule[\textsc{R-Local}] {
   t~|~\sigma \rightarrow^h t'~|~\sigma'
 } {
-  \{ (t, \sigma, Q)^h \} \cup H ~|~ M
+  \{ (t, \sigma)^h \} \cup H ~|~ M
   \twoheadrightarrow
-  \{ (t', \sigma', Q)^h \} \cup H ~|~ M
+  \{ (t', \sigma')^h \} \cup H ~|~ M
 }
 
 \inferrule[\textsc{R-Send}] {
