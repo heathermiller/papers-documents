@@ -117,7 +117,7 @@ If $\Sigma \vdash \sigma$, $\Sigma \vdash m$, and $process(h, m, \sigma) = (t, M
 \item By the assumptions
   \begin{enumerate}[label=(\alph*)]
   \item $\Sigma \vdash \sigma$
-  \item $\Sigma \vdash m \cdot \emptyset$
+  \item $\Sigma \vdash m$
   \item $process(h, m, \sigma) = (t, M, \sigma')$
   \end{enumerate}
 % 2.
@@ -137,19 +137,19 @@ If $\Sigma \vdash \sigma$, $\Sigma \vdash m$, and $process(h, m, \sigma) = (t, M
 % 5.
 \item By 1.a), 3., 4., and \textsc{WF-Store1-3}, $\Sigma' \vdash \sigma'$.
 % 6.
-\item By 1.b), 2.a,b), and \textsc{WF-Q3}
+\item By 1.b), 2.a,b), and \textsc{WF-Req}
   \begin{enumerate}[label=(\alph*)]
   \item $\Sigma(id(l)) = \Sigma(\iota)$
   \item $\Sigma \vdash r$
   \end{enumerate}
 % 7.
-\item $T := \Sigma(id(l))$.
+\item Define $T := \Sigma(id(l))$.
 % 8.
 \item By 1.a), 2.c), 7., and \textsc{WF-Store2}, $\emptyset ; \Sigma \vdash v : T$.
 % 9.
-\item By 6.a), 7., 8., \textsc{WF-Q1}, and \textsc{WF-Q2}, $\Sigma \vdash {\Res \iota v} \cdot \epsilon$.
+\item By 6.a), 7., 8., and \textsc{WF-Res}, $\Sigma \vdash {\Res \iota v}$.
 % 10.
-\item By 9. and \textsc{WF-Messages}, $\Sigma \vdash M$.
+\item By 2.d), 9., and \textsc{WF-Messages}, $\Sigma \vdash M$.
 % 11.
 \item By 2.f), \textsc{T-Unit}, and Lemma~\ref{lem:weakening-store-typing}, $\emptyset ; \Sigma \vdash t : T'$ for some $T'$.
 % 12.
