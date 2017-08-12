@@ -341,14 +341,6 @@ distributed systems, in particular non-deterministic message ordering.
   \{ (E[{\Ref l {h'}}], \sigma, Q)^h \} \cup H ~|~ M'
 }
 
-\inferrule[\textsc{R-Receive}] {
-  M = M' \cup \{ h \leftarrow m \}
-} {
-  \{ (t, \sigma, Q)^h \} \cup H ~|~ M
-  \twoheadrightarrow
-  \{ (t, \sigma, Q \cdot m)^h \} \cup H ~|~ M'
-}
-
 \inferrule[\textsc{R-Respond}] {
   M' = M \cup \{ h' \leftarrow {\Res \iota v} \}
 } {

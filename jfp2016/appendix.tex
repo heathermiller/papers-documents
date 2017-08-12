@@ -573,56 +573,6 @@ Part 2: by induction on the derivation of $H~|~M \twoheadrightarrow H'~|~M'$ wit
 
 \item Cases \textsc{R-Populate} and \textsc{R-Respond} follow analogously.
 
-\item Case \textsc{R-Receive}.
-\begin{enumerate}
-% 1.
-\item By the assumptions
-  \begin{enumerate}[label=(\alph*)]
-  \item $\Sigma \vdash H~|~M$
-  \item $H~|~M \twoheadrightarrow H'~|~M'$
-  \end{enumerate}
-% 2.
-\item By \textsc{R-Receive}
-  \begin{enumerate}[label=(\alph*)]
-  \item $H  = \{ (t, \sigma, Q)^h \} \cup H''$
-  \item $H' = \{ (t, \sigma, Q \cdot m)^h \} \cup H''$
-  \item $M = M' \cup \{ h \leftarrow m \}$
-  \end{enumerate}
-% 3.
-\item By 1.a) and \textsc{WF-Config}
-  \begin{enumerate}[label=(\alph*)]
-  \item $\Sigma \vdash H$
-  \item $\Sigma \vdash M$
-  \end{enumerate}
-% 4.
-\item By 2.c), 3.b), and \textsc{WF-Messages}
-  \begin{enumerate}[label=(\alph*)]
-  \item $\Sigma \vdash m \cdot \epsilon$
-  \item $\Sigma \vdash M'$
-  \end{enumerate}
-% 5.
-\item By 2.a), 3.a), and \textsc{WF-Host2}
-  \begin{enumerate}[label=(\alph*)]
-  \item $\Sigma \vdash (t, \sigma, Q)^h$
-  \item $\Sigma \vdash H''$
-  \end{enumerate}
-% 6.
-\item By 5.a) and \textsc{WF-HostConfig}
-  \begin{enumerate}[label=(\alph*)]
-  \item $\Sigma \vdash \sigma$
-  \item $\Sigma \vdash Q$
-  \item $\Gamma ; \Sigma \vdash t : T$
-  \end{enumerate}
-% 7.
-\item By 4.a), 6.b), and Lemma~\ref{lem:queue-concat}, $\Sigma \vdash Q \cdot m$.
-% 8.
-\item By 6.a,c), 7., and \textsc{WF-HostConfig}, $\Sigma \vdash (t, \sigma, Q \cdot m)^h$.
-% 9.
-\item By 2.b), 5.b), 8., and \textsc{WF-Host2}, $\Sigma \vdash H'$.
-% 10.
-\item By 4.b), 9., and \textsc{WF-Config}, $\Sigma \vdash H'~|~M'$.
-\end{enumerate}
-
 \item Case \textsc{R-Process}.
 \begin{enumerate}
 % 1.
