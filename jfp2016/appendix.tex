@@ -580,10 +580,11 @@ Part 2: by induction on the derivation of $H~|~M \twoheadrightarrow H'~|~M'$ wit
 % 2.
 \item By \textsc{R-Process}
   \begin{enumerate}[label=(\alph*)]
-  \item $H  = \{ (E[\texttt{await}(\iota)], \sigma, m \cdot Q)^h \} \cup H''$
-  \item $H' = \{ (E[t~;~\texttt{await}(\iota)], \sigma', Q)^h \} \cup H''$
-  \item $M' = M \cup M''$
+  \item $H  = \{ (E[\texttt{await}(\iota)], \sigma)^h \} \cup H''$
+  \item $H' = \{ (E[t~;~\texttt{await}(\iota)], \sigma')^h \} \cup H''$
+  \item $M' = \hat{M} \uplus M''$
   \item $process(h, m, \sigma) = (t, M'', \sigma')$
+  \item $M = \hat{M} \uplus \{ h \leftarrow m \}$
   \end{enumerate}
 % 3.
 \item By 1.a) and \textsc{WF-Config}
@@ -594,24 +595,19 @@ Part 2: by induction on the derivation of $H~|~M \twoheadrightarrow H'~|~M'$ wit
 % 4.
 \item By 2.a), 3.a), and \textsc{WF-Host2}
   \begin{enumerate}[label=(\alph*)]
-  \item $\Sigma \vdash (E[\texttt{await}(\iota)], \sigma, m \cdot Q)^h$
+  \item $\Sigma \vdash (E[\texttt{await}(\iota)], \sigma)^h$
   \item $\Sigma \vdash H''$
   \end{enumerate}
 % 5.
 \item By 4.a) and \textsc{WF-HostConfig}
   \begin{enumerate}[label=(\alph*)]
   \item $\Sigma \vdash \sigma$
-  \item $\Sigma \vdash m \cdot Q$
-  \item $\Gamma ; \Sigma \vdash E[\texttt{await}(\iota)] : T$
+  \item $\Gamma ; \Sigma \vdash E[\texttt{await}(\iota)] : T$ for some $\Gamma$
   \end{enumerate}
 % 6.
-\item By 5.b) and \textsc{WF-Q1-3}
-  \begin{enumerate}[label=(\alph*)]
-  \item $\Sigma \vdash Q$
-  \item $\Sigma \vdash m \cdot \epsilon$
-  \end{enumerate}
+\item By 2.e), 3.b), and \textsc{WF-Messages}, $\Sigma \vdash m$.
 % 7.
-\item By 2.d), 5.a), 6.b), and Lemma~\ref{lem:process}
+\item By 2.d), 5.a), 6., and Lemma~\ref{lem:process}~(Process), $\exists \Sigma'$ such that
   \begin{enumerate}[label=(\alph*)]
   \item $\emptyset ; \Sigma' \vdash t : T'$
   \item $\Sigma' \vdash M''$
@@ -619,23 +615,21 @@ Part 2: by induction on the derivation of $H~|~M \twoheadrightarrow H'~|~M'$ wit
   \item $\Sigma' \supseteq \Sigma$
   \end{enumerate}
 % 8.
-\item By 5.c), 7.d), and part 1 of Lemma~\ref{lem:weakening-store-typing}, $\Gamma ; \Sigma' \vdash E[\texttt{await}(\iota)] : T$.
+\item By 5.b), 7.d), and part 1 of Lemma~\ref{lem:weakening-store-typing}, $\Gamma ; \Sigma' \vdash E[\texttt{await}(\iota)] : T$.
 % 9. XXX
 \item By 7.a) and 8., $\Gamma ; \Sigma' \vdash E[t~;~\texttt{await}(\iota)] : T$.
 % 10.
-\item By 6.a), 7.d), and \textsc{WF-Q1-3}, $\Sigma' \vdash Q$.
+\item By 7.c), 9., and \textsc{WF-HostConfig}, $\Sigma' \vdash (E[t~;~\texttt{await}(\iota)], \sigma')^h$.
 % 11.
-\item 7.c), 9., 10., and \textsc{WF-HostConfig}, $\Sigma' \vdash (E[t~;~\texttt{await}(\iota)], \sigma', Q)^h$.
-% 12.
 \item By 4.b), 7.d), and part 3 of Lemma~\ref{lem:weakening-store-typing}, $\Sigma' \vdash H''$.
+% 12.
+\item By 2.b), 10., 11., and \textsc{WF-Host2}, $\Sigma' \vdash H'$.
 % 13.
-\item By 2.b), 11., 12., and \textsc{WF-Host2}, $\Sigma' \vdash H'$.
+\item By 3.b), 7.d), \textsc{WF-Res}, \textsc{WF-Req}, \textsc{WF-Ref}, and \textsc{WF-Messages}, $\Sigma' \vdash M$.
 % 14.
-\item By 3.b), 7.d), \textsc{WF-Messages}, and \textsc{WF-Q1-3}, $\Sigma' \vdash M$.
+\item By 2.c), 7.b), 13., and \textsc{WF-Messages}, $\Sigma' \vdash M'$.
 % 15.
-\item By 2.c), 7.b), 14., and \textsc{WF-Messages}, $\Sigma' \vdash M'$.
-% 16.
-\item By 13., 15., and \textsc{WF-Config}, $\Sigma' \vdash H'~|~M'$.
+\item By 12., 14., and \textsc{WF-Config}, $\Sigma' \vdash H'~|~M'$.
 \end{enumerate}
 
 \item Case \textsc{R-Process-Val} follows analogously.
