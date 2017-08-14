@@ -1141,10 +1141,10 @@ satisfied after a finite number of reduction steps in so-called
 
 In the following we assume a {\em fair scheduling} property which
 ensures that in a well-formed configuration $H~|~M$, each message $h
-\leftarrow m \in M$ is eventually received in the message queue of
-host $h$. Fair scheduling is also assumed in other models of
-distributed computing like actors~\cite{Actors,Talcott}. Formally,
-fair scheduling is defined as follows:
+\leftarrow m \in M$ is eventually received by host $h$. Fair
+scheduling is also assumed in other models of distributed computing
+like actors~\cite{Actors,Talcott}. Formally, fair scheduling is
+defined as follows:
 
 \begin{defn}[Fair Scheduling]\label{def:fair-scheduling}
   Let $\Sigma \vdash H~|~M$ and $h \leftarrow m \in M$. Then $H~|~M
