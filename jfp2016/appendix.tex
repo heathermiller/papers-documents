@@ -513,11 +513,11 @@ Part 2: by induction on the derivation of $H~|~M \twoheadrightarrow H'~|~M'$ wit
 % 2.
 \item By \textsc{R-Send}
   \begin{enumerate}[label=(\alph*)]
-  \item $H  = \{ (E[\texttt{send}(r)], \sigma, Q)^h \} \cup H''$
-  \item $H' = \{ (E[id(l)], \sigma, Q)^h \} \cup H''$
+  \item $H  = \{ (E[\texttt{send}(r)], \sigma)^h \} \cup H''$
+  \item $H' = \{ (E[id(l)], \sigma)^h \} \cup H''$
   \item $r  = {\Ref l {h'}}$
   \item $m  = {\Req h r {id(l)}}$
-  \item $M' = M \cup \{ h' \leftarrow m \}$
+  \item $M' = M \uplus \{ h' \leftarrow m \}$
   \end{enumerate}
 % 3.
 \item By 1.a) and \textsc{WF-Config}
@@ -528,18 +528,17 @@ Part 2: by induction on the derivation of $H~|~M \twoheadrightarrow H'~|~M'$ wit
 % 4.
 \item By 2.a), 3.a), and \textsc{WF-Host2}
   \begin{enumerate}[label=(\alph*)]
-  \item $\Sigma \vdash (E[\texttt{send}(r)], \sigma, Q)^h$
+  \item $\Sigma \vdash (E[\texttt{send}(r)], \sigma)^h$
   \item $\Sigma \vdash H''$
   \end{enumerate}
 % 5.
 \item By 4.a) and \textsc{WF-HostConfig}
   \begin{enumerate}[label=(\alph*)]
   \item $\Sigma \vdash \sigma$
-  \item $\Sigma \vdash Q$
-  \item $\Gamma ; \Sigma \vdash E[\texttt{send}(r)] : T$
+  \item $\Gamma ; \Sigma \vdash E[\texttt{send}(r)] : T$ for some $\Gamma$
   \end{enumerate}
 % 6.
-\item By 5.c), $\Gamma ; \Sigma \vdash \texttt{send}(r) : \hat{T}$.
+\item By 5.b), $\Gamma ; \Sigma \vdash \texttt{send}(r) : \hat{T}$.
 % 7.
 \item By 6. and \textsc{T-Send}
   \begin{enumerate}[label=(\alph*)]
@@ -555,15 +554,15 @@ Part 2: by induction on the derivation of $H~|~M \twoheadrightarrow H'~|~M'$ wit
 % 9.
 \item By 8.a) and \textsc{T-Ident}, $\Gamma ; \Sigma \vdash id(l) : \texttt{Future}[T'']$.
 % 10.
-\item By 5.c), 6., 7.a), and 9., $\Gamma ; \Sigma \vdash E[id(l)] : T$.
+\item By 5.b), 6., 7.a), and 9., $\Gamma ; \Sigma \vdash E[id(l)] : T$.
 % 11.
-\item By 5.a,b), 10., and \textsc{WF-HostConfig}, $\Sigma \vdash (E[id(l)], \sigma, Q)^h$.
+\item By 5.a), 10., and \textsc{WF-HostConfig}, $\Sigma \vdash (E[id(l)], \sigma)^h$.
 % 12.
 \item By 4.b), 11., and \textsc{WF-Host2}, $\Sigma \vdash H'$.
 % 13.
-\item By 2.c-d), 8.a,b), and \textsc{WF-Q1-3}, $\Sigma \vdash m \cdot \epsilon$.
+\item By 2.c,d), 8.b), and \textsc{WF-Req}, $\Sigma \vdash m$.
 % 14.
-\item By 2.e), 3.b), 13., and \textsc{WF-Messages}, $\Sigma \vdash M'$.
+\item By 2.c,e), 3.b), 8.b), 13., \textsc{WF-Ref}, and \textsc{WF-Messages}, $\Sigma \vdash M'$.
 % 15.
 \item By 12., 14., and \textsc{WF-Config}, $\Sigma \vdash H'~|~M'$.
 \end{enumerate}
