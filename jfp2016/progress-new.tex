@@ -36,3 +36,26 @@ messages. Formally, $\mathit{Blocked}$ is defined as follows:
   $\mathit{Blocked}(h, H)$, {\em iff} $(t, \sigma)^h \in H$ such that
   $t = E[\texttt{await}(\iota)]$ or $t = E[v]$.
 \end{defn}
+
+Although our focus is the establishment of desirable progress
+properties for distributed reduction, it is necessary to consider the
+following {\em strong normalization} property of single-host
+reductions. For this, we consider the reduction relation $\leadsto$
+defined as the subset of the reduction relation $\twoheadrightarrow$
+excluding reduction rules \textsc{R-Process} and
+\textsc{R-Process-Val}.
+
+\begin{lem}[Single-Host Strong Normalization]\label{lem:strong-normal}
+  Let $\Sigma \vdash H~|~M$ where $H = \{ (t, \sigma)^h \} \cup
+  H'$. Then $H~|~M \leadsto^* \{ (t', \sigma')^h \} \cup H'~|~M'$
+  after a finite number of reduction steps and either $t'$ is a value
+  or $t' = E[\texttt{await}(\iota)]$.
+\end{lem}
+
+Note that in the above reduction, only a single host $h$ is
+reduced. Furthermore, the set of in-flight messages may change, e.g.,
+by applying rule \textsc{R-Send}. A proof of
+Lemma~\ref{lem:strong-normal} is outside the scope of this
+paper. However, our core language is, fundamentally, not more
+expressive than the simply typed lambda calculus, for which strong
+normalization holds.
