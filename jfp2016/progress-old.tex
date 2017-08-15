@@ -1,0 +1,124 @@
+This section formulates progress properties. The main
+Theorem~\ref{thm:finite-mat} states that materialization requests are
+satisfied after a finite number of reduction steps in so-called
+``responsive configurations.''
+
+In the following we assume a {\em fair scheduling} property which
+ensures that in a well-formed configuration $H~|~M$, each message $h
+\leftarrow m \in M$ is eventually received by host $h$. Fair
+scheduling is also assumed in other models of distributed computing
+like actors~\cite{Actors,Talcott}. Formally, fair scheduling is
+defined as follows:
+
+\begin{defn}[Fair Scheduling]\label{def:fair-scheduling}
+  Let $\Sigma \vdash H~|~M$ and $h \leftarrow m \in M$. Then $H~|~M
+  \twoheadrightarrow^* H'~|~M'$ such that $(t, \sigma, Q \cdot m)^h \in
+  H'$ after a finite number of reduction steps.
+\end{defn}
+
+Although our focus is the establishment of desirable progress
+properties for distributed reduction, it is necessary to consider the
+following {\em strong normalization} property of single-host
+reductions. For this, we consider the reduction relation $\leadsto$
+defined as the subset of the reduction relation $\twoheadrightarrow$
+excluding reduction rules \textsc{R-Receive}, \textsc{R-Process}, and
+\textsc{R-Process-Val}.
+
+\begin{lem}[Single-Host Strong Normalization]\label{lem:strong-normal}
+  Let $\Sigma \vdash H~|~M$ where $H = \\ \{ (t, \sigma, Q)^h \} \cup
+  H'$. Then $H~|~M \leadsto^* \{ (t', \sigma', Q)^h \} \cup H'~|~M'$
+  after a finite number of reduction steps and either $t'$ is a value
+  or $t' = E[\texttt{await}(\iota)]$.
+\end{lem}
+
+Note that in the above reduction, message queue $Q$ does not
+change. Furthermore, only a single host $h$ is reduced. Conversely,
+the set of in-flight messages may change, e.g., by applying rule
+\textsc{R-Send}. A proof of Lemma~\ref{lem:strong-normal} is outside
+the scope of this paper. However, our core language is, fundamentally,
+not more expressive than the simply typed lambda calculus, for which
+strong normalization holds.
+
+The final prerequisite of our main progress theorem is a
+responsiveness property, defined as follows.
+
+\begin{defn}[Responsive Configuration]\label{def:resp-config}
+  A configuration $\Sigma \vdash H~|~M$ is responsive {\em iff}
+
+  $H = \{ (t, \sigma, Q \cdot m)^h \} \cup H' \Longrightarrow H~|~M \twoheadrightarrow^* \{ (t', \sigma', m \cdot Q')^h \} \cup H'~|~M'$ after a finite number of reduction steps.
+\end{defn}
+
+The following lemma ensures that the above responsiveness property is
+preserved by reduction.
+
+\begin{lem}[Responsiveness]\label{lem:resp}
+  Let $\Sigma \vdash H~|~M$ be a responsive configuration.
+
+  If $H~|~M \twoheadrightarrow H'~|~M'$ then $\Sigma' \vdash H'~|~M'$
+  is a responsive configuration for some $\Sigma' \supseteq \Sigma$.
+\end{lem}
+\begin{proof}[Proof Sketch]
+  By induction on the derivation of $H~|~M \twoheadrightarrow H'~|~M'$
+  using Lemma~\ref{lem:strong-normal} and the definition of function
+  $\mathit{process}$ (see
+  Figures~\ref{fig:process}~and~\ref{fig:process-persist}).
+\end{proof}
+
+We are now ready to introduce the main progress theorem which states
+that responsive configurations have the following property: when
+sending a request ${\Req {h'} r \iota}$ to a host $h$, a corresponding
+response ${\Res \iota v}$ is sent to host $h'$ after a finite number
+of reduction steps. Formally:
+
+\begin{thm}[Finite Materialization]\label{thm:finite-mat}
+  If $\Sigma \vdash H~|~M$ is responsive, $m = {\Req {h'} r \iota}$, $r = {\Ref {l'} h}$,
+  and $\Sigma \vdash m \cdot \epsilon$ then
+  $H~|~(M \cup \{ h \leftarrow m \}) \twoheadrightarrow^* H'~|~(M' \cup \{ h' \leftarrow {\Res \iota v} \})$
+  after a finite number of reduction steps.
+\end{thm}
+\begin{proof}[Proof Sketch]
+  By structural induction on the shape of $r$.
+  
+  Fair scheduling ensures that $m$ is received in $h$'s queue after a
+  finite number of reduction steps which preserve responsiveness by
+  Lemma~\ref{lem:resp}. By Definition~\ref{def:resp-config} and
+  Lemma~\ref{lem:strong-normal}, after another finite number of
+  reduction steps, the host configuration of $h$ has the form $(t,
+  \sigma, m \cdot Q)^h$ where either $t$ is a value or $t =
+  E[\texttt{await}(\iota'')]$.
+
+  \begin{itemize}
+    \item Case $r = {\Ref {\Mat {\iota'}} h}$. The result follows from
+      \textsc{R-Process}, \textsc{R-Process-Val}, and
+      \textsc{Proc-ReqMat}.
+
+    \item Case $r = {\Ref {\Mapped {\iota'} l p} h}$. Then either
+      \begin{enumerate}
+        \item $\sigma(id(l)) = v$. By \textsc{R-Process},
+          \textsc{R-Process-Val}, and \textsc{Proc-ReqMap}, host $h$
+          continues with the evaluation of $\texttt{respond}(h',
+          \iota, p~v)$. By Lemma~\ref{lem:strong-normal} this results
+          in sending a message $h' \leftarrow {\Res \iota {v'}}$ after a
+          finite number of reduction steps.
+
+        \item $id(l) \notin dom(\sigma)$. By \textsc{R-Process},
+          \textsc{R-Process-Val}, and \textsc{Proc-ReqParent}, the
+          messages $m$ and ${\Req h {\Ref l h} {id(l)}}$ are sent. By
+          the induction hypothesis, a message $m' = {\Res {id(l)}
+            {v'}}$ is sent to $h$ after a finite number of reduction
+          steps. By Definition~\ref{def:fair-scheduling}, $m'$ is
+          appended to $h$'s queue after a finite number of reduction
+          steps. By Definition~\ref{def:resp-config}, $m'$ appears at
+          the front of $h$'s queue after another finite number of
+          reduction steps. By Lemma~\ref{lem:strong-normal} rule
+          \textsc{R-Process} or \textsc{R-Process-Val} may be applied
+          after another finite number of reduction steps, followed by
+          an application of \textsc{R-ProcRes}. At this point, the
+          original message $m$ is ensured to be processed according to
+          the previous case after a finite number of steps.
+      \end{enumerate}
+
+    \item Case $r = {\Ref {\FMapped {\iota'} l p} h}$ is analogous to
+      the previous case.
+  \end{itemize}
+\end{proof}
