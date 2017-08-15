@@ -20,7 +20,10 @@ defined as follows:
   \twoheadrightarrow^* H_{i+1}~|~M_{i+1}$ after a finite number of
   reduction steps, \\$\forall i \in \{ 1, \ldots, n
   \}.~\mathit{Blocked}(h, H_i)$, and $H_n~|~M_n \twoheadrightarrow
-  H'~|~M'$ by rule \textsc{R-Process} or \textsc{R-Process-Val}.
+  H'~|~M'$ by rule \textsc{R-Process} or \textsc{R-Process-Val} such
+  that $M_n = \hat{M} \uplus \{ h \leftarrow m \}$, $(t, \sigma)^h \in
+  H_n$, $process(h, m, \sigma) = (t', M'', \sigma')$, and $M' =
+  \hat{M} \uplus M''$.
 \end{defn}
 
 The predicate $\mathit{Blocked}(h, H)$ expresses the fact that host
