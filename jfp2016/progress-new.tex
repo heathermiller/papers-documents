@@ -59,3 +59,55 @@ Lemma~\ref{lem:strong-normal} is outside the scope of this
 paper. However, our core language is, fundamentally, not more
 expressive than the simply typed lambda calculus, for which strong
 normalization holds.
+
+As a prerequisite for the establishment of our main progress theorem,
+we introduce a small amount of bookkeeping into the reduction
+relations. The aim is to keep track of silo references created during
+reduction. Importantly, this additional bookkeeping information does
+not introduce any change in the semantic behavior--the information can
+be erased without affecting the run-time semantics in any way.
+
+The augmented local reduction relation has the form $E[t]~|~\sigma
+\rightarrow^h E[t']~|~\sigma'~|~R$ where $R$ is either the empty set
+or a singleton set containing the created silo reference. Rule
+\textsc{R-FMap} is the only rule resulting in a non-empty set of
+created references:
+
+\begin{mathpar}
+\inferrule[\textsc{R-FMap}] {
+  r = {\Ref l {h'}} \quad
+  l' = {\FMapped {(h, i)} l p} \quad i~\text{fresh} \quad
+  r' = {\Ref {l'} {h'}}
+} {
+  E[\texttt{flatMap}(r, p)]~|~\sigma
+  \rightarrow^h
+  E[r']~|~\sigma~|~\{ r' \}
+}
+\end{mathpar}
+
+The augmented distributed reduction relation has the form $H~|~M~|~R
+\twoheadrightarrow H'~|~M'~|~R'$ where $R$ is the set of references
+already existing before performing the reduction step and $R'$ is the
+set of references existing after performing the reduction step. Rules
+\textsc{R-Local} and \textsc{R-Populate} are the only rules resulting
+in a set of references $R'$ where $R' \neq R$ is possible:
+
+\begin{mathpar}
+\inferrule[\textsc{R-Local}] {
+  t~|~\sigma \rightarrow^h t'~|~\sigma'~|~R'
+} {
+  \{ (t, \sigma)^h \} \cup H ~|~ M ~|~ R
+  \twoheadrightarrow
+  \{ (t', \sigma')^h \} \cup H ~|~ M ~|~ R \cup R'
+}
+
+\inferrule[\textsc{R-Populate}] {
+  \iota = (h, i) \quad i~\text{fresh} \quad
+  l = {\Mat \iota} \quad M' = M \uplus \{ h' \leftarrow {\Res \iota v} \} \quad
+  r' = {\Ref l {h'}}
+} {
+  \{ (E[\texttt{populate}(h', v)], \sigma)^h \} \cup H ~|~ M ~|~ R
+  \twoheadrightarrow
+  \{ (E[r'], \sigma)^h \} \cup H ~|~ M' ~|~ R \cup \{ r' \}
+}
+\end{mathpar}
