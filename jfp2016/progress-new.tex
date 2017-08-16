@@ -158,3 +158,17 @@ after a finite number of reduction steps is preserved under reduction.
   Lemma~\ref{lem:strong-normal}.
 \end{proof}
 
+We are now ready to introduce the main progress
+theorem. Theorem~\ref{thm:finite-mat} states that finite
+materialization of silos is a universal property of our core language.
+
+\begin{thm}[Finite Materialization]\label{thm:finite-mat}
+  Let $\Sigma \vdash H~|~M~|~R$ such that $\mathit{Responsive}(H, M,
+  R)$.
+
+  If $H~|~M~|~R \twoheadrightarrow H'~|~M'~|~R'$ then
+  $\mathit{Responsive}(H', M', R')$.
+\end{thm}
+\begin{proof}
+  See Appendix~\ref{app:finite-mat}.
+\end{proof}
