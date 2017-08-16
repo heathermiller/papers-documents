@@ -112,11 +112,27 @@ in a set of references $R'$ where $R' \neq R$ is possible:
 }
 \end{mathpar}
 
+Finally, the extension of well-formed configurations is
+straightforward:
+\begin{mathpar}
+\inferrule[\textsc{WF-Config}] {
+  \Sigma \vdash H \quad \Sigma \vdash M \quad \Sigma \vdash R
+} {
+  \Sigma \vdash H~|~M~|~R
+}
+
+\inferrule[\textsc{WF-Refs}] {
+  \Sigma \vdash r \quad \Sigma \vdash R
+} {
+  \Sigma \vdash \{ r \} \cup R
+}
+\end{mathpar}
+
 Using the augmented reduction rules we introduce a responsiveness
 property, {\em responsive configurations}. Informally, in a responsive
-configuration, requesting any previously created silo reference
-results in a response after a finite number of reduction steps. The
-property is defined as follows:
+configuration requesting (the materialization of) any previously
+created silo reference results in a corresponding response after a
+finite number of reduction steps. The property is defined as follows:
 
 \begin{defn}[Responsive Configuration]\label{def:resp-config}
   A configuration $\Sigma \vdash H~|~M~|~R$ is responsive, written
@@ -124,3 +140,21 @@ property is defined as follows:
 
   $\forall r = {\Ref l h} \in R.~(m = {\Req {h'} r \iota} \land \Sigma \vdash m) \Longrightarrow H ~|~ M \uplus \{h \leftarrow m\} ~|~ R \twoheadrightarrow^* H' ~|~ M' \uplus \{h' \leftarrow {\Res \iota v}\} ~|~ R'$ after a finite number of reduction steps.
 \end{defn}
+
+The following lemma ensures that the ability to materialize a silo
+after a finite number of reduction steps is preserved under reduction.
+
+\begin{lem}[Responsiveness]\label{lem:resp}
+  Let $\Sigma \vdash H~|~M~|~R \cup \hat{R}$ and
+  $\mathit{Responsive}(H, M, \hat{R})$.
+
+  If $H~|~M~|~R \cup \hat{R} \twoheadrightarrow H'~|~M'~|~R' \cup
+  \hat{R}$ then $\mathit{Responsive}(H', M', \hat{R})$.
+\end{lem}
+\begin{proof}[Proof Sketch]
+  By induction on the derivation of $H~|~M~|~R \cup \hat{R}
+  \twoheadrightarrow H'~|~M'~|~R' \cup \hat{R}$ with case analysis of
+  the last applied rule, using Def.~\ref{def:fair-scheduling} and
+  Lemma~\ref{lem:strong-normal}.
+\end{proof}
+
