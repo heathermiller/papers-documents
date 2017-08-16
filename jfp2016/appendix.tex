@@ -637,3 +637,38 @@ Part 2: by induction on the derivation of $H~|~M \twoheadrightarrow H'~|~M'$ wit
 \end{itemize}
 
 \end{proof}
+
+\subsection{Proof of Theorem~\ref{thm:finite-mat}}\label{app:finite-mat}
+
+\begin{lem}[Responsive Population]\label{lem:resp-population}
+  Let $\Sigma \vdash H~|~M~|~R$ and $H = \{ (E[t], \sigma)^h \} \uplus
+  \hat{H}$.
+
+  Then $\forall h' \in \mathit{hosts}(H)$: $\{ (E[\texttt{send}(r)],
+  \sigma)^h \} \uplus \hat{H}~|~M \uplus \{ h' \leftarrow m \}
+  \twoheadrightarrow^* H'~|~M' \uplus \{ h \leftarrow m \}$ after a
+  finite number of reduction steps where $r = {\Ref l {h'}}$, $l =
+  {\Mat \iota}$ for some $\iota$, and $m = {\Res \iota v}$.
+\end{lem}
+\begin{proof}[Proof Sketch]
+  TODO
+\end{proof}
+
+\begin{lem}[Responsive FMap]\label{lem:resp-fmap}
+\end{lem}
+\begin{proof}
+  TODO
+\end{proof}
+
+\begin{thmun}
+\emph{(Finite Materialization)}
+  Let $\Sigma \vdash H~|~M~|~R$ such that $\mathit{Responsive}(H, M,
+  R)$.
+
+  If $H~|~M~|~R \twoheadrightarrow H'~|~M'~|~R'$ then
+  $\mathit{Responsive}(H', M', R')$.
+\end{thmun}
+\begin{proof}
+  Corollary of Lemma~\ref{lem:resp}, Lemma~\ref{lem:resp-population},
+  and Lemma~\ref{lem:resp-fmap}.
+\end{proof}
