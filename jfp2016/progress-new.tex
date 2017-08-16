@@ -111,3 +111,16 @@ in a set of references $R'$ where $R' \neq R$ is possible:
   \{ (E[r'], \sigma)^h \} \cup H ~|~ M' ~|~ R \cup \{ r' \}
 }
 \end{mathpar}
+
+Using the augmented reduction rules we introduce a responsiveness
+property, {\em responsive configurations}. Informally, in a responsive
+configuration, requesting any previously created silo reference
+results in a response after a finite number of reduction steps. The
+property is defined as follows:
+
+\begin{defn}[Responsive Configuration]\label{def:resp-config}
+  A configuration $\Sigma \vdash H~|~M~|~R$ is responsive, written
+  $\mathit{Responsive}(H, M, R)$, {\em iff}
+
+  $\forall r = {\Ref l h} \in R.~(m = {\Req {h'} r \iota} \land \Sigma \vdash m) \Longrightarrow H ~|~ M \uplus \{h \leftarrow m\} ~|~ R \twoheadrightarrow^* H' ~|~ M' \uplus \{h' \leftarrow {\Res \iota v}\} ~|~ R'$ after a finite number of reduction steps.
+\end{defn}
