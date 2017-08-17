@@ -255,17 +255,17 @@ identifiers to locate possibly remote silos. They are also typed
 (\verb|SiloRef[T]|) corresponding to the type \verb|T| of their silo's data,
 leading to well-typed network communication. A silo reference provides three
 primitive operations/combinators (some are lazy, some are not): \verb|map|,
-\verb|flatMap|, and \verb|send|. The \verb|map| method makes use of deferred
+\verb|apply|, and \verb|send|. The \verb|map| method makes use of deferred
 evaluation; it {\em eventually} applies a user-defined function to data pointed
 to by the \verb|SiloRef[T]|, creating a new silo containing the result of this
 application, though this application. That is, this computation is only ``kicked
 off'' when the \verb|send| method is invoked. This makes it possible to queue up
 transformations in order to optimize network communication. Like \verb|map|, the
-application of \verb|flatMap| is {\em deferred}. \verb|flatMap| also applies a
+application of \verb|apply| is {\em deferred}. \verb|apply| also applies a
 user-defined function to data pointed to by the silo reference; unlike
-\verb|map|, however, the user-defined function passed to \verb|flatMap| returns
+\verb|map|, however, the user-defined function passed to \verb|apply| returns
 a \verb|SiloRef[T]| whose contents is transferred to the new silo returned by
-\verb|flatMap|. Essentially, \verb|flatMap| enables accessing the contents of
+\verb|apply|. Essentially, \verb|apply| enables accessing the contents of
 (local or remote) silos from within remote computations. We illustrate these
 primitives in more detail in Section~\ref{sec:primitives}.
 
@@ -374,7 +374,7 @@ popular data-centric distributed systems (how to build some of these
 higher-order operations is described in
 Section~\ref{sec:higher-order-operations}). In this section we
 introduce these primitives in the context of a running example. These
-primitives include \verb|map|, \verb|flatMap|, \verb|send|, and
+primitives include \verb|map|, \verb|apply|, \verb|send|, and
 \verb|persist|, whose type signatures are shown in
 Figure~\ref{fig:signatures}.\footnote{A trait in Scala can be thought
   of as an abstract class supporting mixin composition, essentially
@@ -385,7 +385,7 @@ Figure~\ref{fig:signatures}.\footnote{A trait in Scala can be thought
 \begin{lstlisting}
   trait SiloRef[T] {
     def map[S](p: Spore[T, S]): SiloRef[S]
-    def flatMap[S](p: Spore[T, SiloRef[S]]): SiloRef[S]
+    def apply[S](p: Spore[T, SiloRef[S]]): SiloRef[S]
     def send(): Future[T]
     def persist(): SiloRef[T]
   }
@@ -422,21 +422,21 @@ val adults: SiloRef[List[Person]] = persons.map(spore { ps =>
 \end{lstlisting}
 
 
-\paragraph{flatMap.}%
+\paragraph{apply.}%
 %
-\texttt{def flatMap[S](p: Spore[T, SiloRef[S]]): SiloRef[S]} \newline
+\texttt{def apply[S](p: Spore[T, SiloRef[S]]): SiloRef[S]} \newline
 %
-Like \verb|map|, the \verb|flatMap| method takes a spore that is to be applied
+Like \verb|map|, the \verb|apply| method takes a spore that is to be applied
 to the data in the silo of the given \verb|SiloRef[T]|. However, the crucial
 difference is in the type of the spore argument whose result type is a
 \verb|SiloRef[S]| in this case. Semantically, the new silo created by
-\verb|flatMap| is defined to contain the data of the silo that the user-defined
-spore returns. The \verb|flatMap| combinator adds expressiveness to our model
+\verb|apply| is defined to contain the data of the silo that the user-defined
+spore returns. The \verb|apply| combinator adds expressiveness to our model
 that is essential to express more interesting computation DAGs. For example,
 consider the problem of combining the information contained in two different
 silos (potentially located on different hosts). Suppose the information of a
 silo containing \verb|Vehicle| records should be enriched with other details
-only found in the \verb|adults| silo. In the following, \verb|flatMap| is used
+only found in the \verb|adults| silo. In the following, \verb|apply| is used
 to create a silo of \verb|(Person, Vehicle)| pairs where the names of person and
 vehicle owner match:
 % (graphically shown in Figure~\ref{fig:bigger-dag}, part 2):
@@ -445,7 +445,7 @@ vehicle owner match:
 val vehicles: SiloRef[List[Vehicle]] = ...
 // adults that own a vehicle
 val owners: SiloRef[List[(Person,Vehicle)]] = 
-  adults.flatMap(spore {
+  adults.apply(spore {
     // spore header
     val localVehicles = vehicles 
     persons => localVehicles.map(spore {
@@ -467,9 +467,9 @@ addition to the \verb|persons|, the list of \verb|Person|
 records. This requires calling \verb|map| on \verb|localVehicles| on
 line 7.  However, \verb|map| returns a silo reference; thus, on line
 4, it would be impossible to invoke \verb|map| on \verb|adults|
-instead of \verb|flatMap|, since there would be no way to get the data
+instead of \verb|apply|, since there would be no way to get the data
 out of the silo returned by \verb|localVehicles.map(..)|. With the use
-of \verb|flatMap| on line 4, however, the call to
+of \verb|apply| on line 4, however, the call to
 \verb|localVehicles.map(..)| on line 7 creates the final result silo,
 whose data is then also contained in the \verb|owners| silo declared
 on line 3.
@@ -480,7 +480,7 @@ materialization of the involved silos:
 val adults: SiloRef[List[Person]] = ...
 val vehicles: SiloRef[List[Vehicle]] = ...
 val owners: Future[List[(Person,Vehicle)]] =
-  adults.flatMap(...).send()
+  adults.apply(...).send()
 \end{lstlisting}
 \noindent
 For illustration we use the informal notation \verb|@m| to denote the
@@ -496,7 +496,7 @@ vehicles @ m1 --> Silo[List[Vehicle]]  @ m3
 \end{lstlisting}
 \noindent
 To create \verb|owners|, we must combine data hosted at \verb|m2| with
-data hosted at \verb|m3|. First, \verb|adults.flatMap| transfers its
+data hosted at \verb|m3|. First, \verb|adults.apply| transfers its
 spore, \ie the silo reference \verb|vehicles| and the closure
 \verb|persons => ...|, to \verb|m2| hosting the referenced silo of
 grown-up \verb|Person| records. Next, \verb|localVehicles.map|
@@ -509,7 +509,7 @@ corresponding records, resulting in a new (anonymous) silo reference
 at \verb|m2| referencing the new silo of \verb|(Person,Vehicle)|
 records hosted at \verb|m3|. This new silo reference at \verb|m2| is
 used to transfer its referenced data from \verb|m3| to \verb|m2|, the
-origin of the \verb|flatMap|, and, eventually, to \verb|m1| where the
+origin of the \verb|apply|, and, eventually, to \verb|m1| where the
 materialization has been kicked off.
 
 To reduce the amount of data that is transferred, the implementation in fact
@@ -527,12 +527,12 @@ function as proxy delegating requests re \verb|owners| to the data hosted at
 \verb|m3|. This alleviates network communication and scales up transformation
 execution.
 
-Although the expressiveness of the \verb|flatMap| combinator subsumes that of
-the \verb|map| combinator (see Section~\ref{sec:expr}), keeping \verb|map| as a
-(lightweight) primitive enables more opportunities for optimizing computation
-DAGs (\eg operation fusion~\cite{FlumeJava}).
+As shown in Section~\ref{sec:expr}, the expressiveness of the
+\verb|apply| combinator subsumes that of the \verb|map|
+combinator. Though, as a specialized combinator, \verb|map| is simpler
+to explain.
 
-Finally, note that the spore passed to \verb|flatMap| declares the
+Finally, note that the spore passed to \verb|apply| declares the
 capturing of the \verb|vehicles| silo reference in its spore
 header. The spore header spans all variable definitions between the
 spore marker and the parameter list of the spore's closure. The spore
@@ -677,11 +677,11 @@ built-in operations (in contrast to RDDs in Apache Spark, for example).
 \paragraph{Expressing \texttt{map}.}
 
 Leveraging the above-mentioned methods for creating silos, it is possible to
-express \verb|map| in terms of \verb|flatMap|:
+express \verb|map| in terms of \verb|apply|:
 
 \begin{lstlisting}
 def map[S](s: Spore[T, S]): SiloRef[S] =
-  this.flatMap(spore {
+  this.apply(spore {
     val localSpore = s
     (x: T) =>
       val res = localSpore(x)
@@ -693,24 +693,24 @@ def map[S](s: Spore[T, S]): SiloRef[S] =
 \end{lstlisting}
 
 \noindent
-This should come as no surprise, given that \verb|flatMap| is the monadic bind
+This should come as no surprise, given that \verb|apply| is the monadic bind
 operation on \verb|SiloRef|s, and \verb|SiloRef.fromFun| is the monadic return
 operation.
 
 \comment{\paragraph{Expressing \texttt{cache}}
 
-The \verb|cache| operation can be expressed using \verb|flatMap| and
+The \verb|cache| operation can be expressed using \verb|apply| and
 \verb|send|:
 
 \begin{lstlisting}
-def cache(): Future[Unit] = this.flatMap(spore {
+def cache(): Future[Unit] = this.apply(spore {
  val localDoneSiloRef = DoneSiloRef
  res => localDoneSiloRef
 }).send()
 
 \end{lstlisting}
 \noindent
-Here, we first use \verb|flatMap| to create a new silo that will be completed
+Here, we first use \verb|apply| to create a new silo that will be completed
 with the trivial value of the \verb|DoneSiloRef| singleton object (\eg
 \verb|Unit|). Essentially, invoking \verb|send| on this trivial \verb|SiloRef| causes
 the resulting future to be completed as soon as \verb|this| silo reference has been
@@ -732,7 +732,7 @@ silo references.
 \paragraph{Defining fault handlers.}
 
 Fault handlers may be specified whenever the lineage of a silo reference is
-extended. For this purpose, the introduced \verb|map| and \verb|flatMap|
+extended. For this purpose, the introduced \verb|map| and \verb|apply|
 primitives are overloaded. For example, consider our previous example, but
 extended with a fault handler:
 
@@ -755,12 +755,12 @@ def computeOwners(v: SiloRef[List[Vehicle]]) = spore {
 }
 
 val owners: SiloRef[List[(Person, Vehicle)]] =
-  adults.flatMap(computeOwners(vehicles),
-                 computeOwners(vehicles2))
+  adults.apply(computeOwners(vehicles),
+               computeOwners(vehicles2))
 \end{lstlisting}
 
-Importantly, in the \verb|flatMap| call on the last line, in addition to
-\verb|computeOwners(vehicles)|, the regular spore argument of \verb|flatMap|,
+Importantly, in the \verb|apply| call on the last line, in addition to
+\verb|computeOwners(vehicles)|, the regular spore argument of \verb|apply|,
 \verb|computeOwners(vehicles2)| is passed as an additional argument. The second
 argument registers a {\em failure handler} for the subgraph of the computation
 DAG starting at \verb|adults|. This means that if during the execution of
@@ -768,7 +768,7 @@ DAG starting at \verb|adults|. This means that if during the execution of
 reference has failed, it is checked whether the \verb|SiloRef| that the
 higher-order combinator was invoked on (in this case, \verb|adults|) has a
 failure handler registered. In that case, the failure handler is used as an
-alternative spore to compute the result of \verb|adults.flatMap(..)|. In this
+alternative spore to compute the result of \verb|adults.apply(..)|. In this
 example, we specified \verb|computeOwners(vehicles2)| as the failure handler;
 thus, in case \verb|vehicles| has failed, the computation is retried using
 \verb|vehicles2| instead.
@@ -785,7 +785,7 @@ be made more dynamic as follows:
 
 \begin{lstlisting}
 val owners: SiloRef[List[(Person, Vehicle)]] =
-  adults.flatMap(computeOwners(vehicles),
+  adults.apply(computeOwners(vehicles),
     spore {
       val localVehicles = vehicles
       (ps: List[Person]) =>
@@ -906,11 +906,11 @@ val s22: SiloRef[List[(K, Option[A], Option[B])]] =
   s2.map(spore { l2 => l2.map(x => (g(x), None, Some(x))) })
 \end{lstlisting}
 \noindent
-Then, we can use \verb|flatMap| to create a new silo which contains the elements
+Then, we can use \verb|apply| to create a new silo which contains the elements
 of both silo \verb|s12| and silo \verb|s22|:
 
 \begin{lstlisting}
-val combined = s12.flatMap(spore {
+val combined = s12.apply(spore {
   val localS22 = s22
   (triples1: List[(K, Option[A], Option[B])]) =>
     s22.map(spore {
@@ -947,7 +947,7 @@ implemented as follows:
     \texttt{hash(key) mod N}) to the key-value pairs in its silo, yielding $N$
     (local) silos.
 
-  \item Using \verb|flatMap|, each pair of silos containing keys of the same
+  \item Using \verb|apply|, each pair of silos containing keys of the same
     range can be combined and materialized on the destination host.
 \end{itemize}
 
@@ -979,7 +979,7 @@ require communication across silos are implemented using the
 corresponding argument spores, the corresponding methods of the
 underlying Scala collections are called. In contrast, methods
 combining multiple silos, such as \verb|join|, are implemented using
-the \verb|flatMap| method of \verb|SiloRef|.
+the \verb|apply| method of \verb|SiloRef|.
 
 Below, we show a simple example using our RDD abstraction. The example
 processes two documents, \verb|content| and \verb|lorem|, which are
@@ -1170,7 +1170,7 @@ val vehicles: SiloRef[List[Vehicle]] = ...
 val persons:  SiloRef[List[Person]]  = ...
 val info:     SiloRef[Info]          = ...
 val fileName: String                 = "hdfs://..."
-val done    = info.flatMap(spore {
+val done    = info.apply(spore {
   val localVehicles = vehicles
   val localPersons  = persons
   (localInfo: Info) =>
@@ -1208,9 +1208,9 @@ val doWrite = spore {
   val captured = fileName
   combined => Utils.write(combined, captured)
 }
-val done      = info.flatMap(doCombine).map(doWrite)
+val done      = info.apply(doCombine).map(doWrite)
 val backup    = SiloRef.fromFun(hostb)(spore { () => true })
-val recovered = backup.flatMap(
+val recovered = backup.apply(
   spore {
     val localDone = done
     x => localDone
@@ -1224,7 +1224,7 @@ val recovered = backup.flatMap(
       // fromLineage makes sure, we re-run on hostb, rather than
       // the host of info. That is, we just duplicate the lineage.
       val restoredInfo = SiloRef.fromLineage(localHostb)(localInfo)
-      restoredInfo.flatMap(localDoCombine).map(localDoWrite)
+      restoredInfo.apply(localDoCombine).map(localDoWrite)
   }
 )
 done.send()      // force computation on host of local
@@ -1233,15 +1233,15 @@ recovered.send() // force computation on backup host
 \noindent
 
 First, the local variables \verb|doCombine| and \verb|doWrite| refer to the
-verbatim spores passed to \verb|flatMap| and \verb|map| above. Second,
+verbatim spores passed to \verb|apply| and \verb|map| above. Second,
 \verb|backup| is a dummy silo on a backup host \verb|hostb|. It is used to send
 a spore to the backup host in a way that allows it to detect whether the host of
 \verb|done|/\verb|info| has failed. The fault handling is done by calling
-\verb|flatMap| on \verb|backup|, passing (a) a spore for the non-failure case
+\verb|apply| on \verb|backup|, passing (a) a spore for the non-failure case
 and (b) a spore for the failure case. The spore for the non-failure case simply
 returns the \verb|done| SiloRef. Importantly, this enables \verb|hostb| to
 detect failures of the host of \verb|done|. Upon detecting such a failure,
-\verb|backup.flatMap| applies the spore for the failure case. In this case, the
+\verb|backup.apply| applies the spore for the failure case. In this case, the
 lineage of the captured \verb|info| SiloRef is used to restore its original
 contents in a new silo created on the backup host \verb|hostb|. Its SiloRef is
 then used to retry the original computation.
@@ -1534,7 +1534,7 @@ model is statically typed, enabling advanced type-based optimizations. In
 non-process-oriented models, parallel closures~\cite{ParallelClosures} and
 RiverTrail~\cite{RiverTrail} address important safety issues of closures in a
 concurrent setting. However, RiverTrail currently does not support capturing
-variables in closures, which is critical for the flatMap combinator in the
+variables in closures, which is critical for the \texttt{apply} combinator in the
 function passing model. In contrast to parallel closures, spores do not require
 a type system extension in Scala.
 
