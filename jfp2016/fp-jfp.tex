@@ -368,14 +368,14 @@ describe these in the following.
 \subsection{Primitives}
 \label{sec:primitives}
 
-There are four basic primitive operations on silo references that
+There are five basic primitive operations on silo references that
 together can be used to build the higher-order operations common to
 popular data-centric distributed systems (how to build some of these
 higher-order operations is described in
 Section~\ref{sec:higher-order-operations}). In this section we
 introduce these primitives in the context of a running example. These
-primitives include \verb|map|, \verb|apply|, \verb|send|, and
-\verb|persist|, whose type signatures are shown in
+primitives include \verb|map|, \verb|apply|, \verb|send|, \verb|persist|,
+and \verb|unpersist|, whose type signatures are shown in
 Figure~\ref{fig:signatures}.\footnote{A trait in Scala can be thought
   of as an abstract class supporting mixin composition, essentially
   providing a safe form of multiple inheritance~\cite{OderskyZ05}.}
@@ -388,6 +388,7 @@ Figure~\ref{fig:signatures}.\footnote{A trait in Scala can be thought
     def apply[S](p: Spore[T, SiloRef[S]]): SiloRef[S]
     def send(): Future[T]
     def persist(): SiloRef[T]
+    def unpersist(): SiloRef[T]
   }
 \end{lstlisting}
 \caption{Type signatures of primitive operations.}\label{fig:signatures}
@@ -582,8 +583,7 @@ memory remotely.
 Therefore, we provide an additional primitive called \verb|persist|
 which immediately returns a \verb|SiloRef| representing a silo which
 (a) has the same data when materialized, and (b) is guaranteed to
-remain in memory as long as at least one host has a \verb|SiloRef| to
-it.
+remain in memory as long as at least one host has persisted the \verb|SiloRef|.
 
 Given the running example so far, we can add another lineage branching
 off of \verb|adults| by sorting the list of \verb|Person| records by
@@ -627,6 +627,24 @@ in the lineage of \verb|owners|; it is an indirect input used to compute
 % Boolean constant) of the \verb|DoneSiloRef| singleton object. Essentially,
 % invoking \verb|send| on this trivial SiloRef causes the resulting future to be
 % completed as soon as \verb|this| SiloRef has been materialized in main memory.
+
+\paragraph{unpersist.}%
+%
+\texttt{def unpersist(): SiloRef[T]} \newline
+%
+The final primitive operation on silo references is
+\verb|unpersist|. By invoking \verb|unpersist| on a silo reference
+\verb|r| the current host declares that it is no longer interested in
+the data of \verb|r|. As a result, unless other hosts have persisted
+\verb|r|, the memory occupied by the data of \verb|r| may be reclaimed
+without negatively impacting performance. Just like \verb|persist|,
+invoking \verb|unpersist| immediately returns a \verb|SiloRef|
+representing a silo which may not be cached in memory. However, if
+another host has persisted \verb|r|, the silo's data remains cached in
+memory. In the context of future work we plan to investigate
+techniques for inferring invocations of \verb|unpersist| in order to
+automatically and efficiently manage silo memory (see
+Section~\ref{sec:conclusion-future-work}).
 
 \subsubsection{Creating Silos}
 \label{sec:creating-silos}
