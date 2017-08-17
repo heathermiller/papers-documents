@@ -168,7 +168,7 @@ If $\Sigma \vdash \sigma$, $\Sigma \vdash m$, and $process(h, m, \sigma) = (t, M
 \item 10., 11., and 13. close this case.
 \end{enumerate}
 
-\item Case \textsc{Proc-ReqFMap}.
+\item Case \textsc{Proc-ReqApply}.
 \begin{enumerate}
 % 1.
 \item By the assumptions
@@ -178,7 +178,7 @@ If $\Sigma \vdash \sigma$, $\Sigma \vdash m$, and $process(h, m, \sigma) = (t, M
   \item $process(h, m, \sigma) = (t, M, \sigma')$
   \end{enumerate}
 % 2.
-\item By \textsc{Proc-ReqFMap}
+\item By \textsc{Proc-ReqApply}
   \begin{enumerate}[label=(\alph*)]
   \item $m = {\Req {h'} r \iota}$
   \item $r = {\Ref l h}$
@@ -344,7 +344,7 @@ Part 1: by induction on the derivation of $t~|~\sigma \rightarrow^h t'~|~\sigma'
 \item 11., 13., and 14. close this case.
 \end{enumerate}
 
-\item Case \textsc{R-FMap}.
+\item Case \textsc{R-Apply}.
 \begin{enumerate}
 % 1.
 \item By the assumptions
@@ -354,9 +354,9 @@ Part 1: by induction on the derivation of $t~|~\sigma \rightarrow^h t'~|~\sigma'
   \item $t~|~\sigma \rightarrow^h t'~|~\sigma'$
   \end{enumerate}
 % 2.
-\item By \textsc{R-FMap}
+\item By \textsc{R-Apply}
   \begin{enumerate}[label=(\alph*)]
-  \item $t  = E[\texttt{flatMap}(r, p)]$
+  \item $t  = E[\texttt{apply}(r, p)]$
   \item $r  = {\Ref l {h'}}$
   \item $t' = E[r']$
   \item $r' = {\Ref {l'} {h'}}$
@@ -364,9 +364,9 @@ Part 1: by induction on the derivation of $t~|~\sigma \rightarrow^h t'~|~\sigma'
   \item $\sigma' = \sigma$
   \end{enumerate}
 % 3.
-\item By 1.a) and 2.a), $\Gamma ; \Sigma \vdash \texttt{flatMap}(r, p) : \hat{T}$.
+\item By 1.a) and 2.a), $\Gamma ; \Sigma \vdash \texttt{apply}(r, p) : \hat{T}$.
 % 4.
-\item By 3. and \textsc{T-FMap},
+\item By 3. and \textsc{T-Apply},
   \begin{enumerate}[label=(\alph*)]
   \item $\hat{T} = \texttt{SiloRef}[T']$
   \item $\Gamma ; \Sigma \vdash r : \texttt{SiloRef}[T'']$
@@ -387,7 +387,7 @@ Part 1: by induction on the derivation of $t~|~\sigma \rightarrow^h t'~|~\sigma'
 % 8.
 \item By 2.d-e), 6., 7., and \textsc{T-SiloRef}, $\Gamma ; \Sigma' \vdash r' : \texttt{SiloRef}[T']$.
 % 9.
-\item By 2.e), 3., 4.a), 6., and part 1 of Lemma~\ref{lem:weakening-store-typing}, $\Gamma ; \Sigma' \vdash \texttt{flatMap}(r, p) : \texttt{SiloRef}[T']$.
+\item By 2.e), 3., 4.a), 6., and part 1 of Lemma~\ref{lem:weakening-store-typing}, $\Gamma ; \Sigma' \vdash \texttt{apply}(r, p) : \texttt{SiloRef}[T']$.
 % 10.
 \item By 1.a), 2.e), 6., and part 1 of Lemma~\ref{lem:weakening-store-typing}, $\Gamma ; \Sigma' \vdash t : T$.
 % 11.
@@ -618,14 +618,14 @@ Part 2: by induction on the derivation of $H~|~M \twoheadrightarrow H'~|~M'$ wit
   $\{h \leftarrow {\Res \iota v} \}$ as required.
 \end{proof}
 
-\begin{lem}[Responsive FMap]\label{lem:resp-fmap}
+\begin{lem}[Responsive Apply]\label{lem:resp-apply}
 \end{lem}
 \begin{proof}
 \begin{enumerate}
   % 1.
-\item By \textsc{R-Local} and \textsc{R-FMap}
+\item By \textsc{R-Local} and \textsc{R-Apply}
   \begin{enumerate}[label=(\alph*)]
-  \item $E[\texttt{flatMap}(r, p)]~|~\sigma \rightarrow^h E[r']~|~\sigma~|~\{ r' \}$
+  \item $E[\texttt{apply}(r, p)]~|~\sigma \rightarrow^h E[r']~|~\sigma~|~\{ r' \}$
   \item $r' = {\Ref {l'} {h'}}$
   \item $r = {\Ref l {h'}}$
   \item $l' = {\FMapped {(h, i)} l p}$ where $i$ fresh
@@ -668,7 +668,7 @@ Part 2: by induction on the derivation of $H~|~M \twoheadrightarrow H'~|~M'$ wit
   M_p$, and $R'' = R_p$.
   % 6.
 \item By 5.a-c), \textsc{R-Process}, \textsc{R-Process-Val}, and
-  \textsc{Proc-ReqFMap}
+  \textsc{Proc-ReqApply}
   \begin{enumerate}[label=(\alph*)]
   \item $\mathit{process}(h', m, \sigma') = (t'', \emptyset, \sigma')$
   \item $t'' = \texttt{respond}(h'', \iota, \texttt{await}(\texttt{send}(p~v)))$
@@ -709,7 +709,7 @@ Part 2: by induction on the derivation of $H~|~M \twoheadrightarrow H'~|~M'$ wit
     $\mathit{Responsive}(H_3, M_3, R)$. There are two cases.
 
     {\em Case 1:} $d = 0$. Then $p$ does not contain a nested
-    \texttt{flatMap} invocation. Therefore, by
+    \texttt{apply} invocation. Therefore, by
     Lemma~\ref{lem:resp-population}, $p~v$ reduces to a value $r''$
     after a finite number of reduction steps. Since either $r'' \in R$
     or $r''$ is newly populated, $\texttt{send}(r'')$ results in a
@@ -717,14 +717,14 @@ Part 2: by induction on the derivation of $H~|~M \twoheadrightarrow H'~|~M'$ wit
     number of reduction steps. This enables $h'$ to reduce
     $\texttt{respond}(h'', \iota, v'')$ which concludes this case.
 
-    {\em Case 2:} $d > 0$. The depth of nested \texttt{flatMap}s of
-    term $p~v$ is less than the depth of the term $\texttt{flatMap}(r,
+    {\em Case 2:} $d > 0$. The depth of nested \texttt{apply}s of
+    term $p~v$ is less than the depth of the term $\texttt{apply}(r,
     p)$.  Therefore, by the induction hypothesis, reductions of nested
-    \texttt{flatMap} invocations within $p~v$ result in responsive
+    \texttt{apply} invocations within $p~v$ result in responsive
     configurations. By Lemma~\ref{lem:resp-population}, $p~v$ reduces
     to a value $r''$ after a finite number of reduction steps. Since
     either $r'' \in R$, or $r''$ is newly populated, or $r''$ is the
-    result of a nested \texttt{flatMap} invocation,
+    result of a nested \texttt{apply} invocation,
     $\texttt{send}(r'')$ results in a response $h' \leftarrow {\Res
       {id(r'')} {v''}}$ after a finite number of reduction steps. This
     enables $h'$ to reduce $\texttt{respond}(h'', \iota, v'')$ which
@@ -742,5 +742,5 @@ Part 2: by induction on the derivation of $H~|~M \twoheadrightarrow H'~|~M'$ wit
 \end{thmun}
 \begin{proof}
   Corollary of Lemma~\ref{lem:resp}, Lemma~\ref{lem:resp-population},
-  and Lemma~\ref{lem:resp-fmap}.
+  and Lemma~\ref{lem:resp-apply}.
 \end{proof}
