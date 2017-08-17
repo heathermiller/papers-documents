@@ -651,7 +651,17 @@ Part 2: by induction on the derivation of $H~|~M \twoheadrightarrow H'~|~M'$ wit
   {\Mat \iota}$ for some $\iota$, and $m = {\Res \iota v}$.
 \end{lem}
 \begin{proof}[Proof Sketch]
-  TODO
+  By \textsc{R-Send}, $\{ (E[\texttt{send}(r)], \sigma)^h \} \uplus
+  \hat{H}~|~M \uplus \{ h' \leftarrow m \} \twoheadrightarrow \{
+  (E[\iota], \sigma)^h \} \uplus \hat{H}~|~M \uplus \{ h' \leftarrow m
+  \} \uplus \{ h' \leftarrow m' \}$ where $m' = {\Req h r \iota}$.
+  By Def.~\ref{def:fair-scheduling} message $m$ is processed by $h'$
+  after a finite number of reduction steps. As a result, the store of
+  $h'$ is updated with the mapping $\iota \mapsto v$. After another
+  finite number of reduction steps, $h'$ processes message $m'$. By
+  \textsc{R-Process}, \textsc{R-Process-Val}, and
+  \textsc{Proc-ReqMat1}, the resulting multiset of messages includes
+  $\{h \leftarrow {\Res \iota v} \}$ as required.
 \end{proof}
 
 \begin{lem}[Responsive FMap]\label{lem:resp-fmap}
