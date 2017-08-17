@@ -763,7 +763,18 @@ Part 2: by induction on the derivation of $H~|~M \twoheadrightarrow H'~|~M'$ wit
     number of reduction steps. This enables $h'$ to reduce
     $\texttt{respond}(h'', \iota, v'')$ which concludes this case.
 
-    {\em Case 2:} TODO
+    {\em Case 2:} $d > 0$. The depth of nested \texttt{flatMap}s of
+    term $p~v$ is less than the depth of the term $\texttt{flatMap}(r,
+    p)$.  Therefore, by the induction hypothesis, reductions of nested
+    \texttt{flatMap} invocations within $p~v$ result in responsive
+    configurations. By Lemma~\ref{lem:resp-population}, $p~v$ reduces
+    to a value $r''$ after a finite number of reduction steps. Since
+    either $r'' \in R$, or $r''$ is newly populated, or $r''$ is the
+    result of a nested \texttt{flatMap} invocation,
+    $\texttt{send}(r'')$ results in a response $h' \leftarrow {\Res
+      {id(r'')} {v''}}$ after a finite number of reduction steps. This
+    enables $h'$ to reduce $\texttt{respond}(h'', \iota, v'')$ which
+    concludes this case.
 \end{enumerate}
 \end{proof}
 
