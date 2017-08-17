@@ -667,7 +667,104 @@ Part 2: by induction on the derivation of $H~|~M \twoheadrightarrow H'~|~M'$ wit
 \begin{lem}[Responsive FMap]\label{lem:resp-fmap}
 \end{lem}
 \begin{proof}
-  TODO
+\begin{enumerate}
+  % 1.
+\item By \textsc{R-Local} and \textsc{R-FMap}
+  \begin{enumerate}[label=(\alph*)]
+  \item $E[\texttt{flatMap}(r, p)]~|~\sigma \rightarrow^h E[r']~|~\sigma~|~\{ r' \}$
+  \item $r' = {\Ref {l'} {h'}}$
+  \item $r = {\Ref l {h'}}$
+  \item $l' = {\FMapped {(h, i)} l p}$ where $i$ fresh
+  \item $H' = \{ (E[r'], \sigma)^h \} \uplus \hat{H}$
+  \item $M' = M$
+  \item $R' = R \uplus \{ r' \}$
+  \end{enumerate}
+  % 2.
+\item By Lemma~\ref{lem:resp}, $\mathit{Responsive}(H', M', R)$.
+  % 3.
+\item Consider $H'~|~M' \uplus \{h' \leftarrow m\}~|~R'$ where $m =
+  {\Req {h''} {r'} \iota}$.
+  % 4.
+\item By Def.~\ref{def:fair-scheduling} $H'~|~M' \uplus \{h'
+  \leftarrow m\}~|~R' \twoheadrightarrow^* H_p~|~M_p~|~R_p$ such that
+  $(E_p[\texttt{await}(\iota_p)], \sigma_p)^{h'} \in H_p \lor
+  (E_p[v_p], \sigma_p)^{h'} \in H_p$ and $\{h' \leftarrow m\} \in
+  M_p$.
+  % 5.
+\item There are two cases. {\em Case 1:} $id(l) \notin
+  \mathit{dom}(\sigma')$. In this case $H_p~|~M_p~|~R_p$ can be
+  reduced according to \textsc{R-Process} (or \textsc{R-Process-Val})
+  and \textsc{Proc-ReqParent}. As a result, $h'$ reduces
+  $\texttt{send}({\Ref l {h'}})$. By \textsc{R-Send}, ${\Ref l {h'}}
+  \in R$, and Lemma~\ref{lem:resp}, $H_p~|~M_p~|~R_p
+  \twoheadrightarrow^* H_r~|~M_r \uplus \{h' \leftarrow {\Res {id(l)}
+    v} \}~|~R_r$ after a finite number of reduction steps. By
+  Def.~\ref{def:fair-scheduling} and \textsc{Proc-Res}, $H_r~|~M_r
+  \uplus \{h' \leftarrow {\Res {id(l)} v} \}~|~R_r
+  \twoheadrightarrow^* H''~|~M''~|~R''$ after a finite number of
+  reduction steps, such that
+  \begin{enumerate}[label=(\alph*)]
+  \item $H'' = \{ (E'[t'], \sigma')^{h'} \} \cup H_3$ where $t' = v'$
+    or $t' = \texttt{await}(\iota')$
+  \item $M'' = \{h' \leftarrow m\} \uplus M_3$
+  \item $\sigma'(id(l)) = v$
+  \item $\Sigma'' \vdash H''~|~M''~|~R''$
+  \end{enumerate}
+  {\em Case 2:} $\sigma'(id(l)) = v$. In this case $H'' = H_p$, $M'' =
+  M_p$, and $R'' = R_p$.
+  % 6.
+\item By 5.a-c), \textsc{R-Process}, \textsc{R-Process-Val}, and
+  \textsc{Proc-ReqFMap}
+  \begin{enumerate}[label=(\alph*)]
+  \item $\mathit{process}(h', m, \sigma') = (t'', \emptyset, \sigma')$
+  \item $t'' = \texttt{respond}(h'', \iota, \texttt{await}(\texttt{send}(p~v)))$
+  \item $H''~|~M''~|~R'' \twoheadrightarrow H_3~|~M_3~|~R''$
+  \item $H_3 = \{ (E'[t''~\texttt{;}~t'], \sigma')^{h'} \} \cup H_4$
+  \end{enumerate}
+  % 7.
+\item By 5.d), 6.c), and Theorem~\ref{th:subject-reduction} (Subject
+  Reduction), $\Sigma_3 \vdash \{ (E'[t''~\texttt{;}~t'],
+  \sigma')^{h'} \} \cup H_4~|~M_3~|~R''$ for some $\Sigma_3 \supseteq
+  \Sigma''$.
+  % 8.
+\item By 7., \textsc{WF-Config}, \textsc{WF-Host2}, and \textsc{WF-HostConfig}
+  \begin{enumerate}[label=(\alph*)]
+  \item $\Sigma_3 \vdash \sigma'$
+  \item $\Gamma_3 ; \Sigma_3 \vdash E'[t''~\texttt{;}~t'] : T_3$ for
+    some $\Gamma_3$, $T_3$
+  \end{enumerate}
+  % 9.
+\item By 6.b), 8.b), and the type rules
+  \begin{enumerate}[label=(\alph*)]
+  \item $\Gamma_4 ; \Sigma_3 \vdash p : T' \Rightarrow \texttt{SiloRef}[T]~\{~\texttt{type}~\mathcal{C} = \seq{T}~\}$ for some $\Gamma_4$
+  \item $p = \texttt{spore}~\{~\seq{x : T = v}~; (x: T') \Rightarrow t~\}$
+  \end{enumerate}
+  % 10.
+\item By 9.a,b), and \textsc{T-Spore}
+  \begin{enumerate}[label=(\alph*)]
+  \item $\seq{x : T}, x : T' ; \emptyset \vdash t : \texttt{SiloRef}[T]$
+  \item $\forall S \in \seq{T}, \texttt{SiloRef}[T].~\mathit{serializable}(S)$
+  \end{enumerate}
+  % 11.
+  \item By the type rules, derivation 10.a) does not contain
+    applications of \textsc{T-SiloRef} or \textsc{T-Ident}. By 10.b)
+    spore $p$ does not capture futures. Thus, any occurrence of
+    $\texttt{await}(\hat{\iota})$ within $p~v$ is preceded by a
+    reduction of a corresponding $\texttt{send}$ resulting in future
+    $\hat{\iota}$. By Lemma~\ref{lem:resp} (Responsiveness),
+    $\mathit{Responsive}(H_3, M_3, R)$. There are two cases.
+
+    {\em Case 1:} $d = 0$. Then $p$ does not contain a nested
+    \texttt{flatMap} invocation. Therefore, by
+    Lemma~\ref{lem:resp-population}, $p~v$ reduces to a value $r''$
+    after a finite number of reduction steps. Since either $r'' \in R$
+    or $r''$ is newly populated, $\texttt{send}(r'')$ results in a
+    response $h' \leftarrow {\Res {id(r'')} {v''}}$ after a finite
+    number of reduction steps. This enables $h'$ to reduce
+    $\texttt{respond}(h'', \iota, v'')$ which concludes this case.
+
+    {\em Case 2:} TODO
+\end{enumerate}
 \end{proof}
 
 \begin{thmun}
