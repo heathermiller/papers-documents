@@ -695,9 +695,7 @@ def map[S](s: Spore[T, S]): SiloRef[S] =
 \noindent
 This should come as no surprise, given that \verb|flatMap| is the monadic bind
 operation on \verb|SiloRef|s, and \verb|SiloRef.fromFun| is the monadic return
-operation. The reason why \verb|map| is provided as one of the main operations
-of \verb|SiloRef|s is that direct uses of \verb|map| enable an important
-optimization based on operation fusion~\cite{FlumeJava}.
+operation.
 
 \comment{\paragraph{Expressing \texttt{cache}}
 
