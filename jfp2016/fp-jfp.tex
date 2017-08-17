@@ -258,7 +258,7 @@ primitive operations/combinators (some are lazy, some are not): \verb|map|,
 \verb|apply|, and \verb|send|. The \verb|map| method makes use of deferred
 evaluation; it {\em eventually} applies a user-defined function to data pointed
 to by the \verb|SiloRef[T]|, creating a new silo containing the result of this
-application, though this application. That is, this computation is only ``kicked
+application, though this application is deferred. That is, this computation is only ``kicked
 off'' when the \verb|send| method is invoked. This makes it possible to queue up
 transformations in order to optimize network communication. Like \verb|map|, the
 application of \verb|apply| is {\em deferred}. \verb|apply| also applies a
@@ -272,7 +272,7 @@ primitives in more detail in Section~\ref{sec:primitives}.
 \paragraph{Spores.}
 
 Spores~\cite{Spores} are safe closures that are guaranteed to be serializable
-and thus distributable. They are a closure-like abstraction and a type system
+and thus distributable. Essentially, a spore is a closure-like abstraction with associated type rules
 which gives authors of distributed frameworks a principled way of controlling
 the environment which a closure (provided by client code) can capture. This is
 achieved by (a) enforcing a specific syntactic shape which dictates how the
