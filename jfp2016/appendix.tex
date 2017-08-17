@@ -37,52 +37,6 @@ By induction on the derivation of $\Gamma ; \Sigma \vdash v : T$ with a case ana
 \end{proof}
 
 
-\subsection{Proof of Lemma~\ref{lem:queue-concat}}\label{app:queue-concat}
-
-\begin{lemmaun}
-\emph{(Queue Concatenation)}
-If $\Sigma \vdash Q$ and $\Sigma \vdash Q'$ then $\Sigma \vdash Q ::: Q'$.
-\end{lemmaun}
-\begin{proof}
-By induction on the length of $Q$. The case where $Q = \epsilon$ is trivial.
-
-Case $Q = m \cdot Q''$.
-\begin{enumerate}
-\item[A1.] By \textsc{WF-Q1-3}, $\Sigma \vdash Q''$.
-\item[A2.] By the IH, $\Sigma \vdash Q'' ::: Q'$.
-\end{enumerate}
-
-\begin{itemize}
-\item Case $m = {\Res \iota v}$.
-\begin{enumerate}
-% 1.
-\item By the assumption and \textsc{WF-Q2}
-  \begin{enumerate}[label=(\alph*)]
-  \item $\Sigma(\iota) = T$
-  \item $\emptyset ; \Sigma \vdash v : T$
-  \item $\Sigma \vdash Q''$
-  \end{enumerate}
-% 2.
-\item By A2., 1.a-b), and \textsc{WF-Q2}, $\Sigma \vdash m \cdot Q'' ::: Q'$.
-\end{enumerate}
-
-\item Case $m = {\Req h r \iota}$.
-\begin{enumerate}
-% 1.
-\item By the assumption and \textsc{WF-Q3}
-  \begin{enumerate}[label=(\alph*)]
-  \item $r = {\Ref l {h'}}$
-  \item $\Sigma(id(l)) = \Sigma(\iota)$
-  \item $\Sigma \vdash r$
-  \item $\Sigma \vdash Q''$
-  \end{enumerate}
-% 2.
-\item By A2., 1.a-c), and \textsc{WF-Q3}, $\Sigma \vdash m \cdot Q'' ::: Q'$.
-\end{enumerate}
-\end{itemize}
-\end{proof}
-
-
 \subsection{Proof of Theorem~\ref{th:subject-reduction}}\label{app:subject-reduction}
 
 \begin{lem}
