@@ -70,16 +70,16 @@ be erased without affecting the run-time semantics in any way.
 The augmented local reduction relation has the form $E[t]~|~\sigma
 \rightarrow^h E[t']~|~\sigma'~|~R$ where $R$ is either the empty set
 or a singleton set containing the created silo reference. Rule
-\textsc{R-FMap} is the only rule resulting in a non-empty set of
+\textsc{R-Apply} is the only rule resulting in a non-empty set of
 created references:
 
 \begin{mathpar}
-\inferrule[\textsc{R-FMap}] {
+\inferrule[\textsc{R-Apply}] {
   r = {\Ref l {h'}} \quad
   l' = {\FMapped {(h, i)} l p} \quad i~\text{fresh} \quad
   r' = {\Ref {l'} {h'}}
 } {
-  E[\texttt{flatMap}(r, p)]~|~\sigma
+  E[\texttt{apply}(r, p)]~|~\sigma
   \rightarrow^h
   E[r']~|~\sigma~|~\{ r' \}
 }
