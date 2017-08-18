@@ -450,21 +450,23 @@ vehicle owner match:
 \begin{lstlisting}[numbers=left,xleftmargin=2em,framexleftmargin=1.5em]
 val vehicles: SiloRef[List[Vehicle]] = ...
 // adults that own a vehicle
-val owners: SiloRef[List[(Person,Vehicle)]] = 
+val owners: SiloRef[List[(Person, Vehicle)]] =
   adults.apply(spore {
     // spore header
-    val localVehicles = vehicles 
-    persons => localVehicles.map(spore {
-      // spore header
-      val localPersons = persons 
-      vehicles => localPersons.flatMap(p =>
-        // list of (p, v) for a single person p
-        vehicles.flatMap { v => 
-          if (v.owner.name == p.name) List((p, v))
-          else Nil
-        }
-      )
-    })
+    val localVehicles = vehicles
+    (persons: List[Person]) =>
+      localVehicles.map(spore {
+        // spore header
+        val localPersons = persons
+        (vs: List[Vehicle]) =>
+          localPersons.flatMap(p =>
+            // list of (p, v) for a single person p
+            vs.flatMap(v =>
+              if (v.owner.name == p.name) List((p, v))
+              else Nil
+            )
+          )
+      })
   })
 \end{lstlisting}
 \noindent
