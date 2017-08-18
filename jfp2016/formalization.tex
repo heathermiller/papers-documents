@@ -250,8 +250,8 @@ $r$.}
 The distributed reduction rules use helper functions $host$, $id$, and
 $parent$, which are defined as follows:
 
-\begin{defn}[Host]
-  The host of a silo reference.
+\begin{defn}[Host identifier]
+  The host identifier of a silo reference.
 
   $host({\Ref l h}) := h$
 \end{defn}
@@ -275,13 +275,18 @@ $parent$, which are defined as follows:
 
 The distributed reduction relation has the form $H~|~M
 \twoheadrightarrow H'~|~M'$ where $H, H'$ are sets of hosts and $M,
-M'$ are multisets of messages. A host with identifier $h$ in $H$ has
-the form $(t, \sigma)^h$. $t$ is the term reduced by $h$; $\sigma$ is
-the local store of $h$. The multisets $M, M'$ model {\it message
-  sends} that are currently ``in flight;'' a message send $h
-\leftarrow m$ expresses the sending of message $m$ to host $h$. If $h
-\leftarrow m \in M$ then message $m$ has not yet been delivered to $h$
-(the message is still in transit).
+M'$ are multisets of messages. A host is a machine that executes a
+computation, and that can store silos in its local memory. In our
+formal model a host is represented as a pair $(t, \sigma)^h$
+consisting of a term $t$ which is the executed computation, and a
+partial function $\sigma$ which is the local store. Note that each
+host has a unique host identifier; for instance, the host identifier
+of host $(t, \sigma)^h$ is $h$. When it is clear from the context we
+use the terms ``host'' and ``host identifier'' interchangeably. The
+multisets $M, M'$ model {\it message sends} that are ``in flight;'' a
+message send $h \leftarrow m$ expresses the sending of message $m$ to
+host $h$. If $h \leftarrow m \in M$ then message $m$ has not yet been
+delivered to $h$ (the message is still in transit).
 
 As shown in Figure~\ref{fig:messages} there are two kinds of
 messages. A message of the form ${\Req h r \iota}$ requests the value
