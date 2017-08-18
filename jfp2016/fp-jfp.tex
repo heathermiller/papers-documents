@@ -522,11 +522,12 @@ vehicles @ m1                --> Silo[List[Vehicle]]           @ m3
 owners   @ m1 --> proxy @ m2 --> Silo[List[(Person,Vehicle)]]  @ m3
 \end{lstlisting}
 \noindent
-The anonymous silo reference created at \verb|m2| will not be ruled out but
-function as proxy delegating requests re \verb|owners| to the data hosted at
-\verb|m3|. That is, the actual list of persons owing a vehicle is retrieved from
-\verb|m3|. This alleviates network communication and scales up transformation
-execution.
+The anonymous silo reference created at \verb|m2| will not lead to a
+materialization of its contents at \verb|m2|; instead, the silo
+reference functions as a proxy for the data hosted at \verb|m3|.  As a
+result, when \verb|m1| requests the actual list of persons owning a
+vehicle, it is retrieved from \verb|m3|. Avoiding a materialization
+also on \verb|m2| alleviates network communication overhead.
 
 As shown in Section~\ref{sec:expr}, the expressiveness of the
 \verb|apply| combinator subsumes that of the \verb|map|
