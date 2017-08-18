@@ -493,12 +493,12 @@ val owners: SiloRef[List[(Person, Vehicle)]] =
 Here, it is necessary to read the data of the \verb|vehicles| silo in
 addition to the \verb|persons|, the list of \verb|Person|
 records. This requires calling \verb|map| on \verb|localVehicles| on
-line 7.  However, \verb|map| returns a silo reference; thus, on line
+line 8.  However, \verb|map| returns a silo reference; thus, on line
 4, it would be impossible to invoke \verb|map| on \verb|adults|
 instead of \verb|apply|, since there would be no way to get the data
 out of the silo returned by \verb|localVehicles.map(..)|. With the use
 of \verb|apply| on line 4, however, the call to
-\verb|localVehicles.map(..)| on line 7 creates the final result silo,
+\verb|localVehicles.map(..)| on line 8 creates the final result silo,
 whose data is then also contained in the \verb|owners| silo declared
 on line 3.
 
