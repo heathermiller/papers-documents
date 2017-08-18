@@ -969,12 +969,12 @@ implemented as follows:
     range can be combined and materialized on the destination host.
 \end{itemize}
 
-Using just the primitives introduced earlier, applying the partitioning function
-in this way would require $N$ \verb|map| invocations per silo. Thus, the
-performance of \verb|groupByKey| could be increased significantly using a
-specialized combinator, say, ``mapPartition'' that would apply a given
-partitioning function to each key-value pair, simultaneously populating $N$
-silos (where $N$ is the number of ``buckets'' of the partitioning function).
+%Using just the primitives introduced earlier, applying the partitioning function
+%in this way would require $N$ \verb|map| invocations per silo. Thus, the
+%performance of \verb|groupByKey| could be increased significantly using a
+%specialized combinator, say, ``mapPartition'' that would apply a given
+%partitioning function to each key-value pair, simultaneously populating $N$
+%silos (where $N$ is the number of ``buckets'' of the partitioning function).
 
 \subsection{Distributed Collections}\label{sec:rdd}
 
