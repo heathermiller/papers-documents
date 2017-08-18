@@ -227,11 +227,61 @@ distributed systems~\cite{FlumeJava}. For these reasons, we believe that
 deferred evaluation should be viewed as an enabler in the design of distributed
 systems.
 
-\subsection{Programming Model}
+\subsection{Basic Usage}
 
-The function passing model consists of three main components: \textbf{Silos},
+We begin with a simple visual example to illustrate the intuition behind the 
+function passing model. The function passing model consists of three main components: 
+\textbf{Silos},
 stationary, typed, immutable data containers, \textbf{Silo references} to local
-or remote Silos, and \textbf{Spores}, safe, serializable functions.
+or remote Silos, and \textbf{Spores}, safe, serializable functions. We go into 
+more detail about each of these components in Section~\ref{sec:programming-model}.
+
+The main handle users have to the framework is via
+\verb|SiloRef[T]|s. A \verb|SiloRef[T]| can be thought of as an
+immutable handle to a remote value of type \verb|T| contained within a
+corresponding silo. Users interact with this remote data by applying
+functions (as spores) to silo references. Those functions are
+transmitted over the wire and later applied to the data within the
+corresponding silo. As is the case for persistent data structures,
+when a function is applied to a piece of remote data via a
+\verb|SiloRef[T]|, a new \verb|SiloRef[T']|, representing a new silo
+containing the transformed data \verb|T'|, is returned.
+
+The simplest illustration of the model is shown in
+Figure~\ref{fig:basic-diagram} (time flows vertically from top to bottom). Here,
+we start with a \verb|SiloRef[T]| which points to a piece of remote data
+contained within a \verb|Silo[T]|. When the function, shown as $\lambda$, of
+type $T \Rightarrow S$ is applied to \verb|SiloRef[T]| and ``forced'' (sent over
+the network), a new silo reference of type \verb|SiloRef[S]| is immediately
+returned. Note that \verb|SiloRef[S]| contains a reference to its parent silo
+reference, \verb|SiloRef[T]|. (This is how {\em lineages} are constructed.)
+Meanwhile, the function is asynchronously sent over the network and is then applied
+to \verb|Silo[T]|, eventually producing a new \verb|Silo[S]| containing the data
+transformed by function $\lambda$. This new \verb|SiloRef[S]| can be operated on
+even before its corresponding silo is materialized (\ie before the data in
+\verb|Silo[S]| is computed) – the function passing framework queues up
+operations applied to \verb|SiloRef[S]| and applies them when \verb|Silo[S]| is
+fully materialized.
+
+Different sorts of complex DAGs can be asynchronously built up in this way.
+Though first, to see how this is possible, we need to develop a clearer idea of
+the primitive operations available on silo references and their semantics. We
+describe these in the following.
+
+\begin{figure}[ht!]
+\centering\includegraphics[scale=0.35]{pic/bigger-dag.pdf}
+\caption{A simple DAG in the function passing model.}\label{fig:bigger-dag}
+\end{figure}
+
+
+
+\subsection{Programming Model}
+\label{sec:programming-model}
+
+With a basic intuition under our belt for how distributed computation is 
+performed in the \FP~model, we focus now on its main three components; 
+\textbf{Silos}, \textbf{Silo references}, and \textbf{Spores}.
+
 
 \paragraph{Silos.}
 
@@ -319,50 +369,6 @@ publication~\cite{Spores}.}
 \caption{Basic function passing model.}\label{fig:basic-diagram}
 \end{figure}
 
-\subsection{Basic Usage}
-
-We begin with a simple visual example to illustrate the basics of the function
-passing model. % \footnote{We also feel that, to visually illustrate a system
-%   evolving in both space and time, nothing beats a video animation. So, we've
-%   produced a short animation to provide visual intuition of the function
-%   passing model: \url{https://vimeo.com/120415626}}
-
-The main handle users have to the framework is via
-\verb|SiloRef[T]|s. A \verb|SiloRef[T]| can be thought of as an
-immutable handle to a remote value of type \verb|T| contained within a
-corresponding silo. Users interact with this remote data by applying
-functions (as spores) to silo references. Those functions are
-transmitted over the wire and later applied to the data within the
-corresponding silo. As is the case for persistent data structures,
-when a function is applied to a piece of remote data via a
-\verb|SiloRef[T]|, a new \verb|SiloRef[T']|, representing a new silo
-containing the transformed data \verb|T'|, is returned.
-
-The simplest illustration of the model is shown in
-Figure~\ref{fig:basic-diagram} (time flows vertically from top to bottom). Here,
-we start with a \verb|SiloRef[T]| which points to a piece of remote data
-contained within a \verb|Silo[T]|. When the function, shown as $\lambda$, of
-type $T \Rightarrow S$ is applied to \verb|SiloRef[T]| and ``forced'' (sent over
-the network), a new silo reference of type \verb|SiloRef[S]| is immediately
-returned. Note that \verb|SiloRef[S]| contains a reference to its parent silo
-reference, \verb|SiloRef[T]|. (This is how {\em lineages} are constructed.)
-Meanwhile, the function is asynchronously sent over the network and is then applied
-to \verb|Silo[T]|, eventually producing a new \verb|Silo[S]| containing the data
-transformed by function $\lambda$. This new \verb|SiloRef[S]| can be operated on
-even before its corresponding silo is materialized (\ie before the data in
-\verb|Silo[S]| is computed) – the function passing framework queues up
-operations applied to \verb|SiloRef[S]| and applies them when \verb|Silo[S]| is
-fully materialized.
-
-Different sorts of complex DAGs can be asynchronously built up in this way.
-Though first, to see how this is possible, we need to develop a clearer idea of
-the primitive operations available on silo references and their semantics. We
-describe these in the following.
-
-\begin{figure}[ht!]
-\centering\includegraphics[scale=0.35]{pic/bigger-dag.pdf}
-\caption{A simple DAG in the function passing model.}\label{fig:bigger-dag}
-\end{figure}
 
 \subsection{Primitives}
 \label{sec:primitives}
@@ -1540,7 +1546,6 @@ directly. Thus, calling a received function will not lead to remote invocations.
 
 Cloud Haskell~\cite{CloudHaskell} leverages guaranteed-serializable, static
 closures for a message-passing communication model inspired by Erlang. In
-contrast, in our model spores are sent between passive, persistent silos. In
 contrast, in our model spores are sent between passive, persistent silos.
 Moreover, the coordination of concurrent activity is based on futures, instead
 of message passing. Closures and continuations in Termite
