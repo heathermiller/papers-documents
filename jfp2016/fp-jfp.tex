@@ -56,7 +56,7 @@
   The most successful systems for ``big data'' processing have all
   adopted functional APIs. We present a new programming model we call
   {\FP} designed to provide a more principled substrate (think middleware) upon
-  which to build data-centric distributed systems. A key idea is to build up a
+  which to build data-centric distributed systems like Spark. A key idea is to build up a
   persistent functional data structure representing transformations on
   distributed immutable data by passing well-typed serializable
   functions over the wire and applying them to this distributed
@@ -128,8 +128,8 @@ a large scale.
 This paper introduces a new programming model which embraces the principle of
 stationary data containers and mobile functions (``move computation to the data''). 
 It can be viewed as a generalization of the MapReduce/Spark programming model. 
-Our programming model which we call {\em\FP} can be thought of a programming model
-for middleware, meant to underly systems like Spark. \FP adopts the concept of a 
+Our programming model which we call {\em\FP} can be thought of a middleware 
+programming model, meant to underly systems like Spark. \FP adopts the concept of a 
 {\em lineage} which is used by systems like Spark to handle fault tolerance. 
 Importantly, lineage-based fault tolerance is facilitated by the core computational 
 principle of {\em functional} transformations on immutable data.
@@ -215,14 +215,18 @@ Section~\ref{sec:conclusion-future-work}.
 
 \subsection{Essence}
 
-In the broadest sense, the function passing model can be thought of as a sort of
+The function passing model is intended to act as a 
+middleware upon which to build up data-centric distributed systems like Spark. 
+
+In the broadest sense, it can be thought of as a sort of
 persistent functional data structure with monadic operations and structural
 sharing. However, rather than containing pure data, instead the data structure
 represents a {\em directed acyclic graph} (DAG) of functional transformations on 
 distributed data. The root node contains immutable data read from stable storage 
 (\eg Amazon S3); edges represent functional transformations\comment{on immutable 
 data represented as nodes of the DAG.}\comment{\fixme{ yielding child nodes as 
-placeholders, \ie, immutable data resulting from those to be executed transformations.}}.
+placeholders, \ie, immutable data resulting from those to be executed transformations.}}. 
+This model is
 
 Importantly, since this DAG of computations is a persistent data structure
 itself, it is safe to exchange (copies of) subgraphs of a DAG between remote
