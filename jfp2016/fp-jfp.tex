@@ -8,6 +8,8 @@
 \usepackage{enumitem}
 \usepackage{listings}
 
+\usepackage{fontspec}
+
 \usepackage{ntheorem}
 
 \input{macros}
@@ -27,6 +29,24 @@
 \bibliographystyle{jfp}
 
 \begin{document}
+
+\lstdefinelanguage{Scala}%
+{morekeywords={abstract,case,catch,char,class,%
+    def,else,extends,final,%
+    if,import,%
+    match,module,new,null,object,override,package,private,protected,%
+    public,return,super,this,throw,trait,try,type,val,var,with,implicit,%
+    macro,sealed,%
+  },%
+  sensitive,%
+  morecomment=[l]//,%
+  morecomment=[s]{/*}{*/},%
+  morestring=[b]",%
+  morestring=[b]',%
+  showstringspaces=false%
+}[keywords,comments,strings]%
+
+\setmonofont[Scale=0.8,BoldFont={Consolas Bold}]{Consolas}
 
 \label{firstpage}
 
