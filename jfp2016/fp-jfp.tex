@@ -220,17 +220,19 @@ middleware upon which to build up data-centric distributed systems like Spark.
 
 In the broadest sense, it can be thought of as a sort of
 persistent functional data structure with monadic operations and structural
-sharing. However, rather than containing pure data, instead the data structure
-represents a {\em directed acyclic graph} (DAG) of functional transformations on 
-distributed data. The root node contains immutable data read from stable storage 
+sharing. However, {\bf\em rather than containing pure data, instead this data structure
+represents a graph\footnote{a directed acyclic graph (DAG)} of functional transformations,
+or operations, on distributed data.} The root node contains immutable data read from stable storage 
 (\eg Amazon S3); edges represent functional transformations\comment{on immutable 
 data represented as nodes of the DAG.}\comment{\fixme{ yielding child nodes as 
 placeholders, \ie, immutable data resulting from those to be executed transformations.}}. 
-This model is
+Said another way, the \FP~model can be thought of as a persistent functional 
+data structure representing a history of the operation performed on some data, rather
+than the data itself.
 
 Importantly, since this DAG of computations is a persistent data structure
 itself, it is safe to exchange (copies of) subgraphs of a DAG between remote
-nodes. This enables a robust and easy-to-reason-about model of fault tolerance.
+nodes. 
 Subgraphs of the DAG are called \textit{lineages}; lineages enable restoring the 
 data of failed nodes through re-applying their transformations. This sequence of 
 applications must begin with data available from stable storage.
@@ -241,7 +243,8 @@ applying a function to distributed data just creates an immutable, local
 lineage. To make a network call and thus obtain the result of a computation, it
 is necessary to first ``kick off'' the computation in order to materialize the
 nodes of its lineage. Within our programming model, this force operation (called
-\verb|send()|) makes network communication (and thus possibilities for latency)
+\verb|send()|, discussed in more depth in Section~\ref{sec:primitives}) makes 
+network communication (and thus possibilities for latency)
 explicit, which is considered to be a strength when designing distributed
 systems~\cite{ANoteDistComp}. Deferred evaluation also enables optimizing
 distributed computations through operation fusion, which avoids the creation of
