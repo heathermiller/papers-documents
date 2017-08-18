@@ -403,76 +403,83 @@ publication~\cite{Spores}.}
 
 There are five basic primitive operations on silo references that
 together can be used to build the higher-order operations common to
-popular data-centric distributed systems (how to build some of these
+popular data-centric distributed systems. (How to build some of these
 higher-order operations is described in
-Section~\ref{sec:higher-order-operations}). In this section we
+Section~\ref{sec:higher-order-operations}.). In this section we
 introduce these primitives in the context of a running example. These
-primitives include \verb|map|, \verb|apply|, \verb|send|, \verb|persist|,
-and \verb|unpersist|, whose type signatures are shown in
-Figure~\ref{fig:signatures}.\footnote{A trait in Scala can be thought
-  of as an abstract class supporting mixin composition, essentially
-  providing a safe form of multiple inheritance~\cite{OderskyZ05}.}
+primitives include \verb|apply|, \verb|send|, \verb|persist|,
+\verb|unpersist|, and \verb|populate|; their type signatures are shown
+in Figure~\ref{fig:signatures}.\footnote{A trait in Scala can be
+  thought of as an abstract class supporting mixin composition,
+  essentially providing a safe form of multiple
+  inheritance~\cite{OderskyZ05}.}  Note that \verb|populate| does not
+operate on a \verb|SiloRef|, unlike the other primitives. Instead,
+\verb|populate| is used to create new \verb|SiloRef|s; therefore, it
+is defined as a (factory) method in the \verb|SiloRef| {\em singleton
+  object}.\footnote{Singleton objects are Scala's form of modules. The
+  name of a singleton object refers to a value. Since in Scala the
+  namespace for types is disjoint from the namespace for values, the
+  trait and the singleton object can have the same name.}
 
 \begin{figure}
 \centering
 \begin{lstlisting}
   trait SiloRef[T] {
-    def map[S](p: Spore[T, S]): SiloRef[S]
     def apply[S](p: Spore[T, SiloRef[S]]): SiloRef[S]
     def send(): Future[T]
     def persist(): SiloRef[T]
     def unpersist(): SiloRef[T]
+  }
+  object SiloRef {
+    def populate[T](host: Host, value: T): SiloRef[T]
   }
 \end{lstlisting}
 \caption{Type signatures of primitive operations.}\label{fig:signatures}
 \end{figure}
 
 
-\paragraph{map.}%
-%
-\texttt{def map[S](p: Spore[T, S]): SiloRef[S]} \newline
-%
-The \verb|map| method takes a spore that is to be applied to the data in the
-silo associated with the given \verb|SiloRef|. Rather than immediately sending
-the spore across the network, and waiting for the operation to finish, the
-\verb|map| method's evaluation is {\em deferred}. Without involving any network
-communication, it immediately returns a \verb|SiloRef| referring to a new,
-to-be-created silo. This new silo reference only contains lineage information,
-namely, a reference to the original \verb|SiloRef|, a reference to the argument
-spore, and the information that it is the result of a \verb|map| invocation. As
-we explain below, another method, \verb|send|, must be called
-explicitly to force the materialization of the result silo.
-
-To better understand how DAGs are created and how remote silos are materialized,
-we will develop a running example throughout this section. Given a silo
-containing a list of \verb|Person| records, the following application of
-\verb|map| defines a (not-yet-materialized) silo containing only the records of
-adults (graphically shown in Figure~\ref{fig:bigger-dag}, part 1):
-
-\begin{lstlisting}
-val persons: SiloRef[List[Person]] = ...
-val adults: SiloRef[List[Person]] = persons.map(spore { ps =>
-  ps.filter(p => p.age >= 18) })
-\end{lstlisting}
-
-
 \paragraph{apply.}%
 %
 \texttt{def apply[S](p: Spore[T, SiloRef[S]]): SiloRef[S]} \newline
 %
-Like \verb|map|, the \verb|apply| method takes a spore that is to be applied
-to the data in the silo of the given \verb|SiloRef[T]|. However, the crucial
-difference is in the type of the spore argument whose result type is a
-\verb|SiloRef[S]| in this case. Semantically, the new silo created by
-\verb|apply| is defined to contain the data of the silo that the user-defined
-spore returns. The \verb|apply| combinator adds expressiveness to our model
-that is essential to express more interesting computation DAGs. For example,
-consider the problem of combining the information contained in two different
-silos (potentially located on different hosts). Suppose the information of a
-silo containing \verb|Vehicle| records should be enriched with other details
-only found in the \verb|adults| silo. In the following, \verb|apply| is used
-to create a silo of \verb|(Person, Vehicle)| pairs where the names of person and
-vehicle owner match:
+The \verb|apply| method takes a spore that is to be applied to the
+data in the silo associated with the given \verb|SiloRef| (\ie the
+receiver of the method call). Rather than immediately sending the
+spore across the network, and waiting for the operation to finish, the
+\verb|apply| method's evaluation is {\em deferred}. Without involving
+any network communication, it immediately returns a \verb|SiloRef|
+referring to a new, to-be-created silo. This new silo reference only
+contains lineage information, namely, a reference to the original
+\verb|SiloRef| and a reference to the argument spore. As we explain
+below, another method, \verb|send|, must be called explicitly to force
+the materialization of the result silo. Note that the result type of
+the spore parameter is a \verb|SiloRef[S]|. Semantically, the new silo
+created by \verb|apply| is defined to contain the data of the silo
+that the user-defined spore returns. This way, the \verb|apply|
+combinator enables expressing computation DAGs.
+
+To better understand how DAGs are created and how remote silos are
+materialized, we will develop a running example throughout this
+section. Given a silo containing a list of \verb|Person| records, the
+following application of \verb|apply| defines a (not-yet-materialized)
+silo containing only the records of adults (graphically shown in
+Figure~\ref{fig:bigger-dag}, part 1):
+
+\begin{lstlisting}
+val persons: SiloRef[List[Person]] = ...
+val adults: SiloRef[List[Person]] = persons.apply(spore { ps =>
+  SiloRef.populate(currentHost, ps.filter(p => p.age >= 18))
+})
+\end{lstlisting}
+
+The \verb|apply| combinator enables expressing also more interesting
+computation DAGs. For example, consider the problem of combining the
+information contained in two different silos (potentially located on
+different hosts). Suppose the information of a silo containing
+\verb|Vehicle| records should be enriched with other details only
+found in the \verb|adults| silo. In the following, \verb|apply| is
+used to create a silo of \verb|(Person, Vehicle)| pairs where the
+names of person and vehicle owner match:
 % (graphically shown in Figure~\ref{fig:bigger-dag}, part 2):
 
 
