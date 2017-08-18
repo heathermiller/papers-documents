@@ -55,8 +55,8 @@
 \begin{abstract}
   The most successful systems for ``big data'' processing have all
   adopted functional APIs. We present a new programming model we call
-  {\FP} designed to provide a more principled substrate on which to
-  build data-centric distributed systems. A key idea is to build up a
+  {\FP} designed to provide a more principled substrate (think middleware) upon
+  which to build data-centric distributed systems. A key idea is to build up a
   persistent functional data structure representing transformations on
   distributed immutable data by passing well-typed serializable
   functions over the wire and applying them to this distributed
@@ -288,12 +288,6 @@ Though first, to see how this is possible, we need to develop a clearer idea of
 the primitive operations available on silo references and their semantics. We
 describe these in the following.
 
-\begin{figure}[ht!]
-\centering\includegraphics[scale=0.35]{pic/bigger-dag.pdf}
-\caption{A simple DAG in the function passing model.}\label{fig:bigger-dag}
-\end{figure}
-
-
 
 \subsection{Programming Model}
 \label{sec:programming-model}
@@ -384,7 +378,7 @@ internal framework class).
 \comment{For a deeper understanding of spores, see the corresponding
 publication~\cite{Spores}.}
 
-\begin{figure}[t!]
+\begin{figure}[ht!]
 \centering\includegraphics[width=0.8\columnwidth]{pic/basic-diagram.pdf}
 \caption{Basic function passing model.}\label{fig:basic-diagram}
 \end{figure}
@@ -467,6 +461,7 @@ to create a silo of \verb|(Person, Vehicle)| pairs where the names of person and
 vehicle owner match:
 % (graphically shown in Figure~\ref{fig:bigger-dag}, part 2):
 
+
 \begin{lstlisting}[numbers=left,xleftmargin=2em,framexleftmargin=1.5em]
 val vehicles: SiloRef[List[Vehicle]] = ...
 // adults that own a vehicle
@@ -489,6 +484,12 @@ val owners: SiloRef[List[(Person, Vehicle)]] =
       })
   })
 \end{lstlisting}
+
+\begin{figure}[ht!]
+\centering\includegraphics[scale=0.35]{pic/bigger-dag.pdf}
+\caption{A simple DAG in the function passing model.}\label{fig:bigger-dag}
+\end{figure}
+
 \noindent
 Here, it is necessary to read the data of the \verb|vehicles| silo in
 addition to the \verb|persons|, the list of \verb|Person|
