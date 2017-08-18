@@ -10,21 +10,19 @@
 $\ba[t]{l@{\hspace{2mm}}l}
 t ::=                                                                  & \mbox{{\it{terms:}}} \\
 \gap \:\:\:\:  x                                                       & \mbox{variable} \\
-\gap ~|~  (x: T) \Rightarrow t                                         & \mbox{abstraction} \\
+\gap ~|~  v                                                            & \mbox{value} \\
 \gap ~|~  t~t                                                          & \mbox{application} \\
-\gap ~|~  \unit                                                        & \mbox{unit} \\
+\gap ~|~  t~\oplus~t                                                   & \mbox{integer operator} \\
 \gap ~|~  \texttt{spore}~\{~\seq{x : T = t}~; (x: T) \Rightarrow t~\}  & \mbox{spore} \\
 \gap ~|~  \texttt{populate}(t, t)                                      & \mbox{populate silo} \\
 \gap ~|~  \texttt{apply}(t, t)                                         & \mbox{apply} \\
 \gap ~|~  \texttt{send}(t)                                             & \mbox{send} \\           % send  :: Ref a -> Fut a
 \gap ~|~  \texttt{await}(t)                                            & \mbox{await future} \\   % await :: Fut a -> a
 \gap ~|~  \texttt{respond}(h, t, t)                                    & \mbox{respond} \\
-\gap ~|~  \iota                                                        & \mbox{decentralized identifier} \\
-\gap ~|~  r                                                            & \mbox{silo reference} \\
-\gap ~|~  h                                                            & \mbox{host} \\
                                                                        & \\
 v ::=                                                                  & \mbox{{\it{values:}}} \\
 \gap \:\:\:\: (x: T) \Rightarrow t                                     & \mbox{abstraction value} \\
+\gap ~|~  n                                                            & \mbox{integer literal} \\
 \gap ~|~  \unit                                                        & \mbox{unit} \\
 \gap ~|~  p                                                            & \mbox{spore value} \\
 \gap ~|~  \iota                                                        & \mbox{decentralized identifier} \\
@@ -41,7 +39,9 @@ r ::= {\Ref l h} \quad \text{where}~h \in \mathcal{H}  & \mbox{silo reference} \
                                                        & \\
 \iota  ::= (h,i) \quad \text{where}~h \in \mathcal{H}~\text{and}~i \in \mathbb{N}   & \mbox{decentralized identifier} \\
 \ea$
-\caption{Abstract syntax of core language.}\label{fig:syntax}
+\caption{Abstract syntax of core language. Integer operators are
+  represented using $\oplus \in \{ \texttt{+}, \texttt{-}, \texttt{*},
+  \texttt{/} \}$.}\label{fig:syntax}
 \end{figure}
 
 
@@ -63,7 +63,7 @@ identifiers $\iota$ are used to refer to futures and to identify silos
 via their lineages (each element in a lineage carries a decentralized
 identifier).
 
-Values in our language are as expected: besides abstractions they
+Values in our language are as expected: besides abstractions and integer literals they
 include spore values, decentralized identifiers, and silo
 references. Decentralized identifiers and silo references are not part
 of the ``surface syntax'' of our language; they are only introduced by
@@ -81,6 +81,7 @@ Section~\ref{sec:opsem}.
 $\ba[t]{l@{\hspace{2mm}}l}
 T ::=                                                                  & \mbox{{\it{types:}}} \\
 \gap \:\:\:\: T \Rightarrow T                                          & \mbox{abstraction type} \\
+\gap ~|~  \texttt{Int}                                                 & \mbox{integer type} \\
 \gap ~|~  \texttt{Unit}                                                & \mbox{unit type} \\
 \gap ~|~  \mathcal{S}                                                  & \mbox{} \\
 \gap ~|~  \texttt{Future}[T]                                           & \mbox{future type} \\
@@ -92,7 +93,7 @@ T ::=                                                                  & \mbox{{
 \caption{Types of core language.}\label{fig:types}
 \end{figure}
 
-In addition to standard function types, the language has types for
+In addition to standard function types and \texttt{Int} and \texttt{Unit} types, the language has types for
 spores, futures, silo references, and hosts (see
 Figure~\ref{fig:types}). A spore type $T \Rightarrow
 T'~\{~\texttt{type}~\mathcal{C} = \seq{T}~\}$ includes the types
@@ -146,6 +147,14 @@ replacing the hole in evaluation context $E$ with term $t$.
 \begin{figure}
 \centering
 \begin{mathpar}
+\inferrule[\textsc{R-IntOp}] {
+  v'' = v~I(\oplus)~v'
+} {
+  E[v~\oplus~v']~|~\sigma
+  \rightarrow^h
+  E[v'']~|~\sigma
+}
+
 \inferrule[\textsc{R-AppAbs}] {} {
   E[((x: T) \Rightarrow t)~v]~|~\sigma
   \rightarrow^h
@@ -184,6 +193,9 @@ $\sigma'$. Stores are required for the dynamic allocation of silos. A
 store $\sigma$ is a partial function mapping decentralized identifiers
 $\iota$ to values $v$.  The annotation with host $h$ is used for
 creating decentralized identifiers $\iota = (h, i)$ for lineages.
+Rule \textsc{R-IntOp} reduces integer operator applications; function $I$ interprets
+the operator symbol $\oplus$, mapping it to an actual operation on integer values.
+(The definition of $I$ is trivial and standard, and thus omitted.)
 Rule \textsc{R-AppAbs} is completely standard.  Analogous to rule
 \textsc{R-AppAbs}, rule \textsc{R-AppSpore} describes the application
 of a spore value to an argument value. Rule \textsc{R-Await} reduces
@@ -521,6 +533,19 @@ evaluating the \texttt{respond} term.
   \Gamma ; \Sigma \vdash x : T
 }
 
+\inferrule[\textsc{T-Int}] {
+  n~\text{integer literal}
+} {
+  \Gamma ; \Sigma \vdash n : \texttt{Int}
+}
+
+\inferrule[\textsc{T-IntOp}] {
+  \Gamma ; \Sigma \vdash t : \texttt{Int} \quad
+  \Gamma ; \Sigma \vdash t' : \texttt{Int}
+} {
+  \Gamma ; \Sigma \vdash t~\oplus~t' : \texttt{Int}
+}
+
 \inferrule[\textsc{T-Abs}] {
   \Gamma, x : T ; \Sigma \vdash t : T'
 } {
@@ -616,6 +641,10 @@ calculus~\cite{TAPL}.
 
 \begin{figure}
 \begin{mathpar}
+\inferrule[\textsc{S-Int}] {} {
+  serializable(\texttt{Int})
+}
+
 \inferrule[\textsc{S-Unit}] {} {
   serializable(\texttt{Unit})
 }
