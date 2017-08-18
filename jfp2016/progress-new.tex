@@ -11,30 +11,15 @@ like actors~\cite{Actors,Talcott}. Formally, fair scheduling is
 defined as follows:
 
 \begin{defn}[Fair Scheduling]\label{def:fair-scheduling}
-  Let $\Sigma \vdash H_0~|~M_0$ and $h \leftarrow m \in M_0$ where
-  $\Sigma \vdash m$.
+  Let $\Sigma \vdash H~|~M$ and $h \leftarrow m \in M$ where $\Sigma
+  \vdash m$.
 
-  Then $\exists n > 0$ such that $H_0~|~M_0 \twoheadrightarrow^*
-  \ldots \twoheadrightarrow^* H_n~|~M_n \twoheadrightarrow H'~|~M'$
-  where \\$\forall i \in \{ 0, \ldots, n-1 \}.~H_i~|~M_i
-  \twoheadrightarrow^* H_{i+1}~|~M_{i+1}$ after a finite number of
-  reduction steps, \\$\forall i \in \{ 1, \ldots, n
-  \}.~\mathit{Blocked}(h, H_i)$, and $H_n~|~M_n \twoheadrightarrow
-  H'~|~M'$ by rule \textsc{R-Process} or \textsc{R-Process-Val} such
-  that $M_n = \hat{M} \uplus \{ h \leftarrow m \}$, $(t, \sigma)^h \in
-  H_n$, $process(h, m, \sigma) = (t', M'', \sigma')$, and $M' =
-  \hat{M} \uplus M''$.
-\end{defn}
-
-The predicate $\mathit{Blocked}(h, H)$ expresses the fact that host
-$h$ cannot be reduced further using local reduction; i.e., host $h$ is
-``blocked'' and is therefore able to process incoming
-messages. Formally, $\mathit{Blocked}$ is defined as follows:
-
-\begin{defn}[Blocked Host]\label{def:blocked-host}
-  A host $h$ is {\em blocked} in a set of hosts $H$, written
-  $\mathit{Blocked}(h, H)$, {\em iff} $(t, \sigma)^h \in H$ such that
-  $t = E[\texttt{await}(\iota)]$ or $t = E[v]$.
+  Then $H~|~M \twoheadrightarrow^* H'~|~M' \twoheadrightarrow
+  H''~|~M''$ after a finite number of reduction steps, and $H'~|~M'
+  \twoheadrightarrow H''~|~M''$ by rule \textsc{R-Process} or
+  \textsc{R-Process-Val} such that $M' = M_{old} \uplus \{h \leftarrow
+  m\}$, $(t, \sigma)^h \in H'$, $process(h, m, \sigma) = (t', M_{new},
+  \sigma')$, and $M'' = M_{old} \uplus M_{new}$.
 \end{defn}
 
 Although our focus is the establishment of desirable progress
