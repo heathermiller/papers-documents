@@ -43,8 +43,8 @@
   data. Thus, the function passing model can be thought of as a
   persistent functional data structure that is {\em distributed},
   where transformations to data are stored in its nodes rather than
-  the distributed data itself. The model simplifies failure recovery
-  by design--data is recovered by replaying function applications atop
+  the distributed data itself. One advantage of this model is that failure recovery
+  is simplified by design--data is recovered by replaying function applications atop
   immutable data loaded from stable storage. Deferred evaluation is
   also central to our model; by incorporating deferred evaluation into
   our design only at the point of initiating network communication,
@@ -66,20 +66,19 @@
 
 \section{Introduction}
 
-It is difficult to deny that data-centric programming is growing in importance.
-At the same time, it is no secret that the most successful systems for
-programming with ``big data'' have all adopted ideas from functional
+Data-centric programming is growing in importance with the most successful systems for
+programming with ``big data'' all adopting ideas from functional
 programming; \ie programming with first-class functions. These functional
-ideas are often touted to be the key to the success of these frameworks. It is
-not hard to imagine why--a functional, declarative interface to data,
-distributed over tens to thousands of nodes, provides a more natural way for
+ideas are often touted to be the key to the success of these frameworks. Functional, 
+declarative interfaces to data,
+distributed over tens to thousands of nodes, provide a more natural way for
 end-users and data scientists to reason about data.
 
 While leveraging functional programming {\em concepts}, popular implementations
 of \\Google's MapReduce~\cite{MapReduce} model, such as Apache Hadoop's MapReduce
 Framework~\cite{Hadoop} for Java, have been developed without making use of
 functional language {\em features} such as closures. For nearly a decade, the
-Apache Hadoop open source interpretation of this model swelled in size,
+Apache Hadoop open source interpretation of this model grew in popularity,
 remaining largely unchallenged--causing nearly all of industry to synchronize on
 this one implementation for most all large-scale data processing needs.
 
@@ -97,7 +96,7 @@ central to distributed systems such as concurrency.
 %% What's the problem?
 While widely adopted in practice, the aforementioned programming systems are not
 without important issues. On the one hand, their programming interfaces do not
-prevent common usage errors, such as unsafe closure serialization; as a result,
+prevent common usage errors, such as unsafe closure serialization. As a result,
 the complexities of distribution may trickle even to end users, who are
 increasingly non-expert users. On the other hand, the foundations of their
 programming models remain largely unclear, in particular, foundations of core
@@ -107,12 +106,13 @@ a large scale.
 %% What the paper does
 %%% Programming model
 This paper introduces a new programming model which embraces the principle of
-stationary data containers and mobile functions (``compute to data''). It can be viewed as
-a generalization of the programming models classified by Google's
-MapReduce/Apache Spark. Our programming model adopts the concept of {\em
-lineage} which is used by the aforementioned systems to provide fault tolerance.
-Lineage-based fault tolerance is facilitated by the core computational principle
-of transformations on immutable data.
+stationary data containers and mobile functions (``move computation to the data''). 
+It can be viewed as a generalization of the MapReduce/Spark programming model. 
+Our programming model which we call {\em\FP} can be thought of a programming model
+for middleware, meant to underly systems like Spark. \FP adopts the concept of a 
+{\em lineage} which is used by systems like Spark to handle fault tolerance. 
+Importantly, lineage-based fault tolerance is facilitated by the core computational 
+principle of {\em functional} transformations on immutable data.
 
 %%% Unique combination
 The programming model is based on functional abstractions for lineage-based
@@ -124,8 +124,7 @@ combination of functional programming techniques provides a more principled
 substrate upon which to build data-centric, distributed systems.
 
 %%% Formalization
-Moreover, we provide a complete formalization of the programming model in order
-to study the foundations of lineage-based distributed computation. In
+Moreover, we provide a complete formalization of the programming model. In
 particular, we develop a theory of safe, mobile lineages based on a subject
 reduction theorem for a typed core language. Thus, the formal model may serve as
 a basis for further developments of the theory of data-centric distributed
@@ -199,11 +198,11 @@ Section~\ref{sec:conclusion-future-work}.
 In the broadest sense, the function passing model can be thought of as a sort of
 persistent functional data structure with monadic operations and structural
 sharing. However, rather than containing pure data, instead the data structure
-represents a DAG of functional transformations on distributed data. The root
-node contains immutable data read from stable storage (\eg Amazon S3); edges
-represent functional transformations\comment{on immutable data represented as
-nodes of the DAG.}\comment{\fixme{ yielding child nodes as placeholders, \ie,
-immutable data resulting from those to be executed transformations.}}.
+represents a {\em directed acyclic graph} (DAG) of functional transformations on 
+distributed data. The root node contains immutable data read from stable storage 
+(\eg Amazon S3); edges represent functional transformations\comment{on immutable 
+data represented as nodes of the DAG.}\comment{\fixme{ yielding child nodes as 
+placeholders, \ie, immutable data resulting from those to be executed transformations.}}.
 
 Importantly, since this DAG of computations is a persistent data structure
 itself, it is safe to exchange (copies of) subgraphs of a DAG between remote
