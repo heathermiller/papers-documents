@@ -242,8 +242,9 @@ Computations on distributed data are typically not executed eagerly; instead,
 applying a function to distributed data just creates an immutable, local
 lineage. To make a network call and thus obtain the result of a computation, it
 is necessary to first ``kick off'' the computation in order to materialize the
-nodes of its lineage. Within our programming model, this force operation (called
-\verb|send()|, discussed in more depth in Section~\ref{sec:primitives}) makes 
+nodes of its lineage. Within our programming model, this force operation\footnote{called
+\texttt{send()}, discussed in more depth in Section~\ref{sec:primitives} along with 
+the other primitive operations in the \FP~model} makes 
 network communication (and thus possibilities for latency)
 explicit, which is considered to be a strength when designing distributed
 systems~\cite{ANoteDistComp}. Deferred evaluation also enables optimizing
