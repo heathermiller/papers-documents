@@ -461,7 +461,7 @@ combinator enables expressing computation DAGs.
 To better understand how DAGs are created and how remote silos are
 materialized, we will develop a running example throughout this
 section. Given a silo containing a list of \verb|Person| records, the
-following application of \verb|apply| defines a (not-yet-materialized)
+following invocation of \verb|apply| defines a (not-yet-materialized)
 silo containing only the records of adults (graphically shown in
 Figure~\ref{fig:bigger-dag}, part 1):
 
@@ -471,6 +471,28 @@ val adults: SiloRef[List[Person]] = persons.apply(spore { ps =>
   SiloRef.populate(currentHost, ps.filter(p => p.age >= 18))
 })
 \end{lstlisting}
+\noindent
+When the spore is received on the machine hosting the silo
+corresponding to the \verb|persons| silo reference, it is applied to
+the contents of the silo, a \verb|List[Person]|. The body of the spore
+(a) filters this list (\verb|ps|), creating a new list of adults, and
+(b) populates a new silo with the result of the \verb|filter|
+invocation. Note that \verb|populate| takes the host of the new silo
+as an argument; in the above example, this argument is
+\verb|currentHost| which returns the host currently computing the
+silo's contents.
+
+Section~\ref{sec:creating-silos} below describes additional ways to
+create new silos. However, in each case, the host on which the silo
+should be created must be specified. The reason is that each instance
+of \verb|SiloRef[T]| contains the host of the corresponding silo; this
+information is necessary for accessing the silo's data.  Given the
+fact that the host of a \verb|SiloRef| is fixed, \verb|SiloRef|s are
+not suitable for direct use by applications requiring fault
+tolerance. Instead, \verb|SiloRef|s should be regarded as a
+(low-level) building block for distributed systems which implement
+fault-recovery mechanisms on top of the basic functionality provided
+by \verb|SiloRef|s.
 
 The \verb|apply| combinator enables expressing also more interesting
 computation DAGs. For example, consider the problem of combining the
@@ -485,15 +507,12 @@ names of person and vehicle owner match:
 
 \begin{lstlisting}[numbers=left,xleftmargin=2em,framexleftmargin=1.5em]
 val vehicles: SiloRef[List[Vehicle]] = ...
-// adults that own a vehicle
-val owners: SiloRef[List[(Person, Vehicle)]] =
+val owners: SiloRef[List[(Person, Vehicle)]] =  // adults that own a vehicle
   adults.apply(spore {
-    // spore header
-    val localVehicles = vehicles
+    val localVehicles = vehicles  // spore header
     (persons: List[Person]) =>
       localVehicles.map(spore {
-        // spore header
-        val localPersons = persons
+        val localPersons = persons  // spore header
         (vs: List[Vehicle]) =>
           localPersons.flatMap(p =>
             // list of (p, v) for a single person p
