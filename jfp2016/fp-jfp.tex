@@ -630,9 +630,9 @@ send operation is a judicious choice~\cite{ANoteDistComp}.
 
 To enable materialization of remote silos to proceed concurrently, the
 \verb|send| operation immediately returns a future~\cite{Futures}. This future
-is then asynchronously completed with the data of the given silo . Since calling
-\verb|send| will materialize a silo on the same node as its parent, and will send 
-its resulting computation to the current node.
+is then asynchronously completed with the data of the given silo. Since calling
+\verb|send| will materialize a silo on the same node as its parent, and will send
+its resulting data to the current node,
 \verb|send| should only be called on silos with reasonably small data (for
 example, in the implementation of an aggregate operation such as \verb|reduce|
 on a distributed collection).
@@ -665,8 +665,12 @@ off of \verb|adults| by sorting the list of \verb|Person| records by
 age, and producing a greeting \verb|String| for each record:
 
 \begin{lstlisting}
-val sorted = adults.map(spore { ps => ps.sortWith(p => p.age) })
-val labels = sorted.map(spore { ps => ps.map(p => "Hi " + p.name) })
+val sorted = adults.apply(spore { ps =>
+  SiloRef.populate(currentHost, ps.sortWith(p => p.age))
+})
+val labels = sorted.apply(spore { ps =>
+  SiloRef.populate(currentHost, ps.map(p => "Hi " + p.name))
+})
 val cachedLabels = labels.persist()
 val done: Future[Boolean] = cachedLabels.map(x => true).send()
 \end{lstlisting}
