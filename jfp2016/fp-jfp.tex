@@ -728,16 +728,17 @@ Section~\ref{sec:conclusion-future-work}).
 \subsubsection{Creating Silos}
 \label{sec:creating-silos}
 
-Besides a type definition for \verb|SiloRef[T]|, our framework also provides a
-companion singleton object (Scala's form of modules). The singleton object
-provides factory methods for obtaining silo references referring to silos populated
+As mentioned earlier, besides a type definition for \verb|SiloRef[T]|, our framework also provides a
+companion singleton object. The singleton object
+provides a variety of factory methods for obtaining silo references referring to silos populated
 with some initial data:\footnote{For clarity, only method signatures are shown.}
 
 \begin{lstlisting}
 object SiloRef {
-  def fromTextFile(host: Host)(file: File): SiloRef[List[String]]
-  def fromFun[T](host: Host)(s: Spore[Unit, T]): SiloRef[T]
-  def fromLineage[T](host: Host)(s: SiloRef[T]): SiloRef[T]
+  def populate[T](host: Host, value: T): SiloRef[T]
+  def fromTextFile(host: Host, file: File): SiloRef[List[String]]
+  def fromFun[T](host: Host, s: Spore[Unit, T]): SiloRef[T]
+  def fromLineage[T](host: Host, s: SiloRef[T]): SiloRef[T]
 }
 \end{lstlisting}
 \noindent
@@ -750,7 +751,7 @@ host-unique identifier. The \verb|fromLineage| method is
 particularly interesting as it creates a copy of a previously existing silo
 based on the lineage of a silo reference \verb|s|. Note that only the silo
 reference is necessary for this operation to successfully complete; the silo
-originally hosting \verb|s| might already have failed.
+is not required to be materialized.
 
 \subsubsection{Type Polymorphism and Silos/SiloRefs}
 
