@@ -1103,98 +1103,98 @@ By induction on the derivation of $\Gamma , x : T' ; \Sigma \vdash t : T$.
 \input{progress-new}
 
 
-\section{Fault Handling}\label{sec:formal-fault-handling}
-
-We now extend the presented formal model with a {\em fault handling}
-mechanism based on lineage. Informally, our approach (a) enables hosts
-to detect and respond to faults of other hosts using fault-handling
-callbacks, and (b) recovers silos on faulty hosts by materializing
-their lineages on healthy, fall-back hosts. As we are going to show, a
-surprising result of our fault-handling extension is its simplicity
-thanks to the power and flexibility of the lineages that are
-constructed during reduction.
-
-The first extension of our formal model consists of sets of {\em
-  fault-handling callbacks} $F$ which are added to host
-configurations. An extended host configuration has the form $(t,
-\sigma, Q, F)^h$ where components $t$, $\sigma$, $Q$, and $h$ are
-unchanged. A fault-handling callback $cb \in F$ has the form $cb = h''
-\rightarrow (m, h')$. Informally, callback $cb$ expresses the fact
-that when host $h''$ fails, message $m$ should be sent to host
-$h'$. Thus, $h'$ takes the role of a {\em fall-back host}. The message
-$m$ to be sent is typically a request ${\Req h r \iota}$ which could
-not be handled in case host $h''$ fails.
-
-A fault is modeled as a host $h$ that non-deterministically disappears
-from the set of hosts $H$ in a global configuration $H~|~M$. We only
-assume a simple form of fault detection: all other, healthy hosts $h'
-\in H$ are notified of the disappearance of the faulty host $h$; no
-other information about $h$ may be used to recover from its
-failure. As a result, our formalization can model real distributed
-systems which use off-the-shelf fault detectors such as
-\cite{Hayashibara04}, which is also implemented in Akka~\cite{Akka},
-among others.
-
-\begin{figure}
-\begin{mathpar}
-\inferrule[\textsc{R-Fault}] {
-  M' = \bigcup_{c \in H} \{ h'' \leftarrow m ~|~ c = (t', \sigma', Q', F')^{h'} \land h \rightarrow (m, h'') \in F' \}
-} {
-  \{ (t, \sigma, Q, F)^h \} \cup H ~|~ M
-  \twoheadrightarrow
-  H ~|~ M \cup M'
-}
-
-\inferrule[\textsc{R-Send}] {
-  r = {\Ref l {h''}} \quad
-  m = {\Req h r {id(l)} } \quad
-  M' = M \cup \{ h'' \leftarrow m \} \\
-  \highlight{F' = F \cup \{ h'' \rightarrow ({\Req h {\Ref l {h'}} {id(l)} }, h') \}}
-} {
-  \{ (E[\texttt{send}(r, \highlight{h'})], \sigma, Q, \highlight{F})^h \} \cup H ~|~ M
-  \twoheadrightarrow
-  \{ (E[id(l)], \sigma, Q, \highlight{F'})^h \} \cup H ~|~ M'
-}
-\end{mathpar}
-\caption{Extensions to distributed reduction.}\label{fig:faults-reduction}
-\end{figure}
-
-The distributed reduction rules are extended as shown in
-Figure~\ref{fig:faults-reduction}. Rule \textsc{R-Fault}
-non-deterministically chooses a faulty host $h$ and removes it from
-the set of hosts $H$ in the resulting configuration $H ~|~ M \cup
-M'$. However, all other, healthy hosts get a chance to respond to the
-failure of host $h$. For each host configuration $(t', \sigma', Q',
-F')^{h'} \in H$, callbacks $cb \in F'$ handling faults of host $h$
-(namely, those of the form $h \rightarrow (m, h'')$) are scheduled for
-execution. A callback $h \rightarrow (m, h'')$ declares that message
-$m$ should be sent to host $h''$ in case host $h$ fails. Thus, for
-each callback of the above form, a message $h'' \leftarrow m$ is added
-to the resulting set of in-flight messages $M \cup M'$.
-
-The extended rule \textsc{R-Send} shows how this callback mechanism is
-used to recover silos from faulty hosts (extensions compared to rule
-\textsc{R-Send} in Section~\ref{sec:opsem} are highlighted). First,
-calls to \verb|send| are extended with an additional host
-argument. This host is used as a fall-back for materialization in case
-the original host $h''$ of silo reference $r = {\Ref l {h''}}$
-fails. To enable the recovery, the callback $h'' \rightarrow ({\Req h
-  {\Ref l {h'}} {id(l)} }, h')$ is added to the resulting set $F'$ of
-fault handlers. This means that in case host $h''$ fails, host $h$
-requests materialization of silo reference ${\Ref l {h'}}$ to complete
-its future $id(l)$. Note that the materialized silo has the same
-lineage $l$ as the original silo reference $r$. The only difference is
-that silo reference ${\Ref l {h'}}$ is materialized on host $h'$
-instead of host $h''$. However, since both silo references have the
-same lineage, the value which is the result of the materialization
-will be the same.
-
-\paragraph{Remark.} The fault-handling callback registered by rule \textsc{R-Send} is enabled
-even after the originally requested silo $r$ has been materialized and
-its value has been transmitted to other hosts. As a result, it is
-possible that the value of the requested silo is computed
-unnecessarily. However, this does not compromise correctness, since
-the values of the recovered silo and the original silo are equal.
+%\section{Fault Handling}\label{sec:formal-fault-handling}
+%
+%We now extend the presented formal model with a {\em fault handling}
+%mechanism based on lineage. Informally, our approach (a) enables hosts
+%to detect and respond to faults of other hosts using fault-handling
+%callbacks, and (b) recovers silos on faulty hosts by materializing
+%their lineages on healthy, fall-back hosts. As we are going to show, a
+%surprising result of our fault-handling extension is its simplicity
+%thanks to the power and flexibility of the lineages that are
+%constructed during reduction.
+%
+%The first extension of our formal model consists of sets of {\em
+%  fault-handling callbacks} $F$ which are added to host
+%configurations. An extended host configuration has the form $(t,
+%\sigma, Q, F)^h$ where components $t$, $\sigma$, $Q$, and $h$ are
+%unchanged. A fault-handling callback $cb \in F$ has the form $cb = h''
+%\rightarrow (m, h')$. Informally, callback $cb$ expresses the fact
+%that when host $h''$ fails, message $m$ should be sent to host
+%$h'$. Thus, $h'$ takes the role of a {\em fall-back host}. The message
+%$m$ to be sent is typically a request ${\Req h r \iota}$ which could
+%not be handled in case host $h''$ fails.
+%
+%A fault is modeled as a host $h$ that non-deterministically disappears
+%from the set of hosts $H$ in a global configuration $H~|~M$. We only
+%assume a simple form of fault detection: all other, healthy hosts $h'
+%\in H$ are notified of the disappearance of the faulty host $h$; no
+%other information about $h$ may be used to recover from its
+%failure. As a result, our formalization can model real distributed
+%systems which use off-the-shelf fault detectors such as
+%\cite{Hayashibara04}, which is also implemented in Akka~\cite{Akka},
+%among others.
+%
+%\begin{figure}
+%\begin{mathpar}
+%\inferrule[\textsc{R-Fault}] {
+%  M' = \bigcup_{c \in H} \{ h'' \leftarrow m ~|~ c = (t', \sigma', Q', F')^{h'} \land h \rightarrow (m, h'') \in F' \}
+%} {
+%  \{ (t, \sigma, Q, F)^h \} \cup H ~|~ M
+%  \twoheadrightarrow
+%  H ~|~ M \cup M'
+%}
+%
+%\inferrule[\textsc{R-Send}] {
+%  r = {\Ref l {h''}} \quad
+%  m = {\Req h r {id(l)} } \quad
+%  M' = M \cup \{ h'' \leftarrow m \} \\
+%  \highlight{F' = F \cup \{ h'' \rightarrow ({\Req h {\Ref l {h'}} {id(l)} }, h') \}}
+%} {
+%  \{ (E[\texttt{send}(r, \highlight{h'})], \sigma, Q, \highlight{F})^h \} \cup H ~|~ M
+%  \twoheadrightarrow
+%  \{ (E[id(l)], \sigma, Q, \highlight{F'})^h \} \cup H ~|~ M'
+%}
+%\end{mathpar}
+%\caption{Extensions to distributed reduction.}\label{fig:faults-reduction}
+%\end{figure}
+%
+%The distributed reduction rules are extended as shown in
+%Figure~\ref{fig:faults-reduction}. Rule \textsc{R-Fault}
+%non-deterministically chooses a faulty host $h$ and removes it from
+%the set of hosts $H$ in the resulting configuration $H ~|~ M \cup
+%M'$. However, all other, healthy hosts get a chance to respond to the
+%failure of host $h$. For each host configuration $(t', \sigma', Q',
+%F')^{h'} \in H$, callbacks $cb \in F'$ handling faults of host $h$
+%(namely, those of the form $h \rightarrow (m, h'')$) are scheduled for
+%execution. A callback $h \rightarrow (m, h'')$ declares that message
+%$m$ should be sent to host $h''$ in case host $h$ fails. Thus, for
+%each callback of the above form, a message $h'' \leftarrow m$ is added
+%to the resulting set of in-flight messages $M \cup M'$.
+%
+%The extended rule \textsc{R-Send} shows how this callback mechanism is
+%used to recover silos from faulty hosts (extensions compared to rule
+%\textsc{R-Send} in Section~\ref{sec:opsem} are highlighted). First,
+%calls to \verb|send| are extended with an additional host
+%argument. This host is used as a fall-back for materialization in case
+%the original host $h''$ of silo reference $r = {\Ref l {h''}}$
+%fails. To enable the recovery, the callback $h'' \rightarrow ({\Req h
+%  {\Ref l {h'}} {id(l)} }, h')$ is added to the resulting set $F'$ of
+%fault handlers. This means that in case host $h''$ fails, host $h$
+%requests materialization of silo reference ${\Ref l {h'}}$ to complete
+%its future $id(l)$. Note that the materialized silo has the same
+%lineage $l$ as the original silo reference $r$. The only difference is
+%that silo reference ${\Ref l {h'}}$ is materialized on host $h'$
+%instead of host $h''$. However, since both silo references have the
+%same lineage, the value which is the result of the materialization
+%will be the same.
+%
+%\paragraph{Remark.} The fault-handling callback registered by rule \textsc{R-Send} is enabled
+%even after the originally requested silo $r$ has been materialized and
+%its value has been transmitted to other hosts. As a result, it is
+%possible that the value of the requested silo is computed
+%unnecessarily. However, this does not compromise correctness, since
+%the values of the recovered silo and the original silo are equal.
 
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
