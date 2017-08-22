@@ -265,10 +265,14 @@ systems.
 
 We begin with a simple visual example to illustrate the intuition behind the 
 function passing model. The function passing model consists of three main components: 
-\textbf{Silos},
-stationary, typed, immutable data containers, \textbf{Silo references} to local
-or remote Silos, and \textbf{Spores}, safe, serializable functions. We go into 
-more detail about each of these components in Section~\ref{sec:programming-model}.
+
+\begin{itemize}
+	\item \textbf{Silos}, stationary, typed, immutable data containers.
+	\item \textbf{Silo references} to local or remote Silos.
+	\item \textbf{Spores}, safe, serializable functions.
+\end{itemize}
+
+
 
 The main handle users have to the framework is via
 \verb|SiloRef[T]|s. A \verb|SiloRef[T]| can be thought of as an
@@ -280,6 +284,8 @@ corresponding silo. As is the case for persistent data structures,
 when a function is applied to a piece of remote data via a
 \verb|SiloRef[T]|, a new \verb|SiloRef[T']|, representing a new silo
 containing the transformed data \verb|T'|, is returned.
+
+We go into more detail about each of these components later in Section~\ref{sec:programming-model}. 
 
 The simplest illustration of the model is shown in
 Figure~\ref{fig:basic-diagram} (time flows vertically from top to bottom). Here,
@@ -301,6 +307,11 @@ Different sorts of complex DAGs can be asynchronously built up in this way.
 Though first, to see how this is possible, we need to develop a clearer idea of
 the primitive operations available on silo references and their semantics. We
 describe these in the following.
+
+\begin{figure}[ht!]
+\centering\includegraphics[width=0.8\columnwidth]{pic/basic-diagram.pdf}
+\caption{Basic function passing model.}\label{fig:basic-diagram}
+\end{figure}
 
 
 \subsection{Programming Model}
@@ -391,11 +402,6 @@ internal framework class).
 
 \comment{For a deeper understanding of spores, see the corresponding
 publication~\cite{Spores}.}
-
-\begin{figure}[ht!]
-\centering\includegraphics[width=0.8\columnwidth]{pic/basic-diagram.pdf}
-\caption{Basic function passing model.}\label{fig:basic-diagram}
-\end{figure}
 
 
 \subsection{Primitives}
@@ -1141,7 +1147,7 @@ def kMeansIterate(
         .map(clp => clp.map(_._2).toArray.unzip)
         .map({ case (ns, points) => ns.sum -> sumPoints(points) })
         .map({ case (n, sum) => divPoint(sum, n) })
-    }), 10.seconds).toArray
+    }), Duration.Inf).toArray
 
   val diff = newCentroids
     .zip(centroids)
@@ -1159,7 +1165,7 @@ def kMeansIterate(
 \noindent
 The algorithm proceeds in two steps. It first assigns data points to
 the closest cluster. Then it assigns to each cluster a new centroid by
-computing the mean of all points assigned to the cluster. It stops
+computing the mean of all points assigned to the cluster\footnote{Simply for the sake of illustration we assume no node failures in this computation.}. It stops
 when the centroids stop changing; if this convergence condition hasn't
 been met, the algorithm is called recursively with the updated set of
 centroids. In the distributed version of k-means clustering, we start
