@@ -296,7 +296,7 @@ the network), a new silo reference of type \verb|SiloRef[S]| is immediately
 returned. Note that \verb|SiloRef[S]| contains a reference to its parent silo
 reference, \verb|SiloRef[T]|. (This is how {\em lineages} are constructed.)
 Meanwhile, the function is asynchronously sent over the network and is then applied
-to \verb|Silo[T]|, eventually producing a new \verb|Silo[S]| containing the data
+to \verb|Silo[T]|, eventually producing a new \verb|Silo[S]|\footnote{New silos are materialized on the same node as their parent.} containing the data
 transformed by function $\lambda$. This new \verb|SiloRef[S]| can be operated on
 even before its corresponding silo is materialized (\ie before the data in
 \verb|Silo[S]| is computed) – the function passing framework queues up
@@ -631,8 +631,9 @@ send operation is a judicious choice~\cite{ANoteDistComp}.
 
 To enable materialization of remote silos to proceed concurrently, the
 \verb|send| operation immediately returns a future~\cite{Futures}. This future
-is then asynchronously completed with the data of the given silo. Since calling
-\verb|send| will materialize a silo and send its data to the current node,
+is then asynchronously completed with the data of the given silo . Since calling
+\verb|send| will materialize a silo on the same node as its parent, and will send 
+its resulting computation to the current node.
 \verb|send| should only be called on silos with reasonably small data (for
 example, in the implementation of an aggregate operation such as \verb|reduce|
 on a distributed collection).
