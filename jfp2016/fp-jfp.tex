@@ -1010,7 +1010,7 @@ In order to illustrate how the function passing model supports
 computation patterns provided by the closely related MBrace~\cite{MBrace} framework,
 we ported an example implementation of k-means
 clustering.\footnote{See the MBrace website,
-  \url{http://mbrace.io/starterkit/HandsOnTutorial/examples/200-kmeans-clustering-example.html}.}
+  \url{http://mbrace.io/starterkit/HandsOnTutorial.FSharp/examples/200-kmeans-clustering-example.html}.}
 Below we show an excerpt of the implementation. Our implementation of
 distributed k-means clustering using the function passing model is an
 almost identical port of the version using MBrace written in
@@ -1022,17 +1022,17 @@ clusters.
 declare asynchronous tasks, to distribute computation in the cloud.}
 
 \begin{lstlisting}
-def kMeansIterate(
-  partitionedPoints: Seq[SiloRef[Array[Point]]],
-  centroids: Array[Point],
-  iteration: Int): Array[Point] = {
-  // Running iteration...
+def kMeansIterate(partitionedPoints: Seq[SiloRef[Array[Point]]],
+                  centroids: Array[Point],
+                  iteration: Int): Array[Point] = {
   val clusterParts =
-    partitionedPoints.map(silo => { silo.map(spore {
-      val lCentroids = centroids
-      points => kmeansLocal(points, lCentroids)
-    }).send()
-  })
+    partitionedPoints.map(silo => silo.apply(
+      spore {
+        val lCentroids = centroids  // spore header
+        (points: Array[Point]) =>
+          SiloRef.populate(currentHost, kmeansLocal(points, lCentroids))
+      }
+    ).send())
 
   val newCentroids =
     Await.result(Future.sequence(clusterParts).map(seq => {
@@ -1047,28 +1047,24 @@ def kMeansIterate(
         .map({ case (n, sum) => divPoint(sum, n) })
     }), Duration.Inf).toArray
 
-  val diff = newCentroids
-    .zip(centroids)
-    .map({ case (p1, p2) => dist(p1, p2) })
-    .max
+  val diff =
+    newCentroids.zip(centroids).map({ case (p1, p2) => dist(p1, p2) }).max
 
-  // check if converged, else iterate again
-  if (diff < epsilon) {
+  if (diff < epsilon)  // check if converged, else iterate again
     newCentroids
-  } else {
+  else
     kMeansIterate(partitionedPoints, newCentroids, iteration + 1)
-  }
 }
 \end{lstlisting}
 \noindent
 The algorithm proceeds in two steps. It first assigns data points to
 the closest cluster. Then it assigns to each cluster a new centroid by
-computing the mean of all points assigned to the cluster\footnote{Simply for the sake of illustration we assume no node failures in this computation.}. It stops
-when the centroids stop changing; if this convergence condition hasn't
+computing the mean of all points assigned to the cluster.\footnote{Simply for the sake of illustration we assume no node failures in this computation.} It stops
+when the centroids stop changing; if this convergence condition has not
 been met, the algorithm is called recursively with the updated set of
 centroids. In the distributed version of k-means clustering, we start
 with a master node that partitions the points into silos. In each
-iteration, \verb|map| is called on the SiloRef which results in a
+iteration, \verb|apply| is called on the SiloRef which results in a
 spore function being applied to the data within the corresponding
 silo. The spore captures the centroids of the current iteration and
 uses them to compute the new cluster for its local set of points
