@@ -876,21 +876,22 @@ The goal is to compute the hash-join of \verb|silo1| and \verb|silo2| using a
 higher-order operation \verb|hashJoin|:
 
 \begin{lstlisting}
-def hashJoin[A, B, K](s1: SiloRef[List[A]],
-                      s2: SiloRef[List[B]],
-                      f: A => K,
-                      g: B => K)
+def hashJoin[A, B, K](s1: SiloRef[List[A]], s2: SiloRef[List[B]], f: A => K, g: B => K)
   : SiloRef[List[(K, (A, B))]] = ???
 \end{lstlisting}
 \noindent
 To implement \verb|hashJoin| in terms of silos, the types of the two silos first
-have to be made equal, through initial \verb|map| invocations:
+have to be made equal, through initial \verb|apply| invocations:
 
 \begin{lstlisting}
 val s12: SiloRef[List[(K, Option[A], Option[B])]] =
-  s1.map(spore { l1 => l1.map(x => (f(x), Some(x), None)) })
+  s1.apply(spore { l1 =>
+    SiloRef.populate(currentHost, l1.map(x => (f(x), Some(x), None)))
+  })
 val s22: SiloRef[List[(K, Option[A], Option[B])]] =
-  s2.map(spore { l2 => l2.map(x => (g(x), None, Some(x))) })
+  s2.apply(spore { l2 =>
+    SiloRef.populate(currentHost, l2.map(x => (g(x), None, Some(x))))
+  })
 \end{lstlisting}
 \noindent
 Then, we can use \verb|apply| to create a new silo which contains the elements
@@ -898,18 +899,18 @@ of both silo \verb|s12| and silo \verb|s22|:
 
 \begin{lstlisting}
 val combined = s12.apply(spore {
-  val localS22 = s22
+  val locals22 = s22
   (triples1: List[(K, Option[A], Option[B])]) =>
-    s22.map(spore {
+    locals22.apply(spore {
       val localTriples1 = triples1
       (triples2: List[(K, Option[A], Option[B])]) =>
-        localTriples1 ++ triples2
+        SiloRef.populate(currentHost, localTriples1 ++ triples2)
     })
 })
 \end{lstlisting}
 \noindent
 The combined silo contains triples of type \verb|(K, Option[A], Option[B])|.
-Using an additional \verb|map|, the collection can be sorted by key, and
+Using an additional \verb|apply|, the collection can be sorted by key, and
 adjacent triples be combined, yielding a \texttt{SiloRef[List[(K, (A, B))]]} as
 required.
 
@@ -950,8 +951,8 @@ implemented as follows:
 To show that the function passing model is able to serve as a
 substrate upon which to build different sorts of data-centric
 distributed frameworks, we have implemented a miniaturized example
-system that is inspired by Spark's RDDs (Resilient Distributed
-Datasets).
+system that is inspired by Spark's Resilient Distributed
+Dataset (RDD).
 
 RDDs provide an API for executing data-parallel operations on
 distributed data. Our simplified RDD implementation provides a
@@ -960,13 +961,16 @@ implemented some of the operations of Spark's RDD, such as \verb|map|,
 \verb|reduce|, \verb|groupBy|, and \verb|join|, in terms of the
 primitives of the function passing model.
 
-Methods on RDDs like \verb|flatMap| or \verb|filter| that do not
-require communication across silos are implemented using the
-\verb|map| method of \verb|SiloRef|; within the body of the
-corresponding argument spores, the corresponding methods of the
-underlying Scala collections are called. In contrast, methods
-combining multiple silos, such as \verb|join|, are implemented using
-the \verb|apply| method of \verb|SiloRef|.
+Virtually all methods on RDDs are implemented using the \verb|apply|
+method of \verb|SiloRef|. RDD methods like \verb|flatMap| or
+\verb|filter| that do not require communication across silos are
+implemented using simple spores which call the corresponding methods
+of the underlying Scala collections; each spore directly creates its
+result silo using the \verb|populate| primitive. (Several examples
+shown earlier make use of this pattern.) In contrast, methods
+combining multiple silos, such as \verb|join|, require nested
+invocations of the \verb|apply| method, similar to the example shown
+in Figure~\ref{fig:apply}.
 
 Below, we show a simple example using our RDD abstraction. The example
 processes two documents, \verb|content| and \verb|lorem|, which are
@@ -1003,7 +1007,7 @@ passing model are available online.\footnote{See the Git repository at
 \subsection{K-Means Clustering}\label{sec:mbrace}
 
 In order to illustrate how the function passing model supports
-computation patterns provided by the closely related MBrace framework,
+computation patterns provided by the closely related MBrace~\cite{MBrace} framework,
 we ported an example implementation of k-means
 clustering.\footnote{See the MBrace website,
   \url{http://mbrace.io/starterkit/HandsOnTutorial/examples/200-kmeans-clustering-example.html}.}
