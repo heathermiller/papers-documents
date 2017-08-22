@@ -51,13 +51,13 @@ By induction on the derivation of $\Gamma ; \Sigma \vdash t : T$.
 \begin{lem}
 \emph{(Weakening of Store Typing)}\label{lem:weakening-store-typing}
 \begin{enumerate}
-\item If $\Gamma ; \Sigma \vdash t : T$ and $\iota \notin \Sigma$ then $\Gamma ; \Sigma' \vdash t : T$ where $\Sigma' = [\iota \mapsto T']\Sigma$.
-\item If $\Sigma \vdash (t, \sigma, Q)^h$ and $\iota \notin \Sigma$ then $\Sigma' \vdash (t, \sigma, Q)^h$ where $\Sigma' = [\iota \mapsto T]\Sigma$.
-\item If $\Sigma \vdash H$ and $\iota \notin \Sigma$ then $\Sigma' \vdash H$ where $\Sigma' = [\iota \mapsto T]\Sigma$.
+\item If $\Gamma ; \Sigma \vdash t : T$ and $\iota \notin \mathit{dom}(\Sigma)$ then $\Gamma ; \Sigma' \vdash t : T$ where $\Sigma' = [\iota \mapsto T']\Sigma$.
+\item If $\Sigma \vdash (t, \sigma)^h$ and $\iota \notin \mathit{dom}(\Sigma)$ then $\Sigma' \vdash (t, \sigma)^h$ where $\Sigma' = [\iota \mapsto T]\Sigma$.
+\item If $\Sigma \vdash H$ and $\iota \notin \mathit{dom}(\Sigma)$ then $\Sigma' \vdash H$ where $\Sigma' = [\iota \mapsto T]\Sigma$.
 \end{enumerate}
 \end{lem}
 \begin{proof}
-Part 1: By induction on the derivation of $\Gamma ; \Sigma \vdash t : T$. Part 2: By induction on the derivation of $\Sigma \vdash (t, \sigma, Q)^h$. Part 3: By induction on the derivation of $\Sigma \vdash H$.
+Part 1: By induction on the derivation of $\Gamma ; \Sigma \vdash t : T$. Part 2: By induction on the derivation of $\Sigma \vdash (t, \sigma)^h$. Part 3: By induction on the derivation of $\Sigma \vdash H$.
 \end{proof}
 
 \begin{lem}\emph{(Process)}\label{lem:process}
