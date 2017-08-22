@@ -61,16 +61,16 @@
 \begin{abstract}
   The most successful systems for ``big data'' processing have all
   adopted functional APIs. We present a new programming model we call
-  {\FP} designed to provide a more principled substrate (think middleware) upon
+  {\em \FP} designed to provide a more principled substrate (think middleware) upon
   which to build data-centric distributed systems like Spark. A key idea is to build up a
   persistent functional data structure representing transformations on
   distributed immutable data by passing well-typed serializable
   functions over the wire and applying them to this distributed
   data. Thus, the function passing model can be thought of as a
   persistent functional data structure that is {\em distributed},
-  where transformations to data are stored in its nodes rather than
+  where transformations performed on distributed data are stored in its nodes rather than
   the distributed data itself. One advantage of this model is that failure recovery
-  is simplified by design--data is recovered by replaying function applications atop
+  is simplified by design--data can be recovered by replaying function applications atop
   immutable data loaded from stable storage. Deferred evaluation is
   also central to our model; by incorporating deferred evaluation into
   our design only at the point of initiating network communication,
@@ -134,8 +134,9 @@ a large scale.
 This paper introduces a new programming model which embraces the principle of
 stationary data containers and mobile functions (``move computation to the data''). 
 It can be viewed as a generalization of the MapReduce/Spark programming model. 
-Our programming model which we call {\em\FP} can be thought of a middleware 
-programming model, meant to underly systems like Spark. Function passing adopts the concept of a 
+Our programming model which we call {\em\FP} can be thought of as a 
+programming model for a middleware, 
+meant to underly systems like Spark. Function passing adopts the concept of a 
 {\em lineage} which is used by systems like Spark to handle fault tolerance. 
 Importantly, lineage-based fault tolerance is facilitated by the core computational 
 principle of {\em functional} transformations on immutable data.
@@ -199,8 +200,9 @@ This paper makes the following contributions:
     end-user applications we have built using these prototypes.
 \end{itemize}
 
-Our approach is to describe our model from a high-level, elaborating
-upon key benefits and trade-offs, and then to zoom in and make each
+In the rest of the paper, our approach is as follows. First, we describe 
+our model from a high-level, elaborating
+upon key benefits and trade-offs, and then we zoom in to make each
 component part of our model more precise. We describe the basic model
 this way in Section~\ref{sec:basic-model}. In
 Section~\ref{sec:higher-order-operations} we go on to show how
@@ -210,9 +212,7 @@ in Section~\ref{sec:basic-model}. We formalize our programming model
 in Section~\ref{sec:formalization}, providing an operational semantics
 and a type system. In Section~\ref{sec:correctness} we present the
 proof of a subject reduction theorem and formalize important progress
-properties. In Section~\ref{sec:formal-fault-handling} we extend the
-presented formal model with a fault handling mechanism based on
-lineage. Finally, we discuss related work in
+properties. Finally, we discuss related work in
 Section~\ref{sec:related-work}, and conclude in
 Section~\ref{sec:conclusion-future-work}.
 
