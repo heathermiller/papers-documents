@@ -769,32 +769,6 @@ spore, sent to a silo, may apply arbitrary functions to the silo's data. Thus,
 the \verb|SiloRef| API itself is not limited to providing just a fixed set of
 built-in operations (in contrast to RDDs in Apache Spark, for example).
 
-\subsubsection{Expressiveness}
-\label{sec:expr}
-
-\paragraph{Expressing \texttt{map}.}
-
-Leveraging the above-mentioned methods for creating silos, it is possible to
-express \verb|map| in terms of \verb|apply|:
-
-\begin{lstlisting}
-def map[S](s: Spore[T, S]): SiloRef[S] =
-  this.apply(spore {
-    val localSpore = s
-    (x: T) =>
-      val res = localSpore(x)
-      SiloRef.fromFun(currentHost)(spore {
-        val localRes = res
-        () => localRes
-      })
-  })
-\end{lstlisting}
-
-\noindent
-This should come as no surprise, given that \verb|apply| is the monadic bind
-operation on \verb|SiloRef|s, and \verb|SiloRef.fromFun| is the monadic return
-operation.
-
 \comment{\paragraph{Expressing \texttt{cache}}
 
 The \verb|cache| operation can be expressed using \verb|apply| and
