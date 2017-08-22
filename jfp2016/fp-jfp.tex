@@ -317,8 +317,8 @@ describe these in the following.
 \subsection{Programming Model}
 \label{sec:programming-model}
 
-With a basic intuition under our belt for how distributed computation is 
-performed in the \FP~model, we focus now on its main three components; 
+With a basic intuition under our belt for how distributed computation is
+performed in the \FP~model, we focus now on its three main components;
 \textbf{Silos}, \textbf{Silo references}, and \textbf{Spores}.
 
 
@@ -341,18 +341,16 @@ Similar to a proxy object, a silo reference represents, and allows interacting
 with both local and remote silos. Silo references are immutable, storing
 identifiers to locate possibly remote silos. They are also typed
 (\verb|SiloRef[T]|) corresponding to the type \verb|T| of their silo's data,
-leading to well-typed network communication. A silo reference provides three
-primitive operations/combinators (some are lazy, some are not): \verb|map|,
-\verb|apply|, and \verb|send|. The \verb|map| method makes use of deferred
+leading to well-typed network communication. A silo reference provides two
+principle operations:
+\verb|apply| and \verb|send|. The \verb|apply| method makes use of deferred
 evaluation; it {\em eventually} applies a user-defined function to data pointed
 to by the \verb|SiloRef[T]|, creating a new silo containing the result of this
 application, though this application is deferred. That is, this computation is only ``kicked
 off'' when the \verb|send| method is invoked. This makes it possible to queue up
-transformations in order to optimize network communication. Like \verb|map|, the
-application of \verb|apply| is {\em deferred}. \verb|apply| also applies a
-user-defined function to data pointed to by the silo reference; unlike
-\verb|map|, however, the user-defined function passed to \verb|apply| returns
-a \verb|SiloRef[T]| whose contents is transferred to the new silo returned by
+transformations in order to optimize network communication.
+Note that the user-defined function passed to \verb|apply| returns
+a \verb|SiloRef[S]| whose contents is transferred to the new silo returned by
 \verb|apply|. Essentially, \verb|apply| enables accessing the contents of
 (local or remote) silos from within remote computations. We illustrate these
 primitives in more detail in Section~\ref{sec:primitives}.
