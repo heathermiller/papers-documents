@@ -503,31 +503,37 @@ computation DAGs. For example, consider the problem of combining the
 information contained in two different silos (potentially located on
 different hosts). Suppose the information of a silo containing
 \verb|Vehicle| records should be enriched with other details only
-found in the \verb|adults| silo. In the following, \verb|apply| is
+found in the \verb|adults| silo. In the example shown in Figure~\ref{fig:apply} \verb|apply| is
 used to create a silo of \verb|(Person, Vehicle)| pairs where the
-names of person and vehicle owner match:
+names of person and vehicle owner match.
 % (graphically shown in Figure~\ref{fig:bigger-dag}, part 2):
 
 
+\begin{figure}
+\centering
 \begin{lstlisting}[numbers=left,xleftmargin=2em,framexleftmargin=1.5em]
 val vehicles: SiloRef[List[Vehicle]] = ...
 val owners: SiloRef[List[(Person, Vehicle)]] =  // adults that own a vehicle
   adults.apply(spore {
     val localVehicles = vehicles  // spore header
     (persons: List[Person]) =>
-      localVehicles.map(spore {
+      localVehicles.apply(spore {
         val localPersons = persons  // spore header
         (vs: List[Vehicle]) =>
-          localPersons.flatMap(p =>
-            // list of (p, v) for a single person p
-            vs.flatMap(v =>
-              if (v.owner.name == p.name) List((p, v))
-              else Nil
+          SiloRef.populate(currentHost,
+            localPersons.flatMap(p =>
+              // list of (p, v) for a single person p
+              vs.flatMap(v =>
+                if (v.owner.name == p.name) List((p, v))
+                else Nil
+              )
             )
           )
       })
   })
 \end{lstlisting}
+\caption{Matching persons and vehicle owners using the \texttt{apply} combinator.}\label{fig:apply}
+\end{figure}
 
 \begin{figure}[ht!]
 \centering\includegraphics[scale=0.35]{pic/bigger-dag.pdf}
@@ -537,15 +543,15 @@ val owners: SiloRef[List[(Person, Vehicle)]] =  // adults that own a vehicle
 \noindent
 Here, it is necessary to read the data of the \verb|vehicles| silo in
 addition to the \verb|persons|, the list of \verb|Person|
-records. This requires calling \verb|map| on \verb|localVehicles| on
-line 8.  However, \verb|map| returns a silo reference; thus, on line
-4, it would be impossible to invoke \verb|map| on \verb|adults|
-instead of \verb|apply|, since there would be no way to get the data
-out of the silo returned by \verb|localVehicles.map(..)|. With the use
-of \verb|apply| on line 4, however, the call to
-\verb|localVehicles.map(..)| on line 8 creates the final result silo,
+records. This requires calling \verb|apply| on \verb|localVehicles| on
+line 6, whose argument spore captures the \verb|persons| list and
+takes the \verb|vs| list as a parameter; thereby, the two lists can be
+combined, and the result stored in a new silo (line 9).
+Note that with the use
+of \verb|apply| on line 3, the call to
+\verb|localVehicles.apply(..)| on line 6 creates the final result silo,
 whose data is then also contained in the \verb|owners| silo declared
-on line 3.
+on line 2.
 
 To illustrate the data flow between hosts, let us kick off the
 materialization of the involved silos:
@@ -572,7 +578,7 @@ To create \verb|owners|, we must combine data hosted at \verb|m2| with
 data hosted at \verb|m3|. First, \verb|adults.apply| transfers its
 spore, \ie the silo reference \verb|vehicles| and the closure\\
 \verb|persons => ...|, to \verb|m2| hosting the referenced silo of
-grown-up \verb|Person| records. Next, \verb|localVehicles.map|
+grown-up \verb|Person| records. Next,\\ \verb|localVehicles.apply|
 transfers its spore, \ie the collection of adults \verb|persons| and
 the closure \verb|vehicles => ...|, to \verb|m3| hosting the
 referenced silo of \verb|Vehicle| records. Now, at \verb|m3|, we have
@@ -601,12 +607,7 @@ result, when \verb|m1| requests the actual list of persons owning a
 vehicle, it is retrieved from \verb|m3|. Avoiding a materialization
 also on \verb|m2| alleviates network communication overhead.
 
-As shown in Section~\ref{sec:expr}, the expressiveness of the
-\verb|apply| combinator subsumes that of the \verb|map|
-combinator. Though, as a specialized combinator, \verb|map| is simpler
-to explain.
-
-Finally, note that the spore passed to \verb|apply| declares the
+Finally, note that the spore passed to \verb|apply| on line 3 in Figure~\ref{fig:apply} declares the
 capturing of the \verb|vehicles| silo reference in its spore
 header. The spore header spans all variable definitions between the
 spore marker and the parameter list of the spore's closure. The spore
@@ -621,7 +622,7 @@ in the spore's header.
 %
 As mentioned earlier, the execution of computations built using silo references
 is deferred. The \verb|send| operation {\em forces} the deferred computation
-defined by the given \verb|SiloRef|. Forcing is explicit in our model, because it
+defined by the given \verb|SiloRef[T]|. Forcing is explicit in our model, because it
 requires sending the lineage to the remote node on which the result silo should
 be created. Given that network communication has a latency several orders of
 magnitude greater than accessing a word in main memory, providing an explicit
