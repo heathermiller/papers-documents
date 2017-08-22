@@ -1661,9 +1661,9 @@ the form of serializable closures is central to the function passing model.
 
 \subsection{Ongoing and Future Work}
 
-Our ongoing efforts are three-fold; we're working on a semantics and implementation 
-of fault handling on top of the \FP~model, we are exploring approaches for memory 
-reclamation, and we're working to better understand the concerns of separate compilation. 
+Our ongoing efforts are three-fold; (a) we are working on a semantics and implementation
+of fault handling on top of the \FP~model, (b) we are exploring approaches for memory
+reclamation, and (c) we are working to better understand the concerns of separate compilation.
 
 \subsubsection{Fault handling}
 The current implementation of the \FP~model includes overloaded variants of
@@ -1674,7 +1674,7 @@ of the failure-free path through a computation DAG as simple as possible, while
 still enabling the handling of faults at the fine-granular level of individual
 silo references.
 
-What follows are illustrations of this ongoing work based on the running example 
+What follows are illustrations of this ongoing work based on the running example
 introduced in Section~\ref{sec:programming-model}.
 
 \paragraph{Defining fault handlers.}
@@ -1682,7 +1682,7 @@ introduced in Section~\ref{sec:programming-model}.
 Fault handlers may be specified whenever the lineage of a silo reference is
 extended. For this purpose, the introduced \verb|map| and \verb|apply|
 primitives are overloaded. For example, consider the running example illustrated 
-inFigure~\ref{fig:bigger-dag}, but extended with a fault handler:
+in Figure~\ref{fig:bigger-dag}, but extended with a fault handler:
 
 \begin{lstlisting}
 val persons: SiloRef[List[Person]] = ...
@@ -1755,9 +1755,9 @@ execution policies is left for future work.
 
 \subsubsection{Memory reclamation}
 
-We are exploring multiple approaches for memory reclamation. 
+We are exploring multiple approaches for memory reclamation.
 The first
-approach uses Java's WeakReferences to detect when a SiloRef is no longer
+approach uses Java's {\em weak references} to detect when a SiloRef is no longer
 reachable from local GC roots. Upon detection the host of the corresponding silo
 is notified to decrease the silo's reference count; the host's reference(s) to
 the silo are nulled out when the reference count reaches zero. It is important
@@ -1790,7 +1790,7 @@ model the paradigm of data-centric programming by extending monadic programming
 to the network. One insight of our model is that lineage-based fault recovery
 mechanisms, used in widespread frameworks for distribution, are closely related
 to persistent data structures in functional programming. Therefore, we believe
-that the study of fault tolerance based on lineages may benefit from further
+that fault tolerance based on lineages may benefit from further
 study by the functional programming community. We have also presented a
 formalization of the function passing model, providing an operational
 semantics and a type system for lineage-based distributed computation. While
