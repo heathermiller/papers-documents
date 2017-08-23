@@ -112,62 +112,6 @@ If $\Sigma \vdash \sigma$, $\Sigma \vdash m$, and $process(h, m, \sigma) = (t, M
 
 \item Cases \textsc{Proc-ReqMat1}, \textsc{Proc-ReqMat2}, and \textsc{Proc-ReqParent} follow analogously.
 
-\item Case \textsc{Proc-ReqMap}.
-\begin{enumerate}
-% 1.
-\item By the assumptions
-  \begin{enumerate}[label=(\alph*)]
-  \item $\Sigma \vdash \sigma$
-  \item $\Sigma \vdash m$
-  \item $process(h, m, \sigma) = (t, M, \sigma')$
-  \end{enumerate}
-% 2.
-\item By \textsc{Proc-ReqMap}
-  \begin{enumerate}[label=(\alph*)]
-  \item $m = {\Req {h'} r \iota}$
-  \item $r = {\Ref l h}$
-  \item $l = {\Mapped {\iota'} {l'} p}$
-  \item $\sigma(id(l')) = (v, P)$
-  \item $t = \texttt{respond}(h', \iota, p~v)$
-  \item $\sigma' = {\consume {id(l')} P \sigma}$
-  \item $M = \emptyset$
-  \end{enumerate}
-% 3.
-\item By 1.b), 2.a,b), and \textsc{WF-Req}
-  \begin{enumerate}[label=(\alph*)]
-  \item $\Sigma(id(l)) = \Sigma(\iota)$
-  \item $\Sigma \vdash r$
-  \end{enumerate}
-% 4.
-\item By 2.b,c), 3.b), \textsc{WF-Ref}, and \textsc{WF-Lin3}
-  \begin{enumerate}[label=(\alph*)]
-  \item $\Sigma(\iota') = T$
-  \item $\Sigma(id(l')) = T'$
-  \item $\exists \Gamma.~\Gamma ; \Sigma \vdash p : T' \Rightarrow T~\{\ldots\}$
-  \item $\Sigma \vdash l'$
-  \end{enumerate}
-% 5.
-\item By 1.a), 2.d), 4.b), and \textsc{WF-Store2}, $\emptyset ; \Sigma \vdash v : T'$.
-% 6.
-\item By 4.c), 5., and \textsc{T-AppSpore}, $\Gamma, \Sigma \vdash p~v : T$.
-% 7.
-\item By 4.c) and \textsc{T-Spore}, $serializable(T)$.
-% 8.
-\item By 6., 7., and Lemma~\ref{lem:ser-values}, $\emptyset ; \Sigma \vdash p~v : T$.
-% 9.
-\item By 3.a), 4.a), and Def.~\ref{def:id}, $\Sigma(id(l)) = \Sigma(\iota)$ and thus by \textsc{T-Ident}, $\emptyset ; \Sigma \vdash \iota : \texttt{Future}[T]$.
-% 10.
-\item By 8., 9., and \textsc{T-Respond}, $\emptyset ; \Sigma \vdash t : \texttt{Unit}$.
-% 11.
-\item By 2.g) and \textsc{WF-Messages-Emp}, $\Sigma \vdash M$.
-% 12.
-\item By 2.f) and Def.~\ref{def:consume}, $dom(\sigma') \subseteq dom(\sigma)$.
-% 13.
-\item By 1.a), 12., and \textsc{WF-Store1-3}, $\Sigma \vdash \sigma'$.
-% 14.
-\item 10., 11., and 13. close this case.
-\end{enumerate}
-
 \item Case \textsc{Proc-ReqApply}.
 \begin{enumerate}
 % 1.
