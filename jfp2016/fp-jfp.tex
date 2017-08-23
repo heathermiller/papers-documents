@@ -528,9 +528,13 @@ val owners: SiloRef[List[(Person, Vehicle)]] =  // adults that own a vehicle
         val localPersons = persons  // spore header
         (vs: List[Vehicle]) =>
           SiloRef.populate(currentHost,
-            // list of (p, v) for a single person p
-            for (p <- localPersons; v <- vs if v.owner.name == p.name)
-            yield (p, v)
+            localPersons.flatMap(p =>
+              // list of (p, v) for a single person p
+              vs.flatMap(v =>
+                if (v.owner.name == p.name) List((p, v))
+                else Nil
+              )
+            )
           )
       })
   })
