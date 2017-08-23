@@ -7,10 +7,10 @@
 If $\Gamma ; \Sigma \vdash v : T$ and $serializable(T)$ then $\emptyset ; \Sigma \vdash v : T$.
 \end{thmun}
 \begin{proof}
-By induction on the derivation of $\Gamma ; \Sigma \vdash v : T$ with a case analysis on the last applied rule.
+By induction on the derivation of $\Gamma ; \Sigma \vdash v : T$ with a case analysis of the last applied rule.
 
 \begin{itemize}
-\item Cases \textsc{T-Unit} and \textsc{T-Host} are trivial.
+\item Cases \textsc{T-Int}, \textsc{T-Unit}, and \textsc{T-Host} are trivial.
 
 \item Case \textsc{T-SiloRef}.
 \begin{enumerate}
