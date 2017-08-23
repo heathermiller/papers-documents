@@ -1652,7 +1652,7 @@ Our ongoing efforts are three-fold; (a) we are working on a semantics and implem
 of fault handling on top of the \FP~model, (b) we are exploring approaches for memory
 reclamation, and (c) we are working to better understand the concerns of separate compilation.
 
-\subsubsection{Fault handling}
+\subsubsection{Fault Handling}
 The current implementation of the \FP~model includes overloaded variants of
 \FP's primitive operations to enable flexible fault handling semantics. 
 The main idea is to specify fault handlers for {\em subgraphs of computation DAGs}. 
@@ -1667,33 +1667,31 @@ introduced in Section~\ref{sec:programming-model}.
 \paragraph{Defining fault handlers.}
 
 Fault handlers may be specified whenever the lineage of a silo reference is
-extended. For this purpose, the introduced \verb|map| and \verb|apply|
-primitives are overloaded. For example, consider the running example illustrated 
+extended. For this purpose, the introduced \verb|apply|
+primitive is overloaded. For example, consider the running example illustrated
 in Figure~\ref{fig:bigger-dag}, but extended with a fault handler:
 
 \begin{lstlisting}
 val persons: SiloRef[List[Person]] = ...
 val vehicles: SiloRef[List[Vehicle]] = ...
-// copy of `vehicles` on different host `h`
-val vehicles2 = SiloRef.fromFun(h)(spore {
-  val localVehicles = vehicles
-  () => localVehicles
-})
+// copy of `vehicles` on different host `h`, see Section 2.4.1
+val vehicles2 = SiloRef.fromLineage(h, vehicles)
 
-val adults = persons.map(spore { ps =>
-  ps.filter(p => p.age >= 18) })
+val adults = persons.apply(spore { ps =>
+  SiloRef.populate(currentHost, ps.filter(p => p.age >= 18))
+})
 
 // adults that own a vehicle
 def computeOwners(v: SiloRef[List[Vehicle]]) = spore {
   val localVehicles = v
-  (ps: List[Person]) => localVehicles.map(...)
+  (ps: List[Person]) => localVehicles.apply(...)
 }
 
 val owners: SiloRef[List[(Person, Vehicle)]] =
   adults.apply(computeOwners(vehicles),
                computeOwners(vehicles2))
 \end{lstlisting}
-
+\noindent
 Importantly, in the \verb|apply| call on the last line, in addition to
 \verb|computeOwners(vehicles)|, the regular spore argument of \verb|apply|,
 \verb|computeOwners(vehicles2)| is passed as an additional argument. The second
@@ -1725,12 +1723,12 @@ val owners: SiloRef[List[(Person, Vehicle)]] =
       val localVehicles = vehicles
       (ps: List[Person]) =>
         val recoveredVehicles =
-          SiloRef.fromLineage(getHealthyHost())(localVehicles)
-        recoveredVehicles.map(...)
+          SiloRef.fromLineage(getHealthyHost(), localVehicles)
+        recoveredVehicles.apply(...)
     }
   )
 \end{lstlisting}
-
+\noindent
 In order to implement more flexible fault handling mechanisms,
 including strategies for straggler mitigation, additional information
 pertaining to the execution of (parts of) DAGs would need to be
@@ -1740,7 +1738,7 @@ specification (on the API level) and implementation of more flexible
 execution policies is left for future work.
 
 
-\subsubsection{Memory reclamation}
+\subsubsection{Memory Reclamation}
 
 We are exploring multiple approaches for memory reclamation.
 The first
