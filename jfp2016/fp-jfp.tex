@@ -901,8 +901,11 @@ val s22: SiloRef[List[(K, Option[A], Option[B])]] =
   })
 \end{lstlisting}
 \noindent
-Then, we can use \verb|apply| to create a new silo which contains the elements
-of both silo \verb|s12| and silo \verb|s22|:
+Then, we can use \verb|apply| to create a new silo which contains the
+elements of both silo \verb|s12| and silo \verb|s22|:\footnote{The
+  expression \texttt{localTriples1 ++ triples2} denotes the
+  concatenation of lists \texttt{localTriples1} and
+  \texttt{triples2}.}
 
 \begin{lstlisting}
 val combined = s12.apply(spore {
