@@ -228,65 +228,7 @@ Part 1: by induction on the derivation of $t~|~\sigma \rightarrow^h t'~|~\sigma'
 \item 2.c) and 7. close this case.
 \end{enumerate}
 
-\item Cases \textsc{R-AppSpore} and \textsc{R-Await} follow analogously.
-
-\item Case \textsc{R-Map}.
-\begin{enumerate}
-% 1.
-\item By the assumptions
-  \begin{enumerate}[label=(\alph*)]
-  \item $\Gamma ; \Sigma \vdash t : T$
-  \item $\Sigma \vdash \sigma$
-  \item $t~|~\sigma \rightarrow^h t'~|~\sigma'$
-  \end{enumerate}
-% 2.
-\item By \textsc{R-Map}
-  \begin{enumerate}[label=(\alph*)]
-  \item $t  = E[\texttt{map}(r, p)]$
-  \item $r  = {\Ref l {h'}}$
-  \item $t' = E[r']$
-  \item $r' = {\Ref {l'} {h'}}$
-  \item $l' = {\Mapped {(h, i)} l p}$ where $i~\text{fresh}$
-  \item $\sigma' = \sigma$
-  \end{enumerate}
-% 3.
-\item By 1.a) and 2.a), $\Gamma ; \Sigma \vdash \texttt{map}(r, p) : \hat{T}$.
-% 4.
-\item By 3. and \textsc{T-Map},
-  \begin{enumerate}[label=(\alph*)]
-  \item $\hat{T} = \texttt{SiloRef}[T']$
-  \item $\Gamma ; \Sigma \vdash r : \texttt{SiloRef}[T'']$
-  \item $\Gamma ; \Sigma \vdash p : T'' \Rightarrow T'~\{~\texttt{type}~\mathcal{C} = \seq{T}~\}$
-  \end{enumerate}
-% 5.
-\item By 2.b), 4.b), \textsc{T-SiloRef}, and \textsc{WF-Ref}
-  \begin{enumerate}[label=(\alph*)]
-  \item $\Sigma(id(l)) = T''$
-  \item $\Sigma \vdash r$
-  \item $\Sigma \vdash l$
-  \item $h' \in \mathcal{H}$
-  \end{enumerate}
-% 6.
-\item Define $\Sigma' := [(h, i) \mapsto T']\Sigma$.
-% 7.
-\item By 2.d-e), 4.c), 5.a-d), 6., \textsc{WF-Lin3}, and \textsc{WF-Ref}, $\Sigma' \vdash r'$.
-% 8.
-\item By 2.d-e), 6., 7., and \textsc{T-SiloRef}, $\Gamma ; \Sigma' \vdash r' : \texttt{SiloRef}[T']$.
-% 9.
-\item By 2.e), 3., 4.a), 6., and part 1 of Lemma~\ref{lem:weakening-store-typing}, $\Gamma ; \Sigma' \vdash \texttt{map}(r, p) : \texttt{SiloRef}[T']$.
-% 10.
-\item By 1.a), 2.e), 6., and part 1 of Lemma~\ref{lem:weakening-store-typing}, $\Gamma ; \Sigma' \vdash t : T$.
-% 11.
-\item By 2.a,c), 8., 9., 10., $\Gamma ; \Sigma' \vdash t' : T$.
-% 12.
-\item By 2.f) and 1.b), $\Sigma \vdash \sigma'$.
-% 13.
-\item By 6., $\Sigma' \supseteq \Sigma$.
-% 14.
-\item By 12., 13., and \textsc{WF-Store3}, $\Sigma' \vdash \sigma'$.
-% 15.
-\item 11., 13., and 14. close this case.
-\end{enumerate}
+\item Cases \textsc{R-IntOp}, \textsc{R-AppSpore}, and \textsc{R-Await} follow analogously.
 
 \item Case \textsc{R-Apply}.
 \begin{enumerate}
