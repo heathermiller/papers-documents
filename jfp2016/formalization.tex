@@ -503,7 +503,7 @@ where $r$ does not have a parent. In the case of
 $v$ of its materialized lineage ${\Mat {\iota'}}$; thus, a response
 ${\Res \iota v}$ is sent to host $h'$.  In the case of
 \textsc{Proc-ReqMat2}, lineage ${\Mat {\iota'}}$ is not yet
-materialized (i.e., host $h$ is still waiting for a message ${\Res
+materialized (\ie host $h$ is still waiting for a message ${\Res
   {\iota'} {v'}}$); thus, the original request ${\Req {h'} r \iota}$
 sent to $h$ is re-sent, to be processed again later.
 
@@ -642,7 +642,9 @@ store typing which maps identifiers $\iota$ to types
 $T$. Figure~\ref{fig:type-rules} shows the rules for type
 assignment. Rules \textsc{T-Var}, \textsc{T-Abs}, and \textsc{T-App}
 are unchanged compared to a standard typed lambda
-calculus~\cite{TAPL}.
+calculus~\cite{TAPL}. Rules \textsc{T-Int} and \textsc{T-IntOp} assign
+types to integer literals and applications of integer operators,
+respectively.
 
 \begin{figure}
 \begin{mathpar}
@@ -710,7 +712,7 @@ configurations. These rules are essential for establishing subject
 reduction (see Section~\ref{sec:subject-reduction}). Rules
 \textsc{WF-Store1-3} are straightforward. Rule \textsc{WF-Lin1}
 requires $\Sigma$ to be defined for the identifier of a materialized
-silo. Rule \textsc{WF-Lin2} requires the types of $\iota$ and $id(l)$
+lineage ${\Mat \iota}$. Rule \textsc{WF-Lin2} requires the types of $\iota$ and $id(l)$
 given by the store typing $\Sigma$ to be consistent with the
 corresponding type of spore $p$. Parent lineage $l$ must be
 well-formed in $\Sigma$. Rule \textsc{WF-Ref} extends well-formedness
@@ -831,8 +833,8 @@ $\texttt{persist}(r)$ immediately returns a new silo reference $r'$
 whose value, when materialized, is equal to the value of $r$.  The
 lineage of $r'$ is equal to that of $r$ except for one additional
 element: if $l$ is the lineage of silo $r$, then the lineage of $r'$
-is of the form $l' = {\Per \iota l f}$. As for other constructors
-(e.g., $\mathit{Applied}$), $\iota$ is the identifier of lineage $l'$.
+is of the form $l' = {\Per \iota l f}$. As for the $\mathit{Applied}$ constructor
+$\iota$ is the identifier of lineage $l'$.
 (As before, $\iota = (h, i)$ implies that host $h$ has called
 \verb|persist|.)  The last argument is a binary operator $f \in \{
 \cdot\cup\cdot, \cdot\setminus\cdot \}$ which toggles between the
@@ -982,7 +984,7 @@ a result, the mapping for $\iota'$ remains resident in the store,
 avoiding re-materialization, as the following rules show.
 
 Rule \textsc{Proc-Req} is also new. The rule is enabled when the
-requested silo $r$ has already been materialized, i.e., $\sigma(id(l))
+requested silo $r$ has already been materialized, \ie $\sigma(id(l))
 = (v, P)$. In this case, a response ${\Res \iota v}$ can directly be
 sent back to the requesting host $h'$. Importantly, the rule also
 checks whether the silo has been persisted, by examining its persist
@@ -1036,8 +1038,7 @@ data, we will utilize the following $\mathit{consume}$ function:}
 }
 
 \inferrule[\textsc{WF-Lin3}] {
-  \Sigma(\iota) = T  \quad
-  \Sigma(id(l)) = T  \quad
+  \Sigma(\iota) = \Sigma(id(l))  \quad
   \Sigma \vdash l
 } {
   \Sigma \vdash {\Per \iota l {\star}}
@@ -1083,7 +1084,7 @@ By induction on the derivation of $\Gamma , x : T' ; \Sigma \vdash t : T$.
 
 \begin{enumerate}
 
-\item If $\Gamma ; \Sigma \vdash t : T$, $\Sigma \vdash \sigma$, and $t~|~\sigma \rightarrow^h t'~|~\sigma'$ then $\Gamma ; \Sigma' \vdash t' : T$, and $\Sigma' \vdash \sigma'$ for some $\Sigma' \supseteq \Sigma$.
+\item If $\Gamma ; \Sigma \vdash t : T$, $\Sigma \vdash \sigma$, and $t~|~\sigma \rightarrow^h t'~|~\sigma'$ then $\Gamma ; \Sigma' \vdash t' : T$ and $\Sigma' \vdash \sigma'$ for some $\Sigma' \supseteq \Sigma$.
 
 \item If $\Sigma \vdash H~|~M$ and $H~|~M \twoheadrightarrow H'~|~M'$ then $\Sigma' \vdash H'~|~M'$ for some $\Sigma' \supseteq \Sigma$.
 
