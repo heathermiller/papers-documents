@@ -61,7 +61,7 @@
 \begin{abstract}
   The most successful systems for ``big data'' processing have all
   adopted functional APIs. We present a new programming model we call
-  {\em \FP} designed to provide a more principled substrate (think middleware) upon
+  {\em \FP} designed to provide a more principled substrate, or middleware, upon
   which to build data-centric distributed systems like Spark. A key idea is to build up a
   persistent functional data structure representing transformations on
   distributed immutable data by passing well-typed serializable
@@ -79,7 +79,9 @@
   complete formalization of the programming model in order to study
   the foundations of lineage-based distributed computation. In
   particular, we develop a theory of safe, mobile lineages based on a
-  subject reduction theorem for a typed core language. Thus, the
+  subject reduction theorem for a typed core language. Furthermore, we
+  formalize a progress theorem which guarantees the finite materialization
+  of remote, lineage-based data. Thus, the
   formal model may serve as a basis for further developments of the
   theory of data-centric distributed programming, including aspects
   such as fault tolerance. We provide an open-source implementation of
@@ -151,11 +153,16 @@ combination of functional programming techniques provides a more principled
 substrate upon which to build data-centric, distributed systems.
 
 %%% Formalization
-Moreover, we provide a complete formalization of the programming model. In
-particular, we develop a theory of safe, mobile lineages based on a subject
-reduction theorem for a typed core language. Thus, the formal model may serve as
-a basis for further developments of the theory of data-centric distributed
-programming, including aspects such as fault tolerance.
+Importantly, we provide a complete formalization of the programming
+model. In particular, we develop a theory of safe, mobile lineages
+based on a subject reduction theorem for a typed core
+language. Furthermore, we formalize a progress theorem which
+guarantees the finite materialization of remote, lineage-based data.
+To our knowledge, these theorems constitute the first correctness
+results for a programming model for lineage-based distributed
+computation.  Thus, our formal model may serve as a basis for further
+developments of the theory of data-centric distributed programming,
+including aspects such as fault tolerance.
 
 %% Contributions
 \subsection{Contributions}
