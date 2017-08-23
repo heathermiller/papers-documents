@@ -138,7 +138,7 @@ stationary data containers and mobile functions (``move computation to the data'
 It can be viewed as a generalization of the MapReduce/Spark programming model. 
 Our programming model which we call {\em\FP} can be thought of as a 
 programming model for a middleware, 
-meant to underly systems like Spark. Function passing adopts the concept of a 
+meant to underly systems like Spark. Function passing adopts the concept of
 {\em lineage} which is used by systems like Spark to handle fault tolerance. 
 Importantly, lineage-based fault tolerance is facilitated by the core computational 
 principle of {\em functional} transformations on immutable data.
@@ -207,8 +207,8 @@ This paper makes the following contributions:
     end-user applications we have built using these prototypes.
 \end{itemize}
 
-In the rest of the paper, our approach is as follows. First, we describe 
-our model from a high-level, elaborating
+In the rest of the paper, our approach is as follows. First, we describe
+our model on a high level, elaborating
 upon key benefits and trade-offs, and then we zoom in to make each
 component part of our model more precise. We describe the basic model
 this way in Section~\ref{sec:basic-model}. In
@@ -275,14 +275,14 @@ function passing model. The function passing model consists of three main compon
 
 \begin{itemize}
 	\item \textbf{Silos}, stationary, typed, immutable data containers.
-	\item \textbf{Silo references} to local or remote Silos.
+	\item \textbf{Silo references} to local or remote silos.
 	\item \textbf{Spores}, safe, serializable functions.
 \end{itemize}
 
 
 
 The main handle users have to the framework is via
-\verb|SiloRef[T]|s. A \verb|SiloRef[T]| can be thought of as an
+\verb|SiloRef|s. A \verb|SiloRef[T]| can be thought of as an
 immutable handle to a remote value of type \verb|T| contained within a
 corresponding silo. Users interact with this remote data by applying
 functions (as spores) to silo references. Those functions are
@@ -298,7 +298,7 @@ The simplest illustration of the model is shown in
 Figure~\ref{fig:basic-diagram} (time flows vertically from top to bottom). Here,
 we start with a \verb|SiloRef[T]| which points to a piece of remote data
 contained within a \verb|Silo[T]|. When the function, shown as $\lambda$, of
-type $T \Rightarrow S$ is applied to \verb|SiloRef[T]| and ``forced'' (sent over
+type $T \Rightarrow \texttt{SiloRef}[S]$ is applied to \verb|SiloRef[T]| and ``forced'' (sent over
 the network), a new silo reference of type \verb|SiloRef[S]| is immediately
 returned. Note that \verb|SiloRef[S]| contains a reference to its parent silo
 reference, \verb|SiloRef[T]|. (This is how {\em lineages} are constructed.)
@@ -326,7 +326,7 @@ describe these in the following.
 
 With a basic intuition under our belt for how distributed computation is
 performed in the \FP~model, we focus now on its three main components;
-\textbf{Silos}, \textbf{Silo references}, and \textbf{Spores}.
+\textbf{silos}, \textbf{silo references}, and \textbf{spores}.
 
 
 \paragraph{Silos.}
@@ -391,7 +391,7 @@ capture variables other than those declared in the spore header (\ie a spore may
 not capture variables in the environment). By enforcing this shape, the
 environment of a spore is always declared explicitly in the spore header, which
 avoids accidentally capturing problematic references. Moreover, importantly for
-object-oriented languages like Scala, it's no longer possible to accidentally
+object-oriented languages like Scala, it is no longer possible to accidentally
 capture the \verb|this| reference.
 
 Spores also come with additional type-checking. Type information corresponding
@@ -763,8 +763,8 @@ is not required to be materialized.
 \subsubsection{Type Polymorphism and Silos/SiloRefs}
 
 An important property of silos is that they are polymorphic in the type of data
-that they hold (\verb|Silo[T]|). Importantly, silos are not just polymorphic in
-the {\em element type} of their data, but in the {\em type of their entire
+that they hold (\verb|Silo[T]|). Importantly, silos may not only store collections;
+silos are polymorphic in the {\em type of their entire
 dataset}. For example, a silo might contain a Red-Black tree with elements of
 type \verb|Person| for some ADT \verb|Person|, ordered by one of the fields of
 the \verb|Person| type. Another silo might contain a completely different
