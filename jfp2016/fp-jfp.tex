@@ -1046,15 +1046,14 @@ def kMeansIterate(partitionedPoints: Seq[SiloRef[Array[Point]]],
 
   val newCentroids =
     Await.result(Future.sequence(clusterParts).map(seq => {
-      seq
-        .reduce(_ ++ _)
-        .groupBy(_._1)
-        .toSeq
-        .sortBy(_._1)
-        .map(_._2)
-        .map(clp => clp.map(_._2).toArray.unzip)
-        .map({ case (ns, points) => ns.sum -> sumPoints(points) })
-        .map({ case (n, sum) => divPoint(sum, n) })
+      seq.reduce((x, y) => x ++ y)
+         .groupBy(x => x._1)
+         .toSeq
+         .sortBy(x => x._1)
+         .map(x => x._2)
+         .map(clp => clp.map(x => x._2).toArray.unzip)
+         .map({ case (ns, points) => (ns.sum, sumPoints(points)) })
+         .map({ case (n, sum) => divPoint(sum, n) })
     }), Duration.Inf).toArray
 
   val diff =
