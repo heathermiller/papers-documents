@@ -14,41 +14,48 @@ t ::=                                                                  & \mbox{{
 \gap ~|~  t~t                                                          & \mbox{application} \\
 \gap ~|~  \{ \seq{l = t} \}                                            & \mbox{record construction} \\
 \gap ~|~  t.l                                                          & \mbox{selection} \\
+\gap ~|~  \unit                                                        & \mbox{unit} \\
 \gap ~|~  \texttt{spore}~\{~\seq{x : T = t}~; (x: T) \Rightarrow t~\}  & \mbox{spore} \\
-\gap ~|~  \texttt{spawn}(t)                                            & \mbox{spawn host} \\
-\gap ~|~  \texttt{populate}(t, t)                                      & \mbox{populate silo} \\
+\gap ~|~  \texttt{populate}(t)                                         & \mbox{populate silo} \\
 \gap ~|~  \texttt{map}(t, t)                                           & \mbox{map} \\
 \gap ~|~  \texttt{flatMap}(t, t)                                       & \mbox{flatMap} \\
-\gap ~|~  \texttt{persist}(t)                                          & \mbox{persist} \\
 \gap ~|~  \texttt{send}(t)                                             & \mbox{send} \\           % send  :: Ref a -> Fut a
 \gap ~|~  \texttt{await}(t)                                            & \mbox{await future} \\   % await :: Fut a -> a
-\gap ~|~  \iota                                                        & \mbox{location} \\
+\gap ~|~  \texttt{respond}(h, t, t)                                    & \mbox{respond} \\
+\gap ~|~  \iota                                                        & \mbox{decentralized identifier} \\
 \gap ~|~  r                                                            & \mbox{silo reference} \\
+\gap ~|~  h                                                            & \mbox{host} \\
                                                                        & \\
 v ::=                                                                  & \mbox{{\it{values:}}} \\
 \gap \:\:\:\: (x: T) \Rightarrow t                                     & \mbox{abstraction value} \\
 \gap ~|~  \{ \seq{l = v} \}                                            & \mbox{record value} \\
+\gap ~|~  \unit                                                        & \mbox{unit} \\
 \gap ~|~  p                                                            & \mbox{spore value} \\
-\gap ~|~  \iota                                                        & \mbox{location} \\
+\gap ~|~  \iota                                                        & \mbox{decentralized identifier} \\
 \gap ~|~  r                                                            & \mbox{silo reference} \\
+\gap ~|~  h                                                            & \mbox{host} \\
                                                                        & \\
 p ::= \texttt{spore}~\{~\seq{x : T = v}~; (x: T) \Rightarrow t~\}      & \\
 & \\
-r ::=                                                  & \mbox{{\it{silo reference values:}}} \\
-\gap \:\:\:\: \text{Mat}(\omega)                       & \mbox{materialized}                  \\
-\gap ~|~  \text{Mapped}(\omega, r, p)                  & \mbox{lineage with \texttt{map}}     \\
-\gap ~|~  \text{FMapped}(\omega, r, p)                 & \mbox{lineage with \texttt{flatMap}} \\
-\gap ~|~  \text{Persist}(\omega, r, v)                 & \mbox{lineage with \texttt{persist}} \\
+l ::=                                                  & \mbox{{\it{lineages:}}}              \\
+\gap \:\:\:\: \text{Mat}(\iota)                        & \mbox{materialized}                  \\
+\gap ~|~  \text{Mapped}(\iota, l, p)                   & \mbox{lineage with \texttt{map}}     \\
+\gap ~|~  \text{FMapped}(\iota, l, p)                  & \mbox{lineage with \texttt{flatMap}} \\
                                                        & \\
-\omega  ::= (h,i) \quad \text{where}~i \in \mathbb{N}  & \mbox{decentralized identifier}      \\
+r ::= {\Ref l h} \quad \text{where}~h \in \mathcal{H}  & \mbox{silo reference} \\
+                                                       & \\
+\iota  ::= (h,i) \quad \text{where}~h \in \mathcal{H}~\text{and}~i \in \mathbb{N}   & \mbox{decentralized identifier} \\
 & \\
 T ::=                                                                  & \mbox{{\it{types:}}} \\
 \gap \:\:\:\: T \Rightarrow T                                          & \mbox{abstraction type} \\
 \gap ~|~  \{ \seq{l : T} \}                                            & \mbox{record type} \\
-\gap ~|~  T \Rightarrow T~\{~\texttt{type}~\mathcal{C} = \seq{T}~\}    & \mbox{spore type} \\
-\gap ~|~  \texttt{Host}                                                & \mbox{host type} \\
+\gap ~|~  \texttt{Unit}                                                & \mbox{unit type} \\
+\gap ~|~  \mathcal{S}                                                  & \mbox{} \\
+\gap ~|~  \texttt{Future}[T]                                           & \mbox{future type} \\
 \gap ~|~  \texttt{SiloRef}[T]                                          & \mbox{silo reference type} \\
-\gap ~|~  \texttt{Future}[T]                                           & \mbox{future type}
+\gap ~|~  \texttt{Host}                                                & \mbox{host type} \\
+\mathcal{S} ::= T \Rightarrow T~\{~\texttt{type}~\mathcal{C} = \seq{T}~\}   & \mbox{spore type} \\
+\gap ~|~ T \Rightarrow T~\{~\texttt{type}~\mathcal{C}~\}               & \mbox{abstract spore type} \\
 \ea$
 \caption{Abstract syntax of core language.}\label{fig:syntax}
 \end{figure}
@@ -59,33 +66,37 @@ syntax of our core language. Besides standard terms, the language
 includes terms related to (a) spores, (b) silos, and (c) futures. The
 \verb|spore| term creates a new spore. It contains a list of variable
 definitions, the spore header, and a closure which may only refer to
-its parameter and variables in the spore header. The \verb|spawn| term
-creates a new host capable of hosting silos. The \verb|populate| term
-initializes a new silo on a given host with a given data value.  The
-\verb|map|, \verb|flatMap|, and \verb|persist| terms create lineages
-of silo transformations represented as silo references.  The
-\verb|send| term forces the materialization of the silo corresponding
-to its argument silo reference; \verb|send| returns a future which is
+its parameter and variables in the spore header. The \verb|populate|
+term initializes a new silo on a given host. The \verb|map| and
+\verb|flatMap| terms create lineages of silo transformations
+represented as silo references.  The \verb|send| term forces the
+materialization of the silo corresponding to its first argument silo
+reference; the second argument silo reference indicates which silo
+should be completed with the materialization result. This flexibility
+is needed for implementing \verb|flatMap| (see below); in user
+programs, the two arguments passed to \verb|send| are always the
+same. The \verb|send| expression returns a future which is
 asynchronously completed with the silo's value. The \verb|await| term
 waits for the completion of its argument future and returns the
-future's value.  Locations $\iota$ are used to refer to futures and
-hosts, both of which can be created dynamically using the above terms.
+future's value. Decentralized identifiers $\iota$ are used to refer to
+futures and to identify silos via their lineages (each element in a
+lineage carries a decentralized identifier).
 
 Values in our language are as expected: besides abstractions and
-record values they include spore values, locations, and silo
-references. Locations and silo references are not part of the
-``surface syntax'' of our language; they are only introduced by
-evaluation (see Section~\ref{sec:opsem}). Silo reference values are
-values of a simple datatype with constructors {\em Mat, Mapped,
-  FMapped}, and {\em Persist}. The constructors include all
+record values they include spore values, decentralized identifiers,
+and silo references. Decentralized identifiers and silo references are
+not part of the ``surface syntax'' of our language; they are only
+introduced by evaluation (see Section~\ref{sec:opsem}). Silo reference
+values have the form ${\Ref l h}$ where $l$ is a lineage and $h$ is a
+host. Lineages are values of a simple datatype with constructors {\em
+  Mat}, {\em Mapped}, and {\em FMapped}. The constructors include all
 information required for {\em materializing} a silo with the result of
-applying the described transformations. Therefore, a silo reference
-value is also called the {\em lineage} of its corresponding silo. We
-defer a detailed explanation of the transformations described by a
-lineage to the following Section~\ref{sec:opsem}.
+applying the described transformations. We defer a detailed
+explanation of the transformations described by a lineage to the
+following Section~\ref{sec:opsem}.
 
 In addition to standard function and record types, the language has
-types for spores, hosts, silo references, and futures. A spore type $T
+types for spores, futures, silo references, and hosts. A spore type $T
 \Rightarrow T'~\{~\texttt{type}~\mathcal{C} = \seq{T}~\}$ includes the
 types $\seq{T}$ of the variables declared in the header of the spore.
 
@@ -93,7 +104,7 @@ types $\seq{T}$ of the variables declared in the header of the spore.
 
 In the following we present a small-step operational semantics of the
 introduced core language. The semantics is clearly stratified into a
-deterministic layer and a non-deterministic (concurrent)
+local (sequential) layer and a distributed (concurrent)
 layer. Importantly, this means our programming model can benefit from
 existing reasoning techniques for sequential programs. Program
 transformations that are correct for sequential programs are also
@@ -110,143 +121,136 @@ E ::=                                                                           
 \gap ~|~  \{ \seq{l = v} ; l_i = E ; \seq{l' = t} \}                                                      & \mbox{record} \\
 \gap ~|~  E.l                                                                                             & \mbox{selection} \\
 \gap ~|~  \texttt{spore}~\{~\seq{x : T = v} ; x_i : T_i = E ; \seq{x' : T = t} ; (x: T) \Rightarrow t~\}  & \mbox{spore} \\
-\gap ~|~  \texttt{spawn}(E)                                                                               & \mbox{spawn} \\
-\gap ~|~  \texttt{populate}(E, t)                                                                         & \mbox{populate (host)} \\
-\gap ~|~  \texttt{populate}(v, E)                                                                         & \mbox{populate (spore)} \\
+\gap ~|~  \texttt{populate}(E)                                                                            & \mbox{populate} \\
 \gap ~|~  \texttt{map}(E, t)                                                                              & \mbox{map (ref)} \\
 \gap ~|~  \texttt{map}(v, E)                                                                              & \mbox{map (fun)} \\
 \gap ~|~  \texttt{flatMap}(E, t)                                                                          & \mbox{flatMap (ref)} \\
 \gap ~|~  \texttt{flatMap}(v, E)                                                                          & \mbox{flatMap (fun)} \\
-\gap ~|~  \texttt{persist}(E)                                                                             & \mbox{persist} \\
 \gap ~|~  \texttt{send}(E)                                                                                & \mbox{send} \\
 \gap ~|~  \texttt{await}(E)                                                                               & \mbox{await} \\
+\gap ~|~  \texttt{respond}(h, E, t)                                                                       & \mbox{respond (fut)} \\
+\gap ~|~  \texttt{respond}(h, v, E)                                                                       & \mbox{respond (val)} \\
 \ea$
-\caption{Evaluation context.}\label{fig:eval-ctx}
+\caption{Evaluation contexts.}\label{fig:eval-ctx}
 \end{figure}
 
-The semantics is based on three reduction relations for (a) sequential
-reduction of terms, (b) deterministic reduction of hosts, and (c)
-non-deterministic reduction of sets of hosts.  The reduction relations
-use the definition of evaluation contexts shown in
-Figure~\ref{fig:eval-ctx}. Evaluation contexts capture the notion of
-the ``next subterm to be evaluated.'' Following a standard
-approach~\cite{TAPL}, we write $E[t]$ for the term obtained by
-replacing the hole in evaluation context $E$ with term $t$.
+The semantics is based on two reduction relations for (a) local
+reduction of terms and (b) distributed, non-deterministic reduction of
+sets of hosts.  The reduction relations use the definition of
+evaluation contexts shown in Figure~\ref{fig:eval-ctx}. Evaluation
+contexts capture the notion of the ``next subterm to be evaluated.''
+Following a standard approach~\cite{TAPL}, we write $E[t]$ for the
+term obtained by replacing the hole in evaluation context $E$ with
+term $t$.
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %
-% Lambda reduction.
+% Local (sequential) reduction.
 %
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 \begin{figure}
 \centering
 \begin{mathpar}
+
 \inferrule[\textsc{R-AppAbs}] {} {
-  E[((x: T) \Rightarrow t)~v']~|~\mu
+  E[((x: T) \Rightarrow t)~v]~|~\sigma
   \rightarrow^h
-  E[[x \mapsto v']t]~|~\mu
+  E[[x \mapsto v]t]~|~\sigma
 }
 
 \inferrule[\textsc{R-ProjRcd}] {} {
-  E[\{\seq{l_i = v_i^{i \in 1..n}}\}.l_j]~|~\mu
+  E[\{\seq{l_i = v_i^{i \in 1..n}}\}.l_j]~|~\sigma
   \rightarrow^h
-  E[v_j]~|~\mu
+  E[v_j]~|~\sigma
 }
 
 \inferrule[\textsc{R-AppSpore}] {} {
-  E[(\texttt{spore}~\{~\seq{x : T = v}~; (x: T) \Rightarrow t~\})~v']~|~\mu
+  E[(\texttt{spore}~\{~\seq{x : T = v}~; (x: T) \Rightarrow t~\})~v]~|~\sigma
   \rightarrow^h
-  E[\seq{[x \mapsto v]}[x \mapsto v']t]~|~\mu
+  E[\seq{[x \mapsto v]}[x \mapsto v]t]~|~\sigma
 }
 
 \inferrule[\textsc{R-Await}] {
-  \mu(\iota) = \text{Some}(v)
+  \sigma(\iota) = v
 } {
-  E[\texttt{await}(\iota)]~|~\mu
+  E[\texttt{await}(\iota)]~|~\sigma
   \rightarrow^h
-  E[v]~|~\mu
+  E[v]~|~\sigma
+}
+
+\inferrule[\textsc{R-Populate}] {
+  l = {\Mat {(h, i)}} \quad i~\text{fresh}
+} {
+  E[\texttt{populate}(h')]~|~\sigma
+  \rightarrow^h
+  E[{\Ref l {h'}}]~|~\sigma
 }
 
 \inferrule[\textsc{R-Map}] {
-  r' = \text{Mapped}((h, i), r, p) \quad
-  i~\text{fresh}
+  r = {\Ref l {h'}} \quad l' = {\Mapped {(h, i)} l p} \quad i~\text{fresh}
 } {
-  E[\texttt{map}(r, p)]~|~\mu
+  E[\texttt{map}(r, p)]~|~\sigma
   \rightarrow^h
-  E[r']~|~\mu'
+  E[{\Ref {l'} {h'}}]~|~\sigma
 }
 
 \inferrule[\textsc{R-FMap}] {
-  r' = \text{FMapped}((h, i), r, p) \quad
-  i~\text{fresh}
+  r = {\Ref l {h'}} \quad l' = {\FMapped {(h, i)} l p} \quad i~\text{fresh}
 } {
-  E[\texttt{flatMap}(r, p)]~|~\mu
+  E[\texttt{flatMap}(r, p)]~|~\sigma
   \rightarrow^h
-  E[r']~|~\mu'
-}
-
-\inferrule[\textsc{R-Persist}] {
-  r' = \text{Persist}((h, i), r, \cdot \cup \cdot) \quad
-  i~\text{fresh}
-} {
-  E[\texttt{persist}(r)]~|~\mu
-  \rightarrow^h
-  E[r']~|~\mu'
-}
-
-\inferrule[\textsc{R-Unpersist}] {
-  r' = \text{Persist}((h, i), r, \cdot \setminus \cdot) \quad
-  i~\text{fresh}
-} {
-  E[\texttt{unpersist}(r)]~|~\mu
-  \rightarrow^h
-  E[r']~|~\mu'
+  E[{\Ref {l'} {h'}}]~|~\sigma
 }
 
 \end{mathpar}
-\caption{Sequential reduction.}\label{fig:seq-reduction}
+\caption{Local reduction.}\label{fig:seq-reduction}
 \end{figure}
 
 Figure~\ref{fig:seq-reduction} shows the rules for sequential
-reduction. The sequential reduction relation has the form $E[t]~|~\mu
-\rightarrow^h E[t']~|~\mu'$ with stores $\mu$ and $\mu'$. Stores are
-required for the dynamic allocation of futures and hosts.  A store
-$\mu$ is a partial function mapping locations $\iota$ to values $v$.
-The annotation with host $h$ is used for creating {\em decentralized
-  identifiers} $\omega = (h, i)$ for silo references.  Rules
-\textsc{R-AppAbs} and \textsc{R-ProjRcd} are completely standard.
-Analogous to rule \textsc{R-AppAbs}, rule \textsc{R-AppSpore}
-describes the application of a spore value to an argument value. Rule
-\textsc{R-Await} reduces $\texttt{await}(\iota)$ to $v$ if future
-$\iota$ is already completed with $v$ in $\mu$.
+reduction. The sequential reduction relation has the form
+$E[t]~|~\sigma \rightarrow^h E[t']~|~\sigma'$ with stores $\sigma$ and
+$\sigma'$. Stores are required for the dynamic allocation of silos. A
+store $\sigma$ is a partial function mapping decentralized identifiers
+$\iota$ to values $v$.  The annotation with host $h$ is used for
+creating decentralized identifiers $\iota = (h, i)$ for lineages.
+Rules \textsc{R-AppAbs} and \textsc{R-ProjRcd} are completely
+standard.  Analogous to rule \textsc{R-AppAbs}, rule
+\textsc{R-AppSpore} describes the application of a spore value to an
+argument value. Rule \textsc{R-Await} reduces $\texttt{await}(\iota)$
+to $v$ if future $\iota$ is already completed with $v$ in $\sigma$.
 
-Rules \textsc{R-Map}, \textsc{R-FMap}, \textsc{R-Persist} and
-\textsc{R-Unpersist} describe the creation of lineages.  Rules
-\textsc{R-Map} and \textsc{R-FMap} create silo reference values using
-the constructors {\em Mapped} and {\em FMapped}, respectively. The new
-silo reference has a fresh identifier $(h, i)$ which uniquely
-identifies the corresponding (logical) silo. In each case, the spore
-value $p$ is stored in the new silo reference; this enables a
-materialization of the silo identified by $(h, i)$ using parent silo
-reference $r$ and spore $p$. Rules \textsc{R-Persist} and
+Rules \textsc{R-Populate}, \textsc{R-Map}, and \textsc{R-FMap}
+describe the creation of lineages.  Rules \textsc{R-Map} and
+\textsc{R-FMap} create lineages using the constructors {\em Mapped}
+and {\em FMapped}, respectively. The new lineage has a fresh
+identifier $(h, i)$ which uniquely identifies the corresponding
+(logical) silo. In each case, the spore value $p$ is stored in the new
+lineage; this enables a materialization of the silo identified by $(h,
+i)$ using parent lineage $l$ and spore $p$.
+
+\comment{
+Rules \textsc{R-Persist} and
 \textsc{R-Unpersist} create silo reference values using the {\em
   Persist} constructor. {\em Persist} contains a function enabling
 host $h$ to persist ($\cdot \cup \cdot$) or unpersist ($\cdot
-\setminus \cdot$) silo $r$, respectively.
+\setminus \cdot$) silo $r$, respectively.}
 
 \begin{figure}
 \centering
 $\ba[t]{l@{\hspace{2mm}}l}
-Q      ::=                             & \mbox{{\it{message queue values:}}}  \\
-\gap \:\:\:\: \epsilon                 & \mbox{empty queue}       \\
-\gap ~|~    {\Req h r \omega} :: Q     & \mbox{request (silo)}    \\
-\gap ~|~    {\Res \omega v P} :: Q     & \mbox{response (silo)}   \\
-\gap ~|~    {\ReqF \iota \omega} :: Q  & \mbox{request (future)}  \\
+m      ::= & \mbox{{\it{messages:}}} \\
+\gap \:\:\:\: {\Req h r \iota}      & \mbox{request} \\
+\gap ~|~      {\Res \iota v}        & \mbox{response} \\
+ & \\
+Q      ::=                          & \mbox{{\it{message queues:}}} \\
+\gap \:\:\:\: \epsilon  & \mbox{empty queue} \\
+\gap ~|~    m \cdot Q      & \mbox{non-empty queue} \\
 \ea$
 \caption{Message queues.}\label{fig:queues}
 \end{figure}
 
+\comment{
 The deterministic reduction relation has the form $(E[t], \mu, Q, S)^h
 \longrightarrow (E[t'], \mu', Q', S')^h$ where $Q$ is a {\em message
   queue} and $S$ is a {\em silo store}. Figure~\ref{fig:queues} shows
@@ -264,392 +268,288 @@ $\omega$ to values of the form $(\Val{v}, P)$ or $(\Fwd{r}, P)$ where
 $P$ is a set of hosts which have persisted the silo (the persist set).
 The former represents a materialized silo with value $v$. The latter
 represents a {\em proxy} forwarding to the silo specified by lineage
-$r$.
+$r$.}
 
-The deterministic reduction rules use helper functions $host$, $id$,
-$parent$, and $consume$, which are defined as follows:
+\paragraph{Distributed reduction.}
+The distributed reduction rules use helper functions $host$, $id$, and
+$parent$, which are defined as follows:
 
 \begin{defn}[Host]
   The host of a silo reference.
 
-  $host(r) := \left\{\ba{ll}
-    h         & \text{if } r = Mat((h, i)) \\
-    host(r')  & \text{if } r = Mapped(\_, r', \_) \\
-    host(r')  & \text{if } r = FMapped(\_, r', \_) \\
-    host(r')  & \text{if } r = Persist(\_, r', \_)
+  $host({\Ref l h}) := h$
+\end{defn}
+
+\begin{defn}[Lineage identifier]\label{def:id}
+  The identifier of a lineage.
+
+  $id(l) := \left\{\ba{ll}
+    \iota  & \text{if } l = Mat(\iota) \\
+    \iota  & \text{if } l = Mapped(\iota, \_, \_) \\
+    \iota  & \text{if } l = FMapped(\iota, \_, \_)
   \ea\right.$
 \end{defn}
 
-\begin{defn}[Silo reference identifier]
-  The identifier of a silo reference.
+\begin{defn}[Lineage parent]\label{def:parent}
+  The parent of a lineage.
 
-  $id(r) := \left\{\ba{ll}
-    \omega  & \text{if } r = Mat(\omega) \\
-    \omega  & \text{if } r = Mapped(\omega, r', \_) \\
-    \omega  & \text{if } r = FMapped(\omega, r', \_) \\
-    \omega  & \text{if } r = Persist(\omega, r', \_)
+  $parent(l) := \left\{\ba{ll}
+    l' & \text{if } l = Mapped(\_, l', \_) \\
+    l' & \text{if } l = FMapped(\_, l', \_) \\
   \ea\right.$
 \end{defn}
 
-\begin{defn}[Silo reference parent]
-  The parent of a silo reference.
+The distributed reduction relation has the form $H~|~M
+\twoheadrightarrow H'~|~M'$ where $H, H'$ are sets of hosts and $M,
+M'$ are sets of messages. A host with identifier $h$ in $H$ has the
+form $(t, \sigma, Q)^h$. $t$ is the term reduced by $h$; $\sigma$ is
+the local store of $h$; finally, $Q$ is a queue of incoming messages
+used for {\em asynchronous communication} with other hosts in $H$.
 
-  $parent(r) := \left\{\ba{ll}
-    \None     & \text{if } r = Mat(\_) \\
-    \Some{r'} & \text{if } r = Mapped(\_, r', \_) \\
-    \Some{r'} & \text{if } r = FMapped(\_, r', \_) \\
-    \Some{r'} & \text{if } r = Persist(\_, r', \_)
-  \ea\right.$
-\end{defn}
+Figure~\ref{fig:queues} shows the definition of message queues. A
+message queue $Q$ may contain two kinds of messages. A message of the
+form ${\Req h r \iota}$ requests the value of silo $r$ to be sent to
+host $h$ for materialization of identifier $\iota$. A message of the
+form ${\Res \iota v}$ represents the corresponding response,
+containing the identifier $\iota$ to be materialized using value $v$.
 
-\begin{defn}[Consume silo]
-  Consume silo $\omega$ with persist set $P$ in silo store $S$.
-
-  $consume(\omega, P, S) := \left\{\ba{ll}
-    S - \omega & \text{if } P = \emptyset \\
-    S          & \text{otherwise}
-  \ea\right.$
-\end{defn}
+The sets $M, M'$ in a distributed reduction $H~|~M \twoheadrightarrow
+H'~|~M'$ model {\it message sends} that are currently ``in flight;'' a
+message send $h \leftarrow m$ expresses the sending of message $m$ to
+host $h$. If $h \leftarrow m \in M$ then message $m$ has not yet been
+delivered to the message queue of $h$ (the message is still in
+transit). Separating in-flight messages from delivered messages
+(residing in some local message queue) allows us to closely model real
+distributed systems, in particular non-deterministic message ordering.
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %
-% Deterministic reduction.
+% Distributed reduction.
 %
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 \begin{figure}
-\centering
 \begin{mathpar}
-\inferrule[\textsc{R-Seq}] { 
-  E[t]~|~\mu \rightarrow^h E[t']~|~\mu'
+\inferrule[\textsc{R-Local}] {
+  t~|~\sigma \rightarrow^h t'~|~\sigma'
 } {
-  (E[t], \mu, Q, S)^h
-  \longrightarrow
-  (E[t'], \mu', Q, S)^h
-}
-
-\inferrule[\textsc{R-Send1Local}] {
-  host(r) = h                               \quad
-  S(id(r)) = (\Val{v}, P)                   \\
-  \iota~\text{fresh}                       \quad
-  \mu' = [\iota \mapsto \text{Some}(v)]\mu
-} {
-  (E[\texttt{send}(r)], \mu, Q, S)^h
-  \longrightarrow
-  (E[\iota], \mu', Q, S)^h
-}
-
-\inferrule[\textsc{R-Send2Local}] {
-  host(r)    = h                         \quad
-  id(r) \notin dom(S)                    \\
-  \iota~\text{fresh}                    \quad
-  \mu' = [\iota \mapsto \text{None}]\mu
-} {
-  (E[\texttt{send}(r)], \mu, Q, S)^h
-  \longrightarrow
-  (E[\iota], \mu', Q \cdot {\Req h r {id(r)}} \cdot {\ReqF {\iota} {id(r)}}, S)^h
-}
-
-\inferrule[\textsc{R-ReqF1}] {
-  Q         = {\ReqF \iota \omega} :: Q' \quad
-  S(\omega) = (\Val{v}, P)               \\
-  S'        = {\consume \omega P S}      \quad
-  \mu'      = [\iota \mapsto \text{Some}(v)]\mu
-} {
-  (E[\texttt{await}(\iota')], \mu, Q, S)^h
-  \longrightarrow
-  (E[\texttt{await}(\iota')], \mu', Q', S')^h
-}
-
-\inferrule[\textsc{R-ReqF2}] {
-  Q           = {\ReqF \iota \omega} :: Q'    \quad
-  \omega \notin dom(S)
-} {
-  (E[\texttt{await}(\iota')], \mu, Q, S)^h
-  \longrightarrow
-  (E[\texttt{await}(\iota')], \mu, Q' \cdot {\ReqF \iota \omega}, S)^h
-}
-\end{mathpar}
-\caption{Deterministic reduction (future).}\label{fig:determ-rules1}
-\end{figure}
-
-% Note: design approach is to *not* replace Fwds in the silo store, since
-% it would require copying data. Instead, we leverage the flexibility of
-% Req messages to correctly forward requests.
-
-We discuss the deterministic reduction rules in two steps. First, we
-discuss the rules shown in Figure~\ref{fig:determ-rules1}. Rule
-\textsc{R-Seq} reduces host $(E[t], \mu, Q, S)^h$ in case $E[t]$
-reduces in $\mu$. Rule \textsc{R-Send1Local} reduces
-$\texttt{send}(r)$ to a completed future $\iota$ if the corresponding
-silo is already materialized in silo store $S$. Rule
-\textsc{R-Send2Local} covers the case where the requested silo is not
-yet materialized. In this case, two request messages are added to the
-queue: a first message ${\Req h r {id(r)}}$ requesting the
-materialization of silo $id(r)$, and a second message requesting the
-value of silo $id(r)$ for completing future $\iota$. Rule
-\textsc{R-ReqF1} processes a message ${\ReqF \iota \omega}$ by
-completing future $\iota$ with the value of the materialized silo
-$\omega$. Rule \textsc{R-ReqF2} delays such a request in case silo
-$\omega$ is not yet materialized by moving the request to the back of
-the queue.
-
-% Important that Res message contains correct P, since R-Res
-% updates silo store.
-% Goal: theorem which states that persist sets are "correct".
-% We don't lose hosts from persist sets.
-
-\begin{figure}
-\centering
-\begin{mathpar}
-\inferrule[\textsc{R-Res}] {
-  Q  = {\Res \omega v P} :: Q'          \\
-  S' = [\omega \mapsto (\Val{v}, P)]S
-} {
-  (E[\texttt{await}(\iota)], \mu, Q, S)^h
-  \longrightarrow
-  (E[\texttt{await}(\iota)], \mu, Q', S')^h
-}
-
-\inferrule[\textsc{R-Req1Local}] {
-  Q         = {\Req h r \omega} :: Q'        \quad %
-  S(id(r))  = (\Fwd{r'}, P)                  \quad %
-  S(id(r')) = (\Val{v}, P')                  \quad %
-} {
-  (E[\texttt{await}(\iota)], \mu, Q, S)^h
-  \longrightarrow
-  (E[\texttt{await}(\iota)], \mu, Q' \cdot {\Res \omega v P}, S)^h
-}
-
-\inferrule[\textsc{R-Req2Local}] {
-  Q         = {\Req h r \omega} :: Q'              \quad %
-  S(id(r))  = (\Fwd{r'}, P)                        \quad %
-  id(r') \notin dom(S)                             \quad %
-} {
-  (E[\texttt{await}(\iota)], \mu, Q, S)^h
-  \longrightarrow
-  (E[\texttt{await}(\iota)], \mu, Q' \cdot {\Req h {r'} \omega}, S)^h
-}
-
-\inferrule[\textsc{R-ReqMapLocal}] {
-  Q          = {\Req {h'} r \omega} :: Q'               \quad %
-  r          = \text{Mapped}(\omega', r', p)            \quad %
-  S(id(r'))  = (\Val{v}, P)                             \\
-  v'         = p(v)                                          \quad %
-  S'         = [\omega' \mapsto (\Val{v'}, \emptyset)]S      \quad %
-  S''        = {\consume {id(r')} P {S'}}
-} {
-  (E[\texttt{await}(\iota)], \mu, Q, S)^h
-  \longrightarrow
-  (E[\texttt{await}(\iota)], \mu, Q' \cdot {\Req {h'} r \omega}, S'')^h
-}
-
-\inferrule[\textsc{R-ReqFMapLocal}] {
-  Q          = {\Req {h'} r \omega} :: Q'      \quad %
-  r          = \text{FMapped}(\omega', r', p)  \quad %
-  S(id(r'))  = (\Val{v}, P)                    \\
-  r''        = p(v)                                        \quad %
-  S'         = [\omega' \mapsto (\Fwd{r''}, \emptyset)]S   \quad
-  S''        = {\consume {id(r')} P {S'}}
-} {
-  (E[\texttt{await}(\iota)], \mu, Q, S)^h
-  \longrightarrow
-  (E[\texttt{await}(\iota)], \mu, Q' \cdot {\Req {h'} {r''} \omega}, S'')^h
-}
-
-\inferrule[\textsc{R-ReqPersistLocal}] {
-  Q          = {\Req {h'} r \omega} :: Q'                      \quad %
-  r          = {\Per {\omega'} {r'} \star}                  \quad %
-  \omega'    = (h'', i)                                      \quad %
-  S(id(r'))  = (\Val{v}, P)                               \\
-  P'         = P \star \{h''\}                               \quad %
-  S'         = [\omega' \mapsto (\Val{v}, P')]S            \quad %
-  S''        = {\consume {id(r')} P {S'}}
-} {
-  (E[\texttt{await}(\iota)], \mu, Q,  S)^h
-  \longrightarrow
-  (E[\texttt{await}(\iota)], \mu, Q' \cdot {\Res \omega v {P'}}, S'')^h
-}
-
-\inferrule[\textsc{R-ReqParentLocal}] {
-  Q               = {\Req {h'} r \omega} :: Q'  \quad %
-  \text{Some}(r') = parent(r)                  \quad %
-  id(r') \notin dom(S)                          \\
-} {
-  (E[\texttt{await}(\iota)], \mu, Q, S)^h
-  \longrightarrow
-  (E[\texttt{await}(\iota)], \mu, Q' \cdot {\Req h {r'} {id(r')}} \cdot {\Req {h'} r \omega}, S)^h
-}
-\end{mathpar}
-\caption{Deterministic reduction (silo).}\label{fig:determ-rules2}
-\end{figure}
-
-Figure~\ref{fig:determ-rules2} shows the remaining deterministic
-reduction rules. Rule \textsc{R-Res} processes a message ${\Res \omega
-  v P}$ by materializing silo $\omega$ with value $v$, yielding silo
-store $S'$. Rules \textsc{R-Req1Local} and \textsc{R-Req2Local}
-process a message ${\Req h r \omega}$ where silo store $S$ forwards
-$id(r)$ to another silo $id(r')$. Rules \textsc{R-ReqMapLocal} and
-\textsc{R-ReqFMapLocal} evaluate a silo reference containing {\em
-  Mapped} or {\em FMapped}, respectively, in case the parent silo
-reference is materialized. In both cases, spore value $p$, stored in
-$r$, is applied to the value of the parent silo.  In case of
-\textsc{R-ReqMapLocal}, the silo store is updated with the
-materialization result $v'$. In case of \textsc{R-ReqFMapLocal}, the
-silo store is updated with a forwarding reference to $r''$, the result
-of the spore application. Finally, the parent silo $id(r')$ is
-consumed (removed from silo store $S''$) in case the persist set $P$
-is empty, which means that $id(r')$ was not persisted.  Rule
-\textsc{R-ReqPersistLocal} materializes silo $\omega'$ under a persist
-set $P'$ which is obtained by modifying the persist set $P$ of parent
-silo $id(r')$ according to the operator $\star$ stored in $r$.  Rule
-\textsc{R-ReqParentLocal} enqueues a materialization request ${\Req h
-  {r'} {id(r')}}$ in case the parent $id(r')$ of a requested silo
-$id(r)$ is not materialized yet.
-
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-%
-% Non-deterministic reduction.
-%
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-
-%
-% (t, Q, S)^h_c -> <crash>
-% H' = { h' | h \in H \land h' = crashed(h_c, h) }
-% --------------------------------------------------
-%    { (t, Q, S)^h_c } \cup H -->> H'
-%
-%
-% update silo store to reflect crash of h_c
-% S' = { id -> (v, C') | id -> (v, C) \in S \land C' = C[h_c -> 0] }
-% ---------------------------------------------------------------------
-%    crashed(h_c, (t, Q, S)^h) = (t, Q, S')^h
-%
-%
-%   S(id) =  Some(v)       |  None
-%
-%   S(id) = (Some(v), cnt) | (None, cnt)
-%
-%   S(id) = (Some(v), [h -> 3, h' -> 2]) | (None, ...)
-%
-%   S(id) = (Some(v), C)   | (None, C)
-
-\begin{figure}
-\begin{mathpar}
-\inferrule[\textsc{R-Schedule}] {
-  (t, \mu, Q, S)^h \rightarrow (t', \mu', Q', S')^h
-} { 
-  \{ (t, \mu, Q, S)^h \} \cup H
+  \{ (t, \sigma, Q)^h \} \cup H ~|~ M
   \twoheadrightarrow
-  \{ (t', \mu', Q', S')^h \} \cup H
-}
-
-\inferrule[\textsc{R-Spawn}] { 
-  h'~\text{fresh}    \quad
-  \iota~\text{fresh} \quad
-  \mu' = [\iota \mapsto h']\mu
-} {
-  \{ (E[\texttt{spawn}(\texttt{spore}~\{~\seq{x : T = v}~; (x: T) \Rightarrow t~\})], \mu, Q, S)^h \} \cup H
-  \\ \twoheadrightarrow
-  \{ (E[\iota], \mu', Q, S)^h, ((\texttt{spore}~\{~\seq{x : T = v}~; (x: T) \Rightarrow t~\})~\{\}, \epsilon, \epsilon, \epsilon)^{h'} \} \cup H
-}
-
-% TODO send spore instead of a value `v`
-\inferrule[\textsc{R-Populate}] { 
-  \mu(\iota) = h'                                         \quad
-  S''        = [\omega \mapsto ({\Val v}, \emptyset)]S'   \quad
-  \omega     = (h', i)                                    \quad
-  i~\text{fresh}
-} {
-  \{ (E[\texttt{populate}(\iota, v)], \mu, Q, S)^h, (t', \mu', Q', S')^{h'} \} \cup H
-  \twoheadrightarrow
-  \{ (E[\text{Mat}(\omega)], \mu, Q, S)^h, (t', \mu', Q', S'')^{h'} \} \cup H
-}
-
-\inferrule[\textsc{R-Req1}] {
-  Q        = {\Req {h'} r \omega} :: Q''  \quad
-  S(id(r)) = (\Val{v}, P)                 \quad
-  m        = {\Res \omega v P}
-} {
-  \{ (E[\texttt{await}(\iota)], \mu, Q, S)^h, (t', \mu', Q', S')^{h'} \} \cup H
-  \twoheadrightarrow
-  \{ (E[\texttt{await}(\iota)], \mu, Q'', S)^h, (t', \mu', Q' \cdot m, S')^{h'} \} \cup H
-}
-
-% Rules that send Req:
-% R-Send: true (append)
-% (R-Req2Map: true (prepend))
-% R-Req2Fwd: true (prepend)
-% 
-% if a rule sends Req(h, r) to h', is it true that host(r) == h'?
-% XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX
-
-\inferrule[\textsc{R-Req2}] {
-  Q         = {\Req {h'} r \omega} :: Q''           \quad %
-  S(id(r))  = (\Fwd{r'}, P)             \\ %
-  S(id(r')) = (\Val{v}, P')             \quad %
-  m         = {\Res \omega v P}
-} {
-  \{ (E[\texttt{await}(\iota)], \mu, Q, S)^h, (t', \mu', Q', S')^{h'} \} \cup H
-  \twoheadrightarrow
-  \{ (E[\texttt{await}(\iota)], \mu, Q'', S)^h, (t', \mu', Q' \cdot m, S')^{h'} \} \cup H
-}
-
-% 1. Angenommen Host h hat einen \Fwd{r'}, dann wissen wir nicht, 
-%    auf welchem Host r' liegt. Das war der eigentliche Grund, Fwd
-%    einzufuehren, weil dann ein flatMap keine Daten transferieren muss.
-%    D.h. wir wollen zulassen, dass eine Referenz in einem Fwd auf
-%    einem beliebigen Host liegen kann.
-% Jetzt kann es sein, dass ich auf Host h ein r = r0.flatMap(p) mache.
-% diese Referenz r kann ich an einen anderen Host h' geben.
-% Jetzt macht Host h' ein r.send(). D.h., h' schickt einen Req(h', r) an h.
-% Jetzt sagt Host h: S(id(r)) = Fwd(r'), und r' kann auch auf Host h' sein
-% (da Host von r' beliebig wie oben erwaehnt).
-% Und in diesem Fall gilt, dass host(r') = h' ist, und daher Host h
-% einen Req(h', r' r) an h'' = h' sendet. Das hat zur Folge, das Host h'
-% jetzt einen Req(h', r', r) bearbeiten muss. Daher muessen auch die lokalen
-% Regeln mit zwei unterschiedlichen Referenzen umgehen koennen, weil
-% r definitiv ungleich r' ist.
-\inferrule[\textsc{R-Req3}] {
-  Q         = {\Req {h''} r \omega} :: Q''           \quad %
-  S(id(r))  = (\Fwd{r'}, P)                          \\ %
-  id(r') \notin dom(S)                               \quad %
-  h'        = host(r')                               \quad %
-  m         = {\Req {h''} {r'} \omega}
-} {
-  \{ (E[\texttt{await}(\iota)], \mu, Q, S)^h, (t', \mu', Q', S')^{h'} \} \cup H
-  \twoheadrightarrow
-  \{ (E[\texttt{await}(\iota)], \mu, Q'', S)^h, (t', \mu', Q' \cdot m, S')^{h'} \} \cup H
+  \{ (t', \sigma', Q)^h \} \cup H ~|~ M
 }
 
 \inferrule[\textsc{R-Send}] {
-  host(r) = h'                          \quad
-  h' \neq h                             \quad
-  m = {\Req h r {id(r)}}                \quad
-  \iota~\text{fresh}                    \quad
-  \mu'' = [\iota \mapsto \text{None}]\mu
+  r  = {\Ref l {h'}}      \quad
+  h' \neq h               \quad
+  m  = {\Req h r {id(l)}} \quad
+  M' = M \cup \{ h' \leftarrow m \}
 } {
-  \{ (E[\texttt{send}(r)], \mu, Q, S)^h, (t', \mu', Q', S')^{h'} \} \cup H
+  \{ (E[\texttt{send}(r)], \sigma, Q)^h \} \cup H ~|~ M
   \twoheadrightarrow
-  \{ (E[\iota], \mu'', Q, S)^h, (t', \mu', Q' \cdot m, S')^{h'} \} \cup H
+  \{ (E[id(l)], \sigma, Q)^h \} \cup H ~|~ M'
 }
+
+\inferrule[\textsc{R-SendLocal}] {
+  r  = {\Ref l h}         \quad
+  m  = {\Req h r {id(l)}}
+} {
+  \{ (E[\texttt{send}(r)], \sigma, Q)^h \} \cup H ~|~ M
+  \twoheadrightarrow
+  \{ (E[id(l)], \sigma, m \cdot Q)^h \} \cup H ~|~ M
+}
+
+\inferrule[\textsc{R-Receive}] {
+  M = M' \cup \{ h \leftarrow m \}
+} {
+  \{ (t, \sigma, Q)^h \} \cup H ~|~ M
+  \twoheadrightarrow
+  \{ (t, \sigma, Q \cdot m)^h \} \cup H ~|~ M'
+}
+
+\inferrule[\textsc{R-Respond}] {
+  M' = M \cup \{ h' \leftarrow {\Res \iota v} \}
+} {
+  \{ (E[\texttt{respond}(h', \iota, v)], \sigma, Q)^h \} \cup H ~|~ M
+  \twoheadrightarrow
+  \{ (E[\texttt{unit}], \sigma, Q)^h \} \cup H ~|~ M'
+}
+
+\inferrule[\textsc{R-Process}] {
+  \iota \notin dom(\sigma) \quad process(h, m, \sigma) = (t, M', \sigma')
+} {
+  \{ (E[\texttt{await}(\iota)], \sigma, m \cdot Q)^h \} \cup H ~|~ M
+  \twoheadrightarrow
+  \{ (E[t~;~\texttt{await}(\iota)], \sigma', Q)^h \} \cup H ~|~ M \cup M'
+}
+
 \end{mathpar}
-\caption{Non-deterministic reduction.}\label{fig:nondeterm-rules}
+\caption{Distributed reduction.}\label{fig:dist-rules}
 \end{figure}
 
-Figure~\ref{fig:nondeterm-rules} shows the non-deterministic reduction
-rules. The non-deterministic reduction relation has the form $H
-\twoheadrightarrow H'$ where $H$ and $H'$ are sets of hosts of the
-form $(t, \mu, Q, S)^h$. Rule \textsc{R-Schedule} reduces a host
-chosen non-deterministically from the set of hosts. Rule
-\textsc{R-Spawn} creates a new host whose initial term is given by the
-application of the provided spore to the unit value $\{\}$. The new
-host has an empty store, an empty queue, and an empty silo store.
-Rule \textsc{R-Populate} materializes a silo with a fresh identifier
-$\omega$ on host $h'$ using value $v$. Rules \textsc{R-Req1-3} and
-\textsc{R-Send} are analogous to the corresponding deterministic
-reduction rules. The main difference is that messages are exchanged
-between different hosts in the case of non-deterministic reduction.
+Rule \textsc{R-Local} reduces a host $h$ chosen non-deterministically
+from the set of hosts (the rule ``schedules'' host $h$ for
+execution). Term $t$ of host $h$ is reduced according to the local
+reduction rules. Thus, no communication is taking place; this means
+that both the message queue $Q$ of $h$ and the set of in-flight
+messages $M$ remain unchanged.
+
+Rule \textsc{R-Send} reduces a term $\texttt{send}(r)$ on host
+$h$. The reduction initiates the materialization of silo $r$ by
+sending a message $m = {\Req h r {id(l)}}$ to the host of $r$,
+$h'$. Thus, the message send $h' \leftarrow m$ is added to the
+resulting set of in-flight messages $M'$. The \verb|send| term itself
+is reduced to the identifier of $r$'s lineage, $id(l)$. Rule
+\textsc{R-SendLocal} only applies if the host of silo reference $r$ is
+equal to $h$. In this case, message $m$ is not added to the set of
+in-flight messages, but instead it is prepended to the local message
+queue. This ensures that local message sends take precedence over
+non-local message sends.
+
+Rule \textsc{R-Receive} moves an in-flight message $h \leftarrow m$
+from $M$ to the local message queue of host $h$. Note that there may
+be multiple in-flight messages with target $h$ in $M$; the message is
+chosen non-deterministically in this case.
+
+Rule \textsc{R-Respond} reduces a term $\texttt{respond}(h', \iota,
+v)$ by sending a response message ${\Res \iota v}$ to $h'$.
+
+Rule \textsc{R-Process} models the processing of a message $m$ taken
+from the local message queue of a host $h$. Note that this rule is
+only enabled if $h$ is {\it suspended}, waiting for a silo $\iota$ to
+be materialized in local store $\sigma$. A host is suspended if its
+current term has the form $E[\texttt{await}(\iota)]$ and $\iota \notin
+dom(\sigma)$ (there is no mapping for $\iota$ in store $\sigma$).  The
+premise $\iota \notin dom(\sigma)$ is important, since otherwise rule
+\textsc{R-Local} would also be enabled.
+
+The message processing logic is factored out into function
+$\mathit{process}$ which we discuss in the following. In general,
+processing a message $m$ on host $h$ in store $\sigma$ results in (a)
+a term $t$ to be evaluated by $h$, (b) a set of new in-flight messages
+$M'$, and (c) an updated store $\sigma'$.
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%
+% Message processing.
+%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\begin{figure}
+\begin{mathpar}
+
+\inferrule[\textsc{Proc-Res}] {
+  \sigma' = [\iota \mapsto v]\sigma
+} {
+  process(h, {\Res \iota v}, \sigma) = (\texttt{unit}, \emptyset, \sigma')
+}
+
+\inferrule[\textsc{Proc-ReqParent}] {
+  r = {\Ref l h} \quad
+  l' = parent(l) \quad
+  id(l') \notin dom(\sigma) \quad
+  M = \{ h \leftarrow {\Req {h'} r \iota} \}
+} {
+  process(h, {\Req {h'} r \iota}, \sigma) = (\texttt{send}({\Ref {l'} h}), M, \sigma)
+}
+
+\inferrule[\textsc{Proc-ReqMat}] {
+  r = {\Ref l h} \quad
+  l = {\Mat {\iota'}} \quad
+  t = \texttt{respond}(h', \iota, \texttt{unit})
+} {
+  process(h, {\Req {h'} r \iota}, \sigma) = (t, \emptyset, \sigma)
+}
+
+\inferrule[\textsc{Proc-ReqMap}] {
+  r = {\Ref l h} \quad
+  l = {\Mapped {\iota'} {l'} p} \quad
+  \sigma(id(l'))  = v           \quad
+  t = \texttt{respond}(h', \iota, p~v)
+} {
+  process(h, {\Req {h'} r \iota}, \sigma) = (t, \emptyset, \sigma)
+}
+
+\inferrule[\textsc{Proc-ReqFMap}] {
+  r = {\Ref l h} \quad
+  l = {\FMapped {\iota'} {l'} p} \quad
+  \sigma(id(l')) = v \quad
+  t = \texttt{respond}(h', \iota, \texttt{await}(\texttt{send}(p~v)))
+} {
+  process(h, {\Req {h'} r \iota}, \sigma) = (t, \emptyset, \sigma)
+}
+
+\end{mathpar}
+\caption{Message processing.}\label{fig:process}
+\end{figure}
+
+\begin{defn}[Message processing]
+  The function $process \in \mathcal{H} \times m \times S  \rightharpoonup t \times \mathcal{P}(\mathcal{H} \times m) \times S$ handles the processing of a message resulting in a term to be evaluated, a set of messages, and an updated store; here, $S = \mathcal{H} \times \mathbb{N} \rightharpoonup v$ is the type of a store. $process$ is defined in Fig.~\ref{fig:process}.
+\end{defn}
+
+The $\mathit{process}$ function must handle the two kinds of messages,
+${\Req {h'} r \iota}$ and ${\Res \iota v}$. Processing a message of
+the form ${\Res \iota v}$ means that a host is responding with the
+value $v$ of a silo whose materialization has been requested by the
+current host $h$ to complete its future $\iota$. Thus, it suffices to
+create an updated store $\sigma'$ which maps $\iota$ to $v$ (rule
+\textsc{Proc-Res}).
+
+Processing a message of the form ${\Req {h'} r \iota}$ means that host
+$h'$ requests the value of silo $r$ in order to complete a future with
+identifier $\iota$. In the absence of caching/persisting, this
+requires the receiver of the request to materialize the silo whose
+value is requested. Section~\ref{sec:persist} introduces a refinement
+of these rules to enable caching, thereby avoiding repeated
+materializations of the same silo.
+
+\comment{ However, it is also possible that silo $r$ is already
+  materialized; in this case, the receiver of the request directly
+  sends response ${\Res \iota v}$ to $h'$ (rule
+  \textsc{Proc-Req}). Note that checking whether silo $r$ is
+  materialized involves obtaining (a) the lineage $l$ of $r = {\Ref l
+    h}$ and (b) the identifier $id(l)$ of lineage $l$. }
+
+
+The requested silo $r = {\Ref l h}$ is materialized using its lineage
+$l$. Rule \\\textsc{Proc-ReqParent} handles the case where $r$'s
+parent $id(l')$ is not yet materialized ($l'$ is the lineage of $r$'s
+parent). In this case, $\mathit{process}$ returns the term
+$\texttt{send}({\Ref {l'} h})$; this causes host $h$ to request the
+materialization of the parent silo ${\Ref {l'} h}$ before any other
+message is processed. Note that a silo is always materialized on the
+same host as its parent silo; therefore, the hosts of $r$ and its
+parent are guaranteed to be the same. The original request ${\Req {h'}
+  r \iota}$ is included in the new in-flight messages $M$, so that it
+is eventually handled, namely when $r$'s parent is materialized.
+
+Rules \textsc{Proc-ReqMat}, \textsc{Proc-ReqMap}, and
+\textsc{Proc-ReqFMap} are only enabled when the requested silo $r$ can
+be materialized using its lineage $l$; in particular, if $r$ has a
+parent it must be materialized.
+
+Rule \textsc{Proc-ReqMat} handles the case where $r$ does not have a
+parent. In this case, the materialization of $r$ is just the
+\verb|unit| value; thus, a response ${\Res \iota {\texttt{unit}}}$ is
+sent to host $h'$.
+
+Rule \textsc{Proc-ReqMap} handles the case where the lineage of $r$
+begins with a $\text{Mapped}$ constructor. In this case, the
+materialization of $r$ consists of the result of applying the spore
+$p$ provided by the lineage to the value $v$ of the parent
+silo. Evaluating the application $p~v$ requires multiple reduction
+steps in general. Therefore, rule \textsc{Proc-ReqMap} returns the
+term $\texttt{respond}(h', \iota, p~v)$ for evaluation by host $h$.
+Thus, when $p~v$ has been reduced to a value $v'$, a response ${\Res
+  \iota {v'}}$ is sent to host $h'$.
+
+Rule \textsc{Proc-ReqFMap} is analogous to rule
+\textsc{Proc-ReqMap}. The main difference is that here, $p~v$ reduces
+to a {\em silo reference}. Therefore, before responding to host $h'$,
+the value of silo $p~v$ is obtained by requesting its materialization
+(using $\texttt{send}(p~v)$) and waiting for the completion of the
+returned future using \verb|await|.
+
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %
@@ -659,123 +559,107 @@ between different hosts in the case of non-deterministic reduction.
 
 \begin{figure}
 \begin{mathpar}
-% variable
 \inferrule[\textsc{T-Var}] {
   x : T \in \Gamma
 } { 
-  \Gamma ; \Sigma ; \Delta \vdash x : T
+  \Gamma ; \Sigma \vdash x : T
 }
 
-\inferrule[\textsc{T-Loc}] {
-  \Sigma(\iota) : T
-} {
-  \Gamma ; \Sigma ; \Delta \vdash \iota : T
-}
-
-% abstraction
 \inferrule[\textsc{T-Abs}] {
-  \Gamma, x : T ; \Sigma ; \Delta \vdash t : T'
+  \Gamma, x : T ; \Sigma \vdash t : T'
 } {
-  \Gamma ; \Sigma ; \Delta \vdash ((x: T) \Rightarrow t) : T \Rightarrow T'
+  \Gamma ; \Sigma \vdash ((x: T) \Rightarrow t) : T \Rightarrow T'
 }
 
-% application
 \inferrule[\textsc{T-App}] {
-  \Gamma ; \Sigma ; \Delta \vdash t : T \Rightarrow T' \quad
-  \Gamma ; \Sigma ; \Delta \vdash t' : T
+  \Gamma ; \Sigma \vdash t : T \Rightarrow T' \quad
+  \Gamma ; \Sigma \vdash t' : T
 } { 
-  \Gamma ; \Sigma ; \Delta \vdash (t~t') : T'
+  \Gamma ; \Sigma \vdash (t~t') : T'
 }
 
-% record
 \inferrule[\textsc{T-Record}] {
-  \Gamma ; \Sigma ; \Delta \vdash \seq{t} : \seq{T}
+  \Gamma ; \Sigma \vdash \seq{t} : \seq{T}
 } {
-  \Gamma ; \Sigma ; \Delta \vdash \{ \seq{l = t} \} : \{ \seq{l : T} \}
+  \Gamma ; \Sigma \vdash \{ \seq{l = t} \} : \{ \seq{l : T} \}
 }
 
-% selection
 \inferrule[\textsc{T-Select}] {
-  \Gamma ; \Sigma ; \Delta \vdash t : \{ \seq{l : T} \}
+  \Gamma ; \Sigma \vdash t : \{ \seq{l : T} \}
 } {
-  \Gamma ; \Sigma ; \Delta \vdash t.l_i : T_i
+  \Gamma ; \Sigma \vdash t.l_i : T_i
 }
 
-% spore
+\inferrule[\textsc{T-Unit}] {} {
+  \Gamma ; \Sigma \vdash \unit : \texttt{Unit}
+}
+
 \inferrule[\textsc{T-Spore}] {
-  \Gamma ; \Sigma ; \Delta \vdash \seq{t} : \seq{T}  \quad
-  \seq{x : T}, x : T ; \emptyset ; \Delta \vdash t : T' \quad
-  \forall T_i \in \seq{T}.~serializable(T_i)
-} { 
-  \Gamma ; \Sigma ; \Delta \vdash (\texttt{spore}~\{~\seq{x : T = t}~; (x: T) \Rightarrow t~\}) : T \Rightarrow T'~\{~\texttt{type}~\mathcal{C} = \seq{T}~\}
+  \Gamma ; \Sigma \vdash \seq{t} : \seq{T}     \quad
+  \seq{x : T}, x : T ; \emptyset \vdash t : T' \quad
+  \forall S \in \seq{T} , T'.~serializable(S)
+} {
+  \Gamma ; \Sigma \vdash (\texttt{spore}~\{~\seq{x : T = t}~; (x: T) \Rightarrow t~\}) : T \Rightarrow T'~\{~\texttt{type}~\mathcal{C} = \seq{T}~\}
 }
 
 \inferrule[\textsc{T-AppSpore}] {
-  \Gamma ; \Sigma ; \Delta \vdash t : T \Rightarrow T'~\{~\texttt{type}~\mathcal{C} = \seq{T}~\} \quad
-  \Gamma ; \Sigma ; \Delta \vdash t' : T
+  \Gamma ; \Sigma \vdash t : T \Rightarrow T'~\{~\texttt{type}~\mathcal{C} = \seq{T}~\} \quad
+  \Gamma ; \Sigma \vdash t' : T
 } { 
-  \Gamma ; \Sigma ; \Delta \vdash (t~t') : T'
+  \Gamma ; \Sigma \vdash (t~t') : T'
 }
 
-% spawn
-\inferrule[\textsc{T-Spawn}] {
-  \Gamma ; \Sigma ; \Delta \vdash t : (\{\} \Rightarrow T~\{~\texttt{type}~\mathcal{C} = \seq{T}~\})
-} {
-  \Gamma ; \Sigma ; \Delta \vdash \texttt{spawn}(t) : \texttt{Host}
-}
-
-% populate
-% TODO make async (Future[SiloRef[T]]); cf. R-Populate
 \inferrule[\textsc{T-Populate}] {
-  \Gamma ; \Sigma ; \Delta \vdash t : \texttt{Host} \quad
-  \Gamma ; \Sigma ; \Delta \vdash t' : T            \quad
-  serializable(T)
+  \Gamma ; \Sigma \vdash t : \texttt{Host}
 } {
-  \Gamma ; \Sigma ; \Delta \vdash \texttt{populate}(t, t') : \texttt{SiloRef}[T]
+  \Gamma ; \Sigma \vdash \texttt{populate}(t) : \texttt{SiloRef}[\texttt{Unit}]
 }
 
-% map
 \inferrule[\textsc{T-Map}] {
-  \Gamma ; \Sigma ; \Delta \vdash t : \texttt{SiloRef}[T] \quad
-  \Gamma ; \Sigma ; \Delta \vdash t' : (T \Rightarrow T'~\{~\texttt{type}~\mathcal{C} = \seq{T}~\})
+  \Gamma ; \Sigma \vdash t : \texttt{SiloRef}[T] \quad
+  \Gamma ; \Sigma \vdash t' : (T \Rightarrow T'~\{~\texttt{type}~\mathcal{C} = \seq{T}~\})
 } {
-  \Gamma ; \Sigma ; \Delta \vdash \texttt{map}(t, t') : \texttt{SiloRef}[T']
+  \Gamma ; \Sigma \vdash \texttt{map}(t, t') : \texttt{SiloRef}[T']
 }
 
-% flatMap
 \inferrule[\textsc{T-FMap}] {
-  \Gamma ; \Sigma ; \Delta \vdash t : \texttt{SiloRef}[T] \quad
-  \Gamma ; \Sigma ; \Delta \vdash t' : (T \Rightarrow \texttt{SiloRef}[T']~\{~\texttt{type}~\mathcal{C} = \seq{T}~\})
+  \Gamma ; \Sigma \vdash t : \texttt{SiloRef}[T] \quad
+  \Gamma ; \Sigma \vdash t' : (T \Rightarrow \texttt{SiloRef}[T']~\{~\texttt{type}~\mathcal{C} = \seq{T}~\})
 } {
-  \Gamma ; \Sigma ; \Delta \vdash \texttt{flatMap}(t, t') : \texttt{SiloRef}[T']
+  \Gamma ; \Sigma \vdash \texttt{flatMap}(t, t') : \texttt{SiloRef}[T']
 }
 
-% persist
-\inferrule[\textsc{T-Persist}] {
-  \Gamma ; \Sigma ; \Delta \vdash t : \texttt{SiloRef}[T]
-} {
-  \Gamma ; \Sigma ; \Delta \vdash \texttt{persist}(t) : \texttt{SiloRef}[T]
-}
-
-% send
 \inferrule[\textsc{T-Send}] {
-  \Gamma ; \Sigma ; \Delta \vdash t : \texttt{SiloRef}[T]
+  \Gamma ; \Sigma \vdash t : \texttt{SiloRef}[T]
 } {
-  \Gamma ; \Sigma ; \Delta \vdash \texttt{send}(t) : \texttt{Future}[T]
+  \Gamma ; \Sigma \vdash \texttt{send}(t) : \texttt{Future}[T]
+}
+
+\inferrule[\textsc{T-Await}] {
+  \Gamma ; \Sigma \vdash t : \texttt{Future}[T]
+} {
+  \Gamma ; \Sigma \vdash \texttt{await}(t) : T
+}
+
+\inferrule[\textsc{T-Ident}] {
+  \Sigma(\iota) = T
+} {
+  \Gamma ; \Sigma \vdash \iota : \texttt{Future}[T]
 }
 
 \inferrule[\textsc{T-SiloRef}] {
-  \Delta(id(r)) = T \quad
-  \Delta \vdash r
+  \Sigma(id(l)) = T \quad
+  \Sigma \vdash {\Ref l h}
 } {
-  \Gamma ; \Sigma ; \Delta \vdash r : \texttt{SiloRef}[T]
+  \Gamma ; \Sigma \vdash {\Ref l h} : \texttt{SiloRef}[T]
 }
 
-% await
-\inferrule[\textsc{T-Await}] {
-  \Gamma ; \Sigma ; \Delta \vdash t : \texttt{Future}[T]
+\inferrule[\textsc{T-Respond}] {
+  h \in \mathcal{H} \quad
+  \Gamma ; \Sigma \vdash t : \texttt{Future}[T] \quad
+  \Gamma ; \Sigma \vdash t' : T
 } {
-  \Gamma ; \Sigma ; \Delta \vdash \texttt{await}(t) : T
+  \Gamma ; \Sigma \vdash \texttt{respond}(h, t, t') : \texttt{Unit}
 }
 \end{mathpar}
 \caption{Type assignment.}\label{fig:type-rules}
@@ -783,15 +667,14 @@ between different hosts in the case of non-deterministic reduction.
 
 \subsection{Type Assignment}
 
-Type assignment is based on a judgment of the form $\Gamma ; \Sigma ;
-\Delta \vdash t : T$ which assigns term $t$ type $T$. $\Gamma$ is a
-standard type environment; $\Sigma$ is a standard store typing;
-$\Delta$ is a {\em silo store typing} which is new. $\Delta$ maps
-identifiers $\omega$ to types, thereby providing a typing for silo
-stores $S$. Figure~\ref{fig:type-rules} shows the rules for type
-assignment. Rules \textsc{T-Var}, \textsc{T-Loc}, \textsc{T-Abs},
-\textsc{T-App}, \textsc{T-Record}, and \textsc{T-Select} are unchanged
-compared to a standard typed lambda calculus with records~\cite{TAPL}.
+Type assignment is based on a judgment of the form $\Gamma ; \Sigma
+\vdash t : T$ which assigns term $t$ type $T$. $\Gamma$ is a standard
+type environment which maps variables $x$ to types $T$; $\Sigma$ is a
+store typing which maps identifiers $\iota$ to types
+$T$. Figure~\ref{fig:type-rules} shows the rules for type
+assignment. Rules \textsc{T-Var}, \textsc{T-Abs}, \textsc{T-App},
+\textsc{T-Record}, and \textsc{T-Select} are unchanged compared to a
+standard typed lambda calculus with records~\cite{TAPL}.
 
 \begin{figure}
 \begin{mathpar}
@@ -821,33 +704,30 @@ variables $\seq{x}$ in the spore's header, as well as an empty store
 typing. Furthermore, the types of captured variables must be
 serializable. The predicate $serializable$ is defined in
 Figure~\ref{fig:ser-types}. These constraints ensure that spore values
-are always independent of the environment and store of the creating
-host. This independence is expressed by the following theorem:
+are always independent of the environment of the creating host. This
+independence is expressed by the following theorem:
 
 \begin{thm}
 \emph{(Serializable Values)}\label{lem:ser-values}
-If $\Gamma ; \Sigma ; \Delta \vdash v : T$ and $serializable(T)$ then
-$\emptyset ; \emptyset ; \Delta \vdash v : T$.
+If $\Gamma ; \Sigma \vdash v : T$ and $serializable(T)$ then
+$\emptyset ; \Sigma \vdash v : T$.
 \end{thm}
 \begin{proof}
-By induction on the derivation of $\Gamma ; \Sigma ; \Delta \vdash v :
-T$. See Appendix~\ref{app:ser-values}.
+By induction on the derivation of $\Gamma ; \Sigma \vdash v : T$. See
+Appendix~\ref{app:ser-values}.
 \end{proof}
 
-Rule \textsc{T-AppSpore} is analogous to rule \textsc{T-App}. Rule
-\textsc{T-Spawn} requires argument $t$ to be a spore with domain type
-unit; the result has type $\texttt{Host}$.  Rule \textsc{T-Populate}
-leverages the $serializable$ predicate to ensure the value of the silo
-to be populated is independent of its source context. Rules
-\textsc{T-Map}, \textsc{T-FMap}, and \textsc{T-Persist} are
+Rule \textsc{T-AppSpore} is analogous to rule \textsc{T-App}. Rules
+\textsc{T-Populate}, \textsc{T-Map}, and \textsc{T-FMap} are
 straightforward; note that \verb|map| and \verb|flatMap| are
 polymorphic in the types of the captured variables of their spore
 argument types. Rules \textsc{T-Send} and \textsc{T-Await} are
-entirely unsurprising. Rule \textsc{T-SiloRef} is the only rule that
-uses the silo store typing $\Delta$. Analogous to rule \textsc{T-Loc},
-the type of silo $id(r)$ is looked up in $\Delta$. Furthermore,
-\textsc{T-SiloRef} requires $r$ to be well-formed in $\Delta$, written
-$\Delta \vdash r$ (see below).
+entirely unsurprising. Rules \textsc{T-Ident} and \textsc{T-SiloRef}
+are the only rules that use the store typing $\Sigma$. The type of an
+identifier $\iota$ has the form $\texttt{Future}[T]$ where type $T$ is
+looked up in the store typing. Rule \textsc{T-SiloRef} is analogous;
+additionally, it requires the silo reference ${\Ref l h}$ to be
+well-formed in $\Sigma$ (see below).
 
 \subsection{Well-Formed Configurations}
 
@@ -875,113 +755,356 @@ combine the previous rules in the expected way.
 }
 
 \inferrule[\textsc{WF-Store2}] {
-  \Sigma \vdash \mu
+  \emptyset ; \Sigma \vdash v : T  \quad
+  \Sigma \vdash \sigma
 } {
-  [\iota \mapsto T]\Sigma \vdash [\iota \mapsto v]\mu
+  [\iota \mapsto T]\Sigma \vdash [\iota \mapsto v]\sigma
 }
 
-\inferrule[\textsc{WF-Ref1}] {
-  \Delta(\omega) = T  \quad
-  \Delta(id(r)) = T' \quad
-  \exists \Gamma, \Sigma.~\Gamma ; \Sigma ; \Delta \vdash p : T' \Rightarrow T~\{\ldots\} \quad
-  \Delta \vdash r
+\inferrule[\textsc{WF-Store3}] {
+  \Sigma \vdash \sigma  \quad
+  \Sigma' \supseteq \Sigma
 } {
-  \Delta \vdash \text{Mapped}(\omega, r, p)
+  \Sigma' \vdash \sigma
 }
 
-\inferrule[\textsc{WF-Ref2}] {
-  \Delta(\omega) = T  \quad
-  \Delta(id(r)) = T' \quad
-  \exists \Gamma, \Sigma.~\Gamma ; \Sigma ; \Delta \vdash p : T' \Rightarrow \texttt{SiloRef}[T]~\{\ldots\} \quad
-  \Delta \vdash r
+\inferrule[\textsc{WF-Lin1}] {
+  \Sigma(\iota) = T  \quad
+  \Sigma(id(l)) = T' \quad
+  \exists \Gamma.~\Gamma ; \Sigma \vdash p : T' \Rightarrow T~\{\ldots\} \quad
+  \Sigma \vdash l
 } {
-  \Delta \vdash \text{FMapped}(\omega, r, p)
+  \Sigma \vdash \text{Mapped}(\iota, l, p)
 }
 
-\inferrule[\textsc{WF-Ref3}] {
-  \Delta(\omega) = T  \quad
-  \Delta(id(r)) = T   \quad
-  \Delta \vdash r
+\inferrule[\textsc{WF-Lin2}] {
+  \Sigma(\iota) = T  \quad
+  \Sigma(id(l)) = T' \quad
+  \exists \Gamma.~\Gamma ; \Sigma \vdash p : T' \Rightarrow \texttt{SiloRef}[T]~\{\ldots\} \quad
+  \Sigma \vdash l
 } {
-  \Delta \vdash {\Per \omega r {\star}}
+  \Sigma \vdash \text{FMapped}(\iota, l, p)
 }
 
-\inferrule[\textsc{WF-Ref4}] {
-  \omega \in dom(\Delta)
+\inferrule[\textsc{WF-Lin3}] {
+  \iota \in dom(\Sigma)
 } {
-  \Delta \vdash {\text{Mat}(\omega)}
+  \Sigma \vdash {\text{Mat}(\iota)}
 }
 
-\inferrule[\textsc{WF-SiloStore1}] {} {
-  \Delta \vdash \emptyset
-}
-
-\inferrule[\textsc{WF-SiloStore2}] {
-  \Delta(\omega) = T                  \quad
-  \emptyset ; \emptyset ; \Delta \vdash v : T  \quad
-  \Delta \vdash S
+\inferrule[\textsc{WF-Ref}] {
+  \Sigma \vdash l \quad h \in \mathcal{H}
 } {
-  \Delta \vdash [\omega \mapsto ({\Val v}, P)]S
-}
-
-\inferrule[\textsc{WF-SiloStore3}] {
-  \Delta(id(r)) = \Delta(\omega)      \quad
-  \Delta \vdash r                     \quad
-  \Delta \vdash S
-} {
-  \Delta \vdash [\omega \mapsto ({\Fwd r}, P)]S
+  \Sigma \vdash {\Ref l h}
 }
 
 \inferrule[\textsc{WF-Q1}] {} {
-  \Delta ; \Sigma \vdash \epsilon
+  \Sigma \vdash \epsilon
 }
 
 \inferrule[\textsc{WF-Q2}] {
-  \Delta(\omega) = T                  \quad
-  \Sigma(\iota)  = \texttt{Future}[T] \quad
-  \Delta ; \Sigma \vdash Q
+  \Sigma(\iota) = T                \quad
+  \emptyset ; \Sigma \vdash v : T  \quad
+  \Sigma \vdash Q
 } {
-  \Delta ; \Sigma \vdash {\ReqF \iota \omega} :: Q
+  \Sigma \vdash {\Res \iota v} \cdot Q
 }
 
 \inferrule[\textsc{WF-Q3}] {
-  \Delta(\omega) = T                  \quad
-  \emptyset ; \emptyset ; \Delta \vdash v : T  \quad
-  \Delta ; \Sigma \vdash Q
+  r = {\Ref l {h'}} \quad
+  \Sigma(id(l)) = \Sigma(\iota) \quad
+  \Sigma \vdash r \quad
+  \Sigma \vdash Q
 } {
-  \Delta ; \Sigma \vdash {\Res \omega v P} :: Q
+  \Sigma \vdash {\Req h r \iota} \cdot Q
 }
 
-\inferrule[\textsc{WF-Q4}] {
-  \Delta(id(r)) = \Delta(\omega) \quad
-  \Delta \vdash r \quad
-  \Delta ; \Sigma \vdash Q
-} {
-  \Delta ; \Sigma \vdash {\Req h r \omega} :: Q
-}
-
+% TODO: Re-asses if \Gamma can be \emptyset?
 \inferrule[\textsc{WF-HostConfig}] {
-  \Sigma \vdash \mu              \quad
-  \Delta \vdash S                \quad
-  \Delta ; \Sigma \vdash Q       \quad
-  \Gamma ; \Sigma ; \Delta \vdash t : T
+  \Sigma \vdash \sigma  \quad
+  \Sigma \vdash Q       \quad
+  \Gamma ; \Sigma \vdash t : T
 } {
-  \Delta ; \Sigma \vdash (t, \mu, Q, S)^h
+  \Sigma \vdash (t, \sigma, Q)^h
 }
 
 \inferrule[\textsc{WF-Host1}] {} { 
-  \Delta \vdash \emptyset
+  \Sigma \vdash \emptyset
 }
 
 \inferrule[\textsc{WF-Host2}] {
-  \exists \Sigma.~\Delta ; \Sigma \vdash (t, \mu, Q, S)^h  \quad
-  \Delta \vdash H
+  \Sigma \vdash (t, \sigma, Q)^h  \quad
+  \Sigma \vdash H
 } {
-  \Delta \vdash \{ (t, \mu, Q, S)^h \} \cup H
+  \Sigma \vdash \{ (t, \sigma, Q)^h \} \cup H
+}
+% was wir ausschliessen muessen ist: \Sigma(\iota') \neq \Sigma'(\iota') fuer zwei verschiedene Hosts
+
+\inferrule[\textsc{WF-Messages-Emp}] {} {
+  \Sigma \vdash \emptyset
+}
+
+\inferrule[\textsc{WF-Messages}] {
+  \Sigma \vdash m \cdot \epsilon \quad
+  \Sigma \vdash M
+} {
+  \Sigma \vdash \{ h \leftarrow m \} \cup M
+}
+
+\inferrule[\textsc{WF-Config}] {
+  \Sigma \vdash H \quad \Sigma \vdash M
+} {
+  \Sigma \vdash H~|~M
 }
 \end{mathpar}
 \caption{Well-formedness.}\label{fig:well-formed}
 \end{figure}
+
+
+\subsection{Persist and Unpersist}\label{sec:persist}
+
+As explained in Section~\ref{sec:primitives}, silos may be cached in
+memory to avoid repeated materialization, which may be expensive for
+large data sets. The design is inspired by the popular
+Spark~\cite{Spark} data processing system. Essentially, a silo $r$ may
+be {\em persisted} using the \verb|persist| primitive: the call
+$\texttt{persist}(r)$ immediately returns a new silo reference $r'$
+whose value, when materialized, is equal to the value of $r$.  The
+lineage of $r'$ is equal to that of $r$ except for one additional
+element: if $l$ is the lineage of silo $r$, then the lineage of $r'$
+is of the form $l' = {\Per \iota l f}$. As for other constructors
+(e.g., $\text{Mapped}$), $\iota$ is the identifier of lineage $l'$.
+(As before, $\iota = (h, i)$ implies that host $h$ has called
+\verb|persist|.)  The last argument is a binary operator $f \in \{
+\cdot\cup\cdot, \cdot\setminus\cdot \}$ which toggles between the
+behavior of \verb|persist| and \verb|unpersist|. If $f =
+\cdot\cup\cdot$ then the lineage ${\Per \iota l f}$ implements the
+behavior of \verb|persist|; otherwise, the behavior of
+\verb|unpersist|. The extensions to syntax, lineages, and evaluation
+contexts are summarized in Figure~\ref{fig:persist-syntax}.
+
+\begin{figure}
+\centering
+$\ba[t]{l@{\hspace{2mm}}l}
+t ::=                                     & \mbox{{\it terms:}} \\
+\gap \:\:\:\: \ldots                      & \mbox{} \\
+\gap ~|~ \texttt{persist}(t)              & \mbox{persist} \\
+\gap ~|~ \texttt{unpersist}(t)            & \mbox{unpersist} \\
+& \\
+l ::=                                    & \mbox{{\it{lineages:}}} \\
+\gap \:\:\:\: \ldots                     & \mbox{} \\
+\gap ~|~  \text{Persist}(\iota, l, f)    & \mbox{lineage with \texttt{persist}} \\
+& \\
+E ::=                             & \mbox{\it{evaluation contexts:}} \\
+\gap \:\:\:\: \ldots              & \mbox{} \\
+\gap ~|~  \texttt{persist}(E)     & \mbox{persist} \\
+\gap ~|~  \texttt{unpersist}(E)   & \mbox{unpersist} \\
+\ea$
+\caption{Extensions to syntax, lineages, and evaluation contexts for
+  \texttt{persist}/\texttt{unpersist}. $f$ is a binary operator with
+  $f \in \{\cdot\cup\cdot,
+  \cdot\setminus\cdot\}$.}\label{fig:persist-syntax}
+\end{figure}
+
+\subsubsection{Operational semantics}
+
+In order to distinguish between silos that have been persisted and
+those that have not, we extend stores $\sigma$ to map identifiers
+$\iota$ not just to their associated value, but also to a so-called
+``persist set'' $P$; if $\sigma(\iota) = (v, P)$ then $P$ contains all
+hosts that have persisted silo $\iota$. Stores have thus the following
+extended type:
+
+\begin{defn}[Store]\label{def:store2}
+  $\sigma \in \mathcal{H} \times \mathbb{N} \rightharpoonup v \times \mathcal{P}(\mathcal{H})$.
+\end{defn}
+
+\begin{figure}
+\centering
+\begin{mathpar}
+\inferrule[\textsc{R-Persist}] {
+  r = {\Ref l {h'}} \quad
+  l' = \text{Persist}((h, i), l, \cdot \cup \cdot) \quad i~\text{fresh}
+} {
+  E[\texttt{persist}(r)]~|~\sigma
+  \rightarrow^h
+  E[{\Ref {l'} {h'}}]~|~\sigma
+}
+
+\inferrule[\textsc{R-Unpersist}] {
+  r = {\Ref l {h'}} \quad
+  l' = \text{Persist}((h, i), l, \cdot \setminus \cdot) \quad i~\text{fresh}
+} {
+  E[\texttt{unpersist}(r)]~|~\sigma
+  \rightarrow^h
+  E[{\Ref {l'} {h'}}]~|~\sigma
+}
+
+\inferrule[\textsc{R-Await}] {
+  \sigma(\iota) = \highlight{(v, P)}
+} {
+  E[\texttt{await}(\iota)]~|~\sigma
+  \rightarrow^h
+  E[v]~|~\sigma
+}
+\end{mathpar}
+\caption{Extension to local reduction.}\label{fig:reduction-persist}
+\end{figure}
+
+As a next step we extend the local reduction relation, as shown in
+Figure~\ref{fig:reduction-persist}. First, we introduce the reduction
+rules \textsc{R-Persist} and \textsc{R-Unpersist} to enable the
+creation of $\text{Persist}$ lineages. Second, we adjust reduction
+rule \textsc{R-Await} to use the extended store.
+
+\begin{figure}
+\begin{mathpar}
+\inferrule[\textsc{Proc-Res}] {
+  \sigma' = [\iota \mapsto \highlight{(v, \emptyset)}]\sigma
+} {
+  process(h, {\Res \iota v}, \sigma) = (\texttt{unit}, \emptyset, \sigma')
+}
+
+\inferrule[\textsc{Proc-ReqPersist}] {
+  r = {\Ref l h} \quad
+  l              = {\Per {\iota'} {l'} \star}  \quad
+  \iota'         = (h'', i)                    \\
+  \sigma(id(l')) = (v, P)                      \quad
+  P'             = P \star \{h''\}             \quad
+  \sigma'        = [\iota' \mapsto (v, P')]\sigma
+} {
+  process(h, {\Req {h'} r \iota}, \sigma) = (\texttt{unit}, \{ h' \leftarrow {\Res \iota v} \}, \sigma')
+}
+
+\inferrule[\textsc{Proc-Req}] {
+  r = {\Ref l h} \quad
+  \sigma(id(l)) = (v, P) \quad
+  \sigma' = {\consume {id(l)} P \sigma}
+} {
+  process(h, {\Req {h'} r \iota}, \sigma) = (\texttt{unit}, \{ h' \leftarrow {\Res \iota v} \}, \sigma')
+}
+
+\inferrule[\textsc{Proc-ReqMap}] {
+  r = {\Ref l h} \quad
+  l = {\Mapped {\iota'} {l'} p} \quad
+  \sigma(id(l'))  = \highlight{(v, P)} \\
+  t = \texttt{respond}(h', \iota, p~v) \quad
+  \highlight{\sigma' = {\consume {id(l')} P \sigma}}
+} {
+  process(h, {\Req {h'} r \iota}, \sigma) = (t, \emptyset, \highlight{\sigma'})
+}
+
+\inferrule[\textsc{Proc-ReqFMap}] {
+  r = {\Ref l h} \quad
+  l = {\FMapped {\iota'} {l'} p} \quad
+  \sigma(id(l')) = \highlight{(v, P)} \\
+  t = \texttt{respond}(h', \iota, \texttt{await}(\texttt{send}(p~v))) \quad
+  \highlight{\sigma' = {\consume {id(l')} P \sigma}}
+} {
+  process(h, {\Req {h'} r \iota}, \sigma) = (t, \emptyset, \highlight{\sigma'})
+}
+\end{mathpar}
+\caption{Extensions to message processing.}\label{fig:process-persist}
+\end{figure}
+
+The rules for message processing are impacted most. Intuitively, the
+reason is that the fact whether a silo is (re-)materialized is
+determined in the context of message
+processing. Figure~\ref{fig:process-persist} shows new or extended
+rules for message processing. Rule \textsc{Proc-Res} is simply
+adjusted to the new store definition. Rule \textsc{Proc-ReqPersist} is
+new; the rule enables processing requests ${\Req {h'} r \iota}$ in
+cases where $r$ has a $\text{Persist}$ lineage and $r$'s parent is
+materialized (otherwise, the above \textsc{Proc-ReqParent} rule would
+be enabled).  Importantly, a silo with lineage ${\Per {\iota'} {l'}
+  \star}$ has the same value as the parent silo which has identifier
+$id(l')$.  Therefore, rule \textsc{Proc-ReqPersist} updates the store
+to map the identifier of the persisted silo, $\iota'$, to the value of
+$id(l')$ in $\sigma$. In addition, a {\em persist set} $P'$ is
+computed based on (1) the persist set $P$ of the parent silo, (2) the
+host $h''$ that created the $\text{Persist}$ lineage, and (3) the
+operator $\star$ provided in the $\text{Persist}$ lineage. The latter
+may either be set union or set difference; accordingly, the persisting
+host $h''$ is either added or removed from the persist set $P$ of the
+parent of the silo to-be-persisted. In case $h''$ is added to the
+persist set (because host $h''$ called \verb|persist| rather than
+\verb|unpersist|), it means that the persist set $P'$ is non-empty. As
+a result, the mapping for $\iota'$ remains resident in the store,
+avoiding re-materialization, as the following rules show.
+
+Rule \textsc{Proc-Req} is also new. The rule is enabled when the
+requested silo $r$ has already been materialized, i.e., $\sigma(id(l))
+= (v, P)$. In this case, a response ${\Res \iota v}$ can directly be
+sent back to the requesting host $h'$. Importantly, the rule also
+checks whether the silo has been persisted, by examining its persist
+set $P$ in store $\sigma$.  Using the $\mathit{consume}$ function, the
+mapping for identifier $id(l)$ is {\em removed} from the updated store
+$\sigma'$ if the persist set $P$ is empty. An empty persist set
+indicates that the corresponding silo has not been
+persisted. Concretely, the $\mathit{consume}$ function is defined as
+follows:
+
+\begin{defn}[Consume silo]\label{def:consume}
+Consume silo referenced by $\iota$ with persist set $P$ in store $\sigma$ \\
+$consume(\iota, P, \sigma) := \left\{\ba{ll}
+    \sigma - \iota & \text{if } P = \emptyset \\
+    \sigma         & \text{otherwise} \\
+  \ea\right.$
+\end{defn}
+
+Rules \textsc{Proc-ReqMap} and \textsc{Proc-ReqFMap} are extended to
+consume parent silos in case they have not been persisted.
+
+
+\comment{
+Definition~\ref{def:id} is extended to handle the following additional
+case: $id(Persist(\iota, \_, \_)) =
+\iota$. Definition~\ref{def:parent} is extended analogously. To
+distinguish between persisted and regular silos when accessing their
+data, we will utilize the following $\mathit{consume}$ function:}
+
+
+\begin{figure}
+\centering
+\begin{mathpar}
+\inferrule[\textsc{T-Persist}] {
+  \Gamma ; \Sigma \vdash t : \SR{T}
+} {
+  \Gamma ; \Sigma \vdash \texttt{persist}(t) : \SR{T}
+}
+
+\inferrule[\textsc{T-Unpersist}] {
+  \Gamma ; \Sigma \vdash t : \SR{T}
+} {
+  \Gamma ; \Sigma \vdash \texttt{unpersist}(t) : \SR{T}
+}
+
+\inferrule[\textsc{WF-Store2}] {
+  \emptyset ; \Sigma \vdash v : T  \quad
+  \Sigma \vdash \sigma
+} {
+  [\iota \mapsto T]\Sigma \vdash [\iota \mapsto \highlight{(v, P)}]\sigma
+}
+
+\inferrule[\textsc{WF-Lin4}] {
+  \Sigma(\iota) = T  \quad
+  \Sigma(id(l)) = T  \quad
+  \Sigma \vdash l
+} {
+  \Sigma \vdash {\Per \iota l {\star}}
+}
+\end{mathpar}
+\caption{Extension to type assignment and well-formedness.}\label{fig:type-rules-persist}
+\end{figure}
+
+Figure~\ref{fig:type-rules-persist} shows the required extensions to
+type assignment and well-formedness. The type rules \textsc{T-Persist}
+and \textsc{T-Unpersist} are straightforward. Rule \textsc{WF-Store2}
+is simply adjusted to the extended store definition. Rule
+\textsc{WF-Lin4} defines well-formedness for $\text{Persist}$
+lineages: the store typings for $\iota$ and $id(l)$ must be equal and
+parent lineage $l$ must be well-formed.
+
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %
@@ -995,18 +1118,18 @@ This section establishes a subject reduction theorem for the presented
 core language. The complete proof is provided in the appendix; here,
 we restrict ourselves to summarizing the main results.
 
-\begin{lemma}
-\emph{(Substitution)}\label{lem:subst}
-If $\Gamma , x : T' ; \Sigma ; \Delta \vdash t : T$ and $\Gamma ; \Sigma ; \Delta \vdash v : T'$ then $\Gamma ; \Sigma ; \Delta \vdash [x \mapsto v]t : T$.
-\end{lemma}
+\begin{lem}
+\emph{(Substitution)}\label{th:subst}
+If $\Gamma , x : T' ; \Sigma \vdash t : T$ and $\Gamma ; \Sigma \vdash v : T'$ then $\Gamma ; \Sigma \vdash [x \mapsto v]t : T$.
+\end{lem}
 \begin{proof}
-By induction on the derivation of $\Gamma , x : T' ; \Sigma ; \Delta \vdash t : T$.
+By induction on the derivation of $\Gamma , x : T' ; \Sigma \vdash t : T$.
 \end{proof}
 
-\begin{lemma}
+\begin{lem}
 \emph{(Queue Concatenation)}\label{lem:queue-concat}
-If $\Delta ; \Sigma \vdash Q$ and $\Delta ; \Sigma \vdash Q'$ then $\Delta ; \Sigma \vdash Q ::: Q'$.
-\end{lemma}
+If $\Sigma \vdash Q$ and $\Sigma \vdash Q'$ then $\Sigma \vdash Q ::: Q'$.
+\end{lem}
 \begin{proof}
 By induction on the length of $Q$. See Appendix~\ref{app:queue-concat}.
 \end{proof}
@@ -1017,22 +1140,113 @@ By induction on the length of $Q$. See Appendix~\ref{app:queue-concat}.
 
 \begin{enumerate}
 
-\item If $\Gamma ; \Sigma ; \Delta \vdash t : T$, $\Sigma \vdash \mu$, and $t~|~\mu \rightarrow^h t'~|~\mu'$ then $\Gamma ; \Sigma' ; \Delta' \vdash t' : T$, and $\Sigma' \vdash \mu'$ for some $\Sigma' \supseteq \Sigma$ and $\Delta' \supseteq \Delta$.
+\item If $\Gamma ; \Sigma \vdash t : T$, $\Sigma \vdash \sigma$, and $t~|~\sigma \rightarrow^h t'~|~\sigma'$ then $\Gamma ; \Sigma' \vdash t' : T$, and $\Sigma' \vdash \sigma'$ for some $\Sigma' \supseteq \Sigma$.
 
-\item If $\Delta ; \Sigma \vdash (t, \mu, Q, S)^h$ and $(t, \mu, Q, S)^h \longrightarrow (t', \mu', Q', S')^h$ then $\Delta' ; \Sigma' \vdash (t', \mu', Q', S')^h$ for some $\Delta' \supseteq \Delta$ and $\Sigma' \supseteq \Sigma$.
-
-\item If $\Delta \vdash H$ and $H \twoheadrightarrow H'$ then $\Delta' \vdash H'$ for some $\Delta' \supseteq \Delta$.
+\item If $\Sigma \vdash H~|~M$ and $H~|~M \twoheadrightarrow H'~|~M'$ then $\Sigma' \vdash H'~|~M'$ for some $\Sigma' \supseteq \Sigma$.
 
 \end{enumerate}
 
 \end{thm}
 \begin{proof}
-  Part 1: by induction on the derivation of $t~|~\mu \rightarrow^h
-  t'~|~\mu'$. Part 2: by induction on the derivation of $(t, \mu, Q,
-  S)^h \longrightarrow (t', \mu', Q', S')^h$. Part 3: by induction on
-  the derivation of $H \twoheadrightarrow H'$. See
-  Appendix~\ref{app:subject-reduction} for the complete proof.
+  Part 1: by induction on the derivation of $t~|~\sigma \rightarrow^h
+  t'~|~\sigma'$. Part 2: by induction on the derivation of $H
+  \twoheadrightarrow H'$. See Appendix~\ref{app:subject-reduction} for
+  the complete proof.
 \end{proof}
+
+
+\section{Fault Handling}
+
+We now extend the presented formal model with a {\em fault handling}
+mechanism based on lineage. Informally, our approach (a) enables hosts
+to detect and respond to faults of other hosts using fault-handling
+callbacks, and (b) recovers silos on faulty hosts by materializing
+their lineages on healthy, fall-back hosts. As we are going to show, a
+surprising result of our fault-handling extension is its simplicity
+thanks to the power and flexibility of the lineages that are
+constructed during reduction.
+
+The first extension of our formal model consists of sets of {\em
+  fault-handling callbacks} $F$ which are added to host
+configurations. An extended host configuration has the form $(t,
+\sigma, Q, F)^h$ where components $t$, $\sigma$, $Q$, and $h$ are
+unchanged. A fault-handling callback $cb \in F$ has the form $cb = h''
+\rightarrow (m, h')$. Informally, callback $cb$ expresses the fact
+that when host $h''$ fails, message $m$ should be sent to host
+$h'$. Thus, $h'$ takes the role of a {\em fall-back host}. The message
+$m$ to be sent is typically a request ${\Req h r \iota}$ which could
+not be handled in case host $h''$ fails.
+
+A fault is modeled as a host $h$ that non-deterministically disappears
+from the set of hosts $H$ in a global configuration $H~|~M$. We only
+assume a simple form of fault detection: all other, healthy hosts $h'
+\in H$ are notified of the disappearance of the faulty host $h$; no
+other information about $h$ may be used to recover from its
+failure. As a result, our formalization can model real distributed
+systems which use off-the-shelf fault detectors such as
+\cite{Hayashibara04}, which is also implemented in Akka~\cite{Akka},
+among others.
+
+\begin{figure}
+\begin{mathpar}
+\inferrule[\textsc{R-Fault}] {
+  M' = \bigcup_{c \in H} \{ h'' \leftarrow m ~|~ c = (t', \sigma', Q', F')^{h'} \land h \rightarrow (m, h'') \in F' \}
+} {
+  \{ (t, \sigma, Q, F)^h \} \cup H ~|~ M
+  \twoheadrightarrow
+  H ~|~ M \cup M'
+}
+
+\inferrule[\textsc{R-Send}] {
+  r = {\Ref l {h''}} \quad
+  m = {\Req h r {id(l)} } \quad
+  M' = M \cup \{ h'' \leftarrow m \} \\
+  \highlight{F' = F \cup \{ h'' \rightarrow ({\Req h {\Ref l {h'}} {id(l)} }, h') \}}
+} {
+  \{ (E[\texttt{send}(r, \highlight{h'})], \sigma, Q, \highlight{F})^h \} \cup H ~|~ M
+  \twoheadrightarrow
+  \{ (E[id(l)], \sigma, Q, \highlight{F'})^h \} \cup H ~|~ M'
+}
+\end{mathpar}
+\caption{Extensions to distributed reduction.}\label{fig:faults-reduction}
+\end{figure}
+
+The distributed reduction rules are extended as shown in
+Figure~\ref{fig:faults-reduction}. Rule \textsc{R-Fault}
+non-deterministically chooses a faulty host $h$ and removes it from
+the set of hosts $H$ in the resulting configuration $H ~|~ M \cup
+M'$. However, all other, healthy hosts get a chance to respond to the
+failure of host $h$. For each host configuration $(t', \sigma', Q',
+F')^{h'} \in H$, callbacks $cb \in F'$ handling faults of host $h$
+(namely, those of the form $h \rightarrow (m, h'')$) are scheduled for
+execution. A callback $h \rightarrow (m, h'')$ declares that message
+$m$ should be sent to host $h''$ in case host $h$ fails. Thus, for
+each callback of the above form, a message $h'' \leftarrow m$ is added
+to the resulting set of in-flight messages $M \cup M'$.
+
+The extended rule \textsc{R-Send} shows how this callback mechanism is
+used to recover silos from faulty hosts (extensions compared to rule
+\textsc{R-Send} in Section~\ref{sec:opsem} are highlighted). First,
+calls to \verb|send| are extended with an additional host
+argument. This host is used as a fall-back for materialization in case
+the original host $h''$ of silo reference $r = {\Ref l {h''}}$
+fails. To enable the recovery, the callback $h'' \rightarrow ({\Req h
+  {\Ref l {h'}} {id(l)} }, h')$ is added to the resulting set $F'$ of
+fault handlers. This means that in case host $h''$ fails, host $h$
+requests materialization of silo reference ${\Ref l {h'}}$ to complete
+its future $id(l)$. Note that the materialized silo has the same
+lineage $l$ as the original silo reference $r$. The only difference is
+that silo reference ${\Ref l {h'}}$ is materialized on host $h'$
+instead of host $h''$. However, since both silo references have the
+same lineage, the value which is the result of the materialization
+will be the same.
+
+\paragraph{Remark.} The fault-handling callback registered by rule \textsc{R-Send} is enabled
+even after the originally requested silo $r$ has been materialized and
+its value has been transmitted to other hosts. As a result, it is
+possible that the value of the requested silo is computed
+unnecessarily. However, this does not compromise correctness, since
+the values of the recovered silo and the original silo are equal.
 
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%

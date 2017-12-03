@@ -3,9 +3,11 @@
 \newtheorem{thm}{Theorem}[section]
 \newtheorem{corollary}{Corollary}[thm]
 \newtheorem{lemma}[thm]{Lemma}
+\newtheorem{lem}[thm]{Lemma}
 \newtheorem{defn}{Definition}[section]
 \newtheorem*{thmun}{Theorem}
 \newtheorem*{lemmaun}{Lemma}
+\newtheorem*{lemun}{Lemma}
 
 %%% Terms
 \newcommand{\FP}{{\emph{function passing}}}
@@ -44,6 +46,9 @@
   xleftmargin=0.0cm
 }
 
+\newcommand{\highlight}[1]{%
+  \colorbox{gray!50}{$\displaystyle#1$}}
+
 %%% Spacing
 \newcommand{\gap}{\quad\quad}
 
@@ -54,13 +59,18 @@
 %%% Syntax
 % Member sequences
 \newcommand{\seq}[1]{\overline{#1}}
+\newcommand{\unit}{\texttt{unit}}
+\newcommand{\Mat}[1]{\text{Mat}(#1)}
+\newcommand{\Mapped}[3]{\text{Mapped}(#1, #2, #3)}
+\newcommand{\FMapped}[3]{\text{FMapped}(#1, #2, #3)}
 
 %%% Operational model
-\newcommand{\Req}[3]{\text{Req}_s(#1, #2, #3)}
-\newcommand{\Res}[3]{\text{Res}_s(#1, #2, #3)}
+\newcommand{\Req}[3]{\text{Req}(#1, #2, #3)}
+\newcommand{\Res}[2]{\text{Res}(#1, #2)}
 \newcommand{\ReqF}[2]{\text{Req}_{\iota}(#1, #2)}
 \newcommand{\ReqE}[3]{\text{Req}_f(#1, #2, #3)}
 \newcommand{\Per}[3]{\text{Persist}(#1, #2, #3)}
+\newcommand{\Ref}[2]{\text{Ref}(#1, #2)}
 
 %%% Calculus abbreviations
 \renewcommand{\None}{\text{None}}
@@ -69,7 +79,10 @@
 \newcommand{\Val}[1]{\text{Val}(#1)}
 \newcommand{\Fwd}[1]{\text{Fwd}(#1)}
 
-%% Util
+\newcommand{\SR}[1]{\texttt{SiloRef}[#1]}
+
+%% Persist
+\newcommand{\ResP}[3]{\text{Res}(#1, #2, #3)}
 \newcommand{\consume}[3]{\text{consume}(#1, #2, #3)}
 
 %% Misc
