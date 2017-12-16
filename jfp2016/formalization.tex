@@ -458,7 +458,7 @@ $M'$, and (c) an updated store $\sigma'$.
 \end{figure}
 
 \begin{defn}[Message processing]
-  The function $process \in \mathcal{H} \times m \times S  \rightharpoonup t \times \mathcal{P}(\mathcal{H} \times m) \times S$ handles the processing of a message resulting in a term to be evaluated, a set of messages, and an updated store; here, $S = \mathcal{H} \times \mathbb{N} \rightharpoonup v$ is the type of a store. $process$ is defined in Fig.~\ref{fig:process}.
+  The function $process \in \mathcal{H} \times m \times S  \rightharpoonup t \times \mathcal{P}(\mathcal{H} \times m) \times S$ handles the processing of a message resulting in a term to be evaluated, a set of messages, and an updated store; here, $S = \mathcal{H} \times \mathbb{N} \rightharpoonup v$ is the type of a store. The $process$ function is defined in Fig.~\ref{fig:process}.
 \end{defn}
 
 The $\mathit{process}$ function must handle the two kinds of messages,
@@ -486,7 +486,7 @@ materializations of the same silo.
 
 
 The requested silo $r = {\Ref l h}$ is materialized using its lineage
-$l$. Rule \\\textsc{Proc-ReqParent} handles the case where $r$'s
+$l$. Rule \textsc{Proc-ReqParent} handles the case where $r$'s
 parent $id(l')$ is not yet materialized ($l'$ is the lineage of $r$'s
 parent). In this case, $\mathit{process}$ returns the term
 $\texttt{send}({\Ref {l'} h})$; this causes host $h$ to request the
@@ -958,7 +958,7 @@ rule \textsc{R-Await} to use the extended store.
 \caption{Extensions to message processing.}\label{fig:process-persist}
 \end{figure}
 
-The rules for message processing are impacted most. Intuitively, the
+The rules for message processing are affected most. Intuitively, the
 reason is that the fact whether a silo is (re-)materialized is
 determined in the context of message
 processing. Figure~\ref{fig:process-persist} shows new or extended

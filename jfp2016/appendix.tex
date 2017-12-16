@@ -587,6 +587,12 @@ Part 2: by induction on the derivation of $H~|~M \twoheadrightarrow H'~|~M'$ wit
 \end{proof}
 
 \begin{lem}[Responsive Apply]\label{lem:resp-apply}
+  Let $\Sigma \vdash H~|~M~|~R$ such that $\mathit{Responsive}(H, M,
+  R)$.
+
+  If $H = \{ (E[\texttt{apply}(r, p)], \sigma)^h \} \uplus \hat{H}$
+  then $H~|~M~|~R \twoheadrightarrow H'~|~M'~|~R'$ and
+  $\mathit{Responsive}(H', M', R')$.
 \end{lem}
 \begin{proof}
 \begin{enumerate}

@@ -1518,7 +1518,7 @@ functions that must remain stationary, it is possible to send proxies, mobile
 wrappers for functions. Sending a proxy will not transfer the wrapped function;
 instead, when a proxy function is applied, the call is forwarded by the system
 to the original site as a remote invocation (pickling arguments and result
-appropriately). In F-P, however, functions are not wrapped in proxies but sent
+appropriately). In our function passing model, however, functions are not wrapped in proxies but sent
 directly. Thus, calling a received function will not lead to remote invocations.
 
 Cloud Haskell~\cite{CloudHaskell} leverages guaranteed-serializable, static
