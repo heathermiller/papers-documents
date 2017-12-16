@@ -87,7 +87,7 @@
   such as fault tolerance. We provide an open-source implementation of
   our model in and for the Scala programming language, along with a
   case study of several example frameworks and end-user programs
-  written atop of this model.
+  written atop this model.
 \end{abstract}
 
 \tableofcontents
@@ -108,7 +108,7 @@ Framework~\cite{Hadoop} for Java, have been developed without making use of
 functional language {\em features} such as closures. For nearly a decade, the
 Apache Hadoop open source interpretation of this model grew in popularity,
 remaining largely unchallenged--causing nearly all of industry to synchronize on
-this one implementation for most all large-scale data processing needs.
+this one implementation for nearly all large-scale data processing needs.
 
 However, in recent years, a new generation of distributed systems for
 large-scale data processing have suddenly cropped up, built on top of emerging
@@ -118,7 +118,7 @@ Scoobi~\cite{Scoobi}. These systems make use of functional language features in
 Scala in order to provide high-level, declarative APIs to end-users. Further,
 the benefits provided by functional programming have also won over framework
 designers as well--some have noticed that immutability, and data transformation
-via higher-order functions makes it much easier, by design, to tackle concerns
+via higher-order functions, makes it much easier, by design, to tackle concerns
 central to distributed systems such as concurrency.
 
 %% What's the problem?
@@ -349,7 +349,7 @@ with both local and remote silos. Silo references are immutable, storing
 identifiers to locate possibly remote silos. They are also typed
 (\verb|SiloRef[T]|) corresponding to the type \verb|T| of their silo's data,
 leading to well-typed network communication. A silo reference provides two
-principle operations:
+principal operations:
 \verb|apply| and \verb|send|. The \verb|apply| method makes use of deferred
 evaluation; it {\em eventually} applies a user-defined function to data pointed
 to by the \verb|SiloRef[T]|, creating a new silo containing the result of this
@@ -398,7 +398,7 @@ Spores also come with additional type-checking. Type information corresponding
 to captured variables are included in the type of a spore. This enables authors
 of distributed frameworks to customize type-checking of spores to, for example,
 {\em exclude} a certain type from being captured by user-provided spores.
-Authors of distributed frameworks may kick on this type-checking by simply
+Authors of distributed frameworks may enable this type-checking by simply
 including information about excluded types (or other type-based properties) in
 the signature of a method. A concrete example would be to ensure that the
 \verb|map| method on \verb|RDD|s in Apache Spark (a distributed collection)
@@ -583,13 +583,14 @@ adults   @ m1 --> Silo[List[Person]]   @ m2
 vehicles @ m1 --> Silo[List[Vehicle]]  @ m3
 \end{lstlisting}
 \noindent
+
 To create \verb|owners|, we must combine data hosted at \verb|m2| with
-data hosted at \verb|m3|. First, \verb|adults.apply| transfers its
-spore, \ie the silo reference \verb|vehicles| and the closure\\
-\verb|persons => ...|, to \verb|m2| hosting the referenced silo of
-grown-up \verb|Person| records. Next,\\ \verb|localVehicles.apply|
+data hosted at \verb|m3|. First, the invocation of \verb|apply| on \verb|adults| (line 3) transfers its
+spore, \ie the silo reference \verb|vehicles| and the closure
+\verb|(persons: List[Person]) => ...|, to \verb|m2| hosting the referenced silo of
+grown-up \verb|Person| records. Next, the invocation of \verb|apply| on \verb|localVehicles| (line 6)
 transfers its spore, \ie the collection of adults \verb|persons| and
-the closure \verb|vehicles => ...|, to \verb|m3| hosting the
+the closure \verb|(vs: List[Vehicle]) => ...|, to \verb|m3| hosting the
 referenced silo of \verb|Vehicle| records. Now, at \verb|m3|, we have
 all required information: the adults \verb|persons|, the vehicles
 \verb|vehicles|, and the necessary computations to combine
@@ -806,7 +807,7 @@ Although fairly small and simple, the introduced programming model is
 quite flexible, and we have used it to implement a variety of examples
 and abstractions from the literature (see Section~\ref{sec:higher-order-operations}).
 However, as presented, the function passing model also has important
-limitations. Two principle limitations pertain to {\em distributed
+limitations. Two principal limitations pertain to {\em distributed
   data} and {\em distributed behavior:}
 
 \begin{itemize}
