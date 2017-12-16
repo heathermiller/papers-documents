@@ -472,7 +472,7 @@ Part 2: by induction on the derivation of $H~|~M \twoheadrightarrow H'~|~M'$ wit
 % 6.
 \item By 2.e), 3.b), and \textsc{WF-Messages}, $\Sigma \vdash m$.
 % 7.
-\item By 2.d), 5.a), 6., and Lemma~\ref{lem:process}~(Process), $\exists \Sigma'$ such that
+\item By 2.d), 5.a), 6., and Lemma~\ref{lem:process}~(Process), $\exists \Sigma', T'$ such that
   \begin{enumerate}[label=(\alph*)]
   \item $\emptyset ; \Sigma' \vdash t : T'$
   \item $\Sigma' \vdash M''$
@@ -492,12 +492,69 @@ Part 2: by induction on the derivation of $H~|~M \twoheadrightarrow H'~|~M'$ wit
 % 13.
 \item By 3.b), 7.d), \textsc{WF-Res}, \textsc{WF-Req}, \textsc{WF-Ref}, and \textsc{WF-Messages}, $\Sigma' \vdash M$.
 % 14.
-\item By 2.c), 7.b), 13., and \textsc{WF-Messages}, $\Sigma' \vdash M'$.
+\item By 2.c), 2.e), 7.b), 13., and \textsc{WF-Messages}, $\Sigma' \vdash M'$.
 % 15.
 \item By 12., 14., and \textsc{WF-Config}, $\Sigma' \vdash H'~|~M'$.
 \end{enumerate}
 
-\item Case \textsc{R-Process-Val} follows analogously.
+\item Case \textsc{R-Process-Val}.
+\begin{enumerate}
+% 1.
+\item By the assumptions
+  \begin{enumerate}[label=(\alph*)]
+  \item $\Sigma \vdash H~|~M$
+  \item $H~|~M \twoheadrightarrow H'~|~M'$
+  \end{enumerate}
+% 2.
+\item By \textsc{R-Process-Val}
+  \begin{enumerate}[label=(\alph*)]
+  \item $H  = \{ (v, \sigma)^h \} \cup H''$
+  \item $H' = \{ (t, \sigma')^h \} \cup H''$
+  \item $M' = \hat{M} \uplus M''$
+  \item $process(h, m, \sigma) = (t, M'', \sigma')$
+  \item $M = \hat{M} \uplus \{ h \leftarrow m \}$
+  \end{enumerate}
+% 3.
+\item By 1.a) and \textsc{WF-Config}
+  \begin{enumerate}[label=(\alph*)]
+  \item $\Sigma \vdash H$
+  \item $\Sigma \vdash M$
+  \end{enumerate}
+% 4.
+\item By 2.a), 3.a), and \textsc{WF-Host2}
+  \begin{enumerate}[label=(\alph*)]
+  \item $\Sigma \vdash (v, \sigma)^h$
+  \item $\Sigma \vdash H''$
+  \end{enumerate}
+% 5.
+\item By 4.a) and \textsc{WF-HostConfig}
+  \begin{enumerate}[label=(\alph*)]
+  \item $\Sigma \vdash \sigma$
+  \item $\Gamma ; \Sigma \vdash v : T$ for some $\Gamma$
+  \end{enumerate}
+% 6.
+\item By 2.e), 3.b), and \textsc{WF-Messages}, $\Sigma \vdash m$.
+% 7.
+\item By 2.d), 5.a), 6., and Lemma~\ref{lem:process}~(Process), $\exists \Sigma', T'$ such that
+  \begin{enumerate}[label=(\alph*)]
+  \item $\emptyset ; \Sigma' \vdash t : T'$
+  \item $\Sigma' \vdash M''$
+  \item $\Sigma' \vdash \sigma'$
+  \item $\Sigma' \supseteq \Sigma$
+  \end{enumerate}
+% 8.
+\item By 7.a), 7.c), and \textsc{WF-HostConfig}, $\Sigma' \vdash (t, \sigma')^h$.
+% 9.
+\item By 4.b), 7.d), and part 3 of Lemma~\ref{lem:weakening-store-typing}, $\Sigma' \vdash H''$.
+% 10.
+\item By 2.b), 8., 9., and \textsc{WF-Host2}, $\Sigma' \vdash H'$.
+% 11.
+\item By 3.b), 7.d), \textsc{WF-Res}, \textsc{WF-Req}, \textsc{WF-Ref}, and \textsc{WF-Messages}, $\Sigma' \vdash M$.
+% 12.
+\item By 2.c), 2.e), 7.b), 11., and \textsc{WF-Messages}, $\Sigma' \vdash M'$.
+% 13.
+\item By 10., 12., and \textsc{WF-Config}, $\Sigma' \vdash H'~|~M'$.
+\end{enumerate}
 
 \end{itemize}
 
