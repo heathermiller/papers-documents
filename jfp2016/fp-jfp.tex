@@ -922,10 +922,14 @@ val combined = s12.apply(spore {
 })
 \end{lstlisting}
 \noindent
-The combined silo contains triples of type \verb|(K, Option[A], Option[B])|.
-Using an additional \verb|apply|, the collection can be sorted by key, and
-adjacent triples be combined, yielding a \texttt{SiloRef[List[(K, (A, B))]]} as
-required.
+The combined silo contains triples of type
+\verb|(K, Option[A], Option[B])|.  Using an additional \verb|apply|,
+the collection can be sorted by key, and adjacent triples be combined,
+yielding a \texttt{SiloRef[List[(K, (A, B))]]} as
+required.\footnote{Note that this way of merging triples would not be
+  correct if multiple \texttt{A} or \texttt{B} values could have the
+  same hash value. Using more sophisticated hash algorithms based on
+  hash tables could be supported as well.}
 
 \paragraph{Partitioning and \texttt{groupByKey}.}
 
@@ -1681,7 +1685,6 @@ val persons: SiloRef[List[Person]] = ...
 val vehicles: SiloRef[List[Vehicle]] = ...
 // copy of `vehicles` on different host `h`, see Section 2.4.1
 val vehicles2 = SiloRef.fromLineage(h, vehicles)
-
 val adults = persons.apply(spore { ps =>
   SiloRef.populate(currentHost, ps.filter(p => p.age >= 18))
 })

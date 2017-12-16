@@ -393,9 +393,27 @@ current term has the form $E[\texttt{await}(\iota)]$ and $\iota \notin
 \mathit{dom}(\sigma)$ (there is no mapping for $\iota$ in store
 $\sigma$). The premise $\iota \notin \mathit{dom}(\sigma)$ is
 important, since otherwise rule \textsc{R-Local} would also be
-enabled. Rule \textsc{R-Process-Val} is analogous to rule
-\textsc{R-Process} for the case where a host $h$ is unable to reduce
-its term further.
+enabled.
+
+Rule \textsc{R-Process-Val} allows a host $h$ to process a message
+when the host's term has been reduced to a value $v$. Note that host
+$h$ may have silos, stored in $\sigma$, that are still required by
+other hosts. Therefore, hosts with terminated computations remain
+available to respond to messages. In rule \textsc{R-Process-Val}, the
+message to be processed is taken nondeterministically from the
+multiset $M$ of in-flight messages (analogous to other rules, this
+reflects the nondeterministic order in which messages are received).
+Processing message $m$ results in a term $t$ to be evaluated next by
+host $h$, a set of produced messages $M''$, and the new state
+$\sigma'$ of $h$. Since $h$ is supposed to evaluate $t$ next, $t$
+replaces $v$ in the resulting host configuration. Note that term $t$
+may be of a different type than $v$. Importantly, this does not break
+soundness: in the resulting configuration $(t, \sigma')^h$ it is
+sufficient for term $t$ to be well-typed {\it for some} type $T$. In
+contrast, local reduction of a term does not permit changing a term's
+type (see Theorem~\ref{th:subject-reduction} in
+Section~\ref{sec:subject-reduction} as well as its proof in
+Appendix~\ref{app:subject-reduction}.)
 
 The actual message processing logic is factored out into function
 $\mathit{process}$ which we discuss in the following. In general,
