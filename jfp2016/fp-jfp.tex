@@ -739,14 +739,14 @@ Section~\ref{sec:conclusion-future-work}).
 As mentioned earlier, besides a type definition for \verb|SiloRef[T]|, our framework also provides a
 companion singleton object. The singleton object
 provides a variety of factory methods for obtaining silo references referring to silos populated
-with some initial data:\footnote{For clarity, only method signatures are shown.}
+with some initial data:
 
 \begin{lstlisting}
 object SiloRef {
-  def populate[T](host: Host, value: T): SiloRef[T]
-  def fromTextFile(host: Host, file: File): SiloRef[List[String]]
-  def fromFun[T](host: Host, s: Spore[Unit, T]): SiloRef[T]
-  def fromLineage[T](host: Host, s: SiloRef[T]): SiloRef[T]
+  def populate[T](host: Host, value: T): SiloRef[T] = ...
+  def fromTextFile(host: Host, file: File): SiloRef[List[String]] = ...
+  def fromFun[T](host: Host, s: Spore[Unit, T]): SiloRef[T] = ...
+  def fromLineage[T](host: Host, s: SiloRef[T]): SiloRef[T] = ...
 }
 \end{lstlisting}
 \noindent

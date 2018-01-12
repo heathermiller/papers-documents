@@ -651,19 +651,6 @@ evaluating the \texttt{respond} term.
 \caption{Type assignment.}\label{fig:type-rules}
 \end{figure}
 
-\subsection{Type Assignment}
-
-Type assignment is based on a judgment of the form $\Gamma ; \Sigma
-\vdash t : T$ which assigns term $t$ type $T$. $\Gamma$ is a standard
-type environment which maps variables $x$ to types $T$; $\Sigma$ is a
-store typing which maps identifiers $\iota$ to types
-$T$. Figure~\ref{fig:type-rules} shows the rules for type
-assignment. Rules \textsc{T-Var}, \textsc{T-Abs}, and \textsc{T-App}
-are unchanged compared to a standard typed lambda
-calculus~\cite{TAPL}. Rules \textsc{T-Int} and \textsc{T-IntOp} assign
-types to integer literals and applications of integer operators,
-respectively.
-
 \begin{figure}
 \begin{mathpar}
 \inferrule[\textsc{S-Int}] {} {
@@ -691,15 +678,26 @@ respectively.
 \caption{Serializable types.}\label{fig:ser-types}
 \end{figure}
 
-Rule \textsc{T-Spore} assigns a type to spore literals. Importantly,
-the body of the spore's closure, $t$, must be well-typed in a type
-environment containing only the closure parameter $x$ and the
-variables $\seq{x}$ in the spore's header, as well as an empty store
-typing. Furthermore, the types of captured variables as well as the
-result type $T'$ must be serializable. The predicate $serializable$ is
-defined in Figure~\ref{fig:ser-types}. These constraints ensure that
-spore values are always independent of the environment of the creating
-host. This independence is expressed by the following theorem:
+\subsection{Type Assignment}
+
+Type assignment is based on a judgment of the form $\Gamma ; \Sigma
+\vdash t : T$ which assigns term $t$ type $T$. $\Gamma$ is a type
+environment which maps variables $x$ to types $T$; $\Sigma$ is a store
+typing which maps identifiers $\iota$ to types
+$T$. Figure~\ref{fig:type-rules} shows type assignment rules. Rules
+\textsc{T-Var}, \textsc{T-Abs}, and \textsc{T-App} correspond to a
+standard typed lambda calculus~\cite{TAPL}. Rules \textsc{T-Int} and
+\textsc{T-IntOp} assign types to integer literals and applications of
+integer operators, respectively. Rule \textsc{T-Spore} assigns a type
+to spore literals. Importantly, the body of the spore's closure, $t$,
+must be well-typed in a type environment containing only the closure
+parameter $x$ and the variables $\seq{x}$ in the spore's header, as
+well as an empty store typing. Furthermore, the types of captured
+variables as well as the result type $T'$ must be serializable. The
+predicate $serializable$ is defined in
+Figure~\ref{fig:ser-types}. These constraints ensure that spore values
+are always independent of the environment of the creating host. This
+independence is expressed by the following theorem:
 
 \begin{thm}
 \emph{(Serializable Values)}\label{lem:ser-values}
